@@ -18,7 +18,7 @@
 </head>
 <body>
     <!-- Skip Link for keyboard users -->
-    <a href="#chatbox" class="skip-link">Skip to main content</a>
+    <a href="#map-container" class="skip-link">Skip to main content</a>
 
     <!-- Initial Start Screen -->
     <div id="start-screen" role="main" aria-label="Welcome">
@@ -28,12 +28,14 @@
     <!-- Main App Container (hidden initially) -->
     <div id="app-container" class="hidden">
         <!-- Map Container -->
-        <div id="map-container">
-            <div id="map"></div>
+        <div id="map-container" tabindex="-1">
+            <div id="map" role="application" aria-label="Interactive map of Kumamoto investment region"></div>
+            <!-- Screen reader announcements for map interactions -->
+            <div id="map-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
             <!-- Control Bar (hidden initially) -->
             <div id="control-bar" class="hidden" role="toolbar" aria-label="Map controls">
-                <div id="time-toggle" class="hidden" role="group" aria-label="Time view">
+                <div id="time-toggle" class="hidden" role="group" aria-label="Map time view: toggle between present and future development states">
                     <button id="present-btn" class="time-btn active" aria-pressed="true">Present</button>
                     <button id="future-btn" class="time-btn" aria-pressed="false">Future</button>
                 </div>
@@ -44,17 +46,18 @@
                 <div id="chatbox-content"></div>
             </div>
 
-            <!-- Map Legend (journey-aware) -->
-            <div id="map-legend" class="hidden" role="region" aria-label="Map legend">
-                <div class="legend-title">Legend</div>
-                <div class="legend-items" id="legend-items">
-                    <!-- Populated by JS based on journey -->
-                </div>
-            </div>
+            <!-- Layers Toggle Button -->
+            <button id="layers-toggle" class="hidden" aria-label="Toggle map layers" aria-expanded="false">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </button>
 
-            <!-- Data Layers Panel (journey-aware) -->
+            <!-- Data Layers Panel (journey-aware, toggled by button) -->
             <div id="data-layers" class="hidden" role="region" aria-label="Data layers">
-                <div class="layers-title">Data Layers</div>
+                <div class="layers-title">Map Layers</div>
                 <div class="layer-items" id="layer-items">
                     <!-- Populated by JS based on journey -->
                 </div>
@@ -63,7 +66,7 @@
 
         <!-- Right Panel -->
         <aside id="right-panel" class="hidden" role="complementary" aria-label="Details panel">
-            <button id="panel-close" aria-label="Close panel">&times;</button>
+            <button id="panel-close" aria-label="Close panel"><span aria-hidden="true">&times;</span></button>
             <div id="panel-content"></div>
         </aside>
     </div>
@@ -72,7 +75,7 @@
     <div id="gallery-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
         <div id="gallery-overlay"></div>
         <div id="gallery-content">
-            <button id="gallery-close" aria-label="Close gallery">&times;</button>
+            <button id="gallery-close" aria-label="Close gallery"><span aria-hidden="true">&times;</span></button>
             <h2 id="gallery-title" class="sr-only">Document viewer</h2>
             <div id="gallery-body"></div>
         </div>
@@ -98,6 +101,11 @@
             <!-- Messages will be inserted here -->
         </div>
 
+        <!-- Exit path CTAs -->
+        <div class="ai-chat-actions" id="ai-chat-actions">
+            <button class="ai-action-btn" onclick="UI.viewPropertiesAgain()">View Properties Again</button>
+        </div>
+
         <form class="ai-chat-input-container" id="ai-chat-form">
             <input
                 type="text"
@@ -108,7 +116,7 @@
                 aria-label="Type your question"
             >
             <button type="submit" class="ai-chat-send" aria-label="Send message">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 2L11 13"></path>
                     <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
                 </svg>

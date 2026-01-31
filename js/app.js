@@ -76,9 +76,6 @@ const App = {
         // Show marker and fly to location
         MapManager.showResourceMarker(resourceId);
 
-        // Show legend for Journey A
-        UI.showLegend('A');
-
         // Track explored resources
         if (!this.state.resourcesExplored.includes(resourceId)) {
             this.state.resourcesExplored.push(resourceId);
@@ -96,12 +93,16 @@ const App = {
         let content = `
             <h3>Why Kumamoto?</h3>
             <p>Click the markers on the map to learn more.</p>
-            <div class="chatbox-options">
-                <button class="chatbox-option ${waterExplored ? 'completed' : ''}" onclick="App.selectResource('water')">
-                    Water Resources
+            <div class="chatbox-options" role="group" aria-label="Resource options">
+                <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
+                        onclick="App.selectResource('water')"
+                        ${waterExplored ? 'aria-disabled="true"' : ''}>
+                    Water Resources${waterExplored ? '<span class="sr-only"> (explored)</span>' : ''}
                 </button>
-                <button class="chatbox-option ${powerExplored ? 'completed' : ''}" onclick="App.selectResource('power')">
-                    Power Infrastructure
+                <button class="chatbox-option ${powerExplored ? 'completed' : ''}"
+                        onclick="App.selectResource('power')"
+                        ${powerExplored ? 'aria-disabled="true"' : ''}>
+                    Power Infrastructure${powerExplored ? '<span class="sr-only"> (explored)</span>' : ''}
                 </button>
             </div>
         `;
@@ -109,7 +110,7 @@ const App = {
         if (allExplored) {
             content += `
                 <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
-                    See what's being built here
+                    See What's Being Built Here
                 </button>
             `;
         }
@@ -138,8 +139,7 @@ const App = {
         // B1: Show infrastructure layer with Science Park
         MapManager.showSciencePark();
 
-        // Show legend and data layers for Journey B
-        UI.showLegend('B');
+        // Show data layers toggle for Journey B
         UI.showDataLayers('B');
 
         UI.showChatbox(`
@@ -163,8 +163,8 @@ const App = {
             <h3>Infrastructure Plan</h3>
             <p>Major corporations have committed billions to this region.</p>
             <p>Click company markers to see their investments.</p>
-            <button class="chatbox-continue" onclick="App.stepB6()">
-                Show time controls
+            <button class="chatbox-continue primary" onclick="App.stepB6()">
+                Show Time Controls
             </button>
         `);
     },
@@ -180,8 +180,8 @@ const App = {
             <h3>Infrastructure Plan</h3>
             <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
             <p>Future view shows upcoming development zones.</p>
-            <button class="chatbox-continue" onclick="App.transitionToJourneyC()">
-                View investment opportunities
+            <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
+                View Investment Opportunities
             </button>
         `);
     },
@@ -209,19 +209,18 @@ const App = {
         // C1: Show property markers
         MapManager.showPropertyMarkers();
 
-        // Update legend and data layers for Journey C
-        UI.showLegend('C');
+        // Update data layers toggle for Journey C
         UI.showDataLayers('C');
 
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>
             <p>Amber markers show available investment properties.</p>
             <p>Click a property to see financials and projections.</p>
-            <p style="font-size: 14px; color: #9ca3af; margin-top: 16px;">
+            <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
                 Route lines show distance to JASM employment center.
             </p>
-            <button class="chatbox-continue" onclick="App.complete()">
-                Any more questions?
+            <button class="chatbox-continue primary" onclick="App.complete()">
+                Any More Questions?
             </button>
         `);
 
@@ -248,8 +247,7 @@ const App = {
         UI.hideControlBar();
         UI.hideChatbox();
         UI.hideAIChat();
-        UI.hideLegend();
-        UI.hideDataLayers();
+        UI.hideLayersToggle();
         MapManager.resetView();
 
         setTimeout(() => {

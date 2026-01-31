@@ -52,12 +52,12 @@ const MapManager = {
      * Create a custom marker icon
      */
     createMarkerIcon(type) {
-        // Colorblind-safe palette with good contrast
+        // Colors aligned with legend (styles.css layer icons)
         const colors = {
-            resource: '#7c3aed',   // Violet - distinct from blue
-            company: '#2563eb',    // Blue - corporate feel
-            property: '#d97706',   // Amber - warm "opportunity"
-            zone: '#0d9488'        // Teal - contrasts orange fill
+            resource: '#ff3b30',   // Red - matches science park
+            company: '#007aff',    // Blue - matches legend
+            property: '#ff9500',   // Orange - matches legend
+            zone: '#ff3b30'        // Red - matches science park
         };
 
         return L.divIcon({
@@ -117,9 +117,9 @@ const MapManager = {
         // Create circle
         const circle = L.circle(sp.center, {
             radius: sp.radius,
-            color: '#ef4444',
+            color: '#ff3b30',
             weight: 3,
-            fillColor: '#ef4444',
+            fillColor: '#ff3b30',
             fillOpacity: 0.1,
             className: 'science-park-circle'
         });
@@ -166,9 +166,9 @@ const MapManager = {
             // Create circle for zone - purple to contrast teal markers
             const circle = L.circle(zone.coords, {
                 radius: zone.radius,
-                color: '#8b5cf6',
+                color: '#ff3b30',
                 weight: 2,
-                fillColor: '#8b5cf6',
+                fillColor: '#ff3b30',
                 fillOpacity: 0.12,
                 dashArray: '5, 10'
             });

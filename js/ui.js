@@ -27,9 +27,12 @@ const UI = {
             galleryModal: document.getElementById('gallery-modal'),
             galleryClose: document.getElementById('gallery-close'),
             galleryOverlay: document.getElementById('gallery-overlay'),
-            galleryBody: document.getElementById('gallery-body')
+            galleryBody: document.getElementById('gallery-body'),
+            layersToggle: document.getElementById('layers-toggle'),
+            dataLayers: document.getElementById('data-layers')
         };
 
+        this.layersPanelOpen = false;
         this.bindEvents();
     },
 
@@ -77,6 +80,11 @@ const UI = {
 
         this.elements.futureBtn.addEventListener('click', () => {
             this.setTimeView('future');
+        });
+
+        // Layers toggle button
+        this.elements.layersToggle.addEventListener('click', () => {
+            this.toggleLayersPanel();
         });
     },
 
@@ -416,15 +424,16 @@ const UI = {
     // ================================
 
     showGallery(title, type, description) {
+        // Icons with proper ARIA roles for screen readers
         const icons = {
-            pdf: '📄',
-            image: '🖼️',
-            web: '🌐'
+            pdf: '<span role="img" aria-label="Document">📄</span>',
+            image: '<span role="img" aria-label="Image">🖼️</span>',
+            web: '<span role="img" aria-label="Web link">🌐</span>'
         };
 
         const content = `
             <div class="placeholder-doc">
-                <div class="icon">${icons[type] || '📄'}</div>
+                <div class="icon">${icons[type] || icons.pdf}</div>
                 <h3>${title}</h3>
                 <p>${description}</p>
                 <p style="margin-top: 24px; font-size: 14px; color: #6b7280;">
@@ -439,14 +448,61 @@ const UI = {
         // Focus management for accessibility
         this.lastFocusedElement = document.activeElement;
         this.elements.galleryClose.focus();
+
+        // Set up focus trap
+        this.setupFocusTrap(this.elements.galleryModal);
     },
 
     hideGallery() {
         this.elements.galleryModal.classList.add('hidden');
 
+        // Remove focus trap
+        this.removeFocusTrap();
+
         // Return focus to trigger element
         if (this.lastFocusedElement) {
             this.lastFocusedElement.focus();
+        }
+    },
+
+    /**
+     * Set up focus trap within a modal element
+     */
+    setupFocusTrap(element) {
+        this.focusTrapHandler = (e) => {
+            if (e.key !== 'Tab') return;
+
+            const focusable = element.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstFocusable = focusable[0];
+            const lastFocusable = focusable[focusable.length - 1];
+
+            if (e.shiftKey) {
+                // Shift + Tab
+                if (document.activeElement === firstFocusable) {
+                    lastFocusable.focus();
+                    e.preventDefault();
+                }
+            } else {
+                // Tab
+                if (document.activeElement === lastFocusable) {
+                    firstFocusable.focus();
+                    e.preventDefault();
+                }
+            }
+        };
+
+        document.addEventListener('keydown', this.focusTrapHandler);
+    },
+
+    /**
+     * Remove focus trap
+     */
+    removeFocusTrap() {
+        if (this.focusTrapHandler) {
+            document.removeEventListener('keydown', this.focusTrapHandler);
+            this.focusTrapHandler = null;
         }
     },
 
@@ -503,96 +559,13 @@ const UI = {
             this.elements.futureBtn.classList.add('active');
             this.elements.futureBtn.setAttribute('aria-pressed', 'true');
             MapManager.showFutureZones();
-            this.updateLegendForJourneyB(true);
         } else {
             this.elements.futureBtn.classList.remove('active');
             this.elements.futureBtn.setAttribute('aria-pressed', 'false');
             this.elements.presentBtn.classList.add('active');
             this.elements.presentBtn.setAttribute('aria-pressed', 'true');
             MapManager.hideFutureZones();
-            this.updateLegendForJourneyB(false);
         }
-    },
-
-    // ================================
-    // MAP LEGEND
-    // ================================
-
-    showLegend(journey) {
-        const legendItems = document.getElementById('legend-items');
-        let html = '';
-
-        if (journey === 'A') {
-            html = `
-                <div class="legend-item">
-                    <div class="legend-marker" style="background: #7c3aed;"></div>
-                    <span class="legend-label">Natural Resources</span>
-                </div>
-            `;
-        } else if (journey === 'B') {
-            html = this.getLegendForJourneyB(false);
-        } else if (journey === 'C') {
-            html = `
-                <div class="legend-item">
-                    <div class="legend-marker" style="background: #d97706;"></div>
-                    <span class="legend-label">Investment Properties</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-marker" style="background: #2563eb;"></div>
-                    <span class="legend-label">Corporate Facilities</span>
-                </div>
-                <div class="legend-divider"></div>
-                <div class="legend-item">
-                    <div class="legend-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7" stroke-dasharray="3 3"/>
-                        </svg>
-                    </div>
-                    <span class="legend-label">Route to JASM</span>
-                </div>
-            `;
-        }
-
-        legendItems.innerHTML = html;
-        document.getElementById('map-legend').classList.remove('hidden');
-    },
-
-    getLegendForJourneyB(showFuture) {
-        let html = `
-            <div class="legend-item">
-                <div class="legend-marker" style="background: #ef4444; border-radius: 50%; border: 2px dashed #ef4444;"></div>
-                <span class="legend-label">Science Park Corridor</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-marker" style="background: #2563eb;"></div>
-                <span class="legend-label">Corporate Investment</span>
-            </div>
-        `;
-
-        if (showFuture) {
-            html += `
-                <div class="legend-divider"></div>
-                <div class="legend-item">
-                    <div class="legend-marker" style="background: #8b5cf6; opacity: 0.6;"></div>
-                    <span class="legend-label">Future Development Zone</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-marker" style="background: #0d9488;"></div>
-                    <span class="legend-label">Planned Expansion</span>
-                </div>
-            `;
-        }
-
-        return html;
-    },
-
-    updateLegendForJourneyB(showFuture) {
-        const legendItems = document.getElementById('legend-items');
-        legendItems.innerHTML = this.getLegendForJourneyB(showFuture);
-    },
-
-    hideLegend() {
-        document.getElementById('map-legend').classList.add('hidden');
     },
 
     // ================================
@@ -603,55 +576,97 @@ const UI = {
         const layerItems = document.getElementById('layer-items');
         let html = '';
 
+        // Use buttons with role="switch" for proper keyboard accessibility
         if (journey === 'B') {
             html = `
-                <div class="layer-item active" data-layer="sciencePark" onclick="UI.toggleLayer('sciencePark')">
-                    <div class="layer-radio"></div>
-                    <div class="layer-icon">
+                <button type="button" class="layer-item active" data-layer="sciencePark"
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-                    </div>
-                    <span class="layer-label">Science Park</span>
-                </div>
-                <div class="layer-item active" data-layer="companies" onclick="UI.toggleLayer('companies')">
-                    <div class="layer-radio"></div>
-                    <div class="layer-icon">
+                    </span>
+                    <span class="layer-label">Science park</span>
+                </button>
+                <button type="button" class="layer-item active" data-layer="companies"
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                    </div>
-                    <span class="layer-label">Corporate Sites</span>
-                </div>
+                    </span>
+                    <span class="layer-label">Corporate sites</span>
+                </button>
             `;
         } else if (journey === 'C') {
             html = `
-                <div class="layer-item active" data-layer="properties" onclick="UI.toggleLayer('properties')">
-                    <div class="layer-radio"></div>
-                    <div class="layer-icon">
+                <button type="button" class="layer-item active" data-layer="properties"
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('properties')">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                    </div>
+                    </span>
                     <span class="layer-label">Properties</span>
-                </div>
-                <div class="layer-item active" data-layer="companies" onclick="UI.toggleLayer('companies')">
-                    <div class="layer-radio"></div>
-                    <div class="layer-icon">
+                </button>
+                <button type="button" class="layer-item active" data-layer="companies"
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                    </div>
-                    <span class="layer-label">Corporate Sites</span>
-                </div>
-                <div class="layer-item active" data-layer="sciencePark" onclick="UI.toggleLayer('sciencePark')">
-                    <div class="layer-radio"></div>
-                    <div class="layer-icon">
+                    </span>
+                    <span class="layer-label">Corporate sites</span>
+                </button>
+                <button type="button" class="layer-item active" data-layer="sciencePark"
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-                    </div>
-                    <span class="layer-label">Science Park</span>
-                </div>
+                    </span>
+                    <span class="layer-label">Science park</span>
+                </button>
             `;
         }
 
         layerItems.innerHTML = html;
-        document.getElementById('data-layers').classList.remove('hidden');
+        // Show the toggle button but keep panel hidden until user clicks
+        this.showLayersToggle();
     },
 
     hideDataLayers() {
         document.getElementById('data-layers').classList.add('hidden');
+        this.layersPanelOpen = false;
+        this.elements.layersToggle.classList.remove('active');
+        this.elements.layersToggle.setAttribute('aria-expanded', 'false');
+    },
+
+    /**
+     * Toggle layers panel visibility
+     */
+    toggleLayersPanel() {
+        if (this.layersPanelOpen) {
+            this.elements.dataLayers.classList.add('hidden');
+            this.elements.layersToggle.classList.remove('active');
+            this.elements.layersToggle.setAttribute('aria-expanded', 'false');
+            this.layersPanelOpen = false;
+        } else {
+            this.elements.dataLayers.classList.remove('hidden');
+            this.elements.layersToggle.classList.add('active');
+            this.elements.layersToggle.setAttribute('aria-expanded', 'true');
+            this.layersPanelOpen = true;
+        }
+    },
+
+    /**
+     * Show layers toggle button
+     */
+    showLayersToggle() {
+        this.elements.layersToggle.classList.remove('hidden');
+    },
+
+    /**
+     * Hide layers toggle button
+     */
+    hideLayersToggle() {
+        this.elements.layersToggle.classList.add('hidden');
+        this.hideDataLayers();
     },
 
     toggleLayer(layerName) {
@@ -660,10 +675,28 @@ const UI = {
 
         if (isActive) {
             layerItem.classList.remove('active');
+            layerItem.setAttribute('aria-checked', 'false');
             MapManager.hideLayer(layerName);
+            this.announceToScreenReader(`${layerName} layer hidden`);
         } else {
             layerItem.classList.add('active');
+            layerItem.setAttribute('aria-checked', 'true');
             MapManager.showLayer(layerName);
+            this.announceToScreenReader(`${layerName} layer shown`);
+        }
+    },
+
+    /**
+     * Announce message to screen readers via live region
+     */
+    announceToScreenReader(message) {
+        const announcer = document.getElementById('map-announcements');
+        if (announcer) {
+            announcer.textContent = message;
+            // Clear after announcement to allow repeated messages
+            setTimeout(() => {
+                announcer.textContent = '';
+            }, 1000);
         }
     },
 
@@ -774,38 +807,70 @@ const UI = {
 
     generateAIResponse(question) {
         const q = question.toLowerCase();
+        let response = '';
+        const timestamp = '<div class="ai-data-timestamp">Based on Q3 2024 data</div>';
 
         // Semiconductor industry questions
         if (q.includes('semiconductor') || q.includes('reshaping') || q.includes('chip')) {
-            return "Japan is revitalizing its semiconductor industry as part of national economic security strategy. After decades of decline, the government committed ¥3.9 trillion to rebuild domestic chip production. TSMC's Kumamoto fab represents the centerpiece—bringing cutting-edge manufacturing back to Japan while reducing reliance on overseas supply chains.";
+            response = "Japan committed ¥3.9 trillion to rebuild domestic chip production as part of national economic security strategy.<br><br>TSMC's Kumamoto fab is the centerpiece—bringing cutting-edge manufacturing back to Japan.";
         }
-
         // Kumamoto as hub
-        if (q.includes('kumamoto') && (q.includes('chosen') || q.includes('hub') || q.includes('why'))) {
-            return "Kumamoto was selected for three key reasons: <strong>1)</strong> Abundant ultra-pure water from the Aso volcanic aquifer—essential for chip fabrication. <strong>2)</strong> Reliable power infrastructure with low natural disaster risk. <strong>3)</strong> An existing semiconductor ecosystem including Sony's image sensor facility and skilled workforce.";
+        else if (q.includes('kumamoto') && (q.includes('chosen') || q.includes('hub') || q.includes('why'))) {
+            response = "Kumamoto was selected for three reasons: ultra-pure water from the Aso aquifer, reliable power infrastructure, and an existing semiconductor ecosystem with Sony's facility.<br><br>These natural advantages were decisive for chip fabrication requirements.";
         }
-
         // TSMC / JASM
-        if (q.includes('tsmc') || q.includes('jasm')) {
-            return "JASM (Japan Advanced Semiconductor Manufacturing) is TSMC's joint venture with Sony and Denso. The first fab began mass production in 2024 with 22/28nm processes. A second fab for 6nm chips is under construction, with ¥2 trillion combined investment expected to create 3,400+ jobs.";
+        else if (q.includes('tsmc') || q.includes('jasm')) {
+            response = "JASM is TSMC's joint venture with Sony and Denso. The first fab began production in 2024 with 22/28nm chips.<br><br>A second fab for 6nm chips is under construction—¥2 trillion total investment creating 3,400+ jobs.";
         }
-
         // Land prices
-        if (q.includes('land') || q.includes('price') || q.includes('property')) {
-            return "Land prices in the Kumamoto Science Park corridor have appreciated 15-25% annually since TSMC's announcement. Kikuyo and Ozu areas see the strongest growth due to proximity to JASM. Residential land near the fab has roughly doubled since 2021, though prices remain 40-60% below Tokyo suburban equivalents.";
+        else if (q.includes('land') || q.includes('price') || q.includes('property')) {
+            response = "Land prices have appreciated 15-25% annually since TSMC's announcement.<br><br>Kikuyo and Ozu areas see the strongest growth. Residential land near JASM has roughly doubled since 2021.";
         }
-
         // Traffic
-        if (q.includes('traffic') || q.includes('commute') || q.includes('transport')) {
-            return "Traffic congestion has increased significantly with JASM construction. Kumamoto Prefecture is investing ¥50 billion in infrastructure upgrades including new expressway connections and public transit improvements. The planned Kumamoto Airport rail link will reduce commute times when completed.";
+        else if (q.includes('traffic') || q.includes('commute') || q.includes('transport')) {
+            response = "Traffic congestion has increased with JASM construction. The prefecture is investing ¥50 billion in infrastructure upgrades.<br><br>New expressway connections and the planned Kumamoto Airport rail link will reduce commute times.";
         }
-
         // Investment / returns
-        if (q.includes('invest') || q.includes('return') || q.includes('profit') || q.includes('yield')) {
-            return "Investment properties in the corridor typically show 4-6% gross rental yields with projected appreciation of 8-15% annually through 2030. Properties within 15 minutes of JASM command premium rents from engineers and technicians. The best opportunities balance current yield with appreciation potential.";
+        else if (q.includes('invest') || q.includes('return') || q.includes('profit') || q.includes('yield')) {
+            response = "Properties show 4-6% gross rental yields with projected appreciation of 8-15% annually through 2030.<br><br>Properties within 15 minutes of JASM command premium rents from engineers and technicians.";
+        }
+        // Default response
+        else {
+            response = "The Kumamoto corridor is experiencing unprecedented transformation with over ¥4 trillion in committed investment.<br><br>I can help with land prices, infrastructure plans, or specific investment opportunities.";
         }
 
-        // Default response
-        return "That's a great question about the Kumamoto semiconductor corridor. The region is experiencing unprecedented transformation with over ¥4 trillion in committed investment. Would you like to know more about specific topics like land prices, infrastructure plans, or investment opportunities?";
+        return response + timestamp;
+    },
+
+    /**
+     * Exit path: Schedule a call
+     */
+    scheduleCall() {
+        this.addChatMessage("I'd like to schedule a call with an advisor.", 'user');
+        this.showTypingIndicator();
+
+        setTimeout(() => {
+            this.hideTypingIndicator();
+            this.addChatMessage("I'll connect you with one of our investment advisors. They'll reach out within 24 hours to discuss your specific interests.<br><br><strong>What's the best way to reach you?</strong>", 'assistant');
+        }, 800);
+    },
+
+    /**
+     * Exit path: View properties again
+     */
+    viewPropertiesAgain() {
+        this.hideAIChat();
+
+        // Pan map to show properties and show the chatbox
+        MapManager.resetView();
+
+        UI.showChatbox(`
+            <h3>Investment Opportunities</h3>
+            <p>Amber markers show available investment properties.</p>
+            <p>Click a property to see financials and projections.</p>
+            <button class="chatbox-continue primary" onclick="App.complete()">
+                Any More Questions?
+            </button>
+        `);
     }
 };
