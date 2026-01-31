@@ -49,29 +49,64 @@ const MapManager = {
     },
 
     /**
-     * Create a custom marker icon
+     * Create a custom marker icon with distinct icons per type
      */
-    createMarkerIcon(type) {
-        // Colors aligned with legend (styles.css layer icons)
+    createMarkerIcon(type, subtype = null) {
+        // Colors aligned with legend
         const colors = {
-            resource: '#ff3b30',   // Red - matches science park
-            company: '#007aff',    // Blue - matches legend
-            property: '#ff9500',   // Orange - matches legend
-            zone: '#ff3b30'        // Red - matches science park
+            resource: '#ff3b30',   // Red
+            company: '#007aff',    // Blue
+            property: '#ff9500',   // Orange/Amber
+            zone: '#ff3b30'        // Red
         };
+
+        // SVG icons for each type (white fill for contrast)
+        const icons = {
+            // Property: House icon
+            property: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14">
+                <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/>
+            </svg>`,
+            // Company: Factory icon
+            company: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14">
+                <path d="M22 22H2V10l7-3v3l7-3v3l6-3v15zM4 20h16v-8l-4 2v-2l-5 2v-2l-5 2v-2l-2 1v7z"/>
+                <rect x="6" y="14" width="3" height="3"/>
+                <rect x="11" y="14" width="3" height="3"/>
+                <rect x="16" y="14" width="3" height="3"/>
+            </svg>`,
+            // Water resource: Water drop icon
+            water: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14">
+                <path d="M12 2c-5.33 8-8 12-8 15a8 8 0 1 0 16 0c0-3-2.67-7-8-15z"/>
+            </svg>`,
+            // Power resource: Lightning bolt icon
+            power: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14">
+                <path d="M13 2L4 14h7v8l9-12h-7V2z"/>
+            </svg>`,
+            // Zone: Expand/growth icon
+            zone: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14">
+                <path d="M4 4h4V2H2v6h2V4zm16 0v4h2V2h-6v2h4zM4 20v-4H2v6h6v-2H4zm16 0h-4v2h6v-6h-2v4z"/>
+                <circle cx="12" cy="12" r="4"/>
+            </svg>`
+        };
+
+        // Select icon based on type and subtype
+        let icon = icons[type] || icons[subtype] || '';
+        const color = colors[type] || '#fbb931';
 
         return L.divIcon({
             className: 'custom-marker-wrapper',
             html: `<div class="custom-marker ${type}-marker" style="
-                width: 24px;
-                height: 24px;
-                background: ${colors[type] || '#fbb931'};
+                width: 32px;
+                height: 32px;
+                background: ${color};
                 border: 3px solid white;
                 border-radius: 50%;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            "></div>`,
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">${icon}</div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
         });
     },
 
@@ -93,7 +128,7 @@ const MapManager = {
         if (!resource) return;
 
         const marker = L.marker(resource.coords, {
-            icon: this.createMarkerIcon('resource')
+            icon: this.createMarkerIcon('resource', resourceId)
         });
 
         marker.on('click', () => {

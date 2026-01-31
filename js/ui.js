@@ -6,6 +6,7 @@ const UI = {
     elements: {},
     currentScenario: 'average',
     currentProperty: null,
+    charts: {}, // Track Chart.js instances to prevent memory leaks
 
     /**
      * Initialize UI elements
@@ -86,6 +87,242 @@ const UI = {
         this.elements.layersToggle.addEventListener('click', () => {
             this.toggleLayersPanel();
         });
+    },
+
+    // ================================
+    // CHART RENDERING (Dataviz)
+    // ================================
+
+    /**
+     * Destroy existing chart to prevent memory leaks
+     */
+    destroyChart(chartId) {
+        if (this.charts[chartId]) {
+            this.charts[chartId].destroy();
+            delete this.charts[chartId];
+        }
+    },
+
+    /**
+     * Render scenario comparison bar chart
+     */
+    renderScenarioChart(property) {
+        const canvas = document.getElementById('scenario-chart');
+        if (!canvas) return;
+
+        this.destroyChart('scenario');
+        const ctx = canvas.getContext('2d');
+        const fin = property.financials;
+
+        // Colorblind-safe palette
+        const colors = {
+            bear: '#6b7280',    // Gray
+            average: '#2563eb', // Blue
+            bull: '#0d9488'     // Teal
+        };
+
+        this.charts['scenario'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Bear', 'Average', 'Bull'],
+                datasets: [{
+                    label: 'Net Profit (5yr)',
+                    data: [
+                        fin.scenarios.bear.netProfit,
+                        fin.scenarios.average.netProfit,
+                        fin.scenarios.bull.netProfit
+                    ],
+                    backgroundColor: [colors.bear, colors.average, colors.bull],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => '¥' + ctx.raw.toLocaleString()
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: (val) => '¥' + (val / 1000000).toFixed(0) + 'M'
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Render historical appreciation trend line chart
+     */
+    renderTrendChart() {
+        const canvas = document.getElementById('trend-chart');
+        if (!canvas) return;
+
+        this.destroyChart('trend');
+        const ctx = canvas.getContext('2d');
+        const stats = AppData.areaStats;
+
+        const years = stats.trackRecord.map(r => r.year);
+        const values = stats.trackRecord.map(r => parseFloat(r.appreciation));
+
+        this.charts['trend'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Annual Appreciation',
+                    data: values,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ctx.raw + '% appreciation'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (val) => val + '%'
+                        },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Render company investment comparison horizontal bar chart
+     */
+    renderInvestmentChart() {
+        const canvas = document.getElementById('investment-chart');
+        if (!canvas) return;
+
+        this.destroyChart('investment');
+        const ctx = canvas.getContext('2d');
+
+        // Sort companies by investment amount (descending)
+        const companies = [...AppData.companies].sort((a, b) => {
+            const getAmount = (stats) => {
+                const inv = stats.find(s => s.label.includes('investment') || s.label.includes('Investment'));
+                if (!inv) return 0;
+                const val = inv.value.replace('¥', '').replace('T', '000').replace('B', '');
+                return parseFloat(val);
+            };
+            return getAmount(b.stats) - getAmount(a.stats);
+        });
+
+        const labels = companies.map(c => c.name.split(' ')[0]); // Short names
+        const investments = companies.map(c => {
+            const inv = c.stats.find(s => s.label.includes('investment') || s.label.includes('Investment'));
+            if (!inv) return 0;
+            const val = inv.value.replace('¥', '');
+            if (val.includes('T')) return parseFloat(val) * 1000;
+            return parseFloat(val.replace('B', ''));
+        });
+
+        // Colorblind-safe palette
+        const colors = ['#2563eb', '#ea580c', '#0d9488', '#c026d3'];
+
+        this.charts['investment'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Investment (¥B)',
+                    data: investments,
+                    backgroundColor: colors,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const val = ctx.raw;
+                                return val >= 1000 ? '¥' + (val/1000).toFixed(1) + 'T' : '¥' + val + 'B';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: (val) => val >= 1000 ? '¥' + (val/1000) + 'T' : '¥' + val + 'B'
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Show investment overview with company comparison chart
+     */
+    showInvestmentOverview() {
+        const content = `
+            <div class="subtitle">Corporate Investment</div>
+            <h2>Investment Comparison</h2>
+            <p>Total corporate investment in the Kumamoto semiconductor corridor.</p>
+            <div class="chart-container" style="height: 200px; margin: 24px 0;">
+                <canvas id="investment-chart" role="img" aria-label="Bar chart comparing corporate investments: JASM leads with ¥1.2T, followed by Sony ¥850B, Tokyo Electron ¥320B, Mitsubishi ¥260B"></canvas>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-value">¥2.6T+</div>
+                    <div class="stat-label">Total Investment</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">9,600+</div>
+                    <div class="stat-label">Direct Jobs</div>
+                </div>
+            </div>
+            <button class="panel-btn" onclick="UI.showScienceParkPanel(AppData.sciencePark)">
+                Back to Science Park
+            </button>
+        `;
+
+        this.showPanel(content);
+
+        // Render chart after DOM update
+        setTimeout(() => this.renderInvestmentChart(), 50);
     },
 
     /**
@@ -176,6 +413,9 @@ const UI = {
             <h2>${sp.name}</h2>
             <p>${sp.description}</p>
             <div class="stat-grid">${statsHtml}</div>
+            <button class="panel-btn" onclick="UI.showInvestmentOverview()">
+                Corporate Investment Chart
+            </button>
             <button class="panel-btn primary" onclick="UI.showEvidence('sciencePark', 'sciencePark')">
                 View Master Plan
             </button>
@@ -318,7 +558,12 @@ const UI = {
             <h2>Performance Calculator</h2>
 
             <div class="calculator-section">
-                <h4>Scenario</h4>
+                <h4>Scenario Comparison</h4>
+                <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
+                    <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios: Bear case ${formatYen(fin.scenarios.bear.netProfit)}, Average case ${formatYen(fin.scenarios.average.netProfit)}, Bull case ${formatYen(fin.scenarios.bull.netProfit)}"></canvas>
+                </div>
+
+                <h4>Details: <span class="scenario-label">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} Case</span></h4>
                 <div class="scenario-toggle">
                     <button class="scenario-btn ${scenario === 'bear' ? 'active' : ''}" onclick="UI.updateCalculator(UI.currentProperty, 'bear')">
                         Bear
@@ -373,6 +618,9 @@ const UI = {
         `;
 
         this.showPanel(content);
+
+        // Render chart after DOM update
+        setTimeout(() => this.renderScenarioChart(property), 50);
     },
 
     /**
@@ -380,12 +628,6 @@ const UI = {
      */
     showAreaStats() {
         const stats = AppData.areaStats;
-        const trackHtml = stats.trackRecord.map(record => `
-            <div class="calc-row">
-                <span class="calc-label">${record.year}</span>
-                <span class="calc-value positive">${record.appreciation}</span>
-            </div>
-        `).join('');
 
         const content = `
             <div class="subtitle">Market Overview</div>
@@ -407,8 +649,11 @@ const UI = {
             </div>
 
             <div class="calculator-section">
-                <h4>Historical Performance</h4>
-                ${trackHtml}
+                <h4>Appreciation Trend</h4>
+                <div class="chart-container" style="height: 160px; margin: 16px 0;">
+                    <canvas id="trend-chart" role="img" aria-label="Line chart showing appreciation trend: 2022 at 6.2%, 2023 at 9.1%, 2024 at 11.3% - showing accelerating growth"></canvas>
+                </div>
+                <p class="chart-caption">Year-over-year property appreciation in the Kumamoto semiconductor corridor.</p>
             </div>
 
             <button class="panel-btn" onclick="UI.showPerformanceCalculator()">
@@ -417,6 +662,9 @@ const UI = {
         `;
 
         this.showPanel(content);
+
+        // Render chart after DOM update
+        setTimeout(() => this.renderTrendChart(), 50);
     },
 
     // ================================

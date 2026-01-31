@@ -780,6 +780,37 @@ a:focus-visible {
     color: #ff3b30;
 }
 
+/* Scenario label in calculator */
+.scenario-label {
+    color: var(--brand-primary);
+    font-weight: var(--weight-semibold);
+}
+
+/* ================================
+   CHART CONTAINERS (Dataviz)
+   ================================ */
+.chart-container {
+    position: relative;
+    width: 100%;
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    border: 1px solid var(--macos-border);
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-caption {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--macos-text-secondary);
+    text-align: center;
+    margin: 8px 0 0 0;
+}
+
 /* ================================
    GALLERY MODAL (macOS Window)
    ================================ */
