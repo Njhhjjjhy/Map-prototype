@@ -220,6 +220,9 @@ const App = {
             <p style="font-size: 14px; color: #9ca3af; margin-top: 16px;">
                 Route lines show distance to JASM employment center.
             </p>
+            <button class="chatbox-continue" onclick="App.complete()">
+                Any more questions?
+            </button>
         `);
 
         // Hide time toggle for clarity
@@ -227,19 +230,13 @@ const App = {
     },
 
     /**
-     * Complete the presentation
+     * Complete the presentation - show AI chat for follow-up questions
      */
     complete() {
         this.state.step = 'complete';
 
-        UI.updateChatbox(`
-            <h3>Thank You</h3>
-            <p>You've completed the Kumamoto investment overview.</p>
-            <p>Feel free to explore the map or revisit any section.</p>
-            <button class="chatbox-continue" onclick="App.restart()">
-                Start Over
-            </button>
-        `);
+        // Show the AI chat for follow-up questions
+        UI.showAIChat();
     },
 
     /**
@@ -250,6 +247,7 @@ const App = {
         UI.hidePanel();
         UI.hideControlBar();
         UI.hideChatbox();
+        UI.hideAIChat();
         UI.hideLegend();
         UI.hideDataLayers();
         MapManager.resetView();

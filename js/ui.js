@@ -665,5 +665,147 @@ const UI = {
             layerItem.classList.add('active');
             MapManager.showLayer(layerName);
         }
+    },
+
+    // ================================
+    // AI CHAT (Post-Journey)
+    // ================================
+
+    initAIChat() {
+        const form = document.getElementById('ai-chat-form');
+        const input = document.getElementById('ai-chat-input');
+        const suggestions = document.getElementById('ai-chat-suggestions');
+
+        // Handle form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (message) {
+                this.sendAIMessage(message);
+                input.value = '';
+            }
+        });
+
+        // Handle suggestion chip clicks
+        suggestions.addEventListener('click', (e) => {
+            const chip = e.target.closest('.ai-chat-chip');
+            if (chip) {
+                const question = chip.dataset.question;
+                this.sendAIMessage(question);
+            }
+        });
+    },
+
+    showAIChat() {
+        // Hide the journey chatbox
+        this.hideChatbox();
+
+        // Show AI chat
+        const aiChat = document.getElementById('ai-chat');
+        aiChat.classList.remove('hidden');
+
+        // Initialize if not already done
+        if (!this.aiChatInitialized) {
+            this.initAIChat();
+            this.aiChatInitialized = true;
+        }
+
+        // Focus the input
+        setTimeout(() => {
+            document.getElementById('ai-chat-input').focus();
+        }, 400);
+    },
+
+    hideAIChat() {
+        document.getElementById('ai-chat').classList.add('hidden');
+    },
+
+    sendAIMessage(message) {
+        const suggestionsContainer = document.getElementById('ai-chat-suggestions');
+
+        // Hide suggestions after first message
+        suggestionsContainer.classList.add('hidden');
+
+        // Add user message
+        this.addChatMessage(message, 'user');
+
+        // Show typing indicator
+        this.showTypingIndicator();
+
+        // Generate response after delay
+        setTimeout(() => {
+            this.hideTypingIndicator();
+            const response = this.generateAIResponse(message);
+            this.addChatMessage(response, 'assistant');
+        }, 1200 + Math.random() * 800);
+    },
+
+    addChatMessage(content, role) {
+        const messagesContainer = document.getElementById('ai-chat-messages');
+
+        const messageEl = document.createElement('div');
+        messageEl.className = `ai-chat-message ${role}`;
+        messageEl.innerHTML = `<div class="message-content">${content}</div>`;
+
+        messagesContainer.appendChild(messageEl);
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    },
+
+    showTypingIndicator() {
+        const messagesContainer = document.getElementById('ai-chat-messages');
+
+        const typingEl = document.createElement('div');
+        typingEl.className = 'ai-chat-typing';
+        typingEl.id = 'ai-typing-indicator';
+        typingEl.innerHTML = '<span></span><span></span><span></span>';
+
+        messagesContainer.appendChild(typingEl);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    },
+
+    hideTypingIndicator() {
+        const typing = document.getElementById('ai-typing-indicator');
+        if (typing) {
+            typing.remove();
+        }
+    },
+
+    generateAIResponse(question) {
+        const q = question.toLowerCase();
+
+        // Semiconductor industry questions
+        if (q.includes('semiconductor') || q.includes('reshaping') || q.includes('chip')) {
+            return "Japan is revitalizing its semiconductor industry as part of national economic security strategy. After decades of decline, the government committed ¥3.9 trillion to rebuild domestic chip production. TSMC's Kumamoto fab represents the centerpiece—bringing cutting-edge manufacturing back to Japan while reducing reliance on overseas supply chains.";
+        }
+
+        // Kumamoto as hub
+        if (q.includes('kumamoto') && (q.includes('chosen') || q.includes('hub') || q.includes('why'))) {
+            return "Kumamoto was selected for three key reasons: <strong>1)</strong> Abundant ultra-pure water from the Aso volcanic aquifer—essential for chip fabrication. <strong>2)</strong> Reliable power infrastructure with low natural disaster risk. <strong>3)</strong> An existing semiconductor ecosystem including Sony's image sensor facility and skilled workforce.";
+        }
+
+        // TSMC / JASM
+        if (q.includes('tsmc') || q.includes('jasm')) {
+            return "JASM (Japan Advanced Semiconductor Manufacturing) is TSMC's joint venture with Sony and Denso. The first fab began mass production in 2024 with 22/28nm processes. A second fab for 6nm chips is under construction, with ¥2 trillion combined investment expected to create 3,400+ jobs.";
+        }
+
+        // Land prices
+        if (q.includes('land') || q.includes('price') || q.includes('property')) {
+            return "Land prices in the Kumamoto Science Park corridor have appreciated 15-25% annually since TSMC's announcement. Kikuyo and Ozu areas see the strongest growth due to proximity to JASM. Residential land near the fab has roughly doubled since 2021, though prices remain 40-60% below Tokyo suburban equivalents.";
+        }
+
+        // Traffic
+        if (q.includes('traffic') || q.includes('commute') || q.includes('transport')) {
+            return "Traffic congestion has increased significantly with JASM construction. Kumamoto Prefecture is investing ¥50 billion in infrastructure upgrades including new expressway connections and public transit improvements. The planned Kumamoto Airport rail link will reduce commute times when completed.";
+        }
+
+        // Investment / returns
+        if (q.includes('invest') || q.includes('return') || q.includes('profit') || q.includes('yield')) {
+            return "Investment properties in the corridor typically show 4-6% gross rental yields with projected appreciation of 8-15% annually through 2030. Properties within 15 minutes of JASM command premium rents from engineers and technicians. The best opportunities balance current yield with appreciation potential.";
+        }
+
+        // Default response
+        return "That's a great question about the Kumamoto semiconductor corridor. The region is experiencing unprecedented transformation with over ¥4 trillion in committed investment. Would you like to know more about specific topics like land prices, infrastructure plans, or investment opportunities?";
     }
 };

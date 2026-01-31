@@ -78,6 +78,44 @@
         </div>
     </div>
 
+    <!-- AI Chat (appears after journey completion) -->
+    <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
+        <div class="ai-chat-header">
+            <h3>Ask me anything about Kumamoto</h3>
+            <p class="ai-chat-subtitle">Try asking about land prices, traffic patterns, TSMC impact, or your property.</p>
+        </div>
+
+        <div class="ai-chat-suggestions" id="ai-chat-suggestions">
+            <button class="ai-chat-chip" data-question="Why is Japan reshaping its semiconductor industry?">
+                Why is Japan reshaping its semiconductor industry?
+            </button>
+            <button class="ai-chat-chip" data-question="Why was Kumamoto chosen as the hub?">
+                Why was Kumamoto chosen as the hub?
+            </button>
+        </div>
+
+        <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite">
+            <!-- Messages will be inserted here -->
+        </div>
+
+        <form class="ai-chat-input-container" id="ai-chat-form">
+            <input
+                type="text"
+                id="ai-chat-input"
+                class="ai-chat-input"
+                placeholder="Ask about Kumamoto..."
+                autocomplete="off"
+                aria-label="Type your question"
+            >
+            <button type="submit" class="ai-chat-send" aria-label="Send message">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2L11 13"></path>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
