@@ -824,23 +824,80 @@ const UI = {
         const layerItems = document.getElementById('layer-items');
         let html = '';
 
+        // Lucide-style SVG icons
+        const icons = {
+            // Home icon (Lucide: home)
+            properties: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>`,
+            // Building icon (Lucide: building-2)
+            companies: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
+            </svg>`,
+            // Circle icon (Lucide: circle)
+            sciencePark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+            </svg>`,
+            // Map pin icon (Lucide: map-pin)
+            baseMap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>`,
+            // Car icon (Lucide: car)
+            trafficFlow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+                <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+            </svg>`,
+            // Train icon (Lucide: train-front)
+            railCommute: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/>
+                <path d="m9 15-1-1"/><path d="m15 15 1-1"/>
+                <path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/>
+                <path d="m8 19-2 3"/><path d="m16 19 2 3"/>
+            </svg>`,
+            // Zap icon (Lucide: zap)
+            electricity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
+            </svg>`,
+            // Briefcase icon (Lucide: briefcase)
+            employment: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                <rect width="20" height="14" x="2" y="6" rx="2"/>
+            </svg>`,
+            // Landmark icon (Lucide: landmark)
+            infrastructure: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/>
+                <line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/>
+                <line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>
+            </svg>`,
+            // House icon (Lucide: house)
+            realEstate: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>`,
+            // Droplet icon (Lucide: droplet)
+            riskyArea: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+            </svg>`
+        };
+
         // Use buttons with role="switch" for proper keyboard accessibility
         if (journey === 'B') {
             html = `
                 <button type="button" class="layer-item active" data-layer="sciencePark"
                         role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
                     <span class="layer-radio" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-                    </span>
+                    <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
                 </button>
                 <button type="button" class="layer-item active" data-layer="companies"
                         role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')">
                     <span class="layer-radio" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                    </span>
+                    <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
                 </button>
             `;
@@ -849,31 +906,80 @@ const UI = {
                 <button type="button" class="layer-item active" data-layer="properties"
                         role="switch" aria-checked="true" onclick="UI.toggleLayer('properties')">
                     <span class="layer-radio" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                    </span>
+                    <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
                     <span class="layer-label">Properties</span>
                 </button>
                 <button type="button" class="layer-item active" data-layer="companies"
                         role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')">
                     <span class="layer-radio" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                    </span>
+                    <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
                 </button>
                 <button type="button" class="layer-item active" data-layer="sciencePark"
                         role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
                     <span class="layer-radio" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-                    </span>
+                    <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
                 </button>
             `;
         }
 
         layerItems.innerHTML = html;
+
+        // Populate Data Layers section
+        const dataLayerItems = document.getElementById('data-layer-items');
+        const dataLayersHtml = `
+            <button type="button" class="layer-item" data-layer="baseMap"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('baseMap')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.baseMap}</span>
+                <span class="layer-label">Base Map</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="trafficFlow"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('trafficFlow')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.trafficFlow}</span>
+                <span class="layer-label">Traffic Flow</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="railCommute"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('railCommute')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.railCommute}</span>
+                <span class="layer-label">Rail Commute</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="electricity"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('electricity')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.electricity}</span>
+                <span class="layer-label">Electricity Usage</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="employment"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('employment')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.employment}</span>
+                <span class="layer-label">Employment</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="infrastructure"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('infrastructure')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.infrastructure}</span>
+                <span class="layer-label">Infrastructure Plan</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="realEstate"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('realEstate')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.realEstate}</span>
+                <span class="layer-label">Real Estate</span>
+            </button>
+            <button type="button" class="layer-item" data-layer="riskyArea"
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('riskyArea')">
+                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
+                <span class="layer-label">Risky Area</span>
+            </button>
+        `;
+        dataLayerItems.innerHTML = dataLayersHtml;
+
         // Show the toggle button but keep panel hidden until user clicks
         this.showLayersToggle();
     },
@@ -932,6 +1038,22 @@ const UI = {
             MapManager.showLayer(layerName);
             this.announceToScreenReader(`${layerName} layer shown`);
         }
+    },
+
+    toggleDataLayer(layerName) {
+        const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
+        const isActive = layerItem.classList.contains('active');
+
+        if (isActive) {
+            layerItem.classList.remove('active');
+            layerItem.setAttribute('aria-checked', 'false');
+            this.announceToScreenReader(`${layerName} data layer hidden`);
+        } else {
+            layerItem.classList.add('active');
+            layerItem.setAttribute('aria-checked', 'true');
+            this.announceToScreenReader(`${layerName} data layer shown`);
+        }
+        // TODO: Connect to actual data layer visualization when implemented
     },
 
     /**

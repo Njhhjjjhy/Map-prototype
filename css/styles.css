@@ -313,7 +313,8 @@ a:focus-visible {
 #chatbox {
     position: absolute;
     bottom: 32px;
-    left: 32px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 500;
     background: var(--macos-bg-primary);
     backdrop-filter: blur(20px) saturate(180%);
@@ -329,11 +330,11 @@ a:focus-visible {
 @keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(16px);
+        transform: translateX(-50%) translateY(16px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(-50%) translateY(0);
     }
 }
 
@@ -1125,6 +1126,12 @@ a:focus-visible {
     gap: 2px;
 }
 
+.layers-divider {
+    height: 1px;
+    background: var(--macos-border);
+    margin: 12px 0;
+}
+
 /* Reset button styles for layer items */
 button.layer-item {
     width: 100%;
@@ -1199,6 +1206,23 @@ button.layer-item {
 
 .layer-item.active[data-layer="sciencePark"] .layer-icon {
     color: #ff3b30;
+}
+
+/* Data layer icon colors */
+#data-layer-items .layer-item .layer-icon {
+    color: var(--macos-text-tertiary);
+}
+
+#data-layer-items .layer-item.active[data-layer="riskyArea"] .layer-icon {
+    color: #ff9500;
+}
+
+#data-layer-items .layer-item.active .layer-icon {
+    color: var(--macos-text-secondary);
+}
+
+#data-layer-items .layer-item.active[data-layer="riskyArea"] .layer-icon {
+    color: #ff9500;
 }
 
 .layer-icon svg {
