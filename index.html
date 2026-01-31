@@ -13,6 +13,10 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
     <!-- App CSS -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -43,6 +47,7 @@
 
             <!-- Chatbox -->
             <div id="chatbox" class="hidden" role="region" aria-label="Journey guide" aria-live="polite">
+                <button id="chatbox-close" aria-label="Close chatbox"><span aria-hidden="true">&times;</span></button>
                 <div id="chatbox-content"></div>
             </div>
 
@@ -55,16 +60,19 @@
                 </svg>
             </button>
 
-            <!-- Data Layers Panel (journey-aware, toggled by button) -->
-            <div id="data-layers" class="hidden" role="region" aria-label="Data layers">
-                <div class="layers-title">Map Layers</div>
-                <div class="layer-items" id="layer-items">
+            <!-- Map Legend (bottom-right) -->
+            <div id="map-legend" class="hidden" role="region" aria-label="Map legend">
+                <div class="legend-title">Legend</div>
+                <div class="legend-items" id="legend-items">
                     <!-- Populated by JS based on journey -->
                 </div>
-                <div class="layers-divider"></div>
-                <div class="layers-title">Data Layers</div>
+            </div>
+
+            <!-- Data Layers Panel (journey-aware, toggled by button) -->
+            <div id="data-layers" class="hidden" role="region" aria-label="Data layers">
+                <div class="layers-title">Data layers</div>
                 <div class="layer-items" id="data-layer-items">
-                    <!-- Populated by JS -->
+                    <!-- Populated by JS - includes both map layers and data layers -->
                 </div>
             </div>
         </div>
@@ -88,6 +96,7 @@
 
     <!-- AI Chat (appears after journey completion) -->
     <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
+        <button id="ai-chat-close" aria-label="Close chat"><span aria-hidden="true">&times;</span></button>
         <div class="ai-chat-header">
             <h3>Ask me anything about Kumamoto</h3>
             <p class="ai-chat-subtitle">Try asking about land prices, traffic patterns, TSMC impact, or your property.</p>
@@ -131,6 +140,9 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Leaflet MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>

@@ -42,6 +42,9 @@ const App = {
         this.state.step = 'A1';
         this.state.resourcesExplored = [];
 
+        // Show legend for Journey A
+        UI.showLegend('A');
+
         // A1: Show "Why Kumamoto?" prompt
         UI.showChatbox(`
             <h3>Why Kumamoto?</h3>
@@ -142,6 +145,9 @@ const App = {
         // Show data layers toggle for Journey B
         UI.showDataLayers('B');
 
+        // Update legend for Journey B
+        UI.showLegend('B');
+
         UI.showChatbox(`
             <h3>Infrastructure Plan</h3>
             <p>The red circle shows the Kumamoto Science Park corridor.</p>
@@ -211,6 +217,9 @@ const App = {
 
         // Update data layers toggle for Journey C
         UI.showDataLayers('C');
+
+        // Update legend for Journey C
+        UI.showLegend('C');
 
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>

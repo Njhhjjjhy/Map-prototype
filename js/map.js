@@ -5,6 +5,7 @@
 const MapManager = {
     map: null,
     markers: {},
+    clusterGroups: {},
     layers: {
         resources: null,
         sciencePark: null,
@@ -46,6 +47,80 @@ const MapManager = {
         this.layers.futureZones = L.layerGroup();
         this.layers.properties = L.layerGroup();
         this.layers.route = L.layerGroup();
+
+        // Initialize marker cluster groups for when there are many markers
+        this.initClusterGroups();
+    },
+
+    /**
+     * Initialize marker cluster groups with custom styling
+     */
+    initClusterGroups() {
+        const clusterOptions = {
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: true,
+            disableClusteringAtZoom: 14,
+            maxClusterRadius: 50,
+            iconCreateFunction: (cluster) => {
+                const count = cluster.getChildCount();
+                let size = 'small';
+                if (count >= 10) size = 'medium';
+                if (count >= 25) size = 'large';
+
+                return L.divIcon({
+                    html: `<div class="marker-cluster marker-cluster-${size}"><span>${count}</span></div>`,
+                    className: 'marker-cluster-wrapper',
+                    iconSize: L.point(40, 40)
+                });
+            }
+        };
+
+        // Create separate cluster groups for each marker type
+        this.clusterGroups.properties = L.markerClusterGroup({
+            ...clusterOptions,
+            iconCreateFunction: (cluster) => this.createClusterIcon(cluster, 'property')
+        });
+
+        this.clusterGroups.companies = L.markerClusterGroup({
+            ...clusterOptions,
+            iconCreateFunction: (cluster) => this.createClusterIcon(cluster, 'company')
+        });
+    },
+
+    /**
+     * Create custom cluster icon with type-specific styling
+     */
+    createClusterIcon(cluster, type) {
+        const count = cluster.getChildCount();
+        const colors = {
+            property: '#ff9500',
+            company: '#007aff'
+        };
+        const color = colors[type] || '#fbb931';
+
+        let size = 36;
+        if (count >= 10) size = 44;
+        if (count >= 25) size = 52;
+
+        return L.divIcon({
+            html: `<div class="marker-cluster" style="
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+                font-size: ${size > 40 ? '14px' : '12px'};
+                font-weight: 600;
+                color: white;
+            ">${count}</div>`,
+            className: 'marker-cluster-wrapper',
+            iconSize: L.point(size, size)
+        });
     },
 
     /**
@@ -175,8 +250,11 @@ const MapManager = {
 
     /**
      * Show company markers (Journey B)
+     * Uses clustering when there are 5+ companies to prevent overlapping
      */
     showCompanyMarkers() {
+        const useCluster = AppData.companies.length >= 5;
+
         AppData.companies.forEach(company => {
             const marker = L.marker(company.coords, {
                 icon: this.createMarkerIcon('company')
@@ -187,10 +265,19 @@ const MapManager = {
             });
 
             this.markers[company.id] = marker;
-            this.layers.companies.addLayer(marker);
+
+            if (useCluster) {
+                this.clusterGroups.companies.addLayer(marker);
+            } else {
+                this.layers.companies.addLayer(marker);
+            }
         });
 
-        this.layers.companies.addTo(this.map);
+        if (useCluster) {
+            this.clusterGroups.companies.addTo(this.map);
+        } else {
+            this.layers.companies.addTo(this.map);
+        }
     },
 
     /**
@@ -238,8 +325,11 @@ const MapManager = {
 
     /**
      * Show property markers (Journey C)
+     * Uses clustering when there are 5+ properties to prevent overlapping
      */
     showPropertyMarkers() {
+        const useCluster = AppData.properties.length >= 5;
+
         AppData.properties.forEach(property => {
             const marker = L.marker(property.coords, {
                 icon: this.createMarkerIcon('property')
@@ -251,10 +341,19 @@ const MapManager = {
             });
 
             this.markers[property.id] = marker;
-            this.layers.properties.addLayer(marker);
+
+            if (useCluster) {
+                this.clusterGroups.properties.addLayer(marker);
+            } else {
+                this.layers.properties.addLayer(marker);
+            }
         });
 
-        this.layers.properties.addTo(this.map);
+        if (useCluster) {
+            this.clusterGroups.properties.addTo(this.map);
+        } else {
+            this.layers.properties.addTo(this.map);
+        }
     },
 
     /**
@@ -306,6 +405,17 @@ const MapManager = {
                 }
             }
         });
+
+        // Also clear cluster groups
+        Object.values(this.clusterGroups).forEach(cluster => {
+            if (cluster) {
+                cluster.clearLayers();
+                if (this.map.hasLayer(cluster)) {
+                    this.map.removeLayer(cluster);
+                }
+            }
+        });
+
         this.markers = {};
     },
 
@@ -324,9 +434,16 @@ const MapManager = {
      * Show a specific layer by name
      */
     showLayer(layerName) {
+        // Check regular layers first
         const layer = this.layers[layerName];
         if (layer && !this.map.hasLayer(layer)) {
             layer.addTo(this.map);
+        }
+
+        // Also check cluster groups
+        const cluster = this.clusterGroups[layerName];
+        if (cluster && !this.map.hasLayer(cluster)) {
+            cluster.addTo(this.map);
         }
     },
 
@@ -334,9 +451,16 @@ const MapManager = {
      * Hide a specific layer by name
      */
     hideLayer(layerName) {
+        // Check regular layers first
         const layer = this.layers[layerName];
         if (layer && this.map.hasLayer(layer)) {
             this.map.removeLayer(layer);
+        }
+
+        // Also check cluster groups
+        const cluster = this.clusterGroups[layerName];
+        if (cluster && this.map.hasLayer(cluster)) {
+            this.map.removeLayer(cluster);
         }
     }
 };

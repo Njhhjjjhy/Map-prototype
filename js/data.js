@@ -330,13 +330,13 @@ const AppData = {
 
     // Area Statistics (for Journey C conclusion)
     areaStats: {
-        avgAppreciation: '8.5%',
-        avgRentalYield: '5.8%',
+        avgAppreciation: '+8.5%',
+        avgRentalYield: '+5.8%',
         occupancyRate: '97.2%',
         trackRecord: [
-            { year: '2022', appreciation: '6.2%' },
-            { year: '2023', appreciation: '9.1%' },
-            { year: '2024', appreciation: '11.3%' }
+            { year: '2022', appreciation: '+6.2%' },
+            { year: '2023', appreciation: '+9.1%' },
+            { year: '2024', appreciation: '+11.3%' }
         ]
     },
 

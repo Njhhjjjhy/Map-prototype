@@ -327,6 +327,48 @@ a:focus-visible {
     animation: slideUp 0.25s ease-out;
 }
 
+/* macOS-style close button for chatbox */
+#chatbox-close {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 12px;
+    height: 12px;
+    background: #ff5f57;
+    border: none;
+    border-radius: 50%;
+    font-size: 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    z-index: 10;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+#chatbox-close:hover {
+    background: #ff3b30;
+}
+
+#chatbox-close::before {
+    content: '×';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+#chatbox-close:hover::before {
+    opacity: 1;
+}
+
+#chatbox-content {
+    padding-top: 8px;
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;
@@ -733,6 +775,17 @@ a:focus-visible {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* Scenario icons for triple encoding (color + shape + label) */
+.scenario-icon {
+    font-size: var(--text-xs);
+    margin-right: 2px;
+    opacity: 0.7;
+}
+
+.scenario-btn.active .scenario-icon {
+    opacity: 1;
+}
+
 .scenario-btn:hover:not(.active) {
     color: var(--macos-text-primary);
 }
@@ -771,6 +824,8 @@ a:focus-visible {
     font-weight: var(--weight-semibold);
     font-size: var(--text-sm);
     color: var(--macos-text-primary);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 .calc-value.positive {
@@ -778,6 +833,170 @@ a:focus-visible {
 }
 
 .calc-value.negative {
+    color: #ff3b30;
+}
+
+/* Data Attribution (trust signals per finmap-ui) */
+.data-attribution {
+    margin: 16px 0;
+    padding: 12px;
+    background: var(--macos-bg-tertiary);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--macos-text-tertiary);
+}
+
+.data-attribution p {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--macos-text-tertiary);
+    margin: 0 0 4px 0;
+    line-height: var(--leading-normal);
+}
+
+.data-attribution p:last-child {
+    margin-bottom: 0;
+}
+
+/* Timestamp with relative time */
+.data-attribution .data-timestamp {
+    font-weight: var(--weight-medium);
+    color: var(--macos-text-secondary);
+}
+
+/* ================================
+   ACCESSIBLE DATA TABLES FOR CHARTS
+   ================================ */
+.chart-data-table {
+    margin-top: 12px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.chart-data-table summary {
+    padding: 8px 12px;
+    background: var(--macos-bg-secondary);
+    border: 1px solid var(--macos-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--macos-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chart-data-table summary::-webkit-details-marker {
+    display: none;
+}
+
+.chart-data-table summary::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 5px solid var(--macos-text-tertiary);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.15s ease;
+}
+
+.chart-data-table[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.chart-data-table summary:hover {
+    background: var(--macos-bg-tertiary);
+    color: var(--macos-text-primary);
+}
+
+.chart-data-table summary:focus-visible {
+    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline-offset: 2px;
+}
+
+.chart-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+}
+
+.chart-data-table th,
+.chart-data-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--macos-border);
+}
+
+.chart-data-table th {
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-xs);
+    color: var(--macos-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--macos-bg-secondary);
+}
+
+.chart-data-table td {
+    color: var(--macos-text-primary);
+}
+
+.chart-data-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.chart-data-table tbody tr:hover {
+    background: var(--macos-bg-secondary);
+}
+
+/* ================================
+   CONFIDENCE INDICATORS
+   ================================ */
+.calc-value-with-confidence {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.confidence-range {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--macos-text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.confidence-badge.confidence-high {
+    background: rgba(52, 199, 89, 0.15);
+    color: #34c759;
+}
+
+.confidence-badge.confidence-medium {
+    background: rgba(255, 149, 0, 0.15);
+    color: #ff9500;
+}
+
+.confidence-badge.confidence-low {
+    background: rgba(255, 59, 48, 0.15);
     color: #ff3b30;
 }
 
@@ -1030,6 +1249,75 @@ a:focus-visible {
 }
 
 /* ================================
+   MAP LEGEND (bottom-right per finmap-ui)
+   ================================ */
+#map-legend {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    z-index: 500;
+    background: var(--macos-bg-primary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: var(--radius-md);
+    box-shadow: var(--macos-shadow-md);
+    border: 1px solid var(--macos-border);
+    padding: 12px 14px;
+    min-width: 140px;
+}
+
+.legend-title {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--macos-text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.legend-marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.legend-marker svg {
+    width: 10px;
+    height: 10px;
+    fill: white;
+}
+
+.legend-marker.property { background: #ff9500; }
+.legend-marker.company { background: #007aff; }
+.legend-marker.resource { background: #ff3b30; }
+.legend-marker.zone { background: #ff3b30; }
+
+.legend-label {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--macos-text-primary);
+}
+
+/* ================================
    LAYERS TOGGLE BUTTON (macOS)
    ================================ */
 #layers-toggle {
@@ -1252,7 +1540,8 @@ button.layer-item {
 #ai-chat {
     position: absolute;
     bottom: 32px;
-    left: 32px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 500;
     width: 380px;
     max-height: calc(100vh - 100px);
@@ -1266,6 +1555,44 @@ button.layer-item {
     flex-direction: column;
     overflow: hidden;
     animation: slideUp 0.25s ease-out;
+}
+
+/* macOS-style close button for AI chat */
+#ai-chat-close {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 12px;
+    height: 12px;
+    background: #ff5f57;
+    border: none;
+    border-radius: 50%;
+    font-size: 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    z-index: 10;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+#ai-chat-close:hover {
+    background: #ff3b30;
+}
+
+#ai-chat-close::before {
+    content: '×';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+#ai-chat-close:hover::before {
+    opacity: 1;
 }
 
 .ai-chat-header {
