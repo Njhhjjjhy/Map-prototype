@@ -261,6 +261,35 @@ REQUIRED SPACING BY CONTEXT:
 When in doubt: --space-6 (24px) for section gaps, --space-4 (16px) for related elements.
 ```
 
+### Allowed Exceptions
+
+The following hardcoded pixel values are permitted for specific UI patterns:
+
+| Value | Use Case | Rationale |
+|-------|----------|-----------|
+| `1px` | Segmented control gaps (`#time-toggle`, `.scenario-toggle`) | Creates hairline separator for macOS segmented control aesthetic |
+| `2px` | Segmented control padding, badge padding, tight icon gaps | Sub-grid precision for compact UI components |
+| `124px` | Data layers panel positioning (`#data-layers { top: 124px }`) | Calculated alignment below layers toggle (80px + 36px button + 8px gap) |
+
+```css
+/* ✅ ALLOWED: Segmented control pattern */
+#time-toggle {
+  gap: 1px;      /* Hairline separator */
+  padding: 2px;  /* Tight outer padding */
+}
+
+/* ✅ ALLOWED: Calculated positioning */
+#data-layers {
+  top: 124px;    /* Aligns below #layers-toggle */
+}
+
+/* ❌ NOT ALLOWED: Random hardcoded values */
+.some-component {
+  padding: 6px;   /* Use --space-2 (8px) instead */
+  margin: 10px;   /* Use --space-3 (12px) instead */
+}
+```
+
 ---
 
 ## Buttons
@@ -911,7 +940,7 @@ The AI Chat modal appears after journey completion, allowing users to ask questi
 #ai-chat {
   /* Layout */
   position: absolute;
-  bottom: 32px;
+  bottom: var(--space-8);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1111,7 +1140,7 @@ The legend displays marker types relevant to the current journey. It appears in 
 .legend-marker {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   display: flex;
@@ -1218,8 +1247,8 @@ The Data Layers panel allows toggling visibility of map layers and data overlays
 #layers-toggle {
   /* Always visible - never hidden */
   position: absolute;
-  top: 80px;
-  left: 12px;
+  top: var(--space-20);
+  left: var(--space-3);
   z-index: 500;
   width: 36px;
   height: 36px;
@@ -1416,7 +1445,7 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
   /* Visual */
   background: var(--color-primary);
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   box-shadow: var(--shadow-large);
 
   /* Content */

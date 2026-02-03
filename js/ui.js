@@ -817,6 +817,11 @@ const UI = {
      * Inject back button into panel content header
      */
     injectBackButton(content) {
+        // Skip if back button already exists (panel-back-btn or disclosure-back-btn)
+        if (content.includes('panel-back-btn') || content.includes('disclosure-back-btn')) {
+            return content;
+        }
+
         // Find the subtitle element and inject back button before it
         const subtitleMatch = content.match(/<div class="subtitle">/);
         if (subtitleMatch) {
