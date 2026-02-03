@@ -8,6 +8,11 @@ const UI = {
     currentProperty: null,
     charts: {}, // Track Chart.js instances to prevent memory leaks
 
+    // Disclosure group state
+    disclosureState: {}, // Track which groups are expanded: { 'energy-infrastructure': true }
+    currentEvidenceGroup: null, // Current group being viewed
+    currentEvidenceItem: null, // Current sub-item in detail view
+
     /**
      * Initialize UI elements
      */
@@ -21,6 +26,7 @@ const UI = {
             presentBtn: document.getElementById('present-btn'),
             futureBtn: document.getElementById('future-btn'),
             chatbox: document.getElementById('chatbox'),
+            chatboxTitle: document.getElementById('chatbox-title'),
             chatboxContent: document.getElementById('chatbox-content'),
             chatboxClose: document.getElementById('chatbox-close'),
             rightPanel: document.getElementById('right-panel'),
@@ -88,6 +94,14 @@ const UI = {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !this.elements.rightPanel.classList.contains('hidden')) {
                 this.hidePanel();
+            }
+        });
+
+        // Keyboard handling for property image Quick Look (Escape to close)
+        document.addEventListener('keydown', (e) => {
+            const quickLook = document.getElementById('property-quick-look');
+            if (e.key === 'Escape' && quickLook && !quickLook.classList.contains('hidden')) {
+                this.hidePropertyImageQuickLook();
             }
         });
 
@@ -474,7 +488,7 @@ const UI = {
     // ================================
 
     showChatbox(content) {
-        this.elements.chatboxContent.innerHTML = content;
+        this._setChatboxContent(content);
         this.elements.chatbox.classList.remove('hidden');
         this.hideChatFab();
     },
@@ -486,7 +500,24 @@ const UI = {
     },
 
     updateChatbox(content) {
-        this.elements.chatboxContent.innerHTML = content;
+        this._setChatboxContent(content);
+    },
+
+    // Helper to extract h3 title and set content separately
+    _setChatboxContent(content) {
+        // Parse content to extract h3 title
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        const h3 = tempDiv.querySelector('h3');
+
+        if (h3) {
+            this.elements.chatboxTitle.textContent = h3.textContent;
+            h3.remove();
+            this.elements.chatboxContent.innerHTML = tempDiv.innerHTML;
+        } else {
+            this.elements.chatboxTitle.textContent = '';
+            this.elements.chatboxContent.innerHTML = content;
+        }
     },
 
     // ================================
@@ -498,6 +529,8 @@ const UI = {
         this.elements.rightPanel.classList.remove('hidden');
         this.elements.rightPanel.classList.add('visible');
         this.panelOpen = true;
+        // Show panel toggle button (will be visible/active when panel is open)
+        this.showPanelToggle();
         this.updatePanelToggleState();
     },
 
@@ -654,23 +687,94 @@ const UI = {
     },
 
     /**
+     * Show infrastructure road panel (Journey B - Infrastructure Roads)
+     */
+    showRoadPanel(road) {
+        const content = `
+            <div class="subtitle">Infrastructure Plan</div>
+            <h2>${road.name}</h2>
+
+            <div class="stat-grid" style="grid-template-columns: 1fr;">
+                <div class="stat-item" style="text-align: center;">
+                    <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-success);">${road.commuteImpact}</div>
+                    <div class="stat-label">Commute Saved</div>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-value">${road.driveToJasm}</div>
+                    <div class="stat-label">Drive to JASM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${road.status}</div>
+                    <div class="stat-label">Status</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${road.completionDate}</div>
+                    <div class="stat-label">Completion</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${road.budget}</div>
+                    <div class="stat-label">Budget</div>
+                </div>
+            </div>
+
+            <p>${road.description}</p>
+
+            <button class="panel-btn primary" onclick="UI.showGallery('${road.name} - Infrastructure Plan', 'pdf', '${road.description.replace(/'/g, "\\'")}')">
+                View Source Document
+            </button>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show property panel (Journey C)
+     * Inspector pattern: Image at top → Property details → Financials
      */
     showPropertyPanel(property) {
         this.currentProperty = property;
-        const statsHtml = property.basicStats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
+
+        // Property details section (type, location, zone, JASM distance)
+        const detailsHtml = `
+            <div class="property-details">
+                <div class="property-detail-row">
+                    <span class="property-detail-label">Type</span>
+                    <span class="property-detail-value">${property.type || property.subtitle}</span>
+                </div>
+                <div class="property-detail-row">
+                    <span class="property-detail-label">Location</span>
+                    <span class="property-detail-value">${property.address}</span>
+                </div>
+                <div class="property-detail-row">
+                    <span class="property-detail-label">Zone</span>
+                    <span class="property-detail-value">${property.zone || 'Science Park Corridor'}</span>
+                </div>
+                <div class="property-detail-row">
+                    <span class="property-detail-label">Distance to JASM</span>
+                    <span class="property-detail-value">${property.distanceToJasm} (${property.driveTime} drive)</span>
+                </div>
             </div>
-        `).join('');
+        `;
 
         const content = `
+            <div class="property-image-container" onclick="UI.showPropertyImageQuickLook('${property.image}', '${property.name.replace(/'/g, "\\'")}')">
+                <img src="${property.image}" alt="${property.name}" class="property-image" loading="lazy">
+                <div class="property-image-expand" aria-label="Expand image">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <polyline points="9 21 3 21 3 15"></polyline>
+                        <line x1="21" y1="3" x2="14" y2="10"></line>
+                        <line x1="3" y1="21" x2="10" y2="14"></line>
+                    </svg>
+                </div>
+            </div>
             <div class="subtitle">${property.subtitle}</div>
             <h2>${property.name}</h2>
-            <p style="color: #9ca3af; margin-bottom: 8px;">${property.address}</p>
+            ${detailsHtml}
             <p>${property.description}</p>
-            <div class="stat-grid">${statsHtml}</div>
             <button class="panel-btn" onclick="UI.showTruthEngine()">
                 Truth Engine
             </button>
@@ -982,6 +1086,57 @@ const UI = {
     },
 
     /**
+     * Show property image in Quick Look modal (macOS pattern)
+     * @param {string} imageUrl - URL of the image to display
+     * @param {string} title - Title/alt text for the image
+     */
+    showPropertyImageQuickLook(imageUrl, title) {
+        const quickLook = document.getElementById('property-quick-look');
+        const quickLookImage = document.getElementById('quick-look-image');
+
+        if (!quickLook || !quickLookImage) return;
+
+        // Set image source and alt
+        quickLookImage.src = imageUrl;
+        quickLookImage.alt = title;
+
+        // Store current scroll position in panel (to restore later)
+        this.panelScrollPosition = this.elements.panelContent.parentElement.scrollTop;
+
+        // Store last focused element
+        this.lastFocusedElement = document.activeElement;
+
+        // Show the modal
+        quickLook.classList.remove('hidden');
+
+        // Focus the close button
+        const closeBtn = document.getElementById('quick-look-close');
+        if (closeBtn) {
+            closeBtn.focus();
+        }
+    },
+
+    /**
+     * Hide property image Quick Look modal
+     */
+    hidePropertyImageQuickLook() {
+        const quickLook = document.getElementById('property-quick-look');
+        if (quickLook) {
+            quickLook.classList.add('hidden');
+        }
+
+        // Restore panel scroll position
+        if (this.panelScrollPosition !== undefined) {
+            this.elements.panelContent.parentElement.scrollTop = this.panelScrollPosition;
+        }
+
+        // Return focus
+        if (this.lastFocusedElement) {
+            this.lastFocusedElement.focus();
+        }
+    },
+
+    /**
      * Set up focus trap within a modal element
      */
     setupFocusTrap(element) {
@@ -1046,6 +1201,266 @@ const UI = {
         if (evidence) {
             this.showGallery(evidence.title, evidence.type, evidence.description);
         }
+    },
+
+    // ================================
+    // DISCLOSURE GROUPS (macOS NSOutlineView pattern)
+    // ================================
+
+    /**
+     * Generate disclosure group HTML
+     * @param {Object} group - Evidence group data
+     * @returns {string} HTML string
+     */
+    generateDisclosureGroup(group) {
+        const isExpanded = this.disclosureState[group.id] || false;
+        const itemCount = group.items.length;
+
+        const itemsHtml = group.items.map(item => `
+            <button class="disclosure-item"
+                    data-group-id="${group.id}"
+                    data-item-id="${item.id}"
+                    onclick="UI.selectDisclosureItem('${group.id}', '${item.id}')">
+                <span class="disclosure-item-icon" aria-hidden="true">
+                    ${this.getDocTypeIcon(item.type)}
+                </span>
+                <span class="disclosure-item-title">${item.title}</span>
+                <span class="disclosure-item-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
+            </button>
+        `).join('');
+
+        return `
+            <div class="disclosure-group ${isExpanded ? 'expanded' : ''}"
+                 data-group-id="${group.id}">
+                <button class="disclosure-header"
+                        aria-expanded="${isExpanded}"
+                        onclick="UI.toggleDisclosureGroup('${group.id}')">
+                    <span class="disclosure-triangle" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </span>
+                    <span class="disclosure-icon" aria-hidden="true">
+                        ${this.getLucideIcon(group.icon)}
+                    </span>
+                    <span class="disclosure-title">${group.title}</span>
+                    <span class="disclosure-badge">${itemCount} item${itemCount !== 1 ? 's' : ''}</span>
+                </button>
+                <div class="disclosure-content" role="group" aria-label="${group.title} items">
+                    ${itemsHtml}
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Toggle disclosure group expanded state
+     * @param {string} groupId - ID of the group to toggle
+     */
+    toggleDisclosureGroup(groupId) {
+        this.disclosureState[groupId] = !this.disclosureState[groupId];
+
+        const groupEl = document.querySelector(`[data-group-id="${groupId}"]`);
+        if (groupEl) {
+            const headerBtn = groupEl.querySelector('.disclosure-header');
+            const isExpanded = this.disclosureState[groupId];
+
+            groupEl.classList.toggle('expanded', isExpanded);
+            headerBtn.setAttribute('aria-expanded', isExpanded.toString());
+        }
+    },
+
+    /**
+     * Select a sub-item and show its detail view
+     * @param {string} groupId - Parent group ID
+     * @param {string} itemId - Sub-item ID
+     */
+    selectDisclosureItem(groupId, itemId) {
+        // Store current state for back navigation
+        this.currentEvidenceGroup = groupId;
+        this.currentEvidenceItem = itemId;
+
+        // Find the item data
+        const group = this.findEvidenceGroup(groupId);
+        const item = group?.items.find(i => i.id === itemId);
+
+        if (!item) return;
+
+        // Highlight corresponding marker if it has distinct coords
+        if (item.coords) {
+            MapManager.highlightEvidenceMarker(groupId, itemId);
+        }
+
+        // Show detail view
+        this.showDisclosureItemDetail(group, item);
+    },
+
+    /**
+     * Show detail view for a sub-item
+     * @param {Object} group - Parent group
+     * @param {Object} item - Sub-item data
+     */
+    showDisclosureItemDetail(group, item) {
+        const statsHtml = item.stats ? item.stats.map(stat => `
+            <div class="stat-item">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('') : '';
+
+        const content = `
+            <div class="disclosure-detail-header">
+                <button class="disclosure-back-btn" onclick="UI.backToDisclosureList('${group.id}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    ${group.title}
+                </button>
+            </div>
+            <div class="subtitle">${group.title}</div>
+            <h2>${item.title}</h2>
+            <p>${item.description}</p>
+            ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
+            <button class="panel-btn primary" onclick="UI.showGallery('${item.title}', '${item.type}', '${item.description.replace(/'/g, "\\'")}')">
+                View ${this.getTypeLabel(item.type)}
+            </button>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
+     * Navigate back to disclosure list with group still expanded
+     * @param {string} groupId - Group to keep expanded
+     */
+    backToDisclosureList(groupId) {
+        // Ensure the group stays expanded
+        this.disclosureState[groupId] = true;
+
+        // Clear marker highlight
+        MapManager.clearEvidenceMarkerHighlight();
+
+        // Show the evidence list panel
+        this.showEvidenceListPanel(groupId);
+    },
+
+    /**
+     * Show panel with evidence list containing disclosure groups
+     * @param {string} expandedGroupId - Optional group to ensure is expanded
+     */
+    showEvidenceListPanel(expandedGroupId = null) {
+        // Ensure specified group is expanded
+        if (expandedGroupId) {
+            this.disclosureState[expandedGroupId] = true;
+        }
+
+        // Generate HTML for all evidence groups
+        const groups = Object.values(AppData.evidenceGroups);
+        const groupsHtml = groups.map(group => this.generateDisclosureGroup(group)).join('');
+
+        const content = `
+            <div class="subtitle">Evidence Library</div>
+            <h2>Supporting Documents</h2>
+            <p>Explore detailed evidence and documentation for each category.</p>
+            ${groupsHtml}
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
+     * Find evidence group by ID across all data sources
+     * @param {string} groupId - Group ID to find
+     * @returns {Object|null} Group data or null
+     */
+    findEvidenceGroup(groupId) {
+        // Check evidenceGroups at top level of AppData
+        if (AppData.evidenceGroups && AppData.evidenceGroups[groupId]) {
+            return AppData.evidenceGroups[groupId];
+        }
+
+        return null;
+    },
+
+    /**
+     * Get Lucide icon SVG by name
+     * @param {string} iconName - Icon name (e.g., 'zap', 'building-2')
+     * @returns {string} SVG string
+     */
+    getLucideIcon(iconName) {
+        const icons = {
+            'zap': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
+            </svg>`,
+            'route': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="6" cy="19" r="3"/>
+                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
+                <circle cx="18" cy="5" r="3"/>
+            </svg>`,
+            'landmark': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" x2="21" y1="22" y2="22"/>
+                <line x1="6" x2="6" y1="18" y2="11"/>
+                <line x1="10" x2="10" y1="18" y2="11"/>
+                <line x1="14" x2="14" y1="18" y2="11"/>
+                <line x1="18" x2="18" y1="18" y2="11"/>
+                <polygon points="12 2 20 7 4 7"/>
+            </svg>`,
+            'graduation-cap': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>`,
+            'file-text': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <line x1="10" y1="9" x2="8" y2="9"/>
+            </svg>`
+        };
+        return icons[iconName] || icons['file-text'];
+    },
+
+    /**
+     * Get document type icon
+     * @param {string} type - Document type (pdf, image, web)
+     * @returns {string} SVG string
+     */
+    getDocTypeIcon(type) {
+        const icons = {
+            'pdf': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>`,
+            'image': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>`,
+            'web': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>`
+        };
+        return icons[type] || icons['pdf'];
+    },
+
+    /**
+     * Get human-readable label for document type
+     * @param {string} type - Document type
+     * @returns {string} Label
+     */
+    getTypeLabel(type) {
+        const labels = {
+            'pdf': 'Document',
+            'image': 'Gallery',
+            'web': 'Source'
+        };
+        return labels[type] || 'Evidence';
     },
 
     // ================================
@@ -1168,7 +1583,16 @@ const UI = {
 
         // Build map layers based on journey (these are active by default)
         let mapLayersHtml = '';
-        if (journey === 'B') {
+        if (journey === 'A') {
+            mapLayersHtml = `
+                <button type="button" class="layer-item active" data-layer="resources"
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('resources')">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
+                    <span class="layer-label">Resources</span>
+                </button>
+            `;
+        } else if (journey === 'B') {
             mapLayersHtml = `
                 <button type="button" class="layer-item active" data-layer="sciencePark"
                         role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
@@ -1393,6 +1817,12 @@ const UI = {
                 <circle cx="6" cy="19" r="3"/>
                 <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
                 <circle cx="18" cy="5" r="3"/>
+            </svg>`,
+            // Road/highway icon for infrastructure roads
+            infrastructureRoad: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="19" r="3"/>
+                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
+                <circle cx="18" cy="5" r="3"/>
             </svg>`
         };
 
@@ -1429,6 +1859,14 @@ const UI = {
                 <div class="legend-item legend-item-future hidden" id="legend-zone">
                     <div class="legend-marker zone">${icons.zone}</div>
                     <span class="legend-label">Development Zone</span>
+                </div>
+            `;
+        } else if (journey === 'B7') {
+            // Infrastructure roads step - show road legend item
+            html += `
+                <div class="legend-item">
+                    <div class="legend-marker infrastructureRoad">${icons.infrastructureRoad}</div>
+                    <span class="legend-label">Infrastructure Roads</span>
                 </div>
             `;
         } else if (journey === 'C') {
@@ -1643,24 +2081,5 @@ const UI = {
             this.hideTypingIndicator();
             this.addChatMessage("I'll connect you with one of our investment advisors. They'll reach out within 24 hours to discuss your specific interests.<br><br><strong>What's the best way to reach you?</strong>", 'assistant');
         }, 800);
-    },
-
-    /**
-     * Exit path: View properties again
-     */
-    viewPropertiesAgain() {
-        this.hideAIChat();
-
-        // Pan map to show properties and show the chatbox
-        MapManager.resetView();
-
-        UI.showChatbox(`
-            <h3>Investment Opportunities</h3>
-            <p>Amber markers show available investment properties.</p>
-            <p>Click a property to see financials and projections.</p>
-            <button class="chatbox-continue primary" onclick="App.complete()">
-                Any More Questions?
-            </button>
-        `);
     }
 };

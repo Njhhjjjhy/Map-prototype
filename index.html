@@ -48,16 +48,19 @@
             <!-- Chatbox -->
             <div id="chatbox" class="hidden" role="region" aria-label="Journey guide" aria-live="polite">
                 <button id="chatbox-close" aria-label="Close chatbox">
-                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="14" y1="2" x2="2" y2="14"></line>
+                        <line x1="2" y1="2" x2="14" y2="14"></line>
                     </svg>
                 </button>
-                <div id="chatbox-content"></div>
+                <div id="chatbox-body">
+                    <h3 id="chatbox-title"></h3>
+                    <div id="chatbox-content"></div>
+                </div>
             </div>
 
-            <!-- Layers Toggle Button (always visible) -->
-            <button id="layers-toggle" aria-label="Toggle map layers" aria-expanded="false">
+            <!-- Layers Toggle Button (hidden until journey starts) -->
+            <button id="layers-toggle" class="hidden" aria-label="Toggle map layers" aria-expanded="false">
                 <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                     <polyline points="2 17 12 22 22 17"></polyline>
@@ -113,23 +116,41 @@
     <div id="gallery-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
         <div id="gallery-overlay"></div>
         <div id="gallery-content">
-            <button id="gallery-close" aria-label="Close gallery"><span aria-hidden="true">&times;</span></button>
+            <button id="gallery-close" aria-label="Close gallery">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="14" y1="2" x2="2" y2="14"></line>
+                    <line x1="2" y1="2" x2="14" y2="14"></line>
+                </svg>
+            </button>
             <h2 id="gallery-title" class="sr-only">Document viewer</h2>
             <div id="gallery-body"></div>
+        </div>
+    </div>
+
+    <!-- Property Image Quick Look Modal (macOS pattern) -->
+    <div id="property-quick-look" class="hidden" role="dialog" aria-modal="true" aria-label="Property image expanded view">
+        <div id="quick-look-overlay" onclick="UI.hidePropertyImageQuickLook()"></div>
+        <div id="quick-look-content">
+            <button id="quick-look-close" aria-label="Close image" onclick="UI.hidePropertyImageQuickLook()">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="14" y1="2" x2="2" y2="14"></line>
+                    <line x1="2" y1="2" x2="14" y2="14"></line>
+                </svg>
+            </button>
+            <img id="quick-look-image" src="" alt="">
         </div>
     </div>
 
     <!-- AI Chat (appears after journey completion) -->
     <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
         <button id="ai-chat-close" aria-label="Close chat">
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="14" y1="2" x2="2" y2="14"></line>
+                <line x1="2" y1="2" x2="14" y2="14"></line>
             </svg>
         </button>
         <div class="ai-chat-header">
-            <h3>Ask me anything about Kumamoto</h3>
-            <p class="ai-chat-subtitle">Try asking about land prices, traffic patterns, TSMC impact, or your property.</p>
+            <h3>Ask Me Anything About Kumamoto</h3>
         </div>
 
         <div class="ai-chat-suggestions" id="ai-chat-suggestions">
@@ -143,11 +164,6 @@
 
         <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite">
             <!-- Messages will be inserted here -->
-        </div>
-
-        <!-- Exit path CTAs -->
-        <div class="ai-chat-actions" id="ai-chat-actions">
-            <button class="ai-action-btn" onclick="UI.viewPropertiesAgain()">View Properties Again</button>
         </div>
 
         <form class="ai-chat-input-container" id="ai-chat-form">

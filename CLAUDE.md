@@ -149,6 +149,7 @@ Per HIG, adjust tracking based on font size for optimal legibility:
   --color-map-route: #007aff;         /* Route lines */
   --color-map-zone-future: rgba(251, 185, 49, 0.2);  /* Development zones */
   --color-map-radius: rgba(255, 59, 48, 0.15);       /* Science park radius */
+  --color-map-infrastructure: #5ac8fa; /* Infrastructure road overlays */
 }
 ```
 
@@ -230,6 +231,34 @@ Per Gestalt proximity principles: internal spacing (padding) should be less than
 │  │  More content      │  │
 │  └────────────────────┘  │
 └──────────────────────────┘
+```
+
+### Mandatory Spacing Rules
+
+```
+⚠️ STRICT SPACING ENFORCEMENT — NEVER DEVIATE
+
+These spacing values are MANDATORY and must be followed exactly:
+
+❌ NEVER use arbitrary pixel values — Always use spacing tokens
+❌ NEVER mix spacing systems — Only 8pt grid values
+❌ NEVER skip section gaps — Use --space-6 (24px) minimum between sections
+❌ NEVER guess spacing — Refer to this table
+
+REQUIRED SPACING BY CONTEXT:
+┌─────────────────────────────────────┬──────────────────────────┐
+│ Context                             │ Required Token           │
+├─────────────────────────────────────┼──────────────────────────┤
+│ Title to next section               │ --space-6 (24px)         │
+│ Header to content block             │ --space-6 (24px)         │
+│ Between related items               │ --space-3 or --space-4   │
+│ Between unrelated sections          │ --space-6 to --space-8   │
+│ Panel/card internal padding         │ --space-6 (24px)         │
+│ Icon to adjacent text               │ --space-2 (8px)          │
+│ Button internal padding             │ --space-3 × --space-6    │
+└─────────────────────────────────────┴──────────────────────────┘
+
+When in doubt: --space-6 (24px) for section gaps, --space-4 (16px) for related elements.
 ```
 
 ---
@@ -874,6 +903,59 @@ Per HIG and WCAG 2.1 AA:
 }
 ```
 
+### AI Chat
+
+The AI Chat modal appears after journey completion, allowing users to ask questions about Kumamoto.
+
+```css
+#ai-chat {
+  /* Layout */
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+
+  /* Sizing */
+  width: 100%;
+  max-width: 424px;
+  padding: var(--space-2) var(--space-4) var(--space-8) var(--space-4);
+
+  /* Visual */
+  background: #FEFEFE;
+  border-radius: var(--radius-xlarge);
+  box-shadow: var(--shadow-large);
+}
+```
+
+#### AI Chat Internal Spacing (MANDATORY)
+
+```
+⚠️ STRICT RULE: All content sections MUST have --space-6 (24px) gap from header
+
+Structure:
+┌─────────────────────────────────────┐
+│  [X] Close button (top-right)       │
+│                                     │
+│  ← --space-4 margin-top →           │
+│  Ask Me Anything About Kumamoto     │  ← Header (h3)
+│                                     │
+│  ← --space-6 margin-top →           │  ← REQUIRED 24px gap
+│  ┌─────────────────────────────┐    │
+│  │ Suggestion chips OR         │    │  ← .ai-chat-suggestions
+│  │ Message bubbles             │    │     OR .ai-chat-messages
+│  └─────────────────────────────┘    │
+│                                     │
+│  [Input field]                      │
+└─────────────────────────────────────┘
+
+REQUIRED margin-top values:
+- .ai-chat-header: var(--space-4) — gap after close button
+- .ai-chat-suggestions: var(--space-6) — section gap after header
+- .ai-chat-messages: var(--space-6) — section gap after header
+```
+
 ### Gallery Overlay
 
 ```css
@@ -912,6 +994,31 @@ Per HIG and WCAG 2.1 AA:
   padding: var(--space-8);
 }
 ```
+
+### Modal Header (Required for ALL Modals)
+
+All modals must follow this header spacing rule:
+
+```css
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);  /* 8px — REQUIRED spacing between title and close button */
+}
+
+.modal-title {
+  flex: 1;
+  margin: 0;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  /* Gap of 8px is enforced by parent's gap property */
+}
+```
+
+**Rule:** The space between the modal title and the close button-icon MUST be `--space-2` (8px). This applies to all modals including gallery overlays, dialogs, and any overlay content with a dismissible header.
 
 ### Control Bar
 
@@ -1025,6 +1132,7 @@ All icons use **Lucide** icon library for consistency across Legend and Data Lay
 | Real Estate | `#ff9500` (orange) | `house` | ✓ |
 | Resources | `#ff3b30` (red) | `droplet` | Journey A only |
 | Development Zone | `#ff3b30` (red) | `target` | Journey B (Future view only) |
+| Infrastructure Roads | `#5ac8fa` (teal) | `route` | Journey B (Step B7 only) |
 | Route to JASM | `#64748b` (gray) | `route` | Journey C only |
 
 #### Legend Content Structure
@@ -1037,8 +1145,68 @@ All icons use **Lucide** icon library for consistency across Legend and Data Lay
 
 **Journey-specific additions:**
 - **Journey A**: + Resources
-- **Journey B**: + Development Zone (visible only in Future view)
+- **Journey B**: + Development Zone (visible only in Future view), + Infrastructure Roads (visible only in Step B7)
 - **Journey C**: + Route to JASM
+
+### Infrastructure Road Overlays
+
+Polyline overlays representing planned and in-progress road infrastructure. Visible during Journey B Step B7.
+
+```css
+.infrastructure-road {
+  /* Default state */
+  stroke: var(--color-map-infrastructure);  /* #5ac8fa */
+  stroke-width: 5px;
+  stroke-dasharray: 10, 6;
+  stroke-opacity: 0.7;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-standard);
+}
+
+.infrastructure-road:hover {
+  stroke-width: 7px;
+  stroke-opacity: 1.0;
+}
+
+.infrastructure-road.selected {
+  stroke-width: 7px;
+  stroke-dasharray: none;  /* Solid line */
+  stroke-opacity: 1.0;
+  filter: drop-shadow(0 0 8px rgba(90, 200, 250, 0.5));
+}
+```
+
+#### Infrastructure Road Behavior
+
+- **Single selection**: Only one road can be selected at a time
+- **Hover feedback**: Stroke weight increases, opacity increases to 1.0
+- **Selected state**: Dashed line becomes solid, glow effect applied
+- **Panel sync**: Clicking road opens right panel with road details
+- **Fade in**: Roads appear with 300ms fade when step activates
+
+#### Infrastructure Road Panel Content
+
+The right panel for infrastructure roads follows this structure:
+
+```
+[Subtitle] Infrastructure Plan
+[Title]    {Road Name}
+
+[Headline Metric]
+{-X min}
+Commute Saved
+
+[Stats Grid]
+Drive to JASM  | {time}
+Status         | {Under Construction / Planned / Complete}
+Completion     | {year}
+Budget         | {amount}
+
+[Description]
+{Road description text}
+
+[Button] View Source Document
+```
 
 ### Data Layers Panel
 
@@ -1099,6 +1267,134 @@ All layer icons use **Lucide** icons for consistency with the Legend:
 | Infrastructure Plan | `landmark` | Inactive |
 | Real Estate | `house` | Inactive |
 | Risky Area | `droplet` | Inactive |
+
+### Evidence Library Panel
+
+A disclosure-based panel for browsing hierarchical evidence groups with multiple items per category.
+
+```css
+.evidence-library {
+  /* Container */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.evidence-group {
+  /* Disclosure group container */
+  border: 1px solid var(--color-bg-tertiary);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+}
+
+.evidence-group-header {
+  /* Clickable header row */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.evidence-group-header:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.evidence-group-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-secondary);
+}
+
+.evidence-group-title {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.evidence-group-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.evidence-group.expanded .evidence-group-chevron {
+  transform: rotate(90deg);
+}
+
+.evidence-group-items {
+  /* Items container - hidden by default */
+  display: none;
+  padding: var(--space-2);
+  background: var(--color-bg-primary);
+}
+
+.evidence-group.expanded .evidence-group-items {
+  display: block;
+}
+
+.evidence-item {
+  /* Individual evidence item */
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.evidence-item:hover {
+  background: var(--color-bg-secondary);
+}
+
+.evidence-item.has-location::after {
+  /* Location indicator */
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--color-info);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+```
+
+#### Evidence Library Behavior
+
+- **Disclosure groups**: Click header to expand/collapse item list
+- **Item interaction**: Click item to view detail with source link
+- **Location indicator**: Blue dot on items with map coordinates
+- **Bidirectional sync**: Clicking item highlights map marker; clicking marker opens item detail
+- **Back navigation**: "Back to List" returns to library and clears marker highlights
+
+#### Evidence Marker Styles
+
+```css
+.evidence-marker {
+  /* Map marker for evidence items */
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-bg-primary);
+  border: 2px solid currentColor;
+  box-shadow: var(--shadow-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.evidence-marker.highlighted {
+  /* Selected state */
+  transform: scale(1.2);
+  box-shadow: var(--shadow-large), 0 0 0 4px rgba(0, 122, 255, 0.3);
+}
+```
 
 ### Floating Action Button (Chat FAB)
 
@@ -1277,6 +1573,7 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
   --color-map-route: #007aff;
   --color-map-zone-future: rgba(251, 185, 49, 0.2);
   --color-map-radius: rgba(255, 59, 48, 0.15);
+  --color-map-infrastructure: #5ac8fa;
   
   /* ========== SPACING ========== */
   --space-unit: 8px;
@@ -1419,6 +1716,44 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
 - [ ] Restores chatbox content based on journey state
 - [ ] 56×56px size meets touch target requirements
 - [ ] Brand-colored with proper hover/active states
+
+### For AI Chat
+
+- [ ] Header margin-top is `--space-4` (16px) — gap after close button
+- [ ] Suggestions margin-top is `--space-6` (24px) — section gap after header
+- [ ] Messages margin-top is `--space-6` (24px) — section gap after header
+- [ ] Suggestions hide after first message sent
+- [ ] Both suggestions and messages maintain 24px gap from header title
+
+### For All Modals
+
+- [ ] Header uses flexbox with `justify-content: space-between`
+- [ ] Gap between title and close button is exactly 8px (`--space-2`)
+- [ ] Close button is flex-shrink: 0 to prevent compression
+- [ ] Title has flex: 1 to fill available space
+
+### For Evidence Library
+
+- [ ] Disclosure groups expand/collapse on header click
+- [ ] Chevron rotates 90° when expanded
+- [ ] Items with coordinates show blue location indicator dot
+- [ ] Clicking item with location highlights map marker
+- [ ] Clicking map marker opens item detail view
+- [ ] "Back to List" clears marker highlights
+- [ ] Evidence markers scale up (1.2×) when highlighted
+- [ ] Highlighted markers have blue ring shadow
+
+### For Infrastructure Roads
+
+- [ ] Roads appear as teal dashed polylines (#5ac8fa)
+- [ ] Hover increases stroke weight (5px → 7px) and opacity (0.7 → 1.0)
+- [ ] Click selects road (dashed → solid, glow effect)
+- [ ] Single selection only (clicking another road deselects previous)
+- [ ] Right panel shows headline metric (commute saved) prominently
+- [ ] Stats grid includes: Drive to JASM, Status, Completion, Budget
+- [ ] "View Source Document" button opens gallery
+- [ ] Roads fade in over 300ms when B7 activates
+- [ ] Legend shows Infrastructure Roads item during B7
 
 ---
 

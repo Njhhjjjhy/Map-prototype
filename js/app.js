@@ -45,6 +45,9 @@ const App = {
         // Show legend for Journey A
         UI.showLegend('A');
 
+        // Show data layers toggle for Journey A
+        UI.showDataLayers('A');
+
         // A1: Show "Why Kumamoto?" prompt
         UI.showChatbox(`
             <h3>Why Kumamoto?</h3>
@@ -84,6 +87,12 @@ const App = {
             this.state.resourcesExplored.push(resourceId);
         }
 
+        // Show the resource panel immediately (default to water if first time)
+        const resource = AppData.resources[resourceId];
+        if (resource) {
+            UI.showResourcePanel(resource);
+        }
+
         // Update chatbox to show what's been explored
         this.updateResourceChatbox();
     },
@@ -109,6 +118,15 @@ const App = {
                 </button>
             </div>
         `;
+
+        // Show evidence group link when power is explored
+        if (powerExplored) {
+            content += `
+                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('energy-infrastructure')" style="margin-top: 8px;">
+                    View Energy Infrastructure Evidence
+                </button>
+            `;
+        }
 
         if (allExplored) {
             content += `
@@ -189,8 +207,41 @@ const App = {
             <h3>Infrastructure Plan</h3>
             <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
             <p>Future view shows upcoming development zones.</p>
+            <div class="chatbox-options" style="margin-top: 12px;">
+                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
+                    View Government Zone Plans
+                </button>
+                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
+                    View Transportation Network
+                </button>
+                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
+                    View Education Pipeline
+                </button>
+            </div>
+            <button class="chatbox-continue primary" onclick="App.stepB7()">
+                View Road Improvements
+            </button>
+        `);
+    },
+
+    stepB7() {
+        this.state.step = 'B7';
+
+        // Reset to present view for clarity
+        UI.setTimeView('present');
+
+        // Show infrastructure roads on the map
+        MapManager.showInfrastructureRoads();
+
+        // Update legend to include infrastructure roads
+        UI.showLegend('B7');
+
+        UI.updateChatbox(`
+            <h3>Infrastructure Roads</h3>
+            <p>These road projects cut commute times for JASM workers — making nearby properties more accessible and more valuable.</p>
+            <p><strong>Click a highlighted road to see details.</strong></p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
-                View Investment Opportunities
+                View Properties
             </button>
         `);
     },
@@ -201,6 +252,11 @@ const App = {
 
         // Reset to present view
         UI.setTimeView('present');
+
+        // Hide infrastructure roads if shown
+        if (this.state.step === 'B7') {
+            MapManager.hideInfrastructureRoads();
+        }
 
         setTimeout(() => {
             this.startJourneyC();
@@ -227,7 +283,7 @@ const App = {
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>
             <p>Amber markers show available investment properties.</p>
-            <p>Click a property to see financials and projections.</p>
+            <p><strong>Click a property to see financials and projections.</strong></p>
             <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
                 Route lines show distance to JASM employment center.
             </p>
@@ -268,6 +324,56 @@ const App = {
         }, 500);
     },
 
+    // ================================
+    // EVIDENCE GROUPS
+    // ================================
+
+    /**
+     * Show evidence group panel from chatbox link
+     * @param {string} groupId - Evidence group ID
+     */
+    showEvidenceGroupPanel(groupId) {
+        const group = UI.findEvidenceGroup(groupId);
+        if (group) {
+            // Ensure group is expanded
+            UI.disclosureState[groupId] = true;
+
+            // Show the panel with just this group
+            this.showSingleEvidenceGroup(group);
+
+            // Show markers for this group's items
+            MapManager.showEvidenceGroupMarkers(group);
+        }
+    },
+
+    /**
+     * Show panel with a single evidence group
+     * @param {Object} group - Evidence group data
+     */
+    showSingleEvidenceGroup(group) {
+        UI.disclosureState[group.id] = true;
+        const groupHtml = UI.generateDisclosureGroup(group);
+
+        const content = `
+            <div class="subtitle">Supporting Evidence</div>
+            <h2>${group.title}</h2>
+            <p>Select an item below to view detailed documentation.</p>
+            ${groupHtml}
+            <button class="panel-btn" onclick="UI.showEvidenceListPanel()">
+                View All Evidence
+            </button>
+        `;
+
+        UI.showPanel(content);
+    },
+
+    /**
+     * Show evidence library with all groups
+     */
+    showEvidenceLibrary() {
+        UI.showEvidenceListPanel();
+    },
+
     /**
      * Restore chatbox content based on current journey state
      * Called when user clicks the FAB to reopen chatbox
@@ -299,13 +405,22 @@ const App = {
                         Show Time Controls
                     </button>
                 `);
+            } else if (step === 'B7') {
+                UI.showChatbox(`
+                    <h3>Infrastructure Roads</h3>
+                    <p>These road projects cut commute times for JASM workers — making nearby properties more accessible and more valuable.</p>
+                    <p><strong>Click a highlighted road to see details.</strong></p>
+                    <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
+                        View Properties
+                    </button>
+                `);
             } else {
                 UI.showChatbox(`
                     <h3>Infrastructure Plan</h3>
                     <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
                     <p>Future view shows upcoming development zones.</p>
-                    <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
-                        View Investment Opportunities
+                    <button class="chatbox-continue primary" onclick="App.stepB7()">
+                        View Road Improvements
                     </button>
                 `);
             }
@@ -313,7 +428,7 @@ const App = {
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
                 <p>Amber markers show available investment properties.</p>
-                <p>Click a property to see financials and projections.</p>
+                <p><strong>Click a property to see financials and projections.</strong></p>
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     Any More Questions?
                 </button>

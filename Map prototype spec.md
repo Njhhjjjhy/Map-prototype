@@ -68,6 +68,9 @@ A small overlay that displays prompts or guided questions. Appears when the narr
 ### The Gallery Modal
 A full-screen overlay for viewing PDFs, images, or embedded external content without leaving the app.
 
+### The Evidence Library
+A disclosure-based panel that organizes supporting documentation into collapsible groups. Each evidence group contains multiple items that can be explored individually. Items with geographic coordinates display markers on the map with bidirectional selection sync (clicking a list item highlights its marker; clicking a marker opens its detail view).
+
 ### The Control Bar
 Contains layer toggles and the future/present switch. These controls appear only when relevant to the current journey step.
 
@@ -110,6 +113,9 @@ Clicking the link opens the gallery modal with a PDF or website preview showing 
 **Step A7**
 The presenter closes the gallery and returns to the map. They can repeat A3–A6 for the other resource option.
 
+**Step A8**
+After exploring both resources, the chatbox offers a link to "View Energy Infrastructure Evidence" which opens the Evidence Library filtered to the energy-infrastructure group.
+
 ### Transition Out
 After both resources have been explored (or the presenter indicates readiness), a subtle prompt or the chatbox suggests "Now let's look at what's being built here..." This leads into Journey B.
 
@@ -141,22 +147,44 @@ Corporate investment markers appear on the map (JASM, Sony, Tokyo Electron, Mits
 The presenter clicks any company marker. The right panel updates to show that company's investment amount, job creation numbers, and press release excerpts. Link to full press release opens in gallery.
 
 **Step B6**
-A "Future / Present" toggle appears in the control bar.
+A "Future / Present" toggle appears in the control bar. The presenter clicks the Future toggle. The map transitions to show the projected future state of the Science Park cluster with additional planned developments. Smaller circle markers appear representing future development zones (Kikuyo, Ozu areas). Clicking any small circle shows the relevant local government's long-term plan in the right panel. Link to official documentation opens in gallery. The presenter can toggle back to Present view to compare.
 
-**Step B7**
-The presenter clicks the Future toggle. The map transitions to show the projected future state of the Science Park cluster with additional planned developments.
+The chatbox provides quick access to the Evidence Library with links to explore:
+- Government Development Zones
+- Transportation Network
+- Education & Talent Pipeline
 
-**Step B8**
-Smaller circle markers appear representing future development zones (Kikuyo, Ozu areas).
+Each opens the Evidence Library expanded to that category.
 
-**Step B9**
-Clicking any small circle shows the relevant local government's long-term plan in the right panel. Link to official documentation opens in gallery.
+A "View Road Improvements" button appears in the chatbox to advance to Step B7.
 
-**Step B10**
-The presenter can toggle back to Present view to compare.
+**Step B7: Infrastructure Roads**
+Teal dashed polylines appear on the map showing planned and in-progress road infrastructure projects. These roads support the narrative that government investment in transportation makes nearby properties more accessible and valuable.
+
+| Visual Treatment | Value |
+|------------------|-------|
+| Color | `#5ac8fa` (teal) |
+| Stroke weight | 5px default, 7px on hover/selected |
+| Dash pattern | `10, 6` (dashed default, solid when selected) |
+| Opacity | 0.7 default, 1.0 on hover/selected |
+
+Interaction:
+- Hover shows cursor change and increased opacity
+- Single selection only (clicking another road deselects the previous)
+- Click opens right panel with road details
+
+Right panel content structure:
+- Subtitle: "Infrastructure Plan"
+- Title: Road name
+- Headline metric: Commute time saved (e.g., "-8 min")
+- Stats grid: Drive time to JASM, Status, Completion date, Budget
+- Description text
+- "View Source Document" button
+
+The chatbox shows explanatory text and a "View Properties" button to transition to Journey C.
 
 ### Transition Out
-After exploring the infrastructure layer, a prompt suggests "Let's look at a specific investment opportunity..." This leads into Journey C.
+After exploring infrastructure roads, the presenter clicks "View Properties" to advance to Journey C, which presents specific investment opportunities.
 
 ---
 
@@ -228,6 +256,33 @@ All UI components except the initial button start hidden. Reveal with fade/slide
 ### Gallery
 Build a modal that can display images, render PDFs (using pdf.js or similar), and embed external sites via iframe.
 
+### Evidence Groups (Multi-Item Evidence Display)
+Evidence is organized into hierarchical groups containing multiple related items. This allows presenters to dive deep into supporting documentation for any topic.
+
+**Structure:**
+- Each group has an ID, title, icon, and array of items
+- Items contain: title, description, type (pdf/website/report), source citation
+- Items may have coordinates for map marker display
+
+**Evidence Library Panel:**
+- Displays all evidence groups with disclosure triangles
+- Groups expand/collapse to show contained items
+- Clicking an item opens its detail view with full description and "View Source" action
+
+**Bidirectional Map Sync:**
+- Evidence items with coordinates show markers on the map
+- Clicking a list item: highlights corresponding map marker and pans to it
+- Clicking a map marker: opens the item's detail view in the panel
+- "Back to List" button returns to the evidence library while clearing marker highlights
+
+**Current Evidence Groups:**
+| Group ID | Title | Use Case |
+|----------|-------|----------|
+| `energy-infrastructure` | Energy Infrastructure | Journey A power resources |
+| `government-zones` | Government Development Zones | Journey B future planning |
+| `transportation-network` | Transportation Network | Journey B infrastructure |
+| `education-pipeline` | Education & Talent Pipeline | Journey B workforce |
+
 ### Transitions Between Journeys
 These should feel conversational, not mechanical. A brief text prompt in the chatbox or a subtle UI cue works better than a "Journey Complete! Start Journey B?" dialog.
 
@@ -244,16 +299,14 @@ These should feel conversational, not mechanical. A brief text prompt in the cha
 | A | A5 | "View Evidence" link available |
 | A | A6 | Gallery opens with source material |
 | A | A7 | Return to map, repeat for other option |
+| A | A8 | Evidence Library link for energy infrastructure |
 | B | B1 | Infrastructure layer activates |
 | B | B2 | Science Park radius circle appears, clickable |
 | B | B3 | Right panel shows master plan |
 | B | B4 | Corporate markers appear (JASM, Sony, etc.) |
 | B | B5 | Click company → see investment details |
-| B | B6 | Future/Present toggle appears |
-| B | B7 | Toggle to Future view |
-| B | B8 | Future development zone markers appear |
-| B | B9 | Click zone → see government plans |
-| B | B10 | Toggle back to Present |
+| B | B6 | Future/Present toggle with development zones |
+| B | B7 | Infrastructure roads appear, click to see commute impact |
 | C | C1 | Investment property markers appear |
 | C | C2 | Click property → route to JASM draws |
 | C | C3 | Right panel shows basic property info |

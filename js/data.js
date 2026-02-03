@@ -200,6 +200,9 @@ const AppData = {
             address: '123 Kikuyo-machi, Kikuyo',
             distanceToJasm: '8.2 km',
             driveTime: '12 min',
+            type: 'Single Family Residence',
+            zone: 'Kikuyo Development Zone',
+            image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
             description: 'Modern 3-bedroom residence in the heart of the development zone. Walking distance to new commercial center.',
             basicStats: [
                 { value: '12 min', label: 'Drive to JASM' },
@@ -267,6 +270,9 @@ const AppData = {
             address: '45 Ozu-machi, Ozu',
             distanceToJasm: '10.5 km',
             driveTime: '15 min',
+            type: 'Apartment',
+            zone: 'Ozu Industrial Expansion',
+            image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80',
             description: 'High-demand apartment in growing residential area. Strong rental history with semiconductor industry tenants.',
             basicStats: [
                 { value: '15 min', label: 'Drive to JASM' },
@@ -341,5 +347,249 @@ const AppData = {
     },
 
     // JASM location for route drawing
-    jasmLocation: [32.874, 130.785]
+    jasmLocation: [32.874, 130.785],
+
+    // Journey B: Infrastructure Roads
+    infrastructureRoads: [
+        {
+            id: 'route-57-bypass',
+            name: 'Route 57 Bypass',
+            coords: [
+                [32.82, 130.68],
+                [32.84, 130.72],
+                [32.86, 130.76],
+                [32.874, 130.785]
+            ],
+            status: 'Under Construction',
+            completionDate: '2026',
+            budget: '¥86B',
+            length: '14.2 km',
+            driveToJasm: '12 min',
+            commuteImpact: '-8 min',
+            description: 'New arterial bypass connecting western Kumamoto directly to the Science Park corridor, reducing congestion on existing routes and providing faster access for JASM workers.',
+            documentLink: '#'
+        },
+        {
+            id: 'kikuyo-connector',
+            name: 'Kikuyo East Connector',
+            coords: [
+                [32.90, 130.82],
+                [32.89, 130.80],
+                [32.874, 130.785]
+            ],
+            status: 'Approved',
+            completionDate: '2027',
+            budget: '¥42B',
+            length: '6.8 km',
+            driveToJasm: '8 min',
+            commuteImpact: '-5 min',
+            description: 'Direct connector linking Kikuyo residential areas to JASM and Sony facilities, designed to handle increased traffic from new housing developments.',
+            documentLink: '#'
+        },
+        {
+            id: 'ozu-industrial-road',
+            name: 'Ozu Industrial Access Road',
+            coords: [
+                [32.86, 130.87],
+                [32.87, 130.84],
+                [32.874, 130.785]
+            ],
+            status: 'Planning',
+            completionDate: '2028',
+            budget: '¥58B',
+            length: '9.4 km',
+            driveToJasm: '14 min',
+            commuteImpact: '-6 min',
+            description: 'Heavy-duty industrial road connecting the Ozu logistics zone to the semiconductor corridor, designed for supply chain transport and worker commutes.',
+            documentLink: '#'
+        }
+    ],
+
+    // Evidence Groups - Hierarchical evidence with multiple sub-items
+    evidenceGroups: {
+        'energy-infrastructure': {
+            id: 'energy-infrastructure',
+            title: 'Energy Infrastructure',
+            icon: 'zap',
+            items: [
+                {
+                    id: 'solar-power',
+                    title: 'Solar Power Capacity',
+                    type: 'pdf',
+                    description: 'Kyushu leads Japan in solar energy adoption with extensive photovoltaic installations across the region, providing stable renewable power to the semiconductor corridor.',
+                    coords: [32.95, 130.55],
+                    stats: [
+                        { value: '2.4GW', label: 'Installed capacity' },
+                        { value: '+18%', label: 'YoY growth' },
+                        { value: '12%', label: 'Grid contribution' },
+                        { value: '¥8/kWh', label: 'Generation cost' }
+                    ]
+                },
+                {
+                    id: 'wind-power',
+                    title: 'Wind Energy Network',
+                    type: 'pdf',
+                    description: 'Offshore and onshore wind installations along the Kyushu coast provide complementary renewable energy, particularly during peak demand periods.',
+                    coords: [32.68, 130.42],
+                    stats: [
+                        { value: '890MW', label: 'Total capacity' },
+                        { value: '34%', label: 'Capacity factor' },
+                        { value: '2027', label: 'Offshore expansion' },
+                        { value: '3x', label: 'Planned growth' }
+                    ]
+                },
+                {
+                    id: 'nuclear-kyushu',
+                    title: 'Kyushu Nuclear (Sendai)',
+                    type: 'pdf',
+                    description: 'Sendai Nuclear Power Plant provides baseload electricity for the region, ensuring stable power supply for high-demand semiconductor manufacturing.',
+                    coords: null,
+                    stats: [
+                        { value: '1.78GW', label: 'Generation capacity' },
+                        { value: '99.97%', label: 'Reliability rate' },
+                        { value: '24/7', label: 'Baseload operation' },
+                        { value: '¥11/kWh', label: 'Cost to grid' }
+                    ]
+                }
+            ]
+        },
+        'transportation-network': {
+            id: 'transportation-network',
+            title: 'Transportation Network',
+            icon: 'route',
+            items: [
+                {
+                    id: 'planned-roads',
+                    title: 'Planned Road Extensions',
+                    type: 'pdf',
+                    description: 'Route 57 bypass and new arterial roads will reduce commute times and improve logistics access to the semiconductor corridor.',
+                    coords: [32.84, 130.76],
+                    stats: [
+                        { value: '42km', label: 'New road length' },
+                        { value: '-25%', label: 'Commute reduction' },
+                        { value: '2026', label: 'Completion' },
+                        { value: '¥86B', label: 'Investment' }
+                    ]
+                },
+                {
+                    id: 'railway-expansion',
+                    title: 'Railway Expansion',
+                    type: 'pdf',
+                    description: 'New Kikuyo Station and expanded JR Hohi Line service will provide direct rail access for semiconductor workers commuting from Kumamoto City.',
+                    coords: [32.88, 130.81],
+                    stats: [
+                        { value: '2026', label: 'Station opening' },
+                        { value: '18min', label: 'To Kumamoto City' },
+                        { value: '15min', label: 'Headway frequency' },
+                        { value: '8,000', label: 'Daily passengers est.' }
+                    ]
+                },
+                {
+                    id: 'airport-access',
+                    title: 'Kumamoto Airport Access',
+                    type: 'web',
+                    description: 'Aso Kumamoto Airport provides international cargo and passenger connections, with new routes planned to support semiconductor industry logistics.',
+                    coords: [32.84, 130.86],
+                    stats: [
+                        { value: '25min', label: 'To Science Park' },
+                        { value: '12', label: 'International routes' },
+                        { value: '+40%', label: 'Cargo capacity expansion' },
+                        { value: '2025', label: 'Terminal upgrade' }
+                    ]
+                }
+            ]
+        },
+        'government-zones': {
+            id: 'government-zones',
+            title: 'Government Zones',
+            icon: 'landmark',
+            items: [
+                {
+                    id: 'science-park-plan',
+                    title: 'Kumamoto Science Park',
+                    type: 'pdf',
+                    description: 'The flagship development zone designated by Kumamoto Prefecture for semiconductor and advanced technology industries.',
+                    coords: [32.87, 130.78],
+                    stats: [
+                        { value: '¥4.8T', label: 'Total investment' },
+                        { value: '2040', label: 'Master plan horizon' },
+                        { value: '50,000', label: 'Jobs target' },
+                        { value: '12', label: 'Major facilities' }
+                    ]
+                },
+                {
+                    id: 'kikuyo-plan',
+                    title: 'Kikuyo Long-term Plan',
+                    type: 'pdf',
+                    description: 'Kikuyo Town\'s comprehensive development plan integrating residential, commercial, and infrastructure growth to support the semiconductor workforce.',
+                    coords: [32.88, 130.83],
+                    stats: [
+                        { value: '2,500', label: 'Housing units' },
+                        { value: '¥180B', label: 'Infrastructure' },
+                        { value: '2028', label: 'Phase 1' },
+                        { value: '+45%', label: 'Population growth' }
+                    ]
+                },
+                {
+                    id: 'ozu-plan',
+                    title: 'Ozu Long-term Plan',
+                    type: 'pdf',
+                    description: 'Ozu Town\'s industrial expansion plan focused on logistics, supply chain support, and secondary manufacturing facilities.',
+                    coords: [32.86, 130.87],
+                    stats: [
+                        { value: '120ha', label: 'Industrial land' },
+                        { value: '¥95B', label: 'Investment' },
+                        { value: '2027', label: 'Phase 1' },
+                        { value: '3,000', label: 'Jobs projected' }
+                    ]
+                }
+            ]
+        },
+        'education-pipeline': {
+            id: 'education-pipeline',
+            title: 'Education Pipeline',
+            icon: 'graduation-cap',
+            items: [
+                {
+                    id: 'university-programs',
+                    title: 'University Programs',
+                    type: 'pdf',
+                    description: 'Kumamoto University has launched dedicated semiconductor engineering programs in partnership with TSMC and Sony to train the next generation of chip engineers.',
+                    coords: [32.81, 130.73],
+                    stats: [
+                        { value: '500', label: 'Annual graduates' },
+                        { value: '4', label: 'Partner companies' },
+                        { value: '95%', label: 'Employment rate' },
+                        { value: '¥2.8B', label: 'Research funding' }
+                    ]
+                },
+                {
+                    id: 'training-centers',
+                    title: 'Training Centers',
+                    type: 'web',
+                    description: 'TSMC-sponsored vocational training centers provide rapid upskilling for technicians and manufacturing specialists entering the semiconductor industry.',
+                    coords: [32.86, 130.79],
+                    stats: [
+                        { value: '2,000', label: 'Annual trainees' },
+                        { value: '6mo', label: 'Program duration' },
+                        { value: '¥4.5M', label: 'Starting salary' },
+                        { value: '98%', label: 'Placement rate' }
+                    ]
+                },
+                {
+                    id: 'graduate-numbers',
+                    title: 'Graduate Employment',
+                    type: 'pdf',
+                    description: 'Regional employment statistics showing semiconductor industry hiring trends and salary growth across Kumamoto Prefecture.',
+                    coords: null,
+                    stats: [
+                        { value: '8,200', label: 'Industry hires 2024' },
+                        { value: '+34%', label: 'YoY growth' },
+                        { value: '¥6.2M', label: 'Avg. salary' },
+                        { value: '#1', label: 'Regional employer' }
+                    ]
+                }
+            ]
+        }
+    }
 };
