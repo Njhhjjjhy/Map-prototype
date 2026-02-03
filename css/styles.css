@@ -182,8 +182,8 @@ body {
     top: -40px;
     left: 0;
     background: var(--color-text-primary);
-    color: #fff;
-    padding: 8px 16px;
+    color: var(--color-bg-primary);
+    padding: var(--space-2) var(--space-4);
     z-index: 9999;
     text-decoration: none;
     font-family: var(--font-display);
@@ -196,15 +196,15 @@ body {
     top: 0;
 }
 
-/* Global focus styles - macOS style focus ring */
+/* Global focus styles - macOS style focus ring (uses --color-info per CLAUDE.md) */
 :focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
 button:focus-visible,
 a:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
@@ -222,7 +222,7 @@ a:focus-visible {
     justify-content: center;
     background: linear-gradient(180deg, #f5f5f7 0%, #e8e8ed 100%);
     z-index: 1000;
-    transition: opacity 0.4s ease-out;
+    transition: opacity var(--duration-slow) var(--easing-accelerate);
 }
 
 #start-screen.fade-out {
@@ -231,7 +231,7 @@ a:focus-visible {
 }
 
 #start-btn {
-    padding: 14px 28px;
+    padding: var(--space-3) var(--space-6);
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: var(--font-weight-semibold);
@@ -239,16 +239,16 @@ a:focus-visible {
     background: var(--color-primary);
     color: var(--color-text-primary);
     border: none;
-    border-radius: var(--radius-large);
+    border-radius: var(--radius-medium);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2);
     box-shadow: var(--shadow-medium), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     /* Entrance animation */
     opacity: 0;
-    animation: btnEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.3s forwards;
 }
 
 #start-btn:hover {
@@ -304,7 +304,7 @@ a:focus-visible {
     height: 100%;
     display: flex;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity var(--duration-slower) var(--easing-standard);
 }
 
 #app-container.visible {
@@ -330,16 +330,16 @@ a:focus-visible {
    ================================ */
 #control-bar {
     position: absolute;
-    top: 16px;
+    top: var(--space-4);
     left: 50%;
     transform: translateX(-50%);
     z-index: 500;
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     background: var(--color-bg-primary);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    padding: 6px 8px;
+    padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-medium);
     box-shadow: var(--shadow-medium);
     border: 1px solid var(--color-border);
@@ -356,7 +356,7 @@ a:focus-visible {
 }
 
 .time-btn {
-    padding: 6px 16px;
+    padding: var(--space-1) var(--space-4);
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: var(--font-weight-medium);
@@ -366,7 +366,7 @@ a:focus-visible {
     border: none;
     border-radius: calc(var(--radius-small) - 2px);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 .time-btn.active {
@@ -377,6 +377,16 @@ a:focus-visible {
 
 .time-btn:hover:not(.active) {
     color: var(--color-text-primary);
+}
+
+.time-btn:active {
+    transform: scale(0.98);
+}
+
+.time-btn:disabled {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* ================================
@@ -392,11 +402,10 @@ a:focus-visible {
     /* Figma spec layout */
     display: flex;
     flex-direction: column;
-    align-items: flex-end;  /* Close button aligns right */
 
     /* Figma spec sizing */
     max-width: 424px;
-    padding: var(--space-2) var(--space-4) var(--space-8) var(--space-4);  /* 8px top, 16px sides, 32px bottom */
+    padding: var(--space-8) var(--space-4) var(--space-8) var(--space-4);  /* 32px top for buttons, 16px sides, 32px bottom */
 
     /* Visual */
     background: #FEFEFE;
@@ -404,11 +413,30 @@ a:focus-visible {
     box-shadow: var(--shadow-xlarge);
     border: 1px solid #EDEEF1;
 
-    animation: slideUp 0.25s ease-out;
+    animation: slideUp var(--duration-normal) var(--easing-decelerate);
 }
 
-/* Close button - top right */
-#chatbox-close {
+/* Chatbox exit animation */
+#chatbox.closing {
+    animation: chatboxExit var(--duration-fast) var(--easing-accelerate) forwards;
+}
+
+@keyframes chatboxExit {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(16px);
+    }
+}
+
+/* Chatbox header row for back and close buttons */
+#chatbox > #chatbox-back,
+#chatbox > #chatbox-close {
+    position: absolute;
+    top: var(--space-2);
     flex-shrink: 0;
     width: 24px;
     height: 24px;
@@ -425,18 +453,43 @@ a:focus-visible {
     color: var(--color-text-tertiary);
 }
 
+/* Back button - top left */
+#chatbox-back {
+    left: var(--space-4);
+}
+
+/* Back button disabled state when no history */
+#chatbox > #chatbox-back:disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
+
+#chatbox > #chatbox-back:disabled:hover {
+    background: transparent;
+    color: var(--color-text-tertiary);
+}
+
+#chatbox-back:hover,
 #chatbox-close:hover {
     background: var(--color-bg-secondary);
     color: var(--color-text-primary);
 }
 
+#chatbox-back:active,
 #chatbox-close:active {
     background: var(--color-bg-tertiary);
 }
 
+#chatbox-back svg,
 #chatbox-close svg {
     width: 16px;
     height: 16px;
+}
+
+/* Close button - top right */
+#chatbox-close {
+    right: var(--space-4);
 }
 
 /* Body wrapper - full width, left-aligned content */
@@ -445,7 +498,7 @@ a:focus-visible {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);  /* 16px between title and content */
-    margin-top: var(--space-4);  /* 16px gap after close button per Figma */
+    margin-top: var(--space-4);  /* 16px gap below buttons */
 }
 
 #chatbox-title {
@@ -489,7 +542,7 @@ a:focus-visible {
     font-weight: var(--font-weight-semibold);
     letter-spacing: var(--tracking-display);
     line-height: var(--line-height-tight);
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
     color: var(--color-text-primary);
 }
 
@@ -498,7 +551,7 @@ a:focus-visible {
     font-size: var(--text-base);
     line-height: var(--line-height-relaxed);
     color: var(--color-text-secondary);
-    margin-bottom: 14px;
+    margin-bottom: var(--space-4);
 }
 
 .chatbox-prompt {
@@ -517,14 +570,18 @@ a:focus-visible {
     text-decoration: underline;
 }
 
+.chatbox-prompt {
+    transition: color var(--duration-fast) var(--easing-standard);
+}
+
 .chatbox-options {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .chatbox-option {
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-medium);
@@ -534,7 +591,7 @@ a:focus-visible {
     letter-spacing: var(--tracking-body);
     color: var(--color-text-primary);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
     text-align: left;
     display: flex;
     align-items: center;
@@ -576,21 +633,21 @@ a:focus-visible {
 
 /* Primary CTA - macOS filled button with brand color */
 .chatbox-continue.primary {
-    padding: 10px 20px;
+    padding: var(--space-3) var(--space-5);
     background: var(--color-primary);
     color: var(--color-text-primary);
     border: none;
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-medium);
     font-family: var(--font-display);
     font-size: var(--text-base);
     font-weight: var(--font-weight-semibold);
     letter-spacing: var(--tracking-body);
     cursor: pointer;
-    transition: all 0.15s ease;
-    margin-top: 8px;
+    transition: all var(--duration-fast) var(--easing-standard);
+    margin-top: var(--space-2);
     box-shadow: var(--shadow-subtle), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     opacity: 0;
-    animation: buttonEntrance 0.3s ease-out 0.2s forwards;
+    animation: buttonEntrance var(--duration-normal) var(--easing-decelerate) 0.2s forwards;
 }
 
 .chatbox-continue.primary:hover {
@@ -603,9 +660,22 @@ a:focus-visible {
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+.chatbox-continue.primary:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+.chatbox-continue.primary:disabled {
+    background: var(--color-primary-disabled);
+    color: var(--color-text-disabled);
+    box-shadow: none;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* Secondary continue - macOS text button style */
 .chatbox-continue {
-    padding: 8px 0;
+    padding: var(--space-2) 0;
     background: transparent;
     color: var(--color-text-secondary);
     border: none;
@@ -615,11 +685,11 @@ a:focus-visible {
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--tracking-body);
     cursor: pointer;
-    transition: color 0.15s ease;
-    margin-top: 12px;
+    transition: color var(--duration-fast) var(--easing-standard);
+    margin-top: var(--space-3);
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1);
 }
 
 .chatbox-continue:hover {
@@ -635,6 +705,25 @@ a:focus-visible {
     transform: translateX(2px);
 }
 
+.chatbox-continue:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+.chatbox-continue:active {
+    color: var(--color-text-tertiary);
+}
+
+.chatbox-continue:disabled {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.chatbox-continue:disabled::after {
+    display: none;
+}
+
 @keyframes buttonEntrance {
     from {
         opacity: 0;
@@ -646,13 +735,18 @@ a:focus-visible {
     }
 }
 
-@keyframes subtlePulse {
+/* Attention pulse for primary CTAs - use on buttons that need extra attention */
+@keyframes attentionPulse {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(251, 185, 49, 0);
+        box-shadow: var(--shadow-subtle), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
     50% {
-        box-shadow: 0 0 0 6px rgba(251, 185, 49, 0.15);
+        box-shadow: var(--shadow-medium), 0 0 0 4px rgba(251, 185, 49, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
+}
+
+.attention-pulse {
+    animation: attentionPulse 2s var(--easing-standard) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -687,7 +781,7 @@ a:focus-visible {
     align-items: center;
     justify-content: center;
     color: var(--color-text-secondary);
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 #panel-toggle:hover {
@@ -722,10 +816,41 @@ a:focus-visible {
     z-index: 1000;
     transform: translateX(100%);
     transition: transform var(--duration-normal) var(--easing-decelerate);
+
+    /* macOS overlay scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Webkit scrollbar styling for right panel */
+#right-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+#right-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#right-panel::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+#right-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 #right-panel.visible {
     transform: translateX(0);
+}
+
+/* Panel exit uses accelerate easing for exits */
+#right-panel.closing {
+    transition: transform var(--duration-fast) var(--easing-accelerate);
 }
 
 /* Close button for panel */
@@ -761,6 +886,37 @@ a:focus-visible {
     height: 20px;
 }
 
+/* Panel back button (appears when there's navigation history) */
+.panel-back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin-bottom: var(--space-3);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    color: var(--color-text-tertiary);
+}
+
+.panel-back-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.panel-back-btn:active {
+    background: var(--color-bg-tertiary);
+}
+
+.panel-back-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
 #panel-content {
     padding: 48px 24px 24px;
 }
@@ -781,7 +937,7 @@ a:focus-visible {
     font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
     letter-spacing: 0.08em;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
 }
 
 #panel-content p {
@@ -789,19 +945,19 @@ a:focus-visible {
     font-size: var(--text-base);
     line-height: var(--line-height-relaxed);
     color: var(--color-text-secondary);
-    margin-bottom: 14px;
+    margin-bottom: var(--space-4);
 }
 
 #panel-content .stat-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 20px 0;
+    gap: var(--space-3);
+    margin: var(--space-5) 0;
 }
 
 #panel-content .stat-item {
     background: var(--color-bg-secondary);
-    padding: 14px;
+    padding: var(--space-4);
     border-radius: var(--radius-medium);
     border: 1px solid var(--color-border);
 }
@@ -827,24 +983,42 @@ a:focus-visible {
 #panel-content .panel-btn {
     display: block;
     width: 100%;
-    padding: 10px 16px;
-    margin: 8px 0;
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-2) 0;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-medium);
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--tracking-body);
     color: var(--color-text-primary);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
     text-align: center;
 }
 
 #panel-content .panel-btn:hover {
     background: rgba(255, 255, 255, 1);
     border-color: var(--color-border-strong);
+}
+
+#panel-content .panel-btn:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+#panel-content .panel-btn:active {
+    background: var(--color-bg-tertiary);
+    transform: scale(0.98);
+}
+
+#panel-content .panel-btn:disabled {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-disabled);
+    border-color: var(--color-border);
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 #panel-content .panel-btn.primary {
@@ -858,12 +1032,27 @@ a:focus-visible {
     border-color: var(--color-primary-hover);
 }
 
+#panel-content .panel-btn.primary:active {
+    background: var(--color-primary-pressed);
+    border-color: var(--color-primary-pressed);
+    transform: scale(0.98);
+}
+
+#panel-content .panel-btn.primary:disabled {
+    background: var(--color-primary-disabled);
+    border-color: var(--color-primary-disabled);
+    color: var(--color-text-disabled);
+    box-shadow: none;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* Calculator Styles (macOS) */
 .calculator-section {
     background: var(--color-bg-secondary);
-    padding: 16px;
+    padding: var(--space-4);
     border-radius: var(--radius-medium);
-    margin: 16px 0;
+    margin: var(--space-4) 0;
     border: 1px solid var(--color-border);
 }
 
@@ -873,7 +1062,7 @@ a:focus-visible {
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-secondary);
     letter-spacing: 0.06em;
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
 }
 
 /* macOS Segmented Control for scenarios */
@@ -884,12 +1073,12 @@ a:focus-visible {
     padding: 2px;
     border-radius: var(--radius-small);
     border: 1px solid var(--color-border);
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
 }
 
 .scenario-btn {
     flex: 1;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: transparent;
     border: none;
     border-radius: calc(var(--radius-small) - 2px);
@@ -899,7 +1088,7 @@ a:focus-visible {
     letter-spacing: var(--tracking-body);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 .scenario-btn.active {
@@ -923,10 +1112,25 @@ a:focus-visible {
     color: var(--color-text-primary);
 }
 
+.scenario-btn:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+.scenario-btn:active {
+    transform: scale(0.98);
+}
+
+.scenario-btn:disabled {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .calc-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: var(--space-3) 0;
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -940,8 +1144,8 @@ a:focus-visible {
     font-size: var(--text-lg);
     letter-spacing: var(--tracking-display);
     color: var(--color-text-primary);
-    padding-top: 14px;
-    margin-top: 6px;
+    padding-top: var(--space-4);
+    margin-top: var(--space-1);
     border-top: 1px solid var(--color-text-primary);
     border-bottom: none;
 }
@@ -971,8 +1175,8 @@ a:focus-visible {
 
 /* Data Attribution (trust signals per finmap-ui) */
 .data-attribution {
-    margin: 16px 0;
-    padding: 12px;
+    margin: var(--space-4) 0;
+    padding: var(--space-3);
     background: var(--color-bg-tertiary);
     border-radius: var(--radius-small);
     border-left: 3px solid var(--color-text-tertiary);
@@ -1000,13 +1204,13 @@ a:focus-visible {
    ACCESSIBLE DATA TABLES FOR CHARTS
    ================================ */
 .chart-data-table {
-    margin-top: 12px;
+    margin-top: var(--space-3);
     border-radius: var(--radius-small);
     overflow: hidden;
 }
 
 .chart-data-table summary {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-small);
@@ -1015,11 +1219,11 @@ a:focus-visible {
     font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
     list-style: none;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1);
 }
 
 .chart-data-table summary::-webkit-details-marker {
@@ -1027,17 +1231,14 @@ a:focus-visible {
 }
 
 .chart-data-table summary::before {
-    content: '';
-    width: 0;
-    height: 0;
-    border-left: 5px solid var(--color-text-tertiary);
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-    transition: transform 0.15s ease;
+    content: '▶';
+    font-size: 8px;
+    color: var(--color-text-tertiary);
+    transition: none;
 }
 
 .chart-data-table[open] summary::before {
-    transform: rotate(90deg);
+    content: '▼';
 }
 
 .chart-data-table summary:hover {
@@ -1046,21 +1247,21 @@ a:focus-visible {
 }
 
 .chart-data-table summary:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
 .chart-data-table table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 8px;
+    margin-top: var(--space-2);
     font-family: var(--font-body);
     font-size: var(--text-sm);
 }
 
 .chart-data-table th,
 .chart-data-table td {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     text-align: left;
     border-bottom: 1px solid var(--color-border);
 }
@@ -1103,7 +1304,7 @@ a:focus-visible {
     color: var(--color-text-tertiary);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1);
 }
 
 .confidence-badge {
@@ -1143,9 +1344,9 @@ a:focus-visible {
 .chart-container {
     position: relative;
     width: 100%;
-    background: white;
+    background: var(--color-bg-primary);
     border-radius: var(--radius-small);
-    padding: 12px;
+    padding: var(--space-3);
     border: 1px solid var(--color-border);
 }
 
@@ -1159,7 +1360,7 @@ a:focus-visible {
     font-size: var(--text-xs);
     color: var(--color-text-secondary);
     text-align: center;
-    margin: 8px 0 0 0;
+    margin: var(--space-2) 0 0 0;
 }
 
 /* ================================
@@ -1200,7 +1401,7 @@ a:focus-visible {
     overflow: hidden;
     box-shadow: var(--shadow-xlarge);
     border: 1px solid var(--color-border);
-    animation: zoomIn 0.2s ease-out;
+    animation: zoomIn var(--duration-normal) var(--easing-decelerate);
 }
 
 @keyframes zoomIn {
@@ -1214,13 +1415,29 @@ a:focus-visible {
     }
 }
 
+/* Gallery exit animation */
+@keyframes zoomOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+#gallery-content.closing {
+    animation: zoomOut var(--duration-fast) var(--easing-accelerate) forwards;
+}
+
 /* Close button for gallery */
 #gallery-close {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 24px;
+    height: 24px;
     background: transparent;
     border: none;
     border-radius: var(--radius-small);
@@ -1243,8 +1460,8 @@ a:focus-visible {
 }
 
 #gallery-close svg {
-    width: 20px;
-    height: 20px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
 }
 
 #gallery-body {
@@ -1253,7 +1470,7 @@ a:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 48px 32px 32px;
+    padding: var(--space-12) var(--space-8) var(--space-8);
 }
 
 #gallery-body img {
@@ -1265,12 +1482,12 @@ a:focus-visible {
 
 .placeholder-doc {
     text-align: center;
-    padding: 48px;
+    padding: var(--space-12);
 }
 
 .placeholder-doc .icon {
-    font-size: 64px;
-    margin-bottom: 20px;
+    font-size: var(--text-5xl);
+    margin-bottom: var(--space-5);
     opacity: 0.25;
 }
 
@@ -1279,7 +1496,7 @@ a:focus-visible {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-semibold);
     letter-spacing: var(--tracking-display);
-    margin-bottom: 10px;
+    margin-bottom: var(--space-3);
     color: var(--color-text-primary);
 }
 
@@ -1319,7 +1536,7 @@ a:focus-visible {
 }
 
 .leaflet-popup-content {
-    margin: 14px;
+    margin: var(--space-4);
     font-family: var(--font-body);
 }
 
@@ -1337,26 +1554,60 @@ a:focus-visible {
     font-size: var(--text-sm);
     line-height: var(--line-height-normal);
     color: var(--color-text-secondary);
-    margin-bottom: 10px;
+    margin-bottom: var(--space-3);
 }
 
 .leaflet-popup-content .popup-btn {
-    padding: 6px 12px;
+    padding: var(--space-1) var(--space-3);
     background: var(--color-primary);
     color: var(--color-text-primary);
     border: none;
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-medium);
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--tracking-body);
     cursor: pointer;
     box-shadow: var(--shadow-subtle);
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 .leaflet-popup-content .popup-btn:hover {
     background: var(--color-primary-hover);
+}
+
+/* ================================
+   MAP MARKER ANIMATIONS
+   ================================ */
+
+/* Marker pop animation - subtle scale effect, always visible */
+@keyframes markerPop {
+    from {
+        transform: scale(0.5);
+        opacity: 0.5;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.custom-marker-wrapper {
+    /* Ensure markers are always visible even if animation fails */
+    opacity: 1 !important;
+    animation: markerPop 150ms ease-out;
+}
+
+/* Marker hit area hover effect - expand inner marker */
+.custom-marker-hitarea:hover .custom-marker {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Evidence marker animation */
+.evidence-marker {
+    opacity: 1 !important;
+    animation: markerPop 150ms ease-out;
 }
 
 /* Science Park Circle */
@@ -1367,11 +1618,71 @@ a:focus-visible {
     fill-opacity: 0.1;
 }
 
-/* Route Line */
+/* Map Tooltips (macOS style) */
+.map-tooltip {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    box-shadow: var(--shadow-medium);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    white-space: nowrap;
+}
+
+.map-tooltip::before {
+    display: none; /* Hide default Leaflet arrow */
+}
+
+.leaflet-tooltip-top.map-tooltip::before,
+.leaflet-tooltip-bottom.map-tooltip::before,
+.leaflet-tooltip-left.map-tooltip::before,
+.leaflet-tooltip-right.map-tooltip::before {
+    display: none;
+}
+
+/* Route Line with drawing animation (per CLAUDE.md spec) */
 .route-line {
     stroke: var(--color-primary);
     stroke-width: 3;
     stroke-dasharray: 8, 8;
+}
+
+/* Animated route drawing effect */
+@keyframes drawRoute {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.route-line-animated {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawRoute var(--duration-slower) var(--easing-decelerate) forwards;
+}
+
+/* Infrastructure road fade-in animation (300ms per CLAUDE.md spec) */
+@keyframes roadFadeIn {
+    from {
+        opacity: 0;
+        stroke-opacity: 0;
+    }
+    to {
+        opacity: 0.7;
+        stroke-opacity: 0.7;
+    }
+}
+
+.infrastructure-road-animated {
+    animation: roadFadeIn var(--duration-slow) var(--easing-decelerate) forwards;
+}
+
+/* Infrastructure road hover and selection states */
+.infrastructure-road {
+    transition: stroke-width var(--duration-fast) var(--easing-standard),
+                stroke-opacity var(--duration-fast) var(--easing-standard);
 }
 
 /* ================================
@@ -1379,8 +1690,8 @@ a:focus-visible {
    ================================ */
 #map-legend {
     position: absolute;
-    bottom: 24px;
-    right: 24px;
+    bottom: var(--space-6);
+    right: var(--space-6);
     z-index: 500;
     background: var(--color-bg-primary);
     backdrop-filter: blur(20px) saturate(180%);
@@ -1388,7 +1699,7 @@ a:focus-visible {
     border-radius: var(--radius-medium);
     box-shadow: var(--shadow-medium);
     border: 1px solid var(--color-border);
-    padding: 12px 14px;
+    padding: var(--space-3) var(--space-4);
     min-width: 140px;
 }
 
@@ -1398,19 +1709,19 @@ a:focus-visible {
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-secondary);
     letter-spacing: 0.04em;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-3);
 }
 
 .legend-items {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-3);
 }
 
 .legend-marker {
@@ -1497,7 +1808,7 @@ a:focus-visible {
     align-items: center;
     justify-content: center;
     color: var(--color-text-secondary);
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 #layers-toggle:hover {
@@ -1521,7 +1832,7 @@ a:focus-visible {
 #data-layers {
     position: absolute;
     top: 124px;
-    left: 12px;
+    left: var(--space-3);
     z-index: 500;
     background: var(--color-bg-primary);
     backdrop-filter: blur(20px) saturate(180%);
@@ -1529,9 +1840,9 @@ a:focus-visible {
     border-radius: var(--radius-large);
     box-shadow: var(--shadow-large);
     border: 1px solid var(--color-border);
-    padding: 12px 14px;
+    padding: var(--space-3) var(--space-4);
     min-width: 200px;
-    animation: slideDown 0.15s ease-out;
+    animation: slideDown var(--duration-fast) var(--easing-decelerate);
 }
 
 @keyframes slideDown {
@@ -1545,6 +1856,7 @@ a:focus-visible {
     }
 }
 
+/* Panel content entrance - staggered content reveal */
 @keyframes slideInRight {
     from {
         opacity: 0;
@@ -1556,14 +1868,21 @@ a:focus-visible {
     }
 }
 
+/* Apply to panel content when panel opens */
+#right-panel.visible #panel-content {
+    animation: slideInRight var(--duration-normal) var(--easing-decelerate);
+    animation-delay: 50ms;
+    animation-fill-mode: both;
+}
+
 .layers-title {
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-secondary);
     letter-spacing: 0.04em;
-    margin-bottom: 10px;
-    padding: 0 8px;
+    margin-bottom: var(--space-3);
+    padding: 0 var(--space-2);
 }
 
 .layer-items {
@@ -1575,7 +1894,7 @@ a:focus-visible {
 .layers-divider {
     height: 1px;
     background: var(--color-border);
-    margin: 12px 0;
+    margin: var(--space-3) 0;
 }
 
 /* Reset button styles for layer items */
@@ -1590,11 +1909,11 @@ button.layer-item {
 .layer-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-small);
     cursor: pointer;
-    transition: background 0.1s ease;
+    transition: background var(--duration-fast) var(--easing-standard);
 }
 
 .layer-item:hover {
@@ -1607,15 +1926,15 @@ button.layer-item {
 
 /* macOS-style radio button */
 .layer-radio {
-    width: 16px;
-    height: 16px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
     border: 1.5px solid var(--color-text-tertiary);
     border-radius: 50%;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.1s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 .layer-item.active .layer-radio {
@@ -1625,9 +1944,9 @@ button.layer-item {
 
 .layer-item.active .layer-radio::after {
     content: '';
-    width: 6px;
-    height: 6px;
-    background: white;
+    width: var(--space-1);
+    height: var(--space-1);
+    background: var(--color-bg-primary);
     border-radius: 50%;
 }
 
@@ -1720,7 +2039,12 @@ button.layer-item {
     border: 1px solid #EDEEF1;
 
     overflow: hidden;
-    animation: slideUp 0.25s ease-out;
+    animation: slideUp var(--duration-normal) var(--easing-decelerate);
+}
+
+/* AI Chat exit animation */
+#ai-chat.closing {
+    animation: chatboxExit var(--duration-fast) var(--easing-accelerate) forwards;
 }
 
 /* Close button - top right */
@@ -1802,6 +2126,10 @@ button.layer-item {
     text-align: left;
 }
 
+.ai-chat-chip {
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
 .ai-chat-chip:hover {
     border-color: var(--color-primary);
     background: rgba(251, 185, 49, 0.08);
@@ -1812,7 +2140,7 @@ button.layer-item {
 }
 
 .ai-chat-chip:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
@@ -1824,12 +2152,14 @@ button.layer-item {
     margin-top: var(--space-6);  /* 24px section gap after header */
     padding: 0;  /* No padding - parent handles horizontal */
     max-height: 260px;
+
+    /* macOS overlay scrollbar styling */
     scrollbar-width: thin;
-    scrollbar-color: var(--color-text-tertiary) transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .ai-chat-messages::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .ai-chat-messages::-webkit-scrollbar-track {
@@ -1837,8 +2167,16 @@ button.layer-item {
 }
 
 .ai-chat-messages::-webkit-scrollbar-thumb {
-    background: var(--color-text-tertiary);
-    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.ai-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 .ai-chat-message {
@@ -1855,6 +2193,10 @@ button.layer-item {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.ai-chat-message {
+    animation: messageSlide var(--duration-normal) var(--easing-decelerate);
 }
 
 .ai-chat-message.user {
@@ -1946,7 +2288,7 @@ button.layer-item {
     font-family: var(--font-body);
     font-size: var(--text-base);
     color: var(--color-text-primary);
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
 }
 
 .ai-chat-input::placeholder {
@@ -1955,9 +2297,9 @@ button.layer-item {
 
 .ai-chat-input:focus {
     outline: none;
-    border-color: var(--color-primary);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(251, 185, 49, 0.2);
+    border-color: var(--color-info);
+    background: var(--color-bg-primary);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
 }
 
 .ai-chat-send {
@@ -1971,7 +2313,7 @@ button.layer-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-standard);
     flex-shrink: 0;
     box-shadow: var(--shadow-subtle);
 }
@@ -1985,7 +2327,7 @@ button.layer-item {
 }
 
 .ai-chat-send:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
@@ -2005,7 +2347,7 @@ button.layer-item {
 .ai-data-timestamp {
     font-size: var(--text-xs);
     color: var(--color-text-secondary);
-    margin-top: 6px;
+    margin-top: var(--space-1);
     font-style: italic;
 }
 
@@ -2014,7 +2356,7 @@ button.layer-item {
    ================================ */
 #chat-fab {
     position: absolute;
-    bottom: 32px;
+    bottom: var(--space-8);
     left: 50%;
     transform: translateX(-50%);
     z-index: 500;
@@ -2029,8 +2371,8 @@ button.layer-item {
     align-items: center;
     justify-content: center;
     color: var(--color-text-primary);
-    transition: all 0.2s ease;
-    animation: fabEntrance 0.25s ease-out;
+    transition: all var(--duration-fast) var(--easing-standard);
+    animation: fabEntrance var(--duration-normal) var(--easing-decelerate);
 }
 
 #chat-fab:hover {
@@ -2045,7 +2387,7 @@ button.layer-item {
 }
 
 #chat-fab:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 3px;
 }
 
@@ -2097,7 +2439,7 @@ button.layer-item {
 }
 
 .disclosure-header:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: -3px;
 }
 
@@ -2107,19 +2449,33 @@ button.layer-item {
     height: 16px;
     flex-shrink: 0;
     color: var(--color-text-tertiary);
-    transition: transform var(--duration-fast) var(--easing-standard);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .disclosure-triangle svg {
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
+    transition: opacity var(--duration-fast) var(--easing-standard);
 }
 
-.disclosure-header[aria-expanded="true"] .disclosure-triangle {
-    transform: rotate(90deg);
+/* Show collapsed triangle (▶) by default */
+.disclosure-triangle .triangle-collapsed {
+    display: block;
+}
+
+.disclosure-triangle .triangle-expanded {
+    display: none;
+}
+
+/* Show expanded triangle (▼) when open */
+.disclosure-header[aria-expanded="true"] .disclosure-triangle .triangle-collapsed {
+    display: none;
+}
+
+.disclosure-header[aria-expanded="true"] .disclosure-triangle .triangle-expanded {
+    display: block;
 }
 
 /* Icon for the group type */
@@ -2200,7 +2556,7 @@ button.layer-item {
 }
 
 .disclosure-item:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: -3px;
 }
 
@@ -2284,7 +2640,7 @@ button.layer-item {
 }
 
 .disclosure-back-btn:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
@@ -2477,7 +2833,7 @@ button.layer-item {
 }
 
 #quick-look-close:focus-visible {
-    outline: 3px solid rgba(251, 185, 49, 0.5);
+    outline: 3px solid var(--color-info);
     outline-offset: 2px;
 }
 
@@ -2486,46 +2842,536 @@ button.layer-item {
     height: 18px;
 }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-    #ai-chat,
-    #chatbox,
-    #right-panel,
-    #data-layers,
-    #gallery-content,
-    #chat-fab,
-    #panel-toggle,
-    #quick-look-content {
-        animation: none;
-    }
+/* ================================
+   DRAGGABLE MODALS
+   ================================ */
 
-    .property-image {
-        transition: none;
-    }
+/* Drag handles - show grab cursor */
+#chatbox-body,
+.ai-chat-header,
+#panel-content .subtitle,
+#panel-content h2,
+.placeholder-doc h3 {
+    cursor: grab;
+}
 
-    #right-panel {
-        transition: none;
+#chatbox-body:active,
+.ai-chat-header:active,
+#panel-content .subtitle:active,
+#panel-content h2:active,
+.placeholder-doc h3:active {
+    cursor: grabbing;
+}
+
+/* Visual indicator for draggable modals */
+[data-draggable="true"] {
+    box-shadow: var(--shadow-xlarge);
+}
+
+/* ================================
+   DATA LAYER MARKERS LIST
+   ================================ */
+.data-layer-markers-list {
+    margin-top: var(--space-5);
+}
+
+.data-layer-markers-list h4 {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-3);
+    letter-spacing: 0.04em;
+}
+
+.data-layer-marker-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-2);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    text-align: left;
+}
+
+.data-layer-marker-item:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-border-strong);
+}
+
+.data-layer-marker-item:active {
+    transform: scale(0.98);
+}
+
+.data-layer-marker-item .marker-name {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.data-layer-marker-item .marker-chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+}
+
+.data-layer-marker-item .marker-chevron svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Data layer marker on map */
+.data-layer-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+.data-layer-marker:hover > div {
+    transform: scale(1.1);
+}
+
+/* ================================
+   JOURNEY TRANSITION - IN-PANEL PROGRESS INDICATOR
+   ================================ */
+.journey-progress-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-4) 0;
+}
+
+.journey-progress-indicator {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--space-5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.journey-progress-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-bg-tertiary);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: progressSpin 0.8s linear infinite;
+}
+
+@keyframes progressSpin {
+    to {
+        transform: rotate(360deg);
     }
-    .ai-chat-message,
-    .ai-chat-chip,
-    .chatbox-continue.primary {
-        animation: none;
-        transition: none;
+}
+
+.journey-progress-container h3 {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-display);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.journey-progress-subtitle {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    max-width: 300px;
+}
+
+/* Legacy full-screen overlay - kept for backwards compatibility but hidden */
+#journey-transition {
+    display: none !important;
+}
+
+@keyframes transitionContentIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
     }
-    .ai-chat-typing span {
-        animation: none;
-        opacity: 0.5;
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
-    #start-btn,
-    .btn-arrow {
-        animation: none;
+}
+
+@keyframes iconPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
         opacity: 1;
     }
-    /* Disclosure groups */
-    .disclosure-triangle {
-        transition: none;
+}
+
+/* ================================
+   PORTFOLIO SUMMARY CARD (Peak-End Rule)
+   ================================ */
+.portfolio-summary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #e5a82c 100%);
+    border-radius: var(--radius-large);
+    padding: var(--space-6);
+    margin: var(--space-4) 0;
+    color: var(--color-text-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.portfolio-summary::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.portfolio-summary-label {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+    margin-bottom: var(--space-2);
+}
+
+.portfolio-summary-value {
+    font-family: var(--font-display);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-display);
+    line-height: 1;
+    margin-bottom: var(--space-2);
+}
+
+.portfolio-summary-detail {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    opacity: 0.9;
+}
+
+.portfolio-summary-properties {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ================================
+   HEADLINE STAT (Net Profit) - Von Restorff Effect
+   ================================ */
+.headline-stat {
+    background: linear-gradient(135deg, #34c759 0%, #28a745 100%);
+    border-radius: var(--radius-large);
+    padding: var(--space-5);
+    margin: var(--space-4) 0;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.headline-stat::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -30%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.headline-stat-label {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+    margin-bottom: var(--space-2);
+}
+
+.headline-stat-value {
+    font-family: var(--font-display);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-display);
+    line-height: 1.1;
+}
+
+.headline-stat-sublabel {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    opacity: 0.85;
+    margin-top: var(--space-2);
+}
+
+/* ================================
+   PROGRESSIVE DISCLOSURE - Financials
+   ================================ */
+.financials-disclosure {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+    margin: var(--space-4) 0;
+}
+
+.financials-disclosure-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-secondary);
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--easing-standard);
+    border: none;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+}
+
+.financials-disclosure-header:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.financials-disclosure-header:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: -3px;
+}
+
+.financials-disclosure-title {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.financials-disclosure-chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-tertiary);
+    transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.financials-disclosure-chevron svg {
+    width: 16px;
+    height: 16px;
+}
+
+.financials-disclosure.expanded .financials-disclosure-chevron {
+    transform: rotate(180deg);
+}
+
+.financials-disclosure-content {
+    display: none;
+    padding: var(--space-4);
+    background: var(--color-bg-primary);
+    border-top: 1px solid var(--color-border);
+}
+
+.financials-disclosure.expanded .financials-disclosure-content {
+    display: block;
+    animation: disclosureExpand var(--duration-normal) var(--easing-decelerate);
+}
+
+/* ================================
+   AI CHAT CTAs (Strengthen Ending)
+   ================================ */
+.ai-chat-ctas {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+}
+
+.ai-chat-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    text-decoration: none;
+}
+
+.ai-chat-cta:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-border-strong);
+}
+
+.ai-chat-cta:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+.ai-chat-cta-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+
+.ai-chat-cta-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.ai-chat-cta.primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.ai-chat-cta.primary:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.ai-chat-cta.primary .ai-chat-cta-icon {
+    color: var(--color-text-primary);
+}
+
+/* ================================
+   REDUCED MOTION PREFERENCES
+   More granular control per HIG guidelines
+   ================================ */
+@media (prefers-reduced-motion: reduce) {
+    /*
+     * DECORATIVE ANIMATIONS: Disable completely
+     * These animations serve aesthetic purposes only
+     */
+    #start-btn,
+    .btn-arrow,
+    .attention-pulse {
+        animation: none !important;
+        opacity: 1;
     }
-    .disclosure-group.expanded .disclosure-content {
-        animation: none;
+
+    .ai-chat-typing span {
+        animation: none !important;
+        opacity: 0.5;
+    }
+
+    /*
+     * ENTRANCE/EXIT ANIMATIONS: Instant appearance
+     * Users should still understand state changes
+     */
+    #ai-chat,
+    #chatbox,
+    #gallery-content,
+    #chat-fab,
+    #quick-look-content,
+    #data-layers,
+    .ai-chat-message,
+    .chatbox-continue.primary,
+    .disclosure-group.expanded .disclosure-content,
+    .custom-marker-wrapper,
+    .evidence-marker,
+    #right-panel.visible #panel-content {
+        animation: none !important;
+    }
+
+    /*
+     * SLIDING PANELS: Use instant visibility toggle
+     * Still show/hide, just without slide animation
+     */
+    #right-panel {
+        transition: opacity var(--duration-fast) var(--easing-standard) !important;
+        transform: translateX(0) !important;
+        opacity: 0;
+    }
+
+    #right-panel.visible {
+        opacity: 1;
+    }
+
+    #right-panel.closing {
+        transition: opacity var(--duration-fast) var(--easing-standard) !important;
+    }
+
+    /*
+     * MAP ANIMATIONS: Reduce but keep functional
+     */
+    .route-line-animated {
+        animation: none !important;
+        stroke-dashoffset: 0 !important;
+    }
+
+    .infrastructure-road-animated {
+        animation: none !important;
+        opacity: 0.7 !important;
+    }
+
+    /*
+     * HOVER EFFECTS: Keep but make instant
+     * These provide important feedback
+     */
+    .property-image,
+    .chatbox-option,
+    .ai-chat-chip,
+    .layer-item,
+    .disclosure-header,
+    .disclosure-item {
+        transition: background-color var(--duration-instant) !important;
+    }
+
+    /*
+     * PRESERVE: Focus indicators (accessibility critical)
+     * These must always work for keyboard navigation
+     */
+    :focus-visible {
+        transition: outline-offset var(--duration-instant) !important;
+    }
+
+    /*
+     * PRESERVE: Color/state changes (functional feedback)
+     * Instant but still visible
+     */
+    button,
+    .time-btn,
+    .scenario-btn,
+    #panel-toggle,
+    #layers-toggle {
+        transition: background-color var(--duration-instant),
+                    color var(--duration-instant),
+                    border-color var(--duration-instant) !important;
+    }
+
+    /*
+     * SCROLL BEHAVIOR: Use instant scrolling
+     */
+    html {
+        scroll-behavior: auto !important;
     }
 }

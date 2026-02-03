@@ -2,6 +2,34 @@
  * Map functionality using Leaflet and OpenStreetMap
  */
 
+/**
+ * Design system colors - mirrors CSS custom properties from CLAUDE.md
+ * Keep in sync with :root variables in styles.css
+ */
+const MAP_COLORS = {
+    // Semantic colors
+    primary: '#fbb931',
+    error: '#ff3b30',
+    info: '#007aff',
+    warning: '#ff9500',
+    success: '#34c759',
+
+    // Marker types (aligned with legend)
+    resource: '#ff3b30',   // Red
+    company: '#007aff',    // Blue
+    property: '#ff9500',   // Orange/Amber
+    zone: '#ff3b30',       // Red
+
+    // Map-specific
+    route: '#64748b',      // Neutral gray for route lines
+    infrastructure: '#5ac8fa', // Teal for infrastructure roads
+
+    // Evidence marker types
+    evidencePdf: '#6e7073',    // Gray for documents
+    evidenceImage: '#007aff',  // Blue for images
+    evidenceWeb: '#34c759'     // Green for web links
+};
+
 const MapManager = {
     map: null,
     markers: {},
@@ -100,10 +128,10 @@ const MapManager = {
     createClusterIcon(cluster, type) {
         const count = cluster.getChildCount();
         const colors = {
-            property: '#ff9500',
-            company: '#007aff'
+            property: MAP_COLORS.property,
+            company: MAP_COLORS.company
         };
-        const color = colors[type] || '#fbb931';
+        const color = colors[type] || MAP_COLORS.primary;
 
         let size = 36;
         if (count >= 10) size = 44;
@@ -134,12 +162,12 @@ const MapManager = {
      * Create a custom marker icon with distinct icons per type
      */
     createMarkerIcon(type, subtype = null) {
-        // Colors aligned with legend
+        // Colors aligned with legend - uses MAP_COLORS design tokens
         const colors = {
-            resource: '#ff3b30',   // Red
-            company: '#007aff',    // Blue
-            property: '#ff9500',   // Orange/Amber
-            zone: '#ff3b30'        // Red
+            resource: MAP_COLORS.resource,
+            company: MAP_COLORS.company,
+            property: MAP_COLORS.property,
+            zone: MAP_COLORS.zone
         };
 
         // SVG icons for each type (white fill for contrast)
@@ -172,13 +200,22 @@ const MapManager = {
 
         // Select icon based on type and subtype
         let icon = icons[type] || icons[subtype] || '';
-        const color = colors[type] || '#fbb931';
+        const color = colors[type] || MAP_COLORS.primary;
 
+        // 48px hit area for touch targets (HIG accessibility)
+        // Visual marker is 36px, but hit area is 48px
         return L.divIcon({
             className: 'custom-marker-wrapper',
-            html: `<div class="custom-marker ${type}-marker" style="
-                width: 32px;
-                height: 32px;
+            html: `<div class="custom-marker-hitarea" style="
+                width: 48px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            "><div class="custom-marker ${type}-marker" style="
+                width: 36px;
+                height: 36px;
                 background: ${color};
                 border: 3px solid white;
                 border-radius: 50%;
@@ -186,9 +223,10 @@ const MapManager = {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-            ">${icon}</div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
+                transition: transform 0.15s ease;
+            ">${icon}</div></div>`,
+            iconSize: [48, 48],
+            iconAnchor: [24, 24]
         });
     },
 
@@ -213,6 +251,14 @@ const MapManager = {
             icon: this.createMarkerIcon('resource', resourceId)
         });
 
+        // Add tooltip with resource name
+        marker.bindTooltip(resource.name, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20],
+            className: 'map-tooltip'
+        });
+
         marker.on('click', () => {
             UI.showResourcePanel(resource);
         });
@@ -234,11 +280,18 @@ const MapManager = {
         // Create circle
         const circle = L.circle(sp.center, {
             radius: sp.radius,
-            color: '#ff3b30',
+            color: MAP_COLORS.error,
             weight: 3,
-            fillColor: '#ff3b30',
+            fillColor: MAP_COLORS.error,
             fillOpacity: 0.1,
             className: 'science-park-circle'
+        });
+
+        // Add tooltip with science park name
+        circle.bindTooltip(sp.name, {
+            permanent: false,
+            direction: 'top',
+            className: 'map-tooltip'
         });
 
         circle.on('click', () => {
@@ -267,6 +320,14 @@ const MapManager = {
                 icon: this.createMarkerIcon('company')
             });
 
+            // Add tooltip with company name
+            marker.bindTooltip(company.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -20],
+                className: 'map-tooltip'
+            });
+
             marker.on('click', () => {
                 UI.showCompanyPanel(company);
             });
@@ -292,14 +353,21 @@ const MapManager = {
      */
     showFutureZones() {
         AppData.futureZones.forEach(zone => {
-            // Create circle for zone - purple to contrast teal markers
+            // Create circle for zone - red to indicate development areas
             const circle = L.circle(zone.coords, {
                 radius: zone.radius,
-                color: '#ff3b30',
+                color: MAP_COLORS.zone,
                 weight: 2,
-                fillColor: '#ff3b30',
+                fillColor: MAP_COLORS.zone,
                 fillOpacity: 0.12,
                 dashArray: '5, 10'
+            });
+
+            // Add tooltip with zone name
+            circle.bindTooltip(zone.name, {
+                permanent: false,
+                direction: 'top',
+                className: 'map-tooltip'
             });
 
             circle.on('click', () => {
@@ -309,6 +377,14 @@ const MapManager = {
             // Add marker at center
             const marker = L.marker(zone.coords, {
                 icon: this.createMarkerIcon('zone')
+            });
+
+            // Add tooltip with zone name
+            marker.bindTooltip(zone.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -20],
+                className: 'map-tooltip'
             });
 
             marker.on('click', () => {
@@ -342,6 +418,14 @@ const MapManager = {
                 icon: this.createMarkerIcon('property')
             });
 
+            // Add tooltip with property name
+            marker.bindTooltip(property.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -20],
+                className: 'map-tooltip'
+            });
+
             marker.on('click', () => {
                 this.showRouteToJasm(property);
                 UI.showPropertyPanel(property);
@@ -371,13 +455,15 @@ const MapManager = {
         this.layers.route.clearLayers();
 
         // Create route line - neutral color to let markers stand out
+        // Uses CSS animation class for drawing effect
         const route = L.polyline(
             [property.coords, AppData.jasmLocation],
             {
-                color: '#64748b',
+                color: MAP_COLORS.route,
                 weight: 3,
                 dashArray: '8, 8',
-                opacity: 0.7
+                opacity: 0.7,
+                className: 'route-line-animated'
             }
         );
 
@@ -526,11 +612,11 @@ const MapManager = {
      */
     createEvidenceMarkerIcon(type, highlighted = false) {
         const colors = {
-            'pdf': '#6e7073',    // Gray for documents
-            'image': '#007aff', // Blue for images
-            'web': '#34c759'    // Green for web links
+            'pdf': MAP_COLORS.evidencePdf,
+            'image': MAP_COLORS.evidenceImage,
+            'web': MAP_COLORS.evidenceWeb
         };
-        const color = colors[type] || colors['pdf'];
+        const color = colors[type] || MAP_COLORS.evidencePdf;
 
         const icons = {
             'pdf': `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -640,14 +726,28 @@ const MapManager = {
         this.infrastructureRoadPolylines = {};
         this.selectedInfrastructureRoad = null;
 
-        AppData.infrastructureRoads.forEach(road => {
+        AppData.infrastructureRoads.forEach((road, index) => {
             const polyline = L.polyline(road.coords, {
-                color: '#5ac8fa', // --color-map-infrastructure
+                color: MAP_COLORS.infrastructure,
                 weight: 5,
-                opacity: 0.7,
+                opacity: 0, // Start invisible for animation
                 dashArray: '10, 6',
                 lineCap: 'round',
-                lineJoin: 'round'
+                lineJoin: 'round',
+                className: 'infrastructure-road-animated'
+            });
+
+            // Stagger the fade-in animation
+            setTimeout(() => {
+                polyline.setStyle({ opacity: 0.7 });
+            }, index * 100);
+
+            // Add tooltip with road name (macOS HIG: 500ms delay)
+            polyline.bindTooltip(road.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -10],
+                className: 'map-tooltip'
             });
 
             // Store reference for selection state management
@@ -751,5 +851,185 @@ const MapManager = {
         if (this.selectedInfrastructureRoad) {
             this.deselectInfrastructureRoad(this.selectedInfrastructureRoad);
         }
+    },
+
+    // ================================
+    // DATA LAYER MARKERS
+    // ================================
+
+    /**
+     * Store for data layer markers
+     */
+    dataLayerMarkers: {},
+
+    /**
+     * Show markers for a data layer
+     * @param {string} layerName - Layer identifier
+     * @param {Object} layerData - Layer data with markers array
+     */
+    showDataLayerMarkers(layerName, layerData) {
+        if (!layerData || !layerData.markers) return;
+
+        // Initialize layer if not exists
+        if (!this.layers[layerName]) {
+            this.layers[layerName] = L.layerGroup();
+        }
+
+        // Clear existing markers for this layer
+        this.layers[layerName].clearLayers();
+        this.dataLayerMarkers[layerName] = {};
+
+        // Color map for different layer types
+        const layerColors = {
+            trafficFlow: '#ef4444',    // Red
+            railCommute: '#8b5cf6',    // Purple
+            electricity: '#f59e0b',    // Amber
+            employment: '#10b981',     // Emerald
+            infrastructure: '#3b82f6', // Blue
+            realEstate: '#f97316',     // Orange
+            riskyArea: '#dc2626',      // Red
+            baseMap: '#6b7280'         // Gray
+        };
+
+        const color = layerColors[layerName] || MAP_COLORS.primary;
+
+        layerData.markers.forEach(markerData => {
+            if (!markerData.coords) return;
+
+            const marker = L.marker(markerData.coords, {
+                icon: this.createDataLayerMarkerIcon(layerName, color)
+            });
+
+            // Add tooltip with name
+            marker.bindTooltip(markerData.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -20],
+                className: 'map-tooltip'
+            });
+
+            // Click to show detail
+            marker.on('click', () => {
+                UI.focusDataLayerMarker(layerName, markerData.id);
+            });
+
+            this.dataLayerMarkers[layerName][markerData.id] = marker;
+            this.layers[layerName].addLayer(marker);
+        });
+
+        this.layers[layerName].addTo(this.map);
+
+        // Fit bounds to show all markers
+        const allCoords = layerData.markers.filter(m => m.coords).map(m => m.coords);
+        if (allCoords.length > 0) {
+            const bounds = L.latLngBounds(allCoords);
+            this.map.flyToBounds(bounds, {
+                padding: [80, 80],
+                duration: 1,
+                maxZoom: 12
+            });
+        }
+    },
+
+    /**
+     * Hide markers for a data layer
+     * @param {string} layerName - Layer identifier
+     */
+    hideDataLayerMarkers(layerName) {
+        if (this.layers[layerName]) {
+            this.map.removeLayer(this.layers[layerName]);
+            this.layers[layerName].clearLayers();
+        }
+        if (this.dataLayerMarkers[layerName]) {
+            delete this.dataLayerMarkers[layerName];
+        }
+    },
+
+    /**
+     * Focus on a specific data layer marker
+     * @param {string} layerName - Layer identifier
+     * @param {string} markerId - Marker identifier
+     */
+    focusDataLayerMarker(layerName, markerId) {
+        const marker = this.dataLayerMarkers[layerName]?.[markerId];
+        if (marker) {
+            const latlng = marker.getLatLng();
+            this.map.flyTo(latlng, 14, {
+                duration: 0.8
+            });
+            marker.openTooltip();
+        }
+    },
+
+    /**
+     * Create marker icon for data layer
+     * @param {string} layerName - Layer type
+     * @param {string} color - Marker color
+     * @returns {L.DivIcon} Leaflet div icon
+     */
+    createDataLayerMarkerIcon(layerName, color) {
+        // Icons for each layer type (Lucide-style)
+        const icons = {
+            trafficFlow: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+                <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+            </svg>`,
+            railCommute: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M8 3 L4 7 L8 11"/><path d="M4 7 L20 7"/>
+                <rect x="6" y="11" width="12" height="10" rx="2"/>
+                <path d="M9 21v-2h6v2"/>
+            </svg>`,
+            electricity: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>`,
+            employment: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>`,
+            infrastructure: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/>
+                <line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/>
+                <polygon points="12 2 20 7 4 7"/>
+                <line x1="4" y1="18" x2="20" y2="18"/>
+            </svg>`,
+            realEstate: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>`,
+            riskyArea: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+            </svg>`,
+            baseMap: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>`
+        };
+
+        const iconSvg = icons[layerName] || icons.baseMap;
+
+        return L.divIcon({
+            html: `
+                <div style="
+                    width: 36px;
+                    height: 36px;
+                    background: ${color};
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: transform 0.15s ease;
+                ">
+                    <div style="width: 18px; height: 18px;">
+                        ${iconSvg}
+                    </div>
+                </div>
+            `,
+            className: 'data-layer-marker',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
     }
 };

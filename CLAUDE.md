@@ -1602,7 +1602,7 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
   /* ========== SHADOWS ========== */
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-large: 0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-large: 0 4px 8px rgba(55, 26, 26, 0.04), 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xlarge: 0 8px 16px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(0, 0, 0, 0.16);
   --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.08);
   

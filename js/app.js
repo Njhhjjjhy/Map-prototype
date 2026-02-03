@@ -139,13 +139,17 @@ const App = {
         UI.updateChatbox(content);
     },
 
-    transitionToJourneyB() {
+    async transitionToJourneyB() {
+        // Save Journey A content to history BEFORE transition
+        UI.saveChatboxToHistory();
+
         UI.hideChatbox();
         UI.hidePanel();
 
-        setTimeout(() => {
-            this.startJourneyB();
-        }, 300);
+        // Show memorable journey transition (Peak-End Rule)
+        await UI.showJourneyTransition('B');
+
+        this.startJourneyB();
     },
 
     // ================================
@@ -173,7 +177,7 @@ const App = {
             <h3>Infrastructure Plan</h3>
             <p>The red circle shows the Kumamoto Science Park corridor.</p>
             <p>Click the circle to see the master plan.</p>
-        `);
+        `, { skipHistory: true });
 
         // B4: After a delay, show company markers
         setTimeout(() => {
@@ -246,7 +250,10 @@ const App = {
         `);
     },
 
-    transitionToJourneyC() {
+    async transitionToJourneyC() {
+        // Save Journey B content to history BEFORE transition
+        UI.saveChatboxToHistory();
+
         UI.hideChatbox();
         UI.hidePanel();
 
@@ -258,9 +265,10 @@ const App = {
             MapManager.hideInfrastructureRoads();
         }
 
-        setTimeout(() => {
-            this.startJourneyC();
-        }, 300);
+        // Show memorable journey transition (Peak-End Rule)
+        await UI.showJourneyTransition('C');
+
+        this.startJourneyC();
     },
 
     // ================================
@@ -280,17 +288,21 @@ const App = {
         // Update legend for Journey C
         UI.showLegend('C');
 
+        // Generate portfolio summary (Peak Experience)
+        const portfolioSummary = UI.showPortfolioSummary();
+
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>
             <p>Amber markers show available investment properties.</p>
             <p><strong>Click a property to see financials and projections.</strong></p>
+            ${portfolioSummary}
             <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
                 Route lines show distance to JASM employment center.
             </p>
             <button class="chatbox-continue primary" onclick="App.complete()">
                 Any More Questions?
             </button>
-        `);
+        `, { skipHistory: true });
 
         // Hide time toggle for clarity
         UI.hideTimeToggle();
@@ -425,10 +437,12 @@ const App = {
                 `);
             }
         } else if (journey === 'C') {
+            const portfolioSummary = UI.showPortfolioSummary();
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
                 <p>Amber markers show available investment properties.</p>
                 <p><strong>Click a property to see financials and projections.</strong></p>
+                ${portfolioSummary}
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     Any More Questions?
                 </button>

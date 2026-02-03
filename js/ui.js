@@ -13,6 +13,14 @@ const UI = {
     currentEvidenceGroup: null, // Current group being viewed
     currentEvidenceItem: null, // Current sub-item in detail view
 
+    // Navigation history for back button support
+    panelHistory: [], // Stack of panel content functions to enable back navigation
+    currentPanelView: null, // Current panel view identifier
+    chatboxHistory: [], // Stack of chatbox content for back navigation
+
+    // Data layer state - track which layers are active with their data
+    activeDataLayers: {}, // { layerName: { markers: [], panel: null } }
+
     /**
      * Initialize UI elements
      */
@@ -29,6 +37,7 @@ const UI = {
             chatboxTitle: document.getElementById('chatbox-title'),
             chatboxContent: document.getElementById('chatbox-content'),
             chatboxClose: document.getElementById('chatbox-close'),
+            chatboxBack: document.getElementById('chatbox-back'),
             rightPanel: document.getElementById('right-panel'),
             panelClose: document.getElementById('panel-close'),
             panelContent: document.getElementById('panel-content'),
@@ -48,6 +57,138 @@ const UI = {
         this.panelOpen = false;
         this.lastChatType = 'chatbox'; // Track which chat was last shown
         this.bindEvents();
+        this.initDraggableModals();
+    },
+
+    // ================================
+    // DRAGGABLE MODALS
+    // ================================
+
+    /**
+     * Initialize draggable functionality for modals
+     */
+    initDraggableModals() {
+        // Make chatbox draggable (drag from header)
+        this.makeDraggable(this.elements.chatbox, '#chatbox-body');
+
+        // Make right panel draggable (drag from header area)
+        this.makeDraggable(this.elements.rightPanel, '#panel-content .subtitle, #panel-content h2');
+
+        // Make AI chat draggable (drag from header)
+        this.makeDraggable(this.elements.aiChat, '.ai-chat-header');
+
+        // Make gallery modal draggable (drag from content area header)
+        this.makeDraggable(document.getElementById('gallery-content'), '.placeholder-doc h3');
+    },
+
+    /**
+     * Make an element draggable
+     * @param {HTMLElement} element - The element to make draggable
+     * @param {string} handleSelector - CSS selector for the drag handle within the element
+     */
+    makeDraggable(element, handleSelector) {
+        if (!element) return;
+
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+        let hasBeenDragged = false;
+
+        // Store original position info
+        const originalPosition = {
+            position: element.style.position,
+            left: element.style.left,
+            top: element.style.top,
+            transform: element.style.transform
+        };
+
+        const onMouseDown = (e) => {
+            // Only start drag if clicking on the handle
+            const handle = element.querySelector(handleSelector);
+            if (!handle || !handle.contains(e.target)) return;
+
+            // Don't drag if clicking on buttons or interactive elements
+            if (e.target.closest('button, a, input, select, textarea')) return;
+
+            isDragging = true;
+            hasBeenDragged = true;
+
+            // Get current position
+            const rect = element.getBoundingClientRect();
+
+            if (!element.dataset.draggable) {
+                // First drag - convert from centered position to absolute
+                element.dataset.draggable = 'true';
+                element.style.position = 'fixed';
+                element.style.left = rect.left + 'px';
+                element.style.top = rect.top + 'px';
+                element.style.transform = 'none';
+                element.style.bottom = 'auto';
+                element.style.right = 'auto';
+            }
+
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseInt(element.style.left) || rect.left;
+            startTop = parseInt(element.style.top) || rect.top;
+
+            // Add grabbing cursor
+            element.style.cursor = 'grabbing';
+            document.body.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+
+            e.preventDefault();
+        };
+
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+
+            let newLeft = startLeft + deltaX;
+            let newTop = startTop + deltaY;
+
+            // Constrain to viewport
+            const rect = element.getBoundingClientRect();
+            const minTop = 0;
+            const maxTop = window.innerHeight - 50; // Keep at least 50px visible
+            const minLeft = -rect.width + 50;
+            const maxLeft = window.innerWidth - 50;
+
+            newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+            newTop = Math.max(minTop, Math.min(maxTop, newTop));
+
+            element.style.left = newLeft + 'px';
+            element.style.top = newTop + 'px';
+        };
+
+        const onMouseUp = () => {
+            if (!isDragging) return;
+
+            isDragging = false;
+            element.style.cursor = '';
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+
+        // Add event listeners
+        element.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        // Store reset function for later use
+        element.resetDragPosition = () => {
+            if (hasBeenDragged) {
+                element.dataset.draggable = '';
+                element.style.position = originalPosition.position;
+                element.style.left = originalPosition.left;
+                element.style.top = originalPosition.top;
+                element.style.transform = originalPosition.transform;
+                element.style.bottom = '';
+                element.style.right = '';
+                hasBeenDragged = false;
+            }
+        };
     },
 
     /**
@@ -456,9 +597,6 @@ const UI = {
                 <p class="data-timestamp">Last updated: ${relativeTime}</p>
                 <p>Investment data from official company announcements</p>
             </div>
-            <button class="panel-btn" onclick="UI.showScienceParkPanel(AppData.sciencePark)">
-                Back to Science Park
-            </button>
         `;
 
         this.showPanel(content);
@@ -487,20 +625,127 @@ const UI = {
     // CHATBOX
     // ================================
 
-    showChatbox(content) {
+    /**
+     * Show chatbox with content
+     * @param {string} content - HTML content to display
+     * @param {Object} options - { preserveHistory: boolean, skipHistory: boolean }
+     *   - preserveHistory: true = save current content to history before showing new
+     *   - skipHistory: true = don't touch history at all (for transitions)
+     *   - default = clear history (for fresh starts)
+     */
+    showChatbox(content, options = {}) {
+        const { preserveHistory = false, skipHistory = false } = options;
+
+        if (skipHistory) {
+            // Don't touch history at all (for transition screens)
+        } else if (preserveHistory) {
+            // Save current content to history before updating (for cross-journey navigation)
+            const currentTitle = this.elements.chatboxTitle.textContent;
+            const currentContent = this.elements.chatboxContent.innerHTML;
+
+            if (currentTitle || currentContent.trim()) {
+                const historyContent = currentTitle
+                    ? `<h3>${currentTitle}</h3>${currentContent}`
+                    : currentContent;
+                this.chatboxHistory.push(historyContent);
+            }
+        } else {
+            // Clear history when showing chatbox fresh (new journey start)
+            this.chatboxHistory = [];
+        }
+
         this._setChatboxContent(content);
+        this._updateChatboxBackButton();
         this.elements.chatbox.classList.remove('hidden');
         this.hideChatFab();
     },
 
     hideChatbox() {
-        this.elements.chatbox.classList.add('hidden');
+        const chatbox = this.elements.chatbox;
+        // Add closing animation class
+        chatbox.classList.add('closing');
         this.lastChatType = 'chatbox';
-        this.showChatFab();
+
+        // DON'T clear history when hiding - preserve for back navigation across journeys
+
+        // Wait for animation to complete, then hide
+        const animationDuration = 150; // matches --duration-fast
+        setTimeout(() => {
+            chatbox.classList.add('hidden');
+            chatbox.classList.remove('closing');
+            this.showChatFab();
+        }, animationDuration);
     },
 
+    /**
+     * Update chatbox content, saving current content to history
+     */
     updateChatbox(content) {
+        // Save current content to history before updating
+        const currentTitle = this.elements.chatboxTitle.textContent;
+        const currentContent = this.elements.chatboxContent.innerHTML;
+
+        if (currentTitle || currentContent.trim()) {
+            // Build the full content string for history
+            const historyContent = currentTitle
+                ? `<h3>${currentTitle}</h3>${currentContent}`
+                : currentContent;
+
+            // Don't push if same as last history item (avoid duplicates)
+            const lastHistory = this.chatboxHistory[this.chatboxHistory.length - 1];
+            if (!lastHistory || lastHistory !== historyContent) {
+                this.chatboxHistory.push(historyContent);
+            }
+        }
+
         this._setChatboxContent(content);
+        this._updateChatboxBackButton();
+    },
+
+    /**
+     * Navigate back to previous chatbox content
+     */
+    chatboxBack() {
+        if (this.chatboxHistory.length === 0) return;
+
+        const previousContent = this.chatboxHistory.pop();
+        if (previousContent) {
+            this._setChatboxContent(previousContent);
+            this._updateChatboxBackButton();
+        }
+    },
+
+    /**
+     * Save current chatbox content to history (for cross-journey navigation)
+     * Call this BEFORE transitioning to a new journey
+     */
+    saveChatboxToHistory() {
+        const currentTitle = this.elements.chatboxTitle.textContent;
+        const currentContent = this.elements.chatboxContent.innerHTML;
+
+        if (currentTitle || currentContent.trim()) {
+            const historyContent = currentTitle
+                ? `<h3>${currentTitle}</h3>${currentContent}`
+                : currentContent;
+
+            // Don't push duplicates
+            const lastHistory = this.chatboxHistory[this.chatboxHistory.length - 1];
+            if (!lastHistory || lastHistory !== historyContent) {
+                this.chatboxHistory.push(historyContent);
+            }
+        }
+    },
+
+    /**
+     * Enable/disable chatbox back button based on history
+     * Button is always visible, but disabled when no history
+     */
+    _updateChatboxBackButton() {
+        if (this.chatboxHistory.length > 0) {
+            this.elements.chatboxBack.disabled = false;
+        } else {
+            this.elements.chatboxBack.disabled = true;
+        }
     },
 
     // Helper to extract h3 title and set content separately
@@ -524,8 +769,42 @@ const UI = {
     // RIGHT PANEL
     // ================================
 
-    showPanel(content) {
-        this.elements.panelContent.innerHTML = content;
+    /**
+     * Show panel with content and automatic history tracking
+     * History is automatically tracked when navigating between panels
+     * @param {string} content - HTML content to display
+     * @param {Object} options - Optional settings: { clearHistory }
+     */
+    showPanel(content, options = {}) {
+        const { clearHistory = false } = options;
+
+        // Clear history if requested (for starting a new flow)
+        if (clearHistory) {
+            this.panelHistory = [];
+        }
+
+        // Automatically save current content to history if panel is open with content
+        if (this.panelOpen && this.elements.panelContent.innerHTML.trim()) {
+            // Don't push if content is the same (avoid duplicates)
+            const currentContent = this.elements.panelContent.innerHTML;
+            const lastHistory = this.panelHistory[this.panelHistory.length - 1];
+            const lastContent = lastHistory ? lastHistory.content : '';
+
+            if (currentContent !== lastContent) {
+                this.panelHistory.push({
+                    content: currentContent,
+                    scrollTop: this.elements.rightPanel.scrollTop
+                });
+            }
+        }
+
+        // Inject back button if there's history
+        let finalContent = content;
+        if (this.panelHistory.length > 0) {
+            finalContent = this.injectBackButton(content);
+        }
+
+        this.elements.panelContent.innerHTML = finalContent;
         this.elements.rightPanel.classList.remove('hidden');
         this.elements.rightPanel.classList.add('visible');
         this.panelOpen = true;
@@ -534,11 +813,75 @@ const UI = {
         this.updatePanelToggleState();
     },
 
+    /**
+     * Inject back button into panel content header
+     */
+    injectBackButton(content) {
+        // Find the subtitle element and inject back button before it
+        const subtitleMatch = content.match(/<div class="subtitle">/);
+        if (subtitleMatch) {
+            const backButtonHtml = `
+                <button class="panel-back-btn" onclick="UI.navigateBack()" aria-label="Go back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+            `;
+            return content.replace(/<div class="subtitle">/, backButtonHtml + '<div class="subtitle">');
+        }
+        return content;
+    },
+
+    /**
+     * Navigate back to previous panel view
+     */
+    navigateBack() {
+        if (this.panelHistory.length === 0) return;
+
+        const previousView = this.panelHistory.pop();
+        if (previousView) {
+            // Check if we still have more history after this pop
+            let contentToShow = previousView.content;
+            if (this.panelHistory.length > 0) {
+                // Still have history, re-inject back button
+                contentToShow = this.injectBackButton(previousView.content);
+            }
+
+            this.elements.panelContent.innerHTML = contentToShow;
+
+            // Restore scroll position
+            if (previousView.scrollTop !== undefined) {
+                this.elements.rightPanel.scrollTop = previousView.scrollTop;
+            }
+        }
+    },
+
+    /**
+     * Clear panel history (call when starting a new panel flow)
+     */
+    clearPanelHistory() {
+        this.panelHistory = [];
+        this.currentPanelView = null;
+        this.currentPanelViewFunction = null;
+    },
+
     hidePanel() {
-        this.elements.rightPanel.classList.remove('visible');
-        this.panelOpen = false;
-        this.updatePanelToggleState();
-        MapManager.clearRoute();
+        const panel = this.elements.rightPanel;
+        // Add closing class for exit animation (uses accelerate easing)
+        panel.classList.add('closing');
+
+        // Clear panel history when closing
+        this.clearPanelHistory();
+
+        // Wait for animation to complete, then remove visible
+        const animationDuration = 150; // matches --duration-fast
+        setTimeout(() => {
+            panel.classList.remove('visible');
+            panel.classList.remove('closing');
+            this.panelOpen = false;
+            this.updatePanelToggleState();
+            MapManager.clearRoute();
+        }, animationDuration);
     },
 
     /**
@@ -778,7 +1121,7 @@ const UI = {
             <button class="panel-btn" onclick="UI.showTruthEngine()">
                 Truth Engine
             </button>
-            <button class="panel-btn" onclick="UI.showPerformanceCalculator()">
+            <button class="panel-btn" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty)">
                 Performance Calculator
             </button>
         `;
@@ -806,9 +1149,6 @@ const UI = {
             <h2>Truth Engine</h2>
             <p>Key factors driving future value appreciation for this property:</p>
             ${driversHtml}
-            <button class="panel-btn" onclick="UI.showPropertyPanel(UI.currentProperty)">
-                Back to Property
-            </button>
             <button class="panel-btn primary" onclick="UI.showPerformanceCalculator()">
                 Performance Calculator
             </button>
@@ -1027,10 +1367,6 @@ const UI = {
                 <p class="data-timestamp">Last updated: ${relativeTime}</p>
                 <p>Data from Kumamoto Prefecture Real Estate Association</p>
             </div>
-
-            <button class="panel-btn" onclick="UI.showPerformanceCalculator()">
-                Back to Calculator
-            </button>
         `;
 
         this.showPanel(content);
@@ -1114,6 +1450,9 @@ const UI = {
         if (closeBtn) {
             closeBtn.focus();
         }
+
+        // Set up focus trap
+        this.setupFocusTrap(quickLook);
     },
 
     /**
@@ -1124,6 +1463,9 @@ const UI = {
         if (quickLook) {
             quickLook.classList.add('hidden');
         }
+
+        // Remove focus trap
+        this.removeFocusTrap();
 
         // Restore panel scroll position
         if (this.panelScrollPosition !== undefined) {
@@ -1238,10 +1580,15 @@ const UI = {
                  data-group-id="${group.id}">
                 <button class="disclosure-header"
                         aria-expanded="${isExpanded}"
+                        aria-controls="disclosure-content-${group.id}"
+                        id="disclosure-header-${group.id}"
                         onclick="UI.toggleDisclosureGroup('${group.id}')">
                     <span class="disclosure-triangle" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="9 18 15 12 9 6"></polyline>
+                        <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M6 4l6 4-6 4V4z"/>
+                        </svg>
+                        <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M4 6l4 6 4-6H4z"/>
                         </svg>
                     </span>
                     <span class="disclosure-icon" aria-hidden="true">
@@ -1250,7 +1597,10 @@ const UI = {
                     <span class="disclosure-title">${group.title}</span>
                     <span class="disclosure-badge">${itemCount} item${itemCount !== 1 ? 's' : ''}</span>
                 </button>
-                <div class="disclosure-content" role="group" aria-label="${group.title} items">
+                <div class="disclosure-content"
+                     id="disclosure-content-${group.id}"
+                     role="region"
+                     aria-labelledby="disclosure-header-${group.id}">
                     ${itemsHtml}
                 </div>
             </div>
@@ -1488,9 +1838,9 @@ const UI = {
 
         if (view === 'future') {
             this.elements.presentBtn.classList.remove('active');
-            this.elements.presentBtn.setAttribute('aria-pressed', 'false');
+            this.elements.presentBtn.setAttribute('aria-checked', 'false');
             this.elements.futureBtn.classList.add('active');
-            this.elements.futureBtn.setAttribute('aria-pressed', 'true');
+            this.elements.futureBtn.setAttribute('aria-checked', 'true');
             MapManager.showFutureZones();
 
             // Show Development Zone in legend
@@ -1499,9 +1849,9 @@ const UI = {
             }
         } else {
             this.elements.futureBtn.classList.remove('active');
-            this.elements.futureBtn.setAttribute('aria-pressed', 'false');
+            this.elements.futureBtn.setAttribute('aria-checked', 'false');
             this.elements.presentBtn.classList.add('active');
-            this.elements.presentBtn.setAttribute('aria-pressed', 'true');
+            this.elements.presentBtn.setAttribute('aria-checked', 'true');
             MapManager.hideFutureZones();
 
             // Hide Development Zone in legend
@@ -1586,7 +1936,8 @@ const UI = {
         if (journey === 'A') {
             mapLayersHtml = `
                 <button type="button" class="layer-item active" data-layer="resources"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('resources')">
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('resources')"
+                        title="Toggle resource markers on the map">
                     <span class="layer-radio" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
                     <span class="layer-label">Resources</span>
@@ -1595,13 +1946,15 @@ const UI = {
         } else if (journey === 'B') {
             mapLayersHtml = `
                 <button type="button" class="layer-item active" data-layer="sciencePark"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')"
+                        title="Toggle Kumamoto Science Park boundary">
                     <span class="layer-radio" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
                 </button>
                 <button type="button" class="layer-item active" data-layer="companies"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')">
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')"
+                        title="Toggle corporate headquarters markers">
                     <span class="layer-radio" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
@@ -1610,19 +1963,22 @@ const UI = {
         } else if (journey === 'C') {
             mapLayersHtml = `
                 <button type="button" class="layer-item active" data-layer="properties"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('properties')">
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('properties')"
+                        title="Toggle investment property markers">
                     <span class="layer-radio" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
                     <span class="layer-label">Properties</span>
                 </button>
                 <button type="button" class="layer-item active" data-layer="companies"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')">
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')"
+                        title="Toggle corporate headquarters markers">
                     <span class="layer-radio" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
                 </button>
                 <button type="button" class="layer-item active" data-layer="sciencePark"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')">
+                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')"
+                        title="Toggle Kumamoto Science Park boundary">
                     <span class="layer-radio" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
@@ -1633,49 +1989,57 @@ const UI = {
         // Data layers (these are inactive by default) - sentence case labels
         const dataLayersHtml = `
             <button type="button" class="layer-item" data-layer="baseMap"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('baseMap')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('baseMap')"
+                    title="Show base map layer">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.baseMap}</span>
                 <span class="layer-label">Base map</span>
             </button>
             <button type="button" class="layer-item" data-layer="trafficFlow"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('trafficFlow')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('trafficFlow')"
+                    title="Show traffic flow data overlay">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.trafficFlow}</span>
                 <span class="layer-label">Traffic flow</span>
             </button>
             <button type="button" class="layer-item" data-layer="railCommute"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('railCommute')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('railCommute')"
+                    title="Show rail commute routes and times">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.railCommute}</span>
                 <span class="layer-label">Rail commute</span>
             </button>
             <button type="button" class="layer-item" data-layer="electricity"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('electricity')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('electricity')"
+                    title="Show regional electricity usage data">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.electricity}</span>
                 <span class="layer-label">Electricity usage</span>
             </button>
             <button type="button" class="layer-item" data-layer="employment"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('employment')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('employment')"
+                    title="Show employment statistics by area">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.employment}</span>
                 <span class="layer-label">Employment</span>
             </button>
             <button type="button" class="layer-item" data-layer="infrastructure"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('infrastructure')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('infrastructure')"
+                    title="Show planned infrastructure projects">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.infrastructure}</span>
                 <span class="layer-label">Infrastructure plan</span>
             </button>
             <button type="button" class="layer-item" data-layer="realEstate"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('realEstate')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('realEstate')"
+                    title="Show real estate market data">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.realEstate}</span>
                 <span class="layer-label">Real estate</span>
             </button>
             <button type="button" class="layer-item" data-layer="riskyArea"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('riskyArea')">
+                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('riskyArea')"
+                    title="Show flood and hazard risk zones">
                 <span class="layer-radio" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
                 <span class="layer-label">Risky area</span>
@@ -1897,16 +2261,125 @@ const UI = {
         const displayName = this.getLayerDisplayName(layerName);
 
         if (isActive) {
+            // Deactivate layer
             layerItem.classList.remove('active');
             layerItem.setAttribute('aria-checked', 'false');
-            MapManager.hideLayer(layerName);
+
+            // Hide markers and clear from active layers
+            MapManager.hideDataLayerMarkers(layerName);
+            delete this.activeDataLayers[layerName];
+
             this.announceToScreenReader(`${displayName} layer hidden`);
         } else {
+            // Activate layer - show markers and panel
             layerItem.classList.add('active');
             layerItem.setAttribute('aria-checked', 'true');
-            MapManager.showLayer(layerName);
+
+            // Get layer data
+            const layerData = AppData.dataLayers[layerName];
+            if (layerData) {
+                // Show markers on map
+                MapManager.showDataLayerMarkers(layerName, layerData);
+
+                // Track active layer
+                this.activeDataLayers[layerName] = true;
+
+                // Show info panel for this layer
+                this.showDataLayerPanel(layerName, layerData);
+            }
+
             this.announceToScreenReader(`${displayName} layer shown`);
         }
+    },
+
+    /**
+     * Show data layer info panel
+     * @param {string} layerName - Layer identifier
+     * @param {Object} layerData - Layer data from AppData
+     */
+    showDataLayerPanel(layerName, layerData) {
+        const statsHtml = layerData.stats ? layerData.stats.map(stat => `
+            <div class="stat-item">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('') : '';
+
+        const markersListHtml = layerData.markers ? `
+            <div class="data-layer-markers-list">
+                <h4>Locations</h4>
+                ${layerData.markers.map(marker => `
+                    <button class="data-layer-marker-item" onclick="UI.focusDataLayerMarker('${layerName}', '${marker.id}')">
+                        <span class="marker-name">${marker.name}</span>
+                        <span class="marker-chevron">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                `).join('')}
+            </div>
+        ` : '';
+
+        const content = `
+            <div class="subtitle">Data Layer</div>
+            <h2>${layerData.name}</h2>
+            <p>${layerData.description}</p>
+            ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
+            ${markersListHtml}
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
+     * Focus on a specific data layer marker
+     * @param {string} layerName - Layer identifier
+     * @param {string} markerId - Marker identifier
+     */
+    focusDataLayerMarker(layerName, markerId) {
+        const layerData = AppData.dataLayers[layerName];
+        if (!layerData) return;
+
+        const marker = layerData.markers.find(m => m.id === markerId);
+        if (!marker) return;
+
+        // Pan map to marker
+        MapManager.focusDataLayerMarker(layerName, markerId);
+
+        // Show marker detail panel
+        this.showDataLayerMarkerDetail(layerName, layerData, marker);
+    },
+
+    /**
+     * Show detail panel for a specific data layer marker
+     */
+    showDataLayerMarkerDetail(_layerName, layerData, marker) {
+        // Build dynamic stats based on marker properties
+        let detailsHtml = '<div class="property-details">';
+
+        // Add all properties except id, coords, and name
+        Object.entries(marker).forEach(([key, value]) => {
+            if (!['id', 'coords', 'name'].includes(key)) {
+                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                detailsHtml += `
+                    <div class="property-detail-row">
+                        <span class="property-detail-label">${label}</span>
+                        <span class="property-detail-value">${value}</span>
+                    </div>
+                `;
+            }
+        });
+
+        detailsHtml += '</div>';
+
+        const content = `
+            <div class="subtitle">${layerData.name}</div>
+            <h2>${marker.name}</h2>
+            ${detailsHtml}
+        `;
+
+        this.showPanel(content);
     },
 
     /**
@@ -1976,9 +2449,18 @@ const UI = {
     },
 
     hideAIChat() {
-        document.getElementById('ai-chat').classList.add('hidden');
+        const aiChat = document.getElementById('ai-chat');
+        // Add closing animation class
+        aiChat.classList.add('closing');
         this.lastChatType = 'aiChat';
-        this.showChatFab();
+
+        // Wait for animation to complete, then hide
+        const animationDuration = 150; // matches --duration-fast
+        setTimeout(() => {
+            aiChat.classList.add('hidden');
+            aiChat.classList.remove('closing');
+            this.showChatFab();
+        }, animationDuration);
     },
 
     sendAIMessage(message) {
@@ -2080,6 +2562,343 @@ const UI = {
         setTimeout(() => {
             this.hideTypingIndicator();
             this.addChatMessage("I'll connect you with one of our investment advisors. They'll reach out within 24 hours to discuss your specific interests.<br><br><strong>What's the best way to reach you?</strong>", 'assistant');
+        }, 800);
+    },
+
+    // ================================
+    // JOURNEY TRANSITIONS (Progress Indicator)
+    // ================================
+
+    /**
+     * Show journey transition with in-panel progress indicator
+     * @param {string} journeyId - The journey to transition to ('B' or 'C')
+     */
+    showJourneyTransition(journeyId) {
+        return new Promise((resolve) => {
+            // Get journey content
+            const content = this.getJourneyTransitionContent(journeyId);
+
+            // Show progress indicator in chatbox instead of full-screen overlay
+            // Use skipHistory to preserve the saved history from the previous journey
+            this.showChatbox(`
+                <div class="journey-progress-container">
+                    <div class="journey-progress-indicator">
+                        <div class="journey-progress-spinner"></div>
+                    </div>
+                    <h3>${content.title}</h3>
+                    <p class="journey-progress-subtitle">${content.subtitle}</p>
+                </div>
+            `, { skipHistory: true });
+
+            // Complete after a brief pause
+            setTimeout(() => {
+                resolve();
+            }, 1200);
+        });
+    },
+
+    /**
+     * Get content for journey transition based on journey ID
+     */
+    getJourneyTransitionContent(journeyId) {
+        const journeys = {
+            'B': {
+                title: 'Infrastructure Plan',
+                subtitle: 'See how billions in corporate investment are transforming the region',
+                icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                </svg>`
+            },
+            'C': {
+                title: 'Investment Opportunities',
+                subtitle: 'Explore properties positioned for growth in the semiconductor corridor',
+                icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                </svg>`
+            },
+            'complete': {
+                title: 'Journey Complete',
+                subtitle: 'You\'ve explored the Kumamoto investment opportunity',
+                icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>`
+            }
+        };
+        return journeys[journeyId] || journeys['complete'];
+    },
+
+    // ================================
+    // PORTFOLIO SUMMARY (Peak Experience)
+    // ================================
+
+    /**
+     * Calculate and display portfolio summary card
+     * Shows combined potential across all explored properties
+     */
+    showPortfolioSummary() {
+        const properties = AppData.properties;
+
+        // Calculate total potential (using average scenario)
+        let totalAcquisition = 0;
+        let totalNetProfit = 0;
+        const propertyNames = [];
+
+        properties.forEach(property => {
+            totalAcquisition += property.financials.acquisitionCost;
+            totalNetProfit += property.financials.scenarios.average.netProfit;
+            propertyNames.push(property.name);
+        });
+
+        const formatYen = (num) => {
+            if (num >= 10000000) {
+                return '¥' + (num / 1000000).toFixed(1) + 'M';
+            }
+            return '¥' + num.toLocaleString();
+        };
+
+        const content = `
+            <div class="portfolio-summary">
+                <div class="portfolio-summary-label">Combined 5-Year Potential</div>
+                <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>
+                <div class="portfolio-summary-detail">Projected return across ${properties.length} properties</div>
+                <div class="portfolio-summary-properties">
+                    ${propertyNames.join(' • ')}
+                </div>
+            </div>
+        `;
+
+        return content;
+    },
+
+    /**
+     * Show Performance Calculator with headline stat and progressive disclosure
+     * @param {Object} property - Property to show financials for
+     * @param {string} scenario - Scenario to highlight (default: 'average')
+     */
+    showPerformanceCalculatorEnhanced(property, scenario = 'average') {
+        this.currentProperty = property;
+        this.currentScenario = scenario;
+        const fin = property.financials;
+        const data = fin.scenarios[scenario];
+
+        const formatYen = (num) => '¥' + num.toLocaleString();
+        const formatYenCompact = (num) => {
+            if (num >= 1000000) return '¥' + (num / 1000000).toFixed(1) + 'M';
+            return formatYen(num);
+        };
+        const formatPercent = (num) => (num >= 0 ? '+' : '') + (num * 100).toFixed(1) + '%';
+
+        // Get confidence info
+        const confidence = this.getConfidenceInfo(scenario);
+        const sellingPriceInfo = this.formatWithConfidence(data.sellingPrice, scenario);
+
+        // Simulated last update time
+        const lastUpdated = new Date(Date.now() - 2 * 60 * 60 * 1000);
+        const relativeTime = this.formatRelativeTime(lastUpdated);
+
+        const content = `
+            <div class="subtitle">Financial Projection</div>
+            <h2>Performance Calculator</h2>
+
+            <!-- HEADLINE STAT - Von Restorff Effect -->
+            <div class="headline-stat">
+                <div class="headline-stat-label">Projected 5-Year Return</div>
+                <div class="headline-stat-value">${formatYenCompact(data.netProfit)}</div>
+                <div class="headline-stat-sublabel">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} case scenario</div>
+            </div>
+
+            <!-- SCENARIO SELECTOR -->
+            <div class="calculator-section">
+                <h4>Scenario Comparison</h4>
+                <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
+                    <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios"></canvas>
+                </div>
+                <div id="scenario-chart-table"></div>
+
+                <div class="scenario-toggle">
+                    <button class="scenario-btn ${scenario === 'bear' ? 'active' : ''}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'bear')">
+                        <span class="scenario-icon" aria-hidden="true">▼</span> Bear
+                    </button>
+                    <button class="scenario-btn ${scenario === 'average' ? 'active' : ''}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'average')">
+                        <span class="scenario-icon" aria-hidden="true">—</span> Average
+                    </button>
+                    <button class="scenario-btn ${scenario === 'bull' ? 'active' : ''}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'bull')">
+                        <span class="scenario-icon" aria-hidden="true">▲</span> Bull
+                    </button>
+                </div>
+            </div>
+
+            <!-- PROGRESSIVE DISCLOSURE - Detailed Breakdown -->
+            <div class="financials-disclosure" id="financials-disclosure">
+                <button class="financials-disclosure-header" onclick="UI.toggleFinancialsDisclosure()" aria-expanded="false" aria-controls="financials-details">
+                    <span class="financials-disclosure-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        View Detailed Breakdown
+                    </span>
+                    <span class="financials-disclosure-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </span>
+                </button>
+                <div class="financials-disclosure-content" id="financials-details">
+                    <div class="calc-row">
+                        <span class="calc-label">Acquisition Cost</span>
+                        <span class="calc-value">${formatYen(fin.acquisitionCost)}</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Appreciation Rate</span>
+                        <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Est. Selling Price (5yr)</span>
+                        <div class="calc-value-with-confidence">
+                            <span class="calc-value">${sellingPriceInfo.display}</span>
+                            <span class="confidence-range" title="${confidence.level} confidence">
+                                Range: ${sellingPriceInfo.range}
+                                <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Rental Yield</span>
+                        <span class="calc-value">${formatPercent(data.rentalYield)}</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Annual Rental Income</span>
+                        <span class="calc-value">${formatYen(data.annualRent)}</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Applicable Taxes</span>
+                        <span class="calc-value negative">${formatYen(data.taxes)}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-attribution">
+                <p class="data-timestamp">Last updated: ${relativeTime}</p>
+                <p>Price data from Kumamoto Land Registry (Jan 2026)</p>
+            </div>
+
+            <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
+                View Rental Report
+            </button>
+            <button class="panel-btn" onclick="UI.showAreaStats()">
+                Area Statistics
+            </button>
+            <button class="panel-btn" onclick="UI.showPropertyPanel(UI.currentProperty)">
+                Back to Property
+            </button>
+        `;
+
+        this.showPanel(content);
+
+        // Render chart after DOM update
+        setTimeout(() => this.renderScenarioChart(property), 50);
+    },
+
+    /**
+     * Toggle financials disclosure expanded state
+     */
+    toggleFinancialsDisclosure() {
+        const disclosure = document.getElementById('financials-disclosure');
+        const header = disclosure.querySelector('.financials-disclosure-header');
+        const isExpanded = disclosure.classList.contains('expanded');
+
+        if (isExpanded) {
+            disclosure.classList.remove('expanded');
+            header.setAttribute('aria-expanded', 'false');
+        } else {
+            disclosure.classList.add('expanded');
+            header.setAttribute('aria-expanded', 'true');
+        }
+    },
+
+    // ================================
+    // AI CHAT CTAs (Strengthen Ending)
+    // ================================
+
+    /**
+     * Show AI Chat with CTAs for clear calls to action
+     */
+    showAIChatWithCTAs() {
+        // Show standard AI chat first
+        this.showAIChat();
+
+        // Add CTAs section after a delay (when user might be finishing)
+        // Note: CTAs are shown immediately in the enhanced version
+    },
+
+    /**
+     * Get AI Chat CTAs HTML
+     * @returns {string} HTML for CTA buttons
+     */
+    getAIChatCTAsHtml() {
+        return `
+            <div class="ai-chat-ctas">
+                <button class="ai-chat-cta primary" onclick="UI.downloadSummary()">
+                    <span class="ai-chat-cta-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                    </span>
+                    Download Summary
+                </button>
+                <button class="ai-chat-cta" onclick="UI.scheduleConsultation()">
+                    <span class="ai-chat-cta-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" x2="16" y1="2" y2="6"/>
+                            <line x1="8" x2="8" y1="2" y2="6"/>
+                            <line x1="3" x2="21" y1="10" y2="10"/>
+                        </svg>
+                    </span>
+                    Schedule Consultation
+                </button>
+                <button class="ai-chat-cta" onclick="App.restart()">
+                    <span class="ai-chat-cta-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10"/>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                        </svg>
+                    </span>
+                    Explore Again
+                </button>
+            </div>
+        `;
+    },
+
+    /**
+     * Handle download summary CTA
+     */
+    downloadSummary() {
+        this.addChatMessage("I'd like to download a summary of this presentation.", 'user');
+        this.showTypingIndicator();
+
+        setTimeout(() => {
+            this.hideTypingIndicator();
+            this.addChatMessage("I'm preparing your personalized summary document with all the properties and projections we reviewed.<br><br><strong>Your download will begin shortly.</strong><br><br><em>(In the full version, a PDF would be generated here)</em>", 'assistant');
+        }, 800);
+    },
+
+    /**
+     * Handle schedule consultation CTA
+     */
+    scheduleConsultation() {
+        this.addChatMessage("I'd like to schedule a consultation.", 'user');
+        this.showTypingIndicator();
+
+        setTimeout(() => {
+            this.hideTypingIndicator();
+            this.addChatMessage("I'll connect you with one of our Kumamoto investment specialists. They can answer detailed questions about specific properties, financing, and the purchasing process.<br><br><strong>What's the best way to reach you?</strong>", 'assistant');
         }, 800);
     }
 };

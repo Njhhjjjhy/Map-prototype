@@ -39,14 +39,19 @@
 
             <!-- Control Bar (hidden initially) -->
             <div id="control-bar" class="hidden" role="toolbar" aria-label="Map controls">
-                <div id="time-toggle" class="hidden" role="group" aria-label="Map time view: toggle between present and future development states">
-                    <button id="present-btn" class="time-btn active" aria-pressed="true">Present</button>
-                    <button id="future-btn" class="time-btn" aria-pressed="false">Future</button>
+                <div id="time-toggle" class="hidden" role="radiogroup" aria-label="Map time view">
+                    <button id="present-btn" class="time-btn active" role="radio" aria-checked="true">Present</button>
+                    <button id="future-btn" class="time-btn" role="radio" aria-checked="false">Future</button>
                 </div>
             </div>
 
             <!-- Chatbox -->
             <div id="chatbox" class="hidden" role="region" aria-label="Journey guide" aria-live="polite">
+                <button id="chatbox-back" aria-label="Go back" onclick="UI.chatboxBack()" disabled>
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
                 <button id="chatbox-close" aria-label="Close chatbox">
                     <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="14" y1="2" x2="2" y2="14"></line>
@@ -182,6 +187,29 @@
                 </svg>
             </button>
         </form>
+
+        <!-- CTAs for clear calls to action (Strengthen Ending) -->
+        <div class="ai-chat-ctas" id="ai-chat-ctas">
+            <button class="ai-chat-cta primary" onclick="UI.downloadSummary()">
+                <span class="ai-chat-cta-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" x2="12" y1="15" y2="3"/>
+                    </svg>
+                </span>
+                Download Summary
+            </button>
+            <button class="ai-chat-cta" onclick="App.restart()">
+                <span class="ai-chat-cta-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="1 4 1 10 7 10"/>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                    </svg>
+                </span>
+                Explore Again
+            </button>
+        </div>
     </div>
 
     <!-- Leaflet JS -->

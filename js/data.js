@@ -591,5 +591,124 @@ const AppData = {
                 }
             ]
         }
+    },
+
+    // ================================
+    // DATA LAYERS - Mock data for toggleable map layers
+    // ================================
+    dataLayers: {
+        trafficFlow: {
+            name: 'Traffic Flow',
+            description: 'Real-time and historical traffic patterns across the Kumamoto semiconductor corridor.',
+            markers: [
+                { id: 'traffic-1', coords: [32.87, 130.80], name: 'Route 57 Junction', congestion: 'Moderate', peakHours: '7:30-9:00, 17:00-18:30', avgSpeed: '45 km/h' },
+                { id: 'traffic-2', coords: [32.88, 130.76], name: 'JASM Access Road', congestion: 'Heavy (peak)', peakHours: '8:00-9:30, 18:00-19:00', avgSpeed: '32 km/h' },
+                { id: 'traffic-3', coords: [32.84, 130.82], name: 'Kikuyo Bypass', congestion: 'Light', peakHours: '8:00-9:00', avgSpeed: '58 km/h' }
+            ],
+            stats: [
+                { value: '23%', label: 'Increase since 2023' },
+                { value: '78%', label: 'Work commuters' },
+                { value: '2026', label: 'Bypass completion' }
+            ]
+        },
+        railCommute: {
+            name: 'Rail Commute',
+            description: 'JR Kyushu rail network serving the semiconductor corridor workforce.',
+            markers: [
+                { id: 'rail-1', coords: [32.79, 130.69], name: 'Kumamoto Station', type: 'Major Hub', toJasm: '28 min', frequency: '10 min' },
+                { id: 'rail-2', coords: [32.88, 130.81], name: 'Kikuyo Station (Planned)', type: 'New Station', toJasm: '8 min', frequency: '15 min', opening: '2026' },
+                { id: 'rail-3', coords: [32.84, 130.75], name: 'Suizenji Station', type: 'Transfer Hub', toJasm: '22 min', frequency: '12 min' }
+            ],
+            stats: [
+                { value: '12,000', label: 'Daily commuters' },
+                { value: '28 min', label: 'Avg. to JASM' },
+                { value: '2026', label: 'Kikuyo Station' }
+            ]
+        },
+        electricity: {
+            name: 'Electricity Usage',
+            description: 'Regional power consumption and capacity for industrial operations.',
+            markers: [
+                { id: 'elec-1', coords: [32.87, 130.78], name: 'Science Park Grid', consumption: '1.8 GW', capacity: '2.4 GW', utilization: '75%' },
+                { id: 'elec-2', coords: [32.90, 130.82], name: 'Sony Substation', consumption: '450 MW', capacity: '600 MW', utilization: '75%' },
+                { id: 'elec-3', coords: [32.85, 130.73], name: 'Tokyo Electron Hub', consumption: '280 MW', capacity: '400 MW', utilization: '70%' }
+            ],
+            stats: [
+                { value: '2.4 GW', label: 'Grid capacity' },
+                { value: '99.99%', label: 'Uptime' },
+                { value: '¥12/kWh', label: 'Industrial rate' }
+            ]
+        },
+        employment: {
+            name: 'Employment',
+            description: 'Semiconductor industry employment statistics and hiring trends.',
+            markers: [
+                { id: 'emp-1', coords: [32.874, 130.785], name: 'JASM', employees: '3,400', growth: '+850 (2025)', avgSalary: '¥6.8M' },
+                { id: 'emp-2', coords: [32.90, 130.82], name: 'Sony Semiconductor', employees: '4,200', growth: '+600 (2025)', avgSalary: '¥6.2M' },
+                { id: 'emp-3', coords: [32.85, 130.73], name: 'Tokyo Electron', employees: '1,200', growth: '+400 (2025)', avgSalary: '¥7.1M' },
+                { id: 'emp-4', coords: [32.82, 130.80], name: 'Mitsubishi Electric', employees: '800', growth: '+200 (2025)', avgSalary: '¥5.9M' }
+            ],
+            stats: [
+                { value: '9,600+', label: 'Direct jobs' },
+                { value: '+34%', label: 'YoY growth' },
+                { value: '¥6.5M', label: 'Avg. salary' }
+            ]
+        },
+        infrastructure: {
+            name: 'Infrastructure Plan',
+            description: 'Planned and in-progress infrastructure development projects.',
+            markers: [
+                { id: 'infra-1', coords: [32.88, 130.78], name: 'New Water Treatment', status: 'Under Construction', completion: '2025', budget: '¥28B' },
+                { id: 'infra-2', coords: [32.86, 130.84], name: 'Logistics Hub', status: 'Planned', completion: '2027', budget: '¥45B' },
+                { id: 'infra-3', coords: [32.84, 130.72], name: 'Data Center Complex', status: 'Under Construction', completion: '2026', budget: '¥120B' }
+            ],
+            stats: [
+                { value: '¥4.8T', label: 'Total investment' },
+                { value: '12', label: 'Major projects' },
+                { value: '2040', label: 'Completion target' }
+            ]
+        },
+        realEstate: {
+            name: 'Real Estate',
+            description: 'Property market trends and investment activity in the corridor.',
+            markers: [
+                { id: 're-1', coords: [32.88, 130.82], name: 'Kikuyo Residential Zone', trend: '+12% YoY', avgPrice: '¥48M', inventory: 'Low' },
+                { id: 're-2', coords: [32.85, 130.86], name: 'Ozu Development Area', trend: '+8% YoY', avgPrice: '¥32M', inventory: 'Medium' },
+                { id: 're-3', coords: [32.82, 130.78], name: 'Mashiki Township', trend: '+6% YoY', avgPrice: '¥28M', inventory: 'High' }
+            ],
+            stats: [
+                { value: '+9.1%', label: 'Avg. appreciation' },
+                { value: '5.5%', label: 'Rental yield' },
+                { value: '96%', label: 'Occupancy rate' }
+            ]
+        },
+        riskyArea: {
+            name: 'Risky Area',
+            description: 'Flood zones, seismic risk areas, and natural hazard information.',
+            markers: [
+                { id: 'risk-1', coords: [32.78, 130.72], name: 'Shirakawa Flood Zone', risk: 'Moderate', type: 'Flood', mitigation: 'Levee upgrade 2025' },
+                { id: 'risk-2', coords: [32.92, 130.88], name: 'Volcanic Proximity', risk: 'Low', type: 'Volcanic', mitigation: '30km from Aso caldera' },
+                { id: 'risk-3', coords: [32.80, 130.65], name: 'Liquefaction Zone', risk: 'Moderate', type: 'Seismic', mitigation: 'Building code compliance' }
+            ],
+            stats: [
+                { value: 'Low', label: 'Overall risk rating' },
+                { value: '2016', label: 'Last major event' },
+                { value: '¥86B', label: 'Mitigation investment' }
+            ]
+        },
+        baseMap: {
+            name: 'Base Map',
+            description: 'Standard geographic reference markers and points of interest.',
+            markers: [
+                { id: 'base-1', coords: [32.79, 130.69], name: 'Kumamoto City Center', type: 'City', population: '740,000' },
+                { id: 'base-2', coords: [32.84, 130.86], name: 'Kumamoto Airport', type: 'Airport', routes: '12 international' },
+                { id: 'base-3', coords: [32.93, 130.78], name: 'Mount Aso', type: 'Landmark', elevation: '1,592m' }
+            ],
+            stats: [
+                { value: '740,000', label: 'City population' },
+                { value: '1.78M', label: 'Prefecture pop.' },
+                { value: '#15', label: 'Japan metro rank' }
+            ]
+        }
     }
 };
