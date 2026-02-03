@@ -2,7 +2,7 @@
 
 ## Overview
 
-A desktop-only interactive presentation app built around a Google Map of Kumamoto, Japan's emerging semiconductor corridor. Designed as a sales tool for investment advisors to walk clients through real estate opportunities. The app presents as a "choose your own adventure" experience but is actually a carefully sequenced narrative that builds context before presenting financial projections.
+A desktop-only interactive presentation app built around a Leaflet map of Kumamoto, Japan's emerging semiconductor corridor. Designed as a sales tool for investment advisors to walk clients through real estate opportunities. The app presents as a "choose your own adventure" experience but is actually a carefully sequenced narrative that builds context before presenting financial projections.
 
 ---
 
@@ -70,6 +70,12 @@ A full-screen overlay for viewing PDFs, images, or embedded external content wit
 
 ### The Control Bar
 Contains layer toggles and the future/present switch. These controls appear only when relevant to the current journey step.
+
+### The Data Layers Button
+A toggle button (always visible) that opens a panel for controlling map layer visibility. The button remains visible across all journey states; when journeys change, the panel closes but the button stays accessible.
+
+### The Map Legend
+Displays marker types for the current view. Core items (Base Map, Science Park, Corporate Sites, Real Estate) are always visible; journey-specific items are added below. All icons use Lucide icon library for consistency with the Data Layers panel.
 
 ---
 

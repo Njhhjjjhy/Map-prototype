@@ -145,6 +145,9 @@ const App = {
         // Show data layers toggle for Journey B
         UI.showDataLayers('B');
 
+        // Show panel toggle button
+        UI.showPanelToggle();
+
         // Update legend for Journey B
         UI.showLegend('B');
 
@@ -257,11 +260,71 @@ const App = {
         UI.hideChatbox();
         UI.hideAIChat();
         UI.hideLayersToggle();
+        UI.hidePanelToggle();
         MapManager.resetView();
 
         setTimeout(() => {
             this.startJourneyA();
         }, 500);
+    },
+
+    /**
+     * Restore chatbox content based on current journey state
+     * Called when user clicks the FAB to reopen chatbox
+     */
+    restoreChatbox() {
+        const { journey, step } = this.state;
+
+        if (journey === 'A') {
+            if (step === 'A1') {
+                UI.showChatbox(`
+                    <h3>Why Kumamoto?</h3>
+                    <p>Discover what makes this region special for semiconductor investment.</p>
+                    <button class="chatbox-continue primary" onclick="App.stepA2()">
+                        Start Exploring
+                    </button>
+                `);
+            } else {
+                this.updateResourceChatbox();
+                UI.elements.chatbox.classList.remove('hidden');
+                UI.hideChatFab();
+            }
+        } else if (journey === 'B') {
+            if (step === 'B1' || step === 'B4') {
+                UI.showChatbox(`
+                    <h3>Infrastructure Plan</h3>
+                    <p>Major corporations have committed billions to this region.</p>
+                    <p>Click company markers to see their investments.</p>
+                    <button class="chatbox-continue primary" onclick="App.stepB6()">
+                        Show Time Controls
+                    </button>
+                `);
+            } else {
+                UI.showChatbox(`
+                    <h3>Infrastructure Plan</h3>
+                    <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
+                    <p>Future view shows upcoming development zones.</p>
+                    <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
+                        View Investment Opportunities
+                    </button>
+                `);
+            }
+        } else if (journey === 'C') {
+            UI.showChatbox(`
+                <h3>Investment Opportunities</h3>
+                <p>Amber markers show available investment properties.</p>
+                <p>Click a property to see financials and projections.</p>
+                <button class="chatbox-continue primary" onclick="App.complete()">
+                    Any More Questions?
+                </button>
+            `);
+        } else {
+            // Default: show a generic message
+            UI.showChatbox(`
+                <h3>Kumamoto Investment Guide</h3>
+                <p>Explore the map to learn about investment opportunities.</p>
+            `);
+        }
     }
 };
 

@@ -33,10 +33,14 @@ const UI = {
             layersToggle: document.getElementById('layers-toggle'),
             dataLayers: document.getElementById('data-layers'),
             aiChat: document.getElementById('ai-chat'),
-            aiChatClose: document.getElementById('ai-chat-close')
+            aiChatClose: document.getElementById('ai-chat-close'),
+            chatFab: document.getElementById('chat-fab'),
+            panelToggle: document.getElementById('panel-toggle')
         };
 
         this.layersPanelOpen = false;
+        this.panelOpen = false;
+        this.lastChatType = 'chatbox'; // Track which chat was last shown
         this.bindEvents();
     },
 
@@ -100,6 +104,48 @@ const UI = {
         this.elements.layersToggle.addEventListener('click', () => {
             this.toggleLayersPanel();
         });
+
+        // Chat FAB - reopen chatbox or AI chat
+        this.elements.chatFab.addEventListener('click', () => {
+            this.reopenChat();
+        });
+
+        // Panel toggle button
+        this.elements.panelToggle.addEventListener('click', () => {
+            this.togglePanel();
+        });
+    },
+
+    /**
+     * Reopen the last closed chat (chatbox or AI chat)
+     */
+    reopenChat() {
+        this.hideChatFab();
+
+        if (this.lastChatType === 'aiChat') {
+            this.showAIChat();
+        } else {
+            // Restore appropriate chatbox content based on current journey state
+            if (typeof App !== 'undefined' && App.state) {
+                App.restoreChatbox();
+            } else {
+                this.elements.chatbox.classList.remove('hidden');
+            }
+        }
+    },
+
+    /**
+     * Show the chat FAB button
+     */
+    showChatFab() {
+        this.elements.chatFab.classList.remove('hidden');
+    },
+
+    /**
+     * Hide the chat FAB button
+     */
+    hideChatFab() {
+        this.elements.chatFab.classList.add('hidden');
     },
 
     // ================================
@@ -430,10 +476,13 @@ const UI = {
     showChatbox(content) {
         this.elements.chatboxContent.innerHTML = content;
         this.elements.chatbox.classList.remove('hidden');
+        this.hideChatFab();
     },
 
     hideChatbox() {
         this.elements.chatbox.classList.add('hidden');
+        this.lastChatType = 'chatbox';
+        this.showChatFab();
     },
 
     updateChatbox(content) {
@@ -447,11 +496,61 @@ const UI = {
     showPanel(content) {
         this.elements.panelContent.innerHTML = content;
         this.elements.rightPanel.classList.remove('hidden');
+        this.elements.rightPanel.classList.add('visible');
+        this.panelOpen = true;
+        this.updatePanelToggleState();
     },
 
     hidePanel() {
-        this.elements.rightPanel.classList.add('hidden');
+        this.elements.rightPanel.classList.remove('visible');
+        this.panelOpen = false;
+        this.updatePanelToggleState();
         MapManager.clearRoute();
+    },
+
+    /**
+     * Toggle the right panel open/closed
+     */
+    togglePanel() {
+        if (this.panelOpen) {
+            this.hidePanel();
+        } else {
+            // If there's existing content, just show the panel
+            // Otherwise, this is a no-op (panel needs content to show)
+            if (this.elements.panelContent.innerHTML.trim()) {
+                this.elements.rightPanel.classList.remove('hidden');
+                this.elements.rightPanel.classList.add('visible');
+                this.panelOpen = true;
+                this.updatePanelToggleState();
+            }
+        }
+    },
+
+    /**
+     * Update the panel toggle button state
+     */
+    updatePanelToggleState() {
+        if (this.panelOpen) {
+            this.elements.panelToggle.classList.add('active');
+            this.elements.panelToggle.setAttribute('aria-expanded', 'true');
+        } else {
+            this.elements.panelToggle.classList.remove('active');
+            this.elements.panelToggle.setAttribute('aria-expanded', 'false');
+        }
+    },
+
+    /**
+     * Show the panel toggle button
+     */
+    showPanelToggle() {
+        this.elements.panelToggle.classList.remove('hidden');
+    },
+
+    /**
+     * Hide the panel toggle button
+     */
+    hidePanelToggle() {
+        this.elements.panelToggle.classList.add('hidden');
     },
 
     /**
@@ -970,18 +1069,30 @@ const UI = {
     },
 
     setTimeView(view) {
+        const legendZone = document.getElementById('legend-zone');
+
         if (view === 'future') {
             this.elements.presentBtn.classList.remove('active');
             this.elements.presentBtn.setAttribute('aria-pressed', 'false');
             this.elements.futureBtn.classList.add('active');
             this.elements.futureBtn.setAttribute('aria-pressed', 'true');
             MapManager.showFutureZones();
+
+            // Show Development Zone in legend
+            if (legendZone) {
+                legendZone.classList.remove('hidden');
+            }
         } else {
             this.elements.futureBtn.classList.remove('active');
             this.elements.futureBtn.setAttribute('aria-pressed', 'false');
             this.elements.presentBtn.classList.add('active');
             this.elements.presentBtn.setAttribute('aria-pressed', 'true');
             MapManager.hideFutureZones();
+
+            // Hide Development Zone in legend
+            if (legendZone) {
+                legendZone.classList.add('hidden');
+            }
         }
     },
 
@@ -1004,9 +1115,10 @@ const UI = {
                 <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
                 <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
             </svg>`,
-            // Circle icon (Lucide: circle)
+            // Flask icon (Lucide: flask-conical)
             sciencePark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
+                <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/>
+                <path d="M8.5 2h7"/><path d="M7 16h10"/>
             </svg>`,
             // Map pin icon (Lucide: map-pin)
             baseMap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1185,10 +1297,10 @@ const UI = {
     },
 
     /**
-     * Hide layers toggle button
+     * Reset layers toggle to unselected state (button stays visible, panel closes)
      */
     hideLayersToggle() {
-        this.elements.layersToggle.classList.add('hidden');
+        // Keep button visible but close panel and reset to unselected state
         this.hideDataLayers();
     },
 
@@ -1236,49 +1348,94 @@ const UI = {
     // ================================
 
     /**
-     * Show map legend with journey-appropriate items
+     * Show map legend with core items always visible plus journey-specific items
      */
     showLegend(journey) {
         const legendItems = document.getElementById('legend-items');
         const legendEl = document.getElementById('map-legend');
 
-        // SVG icons for legend markers
+        // Lucide SVG icons for legend markers (consistent with Data Layers panel)
         const icons = {
-            property: `<svg viewBox="0 0 24 24"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg>`,
-            company: `<svg viewBox="0 0 24 24"><path d="M22 22H2V10l7-3v3l7-3v3l6-3v15z"/></svg>`,
-            resource: `<svg viewBox="0 0 24 24"><path d="M12 2c-5.33 8-8 12-8 15a8 8 0 1 0 16 0c0-3-2.67-7-8-15z"/></svg>`,
-            zone: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>`
+            // Map pin icon (Lucide: map-pin)
+            baseMap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>`,
+            // Flask icon (Lucide: flask-conical)
+            sciencePark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/>
+                <path d="M8.5 2h7"/><path d="M7 16h10"/>
+            </svg>`,
+            // Building icon (Lucide: building-2)
+            company: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
+            </svg>`,
+            // House icon (Lucide: house)
+            property: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>`,
+            // Droplet icon (Lucide: droplet)
+            resource: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+            </svg>`,
+            // Target icon (Lucide: target)
+            zone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+            </svg>`,
+            // Route icon (Lucide: route)
+            route: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="19" r="3"/>
+                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
+                <circle cx="18" cy="5" r="3"/>
+            </svg>`
         };
 
-        let html = '';
+        // Core items always visible
+        let html = `
+            <div class="legend-item">
+                <div class="legend-marker baseMap">${icons.baseMap}</div>
+                <span class="legend-label">Base Map</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker sciencePark">${icons.sciencePark}</div>
+                <span class="legend-label">Science Park</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker company">${icons.company}</div>
+                <span class="legend-label">Corporate Sites</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker property">${icons.property}</div>
+                <span class="legend-label">Real Estate</span>
+            </div>
+        `;
 
+        // Add journey-specific items
         if (journey === 'A') {
-            html = `
+            html += `
                 <div class="legend-item">
                     <div class="legend-marker resource">${icons.resource}</div>
                     <span class="legend-label">Resources</span>
                 </div>
             `;
         } else if (journey === 'B') {
-            html = `
-                <div class="legend-item">
-                    <div class="legend-marker company">${icons.company}</div>
-                    <span class="legend-label">Corporate Sites</span>
-                </div>
-                <div class="legend-item">
+            html += `
+                <div class="legend-item legend-item-future hidden" id="legend-zone">
                     <div class="legend-marker zone">${icons.zone}</div>
                     <span class="legend-label">Development Zone</span>
                 </div>
             `;
         } else if (journey === 'C') {
-            html = `
+            html += `
                 <div class="legend-item">
-                    <div class="legend-marker property">${icons.property}</div>
-                    <span class="legend-label">Properties</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-marker company">${icons.company}</div>
-                    <span class="legend-label">Corporate Sites</span>
+                    <div class="legend-marker route">${icons.route}</div>
+                    <span class="legend-label">Route to JASM</span>
                 </div>
             `;
         }
@@ -1358,8 +1515,11 @@ const UI = {
     },
 
     showAIChat() {
-        // Hide the journey chatbox
-        this.hideChatbox();
+        // Hide the journey chatbox (without showing FAB)
+        this.elements.chatbox.classList.add('hidden');
+
+        // Hide FAB since we're showing AI chat
+        this.hideChatFab();
 
         // Show AI chat
         const aiChat = document.getElementById('ai-chat');
@@ -1379,6 +1539,8 @@ const UI = {
 
     hideAIChat() {
         document.getElementById('ai-chat').classList.add('hidden');
+        this.lastChatType = 'aiChat';
+        this.showChatFab();
     },
 
     sendAIMessage(message) {
