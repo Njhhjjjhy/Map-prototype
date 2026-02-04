@@ -333,8 +333,9 @@ const App = {
 
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>
-            <p>Amber markers show available investment properties.</p>
-            <p><strong>Click a property to see financials and projections.</strong></p>
+            <p>You've seen why Kumamoto, the government backing, and what's changing on the ground.</p>
+            <p><strong>Now let's look at specific investment opportunities.</strong></p>
+            <p style="margin-top: 12px;">Amber markers show available properties. Click to see financials.</p>
             ${portfolioSummary}
             <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
                 Route lines show distance to JASM employment center.
@@ -483,8 +484,9 @@ const App = {
             const portfolioSummary = UI.showPortfolioSummary();
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
-                <p>Amber markers show available investment properties.</p>
-                <p><strong>Click a property to see financials and projections.</strong></p>
+                <p>You've seen why Kumamoto, the government backing, and what's changing on the ground.</p>
+                <p><strong>Now let's look at specific investment opportunities.</strong></p>
+                <p style="margin-top: 12px;">Amber markers show available properties. Click to see financials.</p>
                 ${portfolioSummary}
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     Any More Questions?
