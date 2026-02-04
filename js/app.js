@@ -451,33 +451,45 @@ const App = {
                 UI.hideChatFab();
             }
         } else if (journey === 'B') {
-            if (step === 'B1' || step === 'B4') {
+            if (step === 'B1') {
                 UI.showChatbox(`
-                    <h3>Infrastructure Plan</h3>
-                    <p>Major corporations have committed billions to this region.</p>
+                    <h3>Government Support</h3>
+                    <p>${AppData.governmentChain.intro}</p>
+                    <p style="margin-top: 12px;"><strong>Click the numbered markers</strong> to explore each level's commitment.</p>
+                    <button class="chatbox-continue primary" onclick="App.stepB4()">
+                        See Who's Building Here
+                    </button>
+                `);
+            } else if (step === 'B4') {
+                UI.showChatbox(`
+                    <h3>Government Support</h3>
+                    <p><strong>The result:</strong> Major corporations have committed billions.</p>
                     <p>Click company markers to see their investments.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB6()">
-                        Show Time Controls
+                        Show Development Timeline
+                    </button>
+                `);
+            } else if (step === 'B6') {
+                UI.showChatbox(`
+                    <h3>Government Support</h3>
+                    <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
+                    <button class="chatbox-continue primary" onclick="App.stepB7()">
+                        See What's Changing
                     </button>
                 `);
             } else if (step === 'B7') {
                 UI.showChatbox(`
                     <h3>Changes in Area</h3>
                     <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
-                    <p>These infrastructure projects are cutting commute times — making nearby properties more valuable.</p>
-                    <p style="margin-top: 8px;"><strong>Click a highlighted road</strong> to see the impact.</p>
+                    <p>Click a highlighted road or the station marker to see details.</p>
                     <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
                         View Investment Opportunities
                     </button>
                 `);
             } else {
                 UI.showChatbox(`
-                    <h3>Government Support</h3>
-                    <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
-                    <p>Future view shows development zones taking shape.</p>
-                    <button class="chatbox-continue primary" onclick="App.stepB7()">
-                        See What's Changing
-                    </button>
+                    <h3>Infrastructure Plan</h3>
+                    <p>Explore the markers on the map to learn about developments.</p>
                 `);
             }
         } else if (journey === 'C') {
@@ -485,8 +497,7 @@ const App = {
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
                 <p>You've seen why Kumamoto, the government backing, and what's changing on the ground.</p>
-                <p><strong>Now let's look at specific investment opportunities.</strong></p>
-                <p style="margin-top: 12px;">Amber markers show available properties. Click to see financials.</p>
+                <p><strong>Click property markers to see financials.</strong></p>
                 ${portfolioSummary}
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     Any More Questions?
