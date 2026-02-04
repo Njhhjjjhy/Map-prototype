@@ -975,11 +975,32 @@ const UI = {
             </div>
         `).join('');
 
+        // Generate energy mix section for power resource
+        let energyMixHtml = '';
+        if (resource.id === 'power' && resource.energyMix) {
+            const sourcesHtml = resource.energyMix.sources.map(source => `
+                <div class="energy-source">
+                    <strong>${source.type}:</strong> ${source.examples}
+                </div>
+            `).join('');
+
+            energyMixHtml = `
+                <div class="energy-mix-section" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-bg-tertiary);">
+                    <h4 style="margin: 0 0 8px 0; font-size: 15px;">Energy Mix</h4>
+                    <p style="font-size: 14px; color: var(--color-text-secondary); margin-bottom: 12px;">${resource.energyMix.description}</p>
+                    <div class="energy-sources" style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+                        ${sourcesHtml}
+                    </div>
+                </div>
+            `;
+        }
+
         const content = `
             <div class="subtitle">${resource.subtitle}</div>
             <h2>${resource.name}</h2>
             <p>${resource.description}</p>
             <div class="stat-grid">${statsHtml}</div>
+            ${energyMixHtml}
             <button class="panel-btn primary" onclick="UI.showEvidence('${resource.id}', 'resource')">
                 View Evidence
             </button>
