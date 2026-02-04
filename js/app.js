@@ -247,9 +247,9 @@ const App = {
         UI.showTimeToggle();
 
         UI.updateChatbox(`
-            <h3>Infrastructure Plan</h3>
+            <h3>Government Support</h3>
             <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
-            <p>Future view shows upcoming development zones.</p>
+            <p>Future view shows development zones taking shape.</p>
             <div class="chatbox-options" style="margin-top: 12px;">
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
                     View Government Zone Plans
@@ -262,7 +262,7 @@ const App = {
                 </button>
             </div>
             <button class="chatbox-continue primary" onclick="App.stepB7()">
-                View Road Improvements
+                See What's Changing
             </button>
         `);
     },
@@ -280,11 +280,12 @@ const App = {
         UI.showLegend('B7');
 
         UI.updateChatbox(`
-            <h3>Infrastructure Roads</h3>
-            <p>These road projects cut commute times for JASM workers — making nearby properties more accessible and more valuable.</p>
-            <p><strong>Click a highlighted road to see details.</strong></p>
+            <h3>Changes in Area</h3>
+            <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
+            <p>These infrastructure projects are cutting commute times — making nearby properties more valuable.</p>
+            <p style="margin-top: 8px;"><strong>Click a highlighted road</strong> to see the impact.</p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
-                View Properties
+                View Investment Opportunities
             </button>
         `);
     },
@@ -460,20 +461,21 @@ const App = {
                 `);
             } else if (step === 'B7') {
                 UI.showChatbox(`
-                    <h3>Infrastructure Roads</h3>
-                    <p>These road projects cut commute times for JASM workers — making nearby properties more accessible and more valuable.</p>
-                    <p><strong>Click a highlighted road to see details.</strong></p>
+                    <h3>Changes in Area</h3>
+                    <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
+                    <p>These infrastructure projects are cutting commute times — making nearby properties more valuable.</p>
+                    <p style="margin-top: 8px;"><strong>Click a highlighted road</strong> to see the impact.</p>
                     <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
-                        View Properties
+                        View Investment Opportunities
                     </button>
                 `);
             } else {
                 UI.showChatbox(`
-                    <h3>Infrastructure Plan</h3>
+                    <h3>Government Support</h3>
                     <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
-                    <p>Future view shows upcoming development zones.</p>
+                    <p>Future view shows development zones taking shape.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB7()">
-                        View Road Improvements
+                        See What's Changing
                     </button>
                 `);
             }
