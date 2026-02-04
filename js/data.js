@@ -66,7 +66,7 @@ const AppData = {
             name: 'Kyushu Power Grid',
             coords: [32.75, 130.65],
             subtitle: 'Power Infrastructure',
-            description: 'Kyushu Electric provides stable, competitively priced power to the region. Recent grid upgrades have added redundant capacity specifically for the semiconductor corridor, ensuring 99.999% uptime.',
+            description: 'Kyushu Electric provides stable, competitively priced power to the region. The diverse energy mix ensures grid stability critical for semiconductor manufacturing.',
             stats: [
                 { value: '2.4GW', label: 'Available industrial capacity' },
                 { value: '99.999%', label: 'Grid reliability' },
@@ -77,6 +77,15 @@ const AppData = {
                 title: 'Kyushu Electric Infrastructure Plan',
                 type: 'pdf',
                 description: 'Investment roadmap for semiconductor corridor power infrastructure'
+            },
+            // NEW: Energy mix breakdown (shown in panel, not on map)
+            energyMix: {
+                description: 'Kyushu leads Japan in energy diversity, providing the stable power semiconductor fabs require.',
+                sources: [
+                    { type: 'Solar', examples: 'Kagoshima 24.7 MW, Fukuoka 22.9 MW, Nagasaki 10 MW', icon: 'sun' },
+                    { type: 'Wind', examples: 'Miyazaki 65.55 MW, Saga/Nagasaki 27.2 MW, Goto offshore', icon: 'wind' },
+                    { type: 'Nuclear', examples: 'Genkai (Saga), Sendai (Kagoshima)', icon: 'atom' }
+                ]
             }
         }
     },
