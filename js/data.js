@@ -30,7 +30,36 @@ const AppData = {
                 title: 'Kumamoto Water Resources Report',
                 type: 'pdf',
                 description: 'Official government report on groundwater sustainability and industrial allocation'
-            }
+            },
+            // Evidence markers proving water quality
+            evidenceMarkers: [
+                {
+                    id: 'coca-cola',
+                    name: 'Coca-Cola Bottlers Japan',
+                    coords: [32.74, 130.72],
+                    subtitle: 'Kumamoto Plant',
+                    description: 'Major beverage manufacturer chose Kumamoto for exceptional water quality and abundance. The plant produces beverages for the entire Kyushu region.',
+                    stats: [
+                        { value: '1987', label: 'Established' },
+                        { value: 'Minami-ku', label: 'Location' },
+                        { value: '500+', label: 'Employees' },
+                        { value: 'Kyushu', label: 'Distribution' }
+                    ]
+                },
+                {
+                    id: 'suntory',
+                    name: 'Suntory Kyushu Kumamoto Factory',
+                    coords: [32.82, 130.85],
+                    subtitle: 'Premium Beverage Production',
+                    description: 'Suntory selected Kashima, Kamimashiki for its pristine groundwater. The facility produces premium beverages requiring the highest water purity standards.',
+                    stats: [
+                        { value: '1991', label: 'Established' },
+                        { value: 'Kashima', label: 'Location' },
+                        { value: 'Premium', label: 'Product Grade' },
+                        { value: '100%', label: 'Local Water' }
+                    ]
+                }
+            ]
         },
         power: {
             id: 'power',
