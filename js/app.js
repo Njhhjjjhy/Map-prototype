@@ -130,13 +130,39 @@ const App = {
 
         if (allExplored) {
             content += `
-                <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
-                    See What's Being Built Here
+                <button class="chatbox-continue primary" onclick="App.stepA3()">
+                    Continue
                 </button>
             `;
         }
 
         UI.updateChatbox(content);
+    },
+
+    /**
+     * A3: Strategic Advantages — narrative only (no markers)
+     * Pair 2 of "Why Kumamoto" pillars
+     */
+    stepA3() {
+        this.state.step = 'A3';
+
+        UI.updateChatbox(`
+            <h3>Why Kumamoto?</h3>
+            <p><strong>Beyond natural resources, Kumamoto offers strategic advantages:</strong></p>
+            <div style="margin: 16px 0;">
+                <p style="margin-bottom: 12px;">
+                    <strong>Existing Semiconductor Infrastructure</strong><br>
+                    <span style="color: var(--color-text-secondary);">TSMC chose Kumamoto because the supply chain was already here. Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.</span>
+                </p>
+                <p>
+                    <strong>Strategic Location</strong><br>
+                    <span style="color: var(--color-text-secondary);">Gateway to Asia with port access and Kumamoto Airport's growing international cargo routes. 2 hours to Shanghai, 1.5 hours to Taipei.</span>
+                </p>
+            </div>
+            <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
+                See Government Commitment
+            </button>
+        `);
     },
 
     async transitionToJourneyB() {
@@ -402,6 +428,8 @@ const App = {
                         Start Exploring
                     </button>
                 `);
+            } else if (step === 'A3') {
+                this.stepA3();
             } else {
                 this.updateResourceChatbox();
                 UI.elements.chatbox.classList.remove('hidden');
