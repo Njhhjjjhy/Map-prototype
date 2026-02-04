@@ -269,6 +269,37 @@ const MapManager = {
 
         // Fly to location
         this.flyTo(resource.coords, AppData.mapConfig.resourceZoom);
+
+        // Show evidence markers for water
+        if (resourceId === 'water') {
+            this.showWaterEvidenceMarkers();
+        }
+    },
+
+    /**
+     * Show evidence markers for water resource
+     */
+    showWaterEvidenceMarkers() {
+        const waterData = AppData.resources.water;
+        if (!waterData.evidenceMarkers) return;
+
+        waterData.evidenceMarkers.forEach(evidence => {
+            const marker = L.marker(evidence.coords, {
+                icon: L.divIcon({
+                    className: 'evidence-marker water-evidence',
+                    html: `<div class="marker-dot" style="background: #007aff;"></div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                })
+            });
+
+            marker.on('click', () => {
+                UI.showWaterEvidencePanel(evidence);
+            });
+
+            marker.addTo(this.map);
+            this.markers.push(marker);
+        });
     },
 
     /**

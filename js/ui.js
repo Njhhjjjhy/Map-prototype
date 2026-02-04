@@ -989,6 +989,34 @@ const UI = {
     },
 
     /**
+     * Show panel for water evidence marker (Coca-Cola, Suntory)
+     * @param {Object} evidence - Evidence marker data
+     */
+    showWaterEvidencePanel(evidence) {
+        const statsHtml = evidence.stats.map(stat => `
+            <div class="stat-card">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="subtitle">Water Quality Evidence</div>
+            <h2>${evidence.name}</h2>
+            <p class="panel-subtitle">${evidence.subtitle}</p>
+            <p>${evidence.description}</p>
+            <div class="stats-grid">
+                ${statsHtml}
+            </div>
+            <p class="evidence-note" style="margin-top: 16px; font-size: 14px; color: var(--color-text-secondary);">
+                Major manufacturers chose Kumamoto for water quality — proof the resource meets industrial standards.
+            </p>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show Science Park panel (Journey B)
      */
     showScienceParkPanel() {
