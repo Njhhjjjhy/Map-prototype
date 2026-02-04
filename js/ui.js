@@ -1114,6 +1114,32 @@ const UI = {
     },
 
     /**
+     * Show panel for government commitment level
+     * @param {Object} level - Government level data
+     */
+    showGovernmentLevelPanel(level) {
+        const statsHtml = level.stats.map(stat => `
+            <div class="stat-item">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('');
+
+        const typeLabel = level.type === 'concept' ? 'Future Vision' : 'Active Commitment';
+        const typeColor = level.type === 'concept' ? 'var(--color-warning)' : 'var(--color-success)';
+
+        const content = `
+            <div class="subtitle" style="color: ${typeColor};">${typeLabel}</div>
+            <h2>${level.name}</h2>
+            <p class="panel-subtitle">${level.subtitle}</p>
+            <p>${level.description}</p>
+            <div class="stat-grid">${statsHtml}</div>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show infrastructure road panel (Journey B - Infrastructure Roads)
      */
     showRoadPanel(road) {

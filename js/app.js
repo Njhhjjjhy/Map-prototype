@@ -187,9 +187,6 @@ const App = {
         this.state.step = 'B1';
         this.state.companiesExplored = [];
 
-        // B1: Show infrastructure layer with Science Park
-        MapManager.showSciencePark();
-
         // Show data layers toggle for Journey B
         UI.showDataLayers('B');
 
@@ -199,16 +196,32 @@ const App = {
         // Update legend for Journey B
         UI.showLegend('B');
 
+        // B1: Show government commitment chain with chatbox intro
         UI.showChatbox(`
-            <h3>Infrastructure Plan</h3>
-            <p>The red circle shows the Kumamoto Science Park corridor.</p>
-            <p>Click the circle to see the master plan.</p>
+            <h3>Government Support</h3>
+            <p>${AppData.governmentChain.intro}</p>
+            <p style="margin-top: 12px;"><strong>Click the numbered markers</strong> to see each level's commitment — from national policy to local planning.</p>
         `, { skipHistory: true });
 
-        // B4: After a delay, show company markers
+        // Show government chain markers (staggered animation)
+        MapManager.showGovernmentChain();
+
+        // Also show Science Park as part of B1 context
         setTimeout(() => {
-            this.stepB4();
-        }, 2000);
+            MapManager.showSciencePark();
+        }, 1200);
+
+        // After delay, add button to continue to B4
+        setTimeout(() => {
+            UI.updateChatbox(`
+                <h3>Government Support</h3>
+                <p>${AppData.governmentChain.intro}</p>
+                <p style="margin-top: 12px;"><strong>Click the numbered markers</strong> to explore each level's commitment.</p>
+                <button class="chatbox-continue primary" onclick="App.stepB4()">
+                    See Who's Building Here
+                </button>
+            `);
+        }, 2500);
     },
 
     stepB4() {

@@ -380,6 +380,35 @@ const MapManager = {
     },
 
     /**
+     * Show government commitment chain markers
+     */
+    showGovernmentChain() {
+        const chain = AppData.governmentChain;
+        if (!chain || !chain.levels) return;
+
+        chain.levels.forEach((level, index) => {
+            // Stagger marker appearance for momentum effect
+            setTimeout(() => {
+                const marker = L.marker(level.coords, {
+                    icon: L.divIcon({
+                        className: 'government-marker',
+                        html: `<div class="marker-dot" style="background: ${level.type === 'concept' ? '#ff9500' : '#34c759'}; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"><span style="font-size: 10px; font-weight: bold; color: white;">${index + 1}</span></div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    })
+                });
+
+                marker.on('click', () => {
+                    UI.showGovernmentLevelPanel(level);
+                });
+
+                marker.addTo(this.map);
+                this.markers[`govt-${level.id}`] = marker;
+            }, index * 200); // 200ms stagger between markers
+        });
+    },
+
+    /**
      * Show future development zones (Journey B - Future view)
      */
     showFutureZones() {
