@@ -110,6 +110,83 @@ const AppData = {
         }
     },
 
+    // Journey B: Government Commitment Chain
+    governmentChain: {
+        intro: 'Every level of government is aligned behind this corridor.',
+        levels: [
+            {
+                id: 'national',
+                name: 'Japan National Government',
+                coords: [32.87, 130.70],
+                subtitle: 'Strategic Semiconductor Policy',
+                type: 'commitment',
+                description: 'The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.',
+                stats: [
+                    { value: '¥10B', label: 'Direct commitment' },
+                    { value: '2021', label: 'Policy announced' },
+                    { value: 'Critical', label: 'Infrastructure status' },
+                    { value: '50%', label: 'JASM subsidy' }
+                ]
+            },
+            {
+                id: 'prefecture',
+                name: 'Kumamoto Prefecture',
+                coords: [32.79, 130.74],
+                subtitle: 'Regional Coordination',
+                type: 'commitment',
+                description: 'Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region.',
+                stats: [
+                    { value: '¥480B', label: 'Infrastructure budget' },
+                    { value: '12', label: 'Priority projects' },
+                    { value: '30%', label: 'Permit time reduction' },
+                    { value: '2040', label: 'Master plan horizon' }
+                ]
+            },
+            {
+                id: 'kikuyo-city',
+                name: 'Kikuyo Town',
+                coords: [32.88, 130.83],
+                subtitle: 'Local Development Plan',
+                type: 'commitment',
+                description: 'Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.',
+                stats: [
+                    { value: '2,500', label: 'Housing units' },
+                    { value: '¥180B', label: 'Infrastructure' },
+                    { value: '2028', label: 'Phase 1 complete' },
+                    { value: '+45%', label: 'Population target' }
+                ]
+            },
+            {
+                id: 'ozu-city',
+                name: 'Ozu Town',
+                coords: [32.86, 130.87],
+                subtitle: 'Industrial Expansion',
+                type: 'commitment',
+                description: 'Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain.',
+                stats: [
+                    { value: '120ha', label: 'Industrial land' },
+                    { value: '¥95B', label: 'Investment' },
+                    { value: '2027', label: 'Phase 1' },
+                    { value: '3,000', label: 'Jobs projected' }
+                ]
+            },
+            {
+                id: 'grand-airport',
+                name: 'Grand Airport Concept',
+                coords: [32.84, 130.86],
+                subtitle: 'Future Connectivity Vision',
+                type: 'concept',
+                description: 'Long-term vision to expand Kumamoto Airport into a major cargo hub serving the semiconductor corridor with direct routes to Asia.',
+                stats: [
+                    { value: '2035', label: 'Target completion' },
+                    { value: '+200%', label: 'Cargo capacity' },
+                    { value: '8', label: 'New Asia routes' },
+                    { value: '¥320B', label: 'Projected investment' }
+                ]
+            }
+        ]
+    },
+
     // Journey B: Infrastructure - Companies
     companies: [
         {
