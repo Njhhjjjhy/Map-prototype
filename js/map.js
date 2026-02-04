@@ -299,7 +299,7 @@ const MapManager = {
             });
 
             marker.addTo(this.map);
-            this.markers.push(marker);
+            this.markers[`water-evidence-${evidence.id}`] = marker;
         });
     },
 
@@ -390,12 +390,31 @@ const MapManager = {
         chain.levels.forEach((level, index) => {
             // Stagger marker appearance for momentum effect
             setTimeout(() => {
+                const color = level.type === 'concept' ? MAP_COLORS.property : '#34c759';
                 const marker = L.marker(level.coords, {
                     icon: L.divIcon({
-                        className: 'government-marker',
-                        html: `<div class="marker-dot" style="background: ${level.type === 'concept' ? '#ff9500' : '#34c759'}; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"><span style="font-size: 10px; font-weight: bold; color: white;">${index + 1}</span></div>`,
-                        iconSize: [28, 28],
-                        iconAnchor: [14, 14]
+                        className: 'custom-marker-wrapper',
+                        html: `<div class="custom-marker-hitarea" style="
+                            width: 48px;
+                            height: 48px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                        "><div class="custom-marker government-marker" style="
+                            width: 36px;
+                            height: 36px;
+                            background: ${color};
+                            border: 3px solid white;
+                            border-radius: 50%;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: transform 0.15s ease;
+                        "><span style="font-size: 14px; font-weight: 600; color: white;">${index + 1}</span></div></div>`,
+                        iconSize: [48, 48],
+                        iconAnchor: [24, 24]
                     })
                 });
 
@@ -505,6 +524,19 @@ const MapManager = {
             this.clusterGroups.properties.addTo(this.map);
         } else {
             this.layers.properties.addTo(this.map);
+        }
+
+        // Fit map bounds to show all properties and JASM
+        const allCoords = AppData.properties.map(p => p.coords);
+        allCoords.push(AppData.jasmLocation); // Include JASM to show context
+        if (allCoords.length > 0) {
+            const bounds = L.latLngBounds(allCoords);
+            this.map.flyToBounds(bounds, {
+                padding: [80, 80],
+                duration: 1.5,
+                easeLinearity: 0.2,
+                maxZoom: 12 // Don't zoom in too much
+            });
         }
     },
 

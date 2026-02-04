@@ -9,6 +9,7 @@ const App = {
         step: null,    // Current step within journey
         resourcesExplored: [], // Track which resources have been viewed
         companiesExplored: [], // Track which companies have been viewed
+        evidenceGroupsViewed: [], // Track which evidence groups have been viewed
     },
 
     /**
@@ -41,6 +42,7 @@ const App = {
         this.state.journey = 'A';
         this.state.step = 'A1';
         this.state.resourcesExplored = [];
+        this.state.evidenceGroupsViewed = [];
 
         // Show legend for Journey A
         UI.showLegend('A');
@@ -101,10 +103,21 @@ const App = {
         const waterExplored = this.state.resourcesExplored.includes('water');
         const powerExplored = this.state.resourcesExplored.includes('power');
         const allExplored = waterExplored && powerExplored;
+        const exploredCount = this.state.resourcesExplored.length;
+
+        // Build progress message
+        let progressText;
+        if (allExplored) {
+            progressText = 'You\'ve explored both key factors.';
+        } else if (exploredCount === 1) {
+            progressText = `Explore the remaining resource to continue. (${exploredCount}/2)`;
+        } else {
+            progressText = 'Click the markers on the map to learn more.';
+        }
 
         let content = `
             <h3>Why Kumamoto?</h3>
-            <p>Click the markers on the map to learn more.</p>
+            <p>${progressText}</p>
             <div class="chatbox-options" role="group" aria-label="Resource options">
                 <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
                         onclick="App.selectResource('water')"
@@ -121,8 +134,9 @@ const App = {
 
         // Show evidence group link when power is explored
         if (powerExplored) {
+            const evidenceViewed = this.state.evidenceGroupsViewed.includes('energy-infrastructure');
             content += `
-                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('energy-infrastructure')" style="margin-top: 8px;">
+                <button class="chatbox-option ${evidenceViewed ? 'completed' : ''}" onclick="App.showEvidenceGroupPanel('energy-infrastructure')" style="margin-top: 8px;">
                     View Energy Infrastructure Evidence
                 </button>
             `;
@@ -388,6 +402,15 @@ const App = {
     showEvidenceGroupPanel(groupId) {
         const group = UI.findEvidenceGroup(groupId);
         if (group) {
+            // Track that this evidence group has been viewed
+            if (!this.state.evidenceGroupsViewed.includes(groupId)) {
+                this.state.evidenceGroupsViewed.push(groupId);
+                // Update chatbox to show completed state
+                if (this.state.journey === 'A') {
+                    this.updateResourceChatbox();
+                }
+            }
+
             // Ensure group is expanded
             UI.disclosureState[groupId] = true;
 
