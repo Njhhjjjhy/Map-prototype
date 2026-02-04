@@ -20,15 +20,17 @@ The illusion of choice comes from how the presenter interacts with the map. They
 
 ## Initial State
 
-The app launches to a blank white screen with a single centered button.
+The app launches to a blank white screen with two options:
 
-| Property | Value |
-|----------|-------|
-| Button fill color | `#fbb931` (yellow) |
-| Button text color | black |
-| Button text | "Start the Journey" |
+| Element | Property | Value |
+|---------|----------|-------|
+| Primary Button | Fill color | `#fbb931` (yellow) |
+| Primary Button | Text color | black |
+| Primary Button | Text | "Start the Journey" |
+| Secondary Link | Style | Ghost button (text-only) |
+| Secondary Link | Text | "Skip to Dashboard" |
 
-Nothing else is visible. No map, no UI chrome, no branding. Just the button.
+The primary button initiates the guided journey experience. The secondary link bypasses all journeys and goes directly to Dashboard mode for free exploration.
 
 ---
 
@@ -39,6 +41,35 @@ Nothing else is visible. No map, no UI chrome, no branding. Just the button.
 3. Journey A ("Why Kumamoto?") begins automatically
 
 There is no journey selection screen. The experience flows from A → B → C with natural transition points that feel like the presenter is choosing to go deeper rather than being forced to the next slide.
+
+---
+
+## Dashboard Mode ("Skip to Dashboard")
+
+An alternative entry point for users who want to explore the map freely without the guided narrative.
+
+### Transition In
+Clicking "Skip to Dashboard" on the initial screen.
+
+### What Appears
+1. Map fades in, centered on Kumamoto Prefecture
+2. Dashboard toggle button appears (top-right)
+3. Data Layers toggle button appears (left side, aligned with dashboard toggle)
+4. Map legend appears (bottom-right)
+5. Dashboard panel slides in from right
+6. Chat FAB appears (bottom-center) after a short delay
+
+### AI Chat in Dashboard Mode
+- Accessed via the Chat FAB (yellow floating button)
+- Opens the same AI Chat interface as post-journey
+- **CTAs are hidden** (Download Summary, Explore Again) — these only make sense after completing a journey
+- Users can ask questions about Kumamoto freely
+
+### Available Features
+- Full map interaction (pan, zoom, click markers)
+- Data Layers panel for toggling map overlays
+- Dashboard panel with overview statistics
+- AI Chat for questions about Kumamoto
 
 ---
 

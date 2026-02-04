@@ -1031,5 +1031,96 @@ const MapManager = {
             iconSize: [36, 36],
             iconAnchor: [18, 18]
         });
+    },
+
+    // ================================
+    // DASHBOARD HELPER METHODS
+    // ================================
+
+    /**
+     * Show a single property marker (for dashboard)
+     * @param {Object} property - Property data
+     */
+    showSinglePropertyMarker(property) {
+        const marker = L.marker(property.coords, {
+            icon: this.createMarkerIcon('property')
+        });
+
+        marker.bindTooltip(property.name, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20],
+            className: 'map-tooltip'
+        });
+
+        this.markers[property.id] = marker;
+        this.layers.properties.addLayer(marker);
+        this.layers.properties.addTo(this.map);
+    },
+
+    /**
+     * Show a single company marker (for dashboard)
+     * @param {Object} company - Company data
+     */
+    showSingleCompanyMarker(company) {
+        const marker = L.marker(company.coords, {
+            icon: this.createMarkerIcon('company')
+        });
+
+        marker.bindTooltip(company.name, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20],
+            className: 'map-tooltip'
+        });
+
+        this.markers[company.id] = marker;
+        this.layers.companies.addLayer(marker);
+        this.layers.companies.addTo(this.map);
+    },
+
+    /**
+     * Show a single infrastructure road (for dashboard)
+     * @param {Object} road - Road data
+     */
+    showSingleInfrastructureRoad(road) {
+        const polyline = L.polyline(road.coords, {
+            color: MAP_COLORS.infrastructure,
+            weight: 7,
+            opacity: 1,
+            dashArray: null, // Solid line when selected
+            lineCap: 'round',
+            lineJoin: 'round'
+        });
+
+        polyline.bindTooltip(road.name, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -10],
+            className: 'map-tooltip'
+        });
+
+        this.layers.infrastructureRoads.addLayer(polyline);
+        this.layers.infrastructureRoads.addTo(this.map);
+
+        // Fit bounds to show the road
+        const bounds = L.latLngBounds(road.coords);
+        this.map.flyToBounds(bounds, {
+            padding: [80, 80],
+            duration: 1,
+            maxZoom: 13
+        });
+    },
+
+    /**
+     * Fly to a specific location
+     * @param {Array} coords - [lat, lng]
+     * @param {number} zoom - Zoom level
+     */
+    flyToLocation(coords, zoom = 14) {
+        this.map.flyTo(coords, zoom, {
+            duration: 1,
+            easeLinearity: 0.2
+        });
     }
 };

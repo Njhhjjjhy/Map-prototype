@@ -21,6 +21,10 @@ const UI = {
     // Data layer state - track which layers are active with their data
     activeDataLayers: {}, // { layerName: { markers: [], panel: null } }
 
+    // Dashboard state
+    dashboardMode: false, // Whether we're in dashboard mode vs journey mode
+    dashboardPanelOpen: false, // Whether dashboard panel is open
+
     /**
      * Initialize UI elements
      */
@@ -50,7 +54,9 @@ const UI = {
             aiChat: document.getElementById('ai-chat'),
             aiChatClose: document.getElementById('ai-chat-close'),
             chatFab: document.getElementById('chat-fab'),
-            panelToggle: document.getElementById('panel-toggle')
+            panelToggle: document.getElementById('panel-toggle'),
+            skipToDashboardBtn: document.getElementById('skip-to-dashboard-btn'),
+            dashboardToggle: document.getElementById('dashboard-toggle')
         };
 
         this.layersPanelOpen = false;
@@ -269,6 +275,20 @@ const UI = {
         this.elements.panelToggle.addEventListener('click', () => {
             this.togglePanel();
         });
+
+        // Skip to Dashboard button
+        if (this.elements.skipToDashboardBtn) {
+            this.elements.skipToDashboardBtn.addEventListener('click', () => {
+                this.startDashboardMode();
+            });
+        }
+
+        // Dashboard toggle button
+        if (this.elements.dashboardToggle) {
+            this.elements.dashboardToggle.addEventListener('click', () => {
+                this.toggleDashboardPanel();
+            });
+        }
     },
 
     /**
@@ -883,9 +903,19 @@ const UI = {
         setTimeout(() => {
             panel.classList.remove('visible');
             panel.classList.remove('closing');
+            panel.classList.add('hidden');
             this.panelOpen = false;
             this.updatePanelToggleState();
             MapManager.clearRoute();
+
+            // Also reset dashboard state if in dashboard mode
+            if (this.dashboardPanelOpen) {
+                this.dashboardPanelOpen = false;
+                if (this.elements.dashboardToggle) {
+                    this.elements.dashboardToggle.classList.remove('active');
+                    this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
+                }
+            }
         }, animationDuration);
     },
 
@@ -1989,6 +2019,31 @@ const UI = {
                     <span class="layer-label">Science park</span>
                 </button>
             `;
+        } else if (journey === 'dashboard') {
+            // Dashboard mode - show all core layer controls (inactive by default)
+            mapLayersHtml = `
+                <button type="button" class="layer-item" data-layer="properties"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('properties')"
+                        title="Toggle investment property markers">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
+                    <span class="layer-label">Properties</span>
+                </button>
+                <button type="button" class="layer-item" data-layer="companies"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
+                        title="Toggle corporate headquarters markers">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
+                    <span class="layer-label">Corporate sites</span>
+                </button>
+                <button type="button" class="layer-item" data-layer="sciencePark"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
+                        title="Toggle Kumamoto Science Park boundary">
+                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
+                    <span class="layer-label">Science park</span>
+                </button>
+            `;
         }
 
         // Data layers (these are inactive by default) - sentence case labels
@@ -2246,6 +2301,7 @@ const UI = {
                 </div>
             `;
         }
+        // Dashboard mode shows just core items (no additional journey-specific items)
 
         legendItems.innerHTML = html;
         legendEl.classList.remove('hidden');
@@ -2440,6 +2496,16 @@ const UI = {
         // Show AI chat
         const aiChat = document.getElementById('ai-chat');
         aiChat.classList.remove('hidden');
+
+        // Hide CTAs in dashboard mode (no journey to summarize or restart)
+        const ctasElement = document.getElementById('ai-chat-ctas');
+        if (ctasElement) {
+            if (this.dashboardMode) {
+                ctasElement.classList.add('hidden');
+            } else {
+                ctasElement.classList.remove('hidden');
+            }
+        }
 
         // Initialize if not already done
         if (!this.aiChatInitialized) {
@@ -2905,5 +2971,720 @@ const UI = {
             this.hideTypingIndicator();
             this.addChatMessage("I'll connect you with one of our Kumamoto investment specialists. They can answer detailed questions about specific properties, financing, and the purchasing process.<br><br><strong>What's the best way to reach you?</strong>", 'assistant');
         }, 800);
+    },
+
+    // ================================
+    // DASHBOARD MODE
+    // ================================
+
+    /**
+     * Start dashboard mode (skips journeys)
+     */
+    startDashboardMode() {
+        this.dashboardMode = true;
+
+        // Show app container (same transition as journey start)
+        this.showApp();
+
+        // Wait for transition, then show dashboard
+        setTimeout(() => {
+            // Force map to recalculate size
+            MapManager.map.invalidateSize();
+
+            // Reset map to clean state
+            MapManager.clearAll();
+            MapManager.resetView();
+
+            // Show dashboard toggle button (active state)
+            this.showDashboardToggle();
+
+            // Show map legend with all core items
+            this.showLegend('dashboard');
+
+            // Show data layers toggle button
+            this.showDataLayers('dashboard');
+
+            // Open dashboard panel
+            setTimeout(() => {
+                this.showDashboardPanel();
+            }, 300);
+
+            // Show chat FAB after dashboard is ready (for AI chat access)
+            setTimeout(() => {
+                this.lastChatType = 'aiChat'; // Ensure FAB opens AI chat
+                this.showChatFab();
+            }, 600);
+        }, 600);
+    },
+
+    /**
+     * Show the dashboard toggle button
+     */
+    showDashboardToggle() {
+        if (this.elements.dashboardToggle) {
+            this.elements.dashboardToggle.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Hide the dashboard toggle button
+     */
+    hideDashboardToggle() {
+        if (this.elements.dashboardToggle) {
+            this.elements.dashboardToggle.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Toggle dashboard panel open/closed
+     */
+    toggleDashboardPanel() {
+        if (this.dashboardPanelOpen) {
+            this.hideDashboardPanel();
+        } else {
+            this.showDashboardPanel();
+        }
+    },
+
+    /**
+     * Show the dashboard panel
+     */
+    showDashboardPanel() {
+        this.dashboardPanelOpen = true;
+
+        // Update toggle button state
+        if (this.elements.dashboardToggle) {
+            this.elements.dashboardToggle.classList.add('active');
+            this.elements.dashboardToggle.setAttribute('aria-expanded', 'true');
+        }
+
+        // Generate dashboard content
+        const content = this.generateDashboardContent();
+
+        // Show in right panel (clear history for fresh start)
+        this.panelHistory = [];
+        this.elements.panelContent.innerHTML = content;
+        this.elements.rightPanel.classList.remove('hidden');
+        this.elements.rightPanel.classList.add('visible');
+        this.panelOpen = true;
+    },
+
+    /**
+     * Hide the dashboard panel
+     */
+    hideDashboardPanel() {
+        this.dashboardPanelOpen = false;
+
+        // Update toggle button state
+        if (this.elements.dashboardToggle) {
+            this.elements.dashboardToggle.classList.remove('active');
+            this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        // Hide panel
+        this.elements.rightPanel.classList.remove('visible');
+        this.elements.rightPanel.classList.add('hidden');
+        this.panelOpen = false;
+    },
+
+    /**
+     * Generate dashboard panel content
+     */
+    generateDashboardContent() {
+        return `
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">Investment Dashboard</h2>
+            </div>
+
+            <div class="dashboard-sections">
+                ${this.generateDashboardSection('Properties', 'house', this.generatePropertiesList())}
+                ${this.generateDashboardSection('Corporate Sites', 'building-2', this.generateCorporatesList())}
+                ${this.generateDashboardSection('Infrastructure', 'landmark', this.generateInfrastructureList())}
+                ${this.generateDashboardSection('Evidence Library', 'file-text', this.generateEvidenceList())}
+            </div>
+        `;
+    },
+
+    /**
+     * Generate a collapsible dashboard section
+     */
+    generateDashboardSection(title, icon, content) {
+        const sectionId = title.toLowerCase().replace(/\s+/g, '-');
+        const isExpanded = this.disclosureState[`dashboard-${sectionId}`] !== false; // Default to expanded
+
+        return `
+            <div class="dashboard-section ${isExpanded ? 'expanded' : ''}" data-section="${sectionId}">
+                <button class="dashboard-section-header" onclick="UI.toggleDashboardSection('${sectionId}')" aria-expanded="${isExpanded}">
+                    <span class="dashboard-section-icon">
+                        ${this.getDashboardIcon(icon)}
+                    </span>
+                    <span class="dashboard-section-title">${title}</span>
+                    <span class="dashboard-section-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </span>
+                </button>
+                <div class="dashboard-section-content">
+                    ${content}
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Get icon SVG for dashboard sections
+     */
+    getDashboardIcon(iconName) {
+        const icons = {
+            'house': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+            'building-2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>',
+            'landmark': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
+            'file-text': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>'
+        };
+        return icons[iconName] || icons['file-text'];
+    },
+
+    /**
+     * Toggle dashboard section expanded/collapsed
+     */
+    toggleDashboardSection(sectionId) {
+        const stateKey = `dashboard-${sectionId}`;
+        this.disclosureState[stateKey] = !this.disclosureState[stateKey];
+
+        // Re-render dashboard content
+        this.elements.panelContent.innerHTML = this.generateDashboardContent();
+    },
+
+    /**
+     * Generate properties list for dashboard
+     */
+    generatePropertiesList() {
+        const properties = AppData.properties || [];
+        if (properties.length === 0) {
+            return '<p class="dashboard-empty">No properties available</p>';
+        }
+
+        return properties.map(property => `
+            <button class="dashboard-item" onclick="UI.showDashboardPropertyDetail('${property.id}')">
+                <span class="dashboard-item-name">${property.name}</span>
+                <span class="dashboard-item-meta">${property.stats?.type || 'Property'}</span>
+            </button>
+        `).join('');
+    },
+
+    /**
+     * Generate corporate sites list for dashboard
+     */
+    generateCorporatesList() {
+        const companies = AppData.companies || [];
+        if (companies.length === 0) {
+            return '<p class="dashboard-empty">No corporate sites available</p>';
+        }
+
+        return companies.map(company => `
+            <button class="dashboard-item" onclick="UI.showDashboardCompanyDetail('${company.id}')">
+                <span class="dashboard-item-name">${company.name}</span>
+                <span class="dashboard-item-meta">${company.subtitle || ''}</span>
+            </button>
+        `).join('');
+    },
+
+    /**
+     * Generate infrastructure list for dashboard
+     */
+    generateInfrastructureList() {
+        // Include science park and infrastructure roads
+        let items = '';
+
+        // Science Park
+        if (AppData.sciencePark) {
+            items += `
+                <button class="dashboard-item" onclick="UI.showDashboardScienceParkDetail()">
+                    <span class="dashboard-item-name">${AppData.sciencePark.name || 'Kumamoto Science Park'}</span>
+                    <span class="dashboard-item-meta">Development Zone</span>
+                </button>
+            `;
+        }
+
+        // Infrastructure roads
+        const roads = AppData.infrastructureRoads || [];
+        roads.forEach(road => {
+            items += `
+                <button class="dashboard-item" onclick="UI.showDashboardRoadDetail('${road.id}')">
+                    <span class="dashboard-item-name">${road.name}</span>
+                    <span class="dashboard-item-meta">${road.status || 'Infrastructure'}</span>
+                </button>
+            `;
+        });
+
+        // Resources (water, power)
+        if (AppData.resources) {
+            Object.keys(AppData.resources).forEach(key => {
+                const resource = AppData.resources[key];
+                items += `
+                    <button class="dashboard-item" onclick="UI.showDashboardResourceDetail('${key}')">
+                        <span class="dashboard-item-name">${resource.name}</span>
+                        <span class="dashboard-item-meta">Resource</span>
+                    </button>
+                `;
+            });
+        }
+
+        return items || '<p class="dashboard-empty">No infrastructure data available</p>';
+    },
+
+    /**
+     * Generate evidence list for dashboard
+     */
+    generateEvidenceList() {
+        const groups = AppData.evidenceGroups ? Object.values(AppData.evidenceGroups) : [];
+        if (groups.length === 0) {
+            return '<p class="dashboard-empty">No evidence available</p>';
+        }
+
+        return groups.map(group => `
+            <button class="dashboard-item" onclick="UI.showDashboardEvidenceGroup('${group.id}')">
+                <span class="dashboard-item-name">${group.title}</span>
+                <span class="dashboard-item-meta">${group.items?.length || 0} items</span>
+            </button>
+        `).join('');
+    },
+
+    /**
+     * Show property detail from dashboard (with breadcrumb)
+     */
+    showDashboardPropertyDetail(propertyId) {
+        const property = AppData.properties.find(p => p.id === propertyId);
+        if (!property) return;
+
+        // Show on map
+        MapManager.clearAll();
+        MapManager.showSinglePropertyMarker(property);
+        MapManager.flyToLocation(property.coords, 14);
+
+        // Show property panel with breadcrumb
+        this.showPropertyPanelWithBreadcrumb(property);
+    },
+
+    /**
+     * Show company detail from dashboard
+     */
+    showDashboardCompanyDetail(companyId) {
+        const company = AppData.companies.find(c => c.id === companyId);
+        if (!company) return;
+
+        // Show on map
+        MapManager.clearAll();
+        MapManager.showSingleCompanyMarker(company);
+        MapManager.flyToLocation(company.coords, 14);
+
+        // Show company panel with breadcrumb
+        this.showCompanyPanelWithBreadcrumb(company);
+    },
+
+    /**
+     * Show science park detail from dashboard
+     */
+    showDashboardScienceParkDetail() {
+        // Show on map
+        MapManager.clearAll();
+        MapManager.showSciencePark();
+        MapManager.flyToLocation(AppData.sciencePark.center, 12);
+
+        // Show science park panel with breadcrumb
+        this.showScienceParkPanelWithBreadcrumb();
+    },
+
+    /**
+     * Show road detail from dashboard
+     */
+    showDashboardRoadDetail(roadId) {
+        const road = AppData.infrastructureRoads?.find(r => r.id === roadId);
+        if (!road) return;
+
+        // Show on map
+        MapManager.clearAll();
+        MapManager.showSingleInfrastructureRoad(road);
+
+        // Show road panel with breadcrumb
+        this.showRoadPanelWithBreadcrumb(road);
+    },
+
+    /**
+     * Show resource detail from dashboard
+     */
+    showDashboardResourceDetail(resourceId) {
+        const resource = AppData.resources[resourceId];
+        if (!resource) return;
+
+        // Show on map
+        MapManager.clearAll();
+        MapManager.showResourceMarker(resourceId);
+
+        // Show resource panel with breadcrumb
+        this.showResourcePanelWithBreadcrumb(resource);
+    },
+
+    /**
+     * Show evidence group from dashboard
+     */
+    showDashboardEvidenceGroup(groupId) {
+        const group = AppData.evidenceGroups?.[groupId];
+        if (!group) return;
+
+        // Show evidence group panel with breadcrumb
+        this.showEvidenceGroupPanelWithBreadcrumb(group);
+    },
+
+    /**
+     * Generate breadcrumb header for detail views
+     */
+    generateBreadcrumb(currentTitle) {
+        return `
+            <nav class="dashboard-breadcrumb" aria-label="Breadcrumb">
+                <button class="breadcrumb-link" onclick="UI.showDashboardPanel()">
+                    Dashboard
+                </button>
+                <span class="breadcrumb-separator">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
+                <span class="breadcrumb-current">${currentTitle}</span>
+            </nav>
+        `;
+    },
+
+    /**
+     * Show property panel with breadcrumb navigation
+     */
+    showPropertyPanelWithBreadcrumb(property) {
+        const breadcrumb = this.generateBreadcrumb(property.name);
+        const propertyContent = this.generatePropertyContent(property);
+
+        const content = `
+            ${breadcrumb}
+            ${propertyContent}
+        `;
+
+        this.elements.panelContent.innerHTML = content;
+
+        // Render charts after DOM update
+        setTimeout(() => {
+            this.renderPropertyCharts(property);
+        }, 50);
+    },
+
+    /**
+     * Generate property content (reusable)
+     */
+    generatePropertyContent(property) {
+        // Use basicStats array format from property data
+        const statsHtml = property.basicStats ? property.basicStats.map(stat => `
+            <div class="stat">
+                <span class="stat-value">${stat.value}</span>
+                <span class="stat-label">${stat.label}</span>
+            </div>
+        `).join('') : '';
+
+        return `
+            <div class="subtitle">Investment Property</div>
+            <h2>${property.name}</h2>
+
+            <div class="panel-stats">
+                ${statsHtml}
+            </div>
+
+            ${property.description ? `<p class="panel-description">${property.description}</p>` : ''}
+
+            ${property.financials ? this.generateFinancialsSection(property) : ''}
+        `;
+    },
+
+    /**
+     * Show company panel with breadcrumb navigation
+     */
+    showCompanyPanelWithBreadcrumb(company) {
+        const breadcrumb = this.generateBreadcrumb(company.name);
+
+        // Company stats are in array format { value, label }
+        const statsHtml = company.stats ? company.stats.map(stat => `
+            <div class="stat">
+                <span class="stat-value">${stat.value}</span>
+                <span class="stat-label">${stat.label}</span>
+            </div>
+        `).join('') : '';
+
+        const content = `
+            ${breadcrumb}
+            <div class="subtitle">${company.subtitle || 'Corporate Site'}</div>
+            <h2>${company.name}</h2>
+
+            <div class="panel-stats">
+                ${statsHtml}
+            </div>
+
+            ${company.description ? `<p class="panel-description">${company.description}</p>` : ''}
+        `;
+
+        this.elements.panelContent.innerHTML = content;
+    },
+
+    /**
+     * Show science park panel with breadcrumb navigation
+     */
+    showScienceParkPanelWithBreadcrumb() {
+        const breadcrumb = this.generateBreadcrumb('Science Park');
+        const sciencePark = AppData.sciencePark;
+
+        // Science park stats are in array format { value, label }
+        const statsHtml = sciencePark.stats ? sciencePark.stats.map(stat => `
+            <div class="stat">
+                <span class="stat-value">${stat.value}</span>
+                <span class="stat-label">${stat.label}</span>
+            </div>
+        `).join('') : '';
+
+        const content = `
+            ${breadcrumb}
+            <div class="subtitle">Development Zone</div>
+            <h2>${sciencePark.name || 'Kumamoto Science Park'}</h2>
+
+            <div class="panel-stats">
+                ${statsHtml}
+            </div>
+
+            ${sciencePark.description ? `<p class="panel-description">${sciencePark.description}</p>` : ''}
+        `;
+
+        this.elements.panelContent.innerHTML = content;
+    },
+
+    /**
+     * Show road panel with breadcrumb navigation
+     */
+    showRoadPanelWithBreadcrumb(road) {
+        const breadcrumb = this.generateBreadcrumb(road.name);
+
+        // Construct stats from flat road properties
+        const stats = [];
+        if (road.driveToJasm) stats.push({ value: road.driveToJasm, label: 'Drive to JASM' });
+        if (road.status) stats.push({ value: road.status, label: 'Status' });
+        if (road.completionDate) stats.push({ value: road.completionDate, label: 'Completion' });
+        if (road.budget) stats.push({ value: road.budget, label: 'Budget' });
+
+        const statsHtml = stats.map(stat => `
+            <div class="stat">
+                <span class="stat-value">${stat.value}</span>
+                <span class="stat-label">${stat.label}</span>
+            </div>
+        `).join('');
+
+        const content = `
+            ${breadcrumb}
+            <div class="subtitle">Infrastructure Plan</div>
+            <h2>${road.name}</h2>
+
+            ${road.commuteImpact ? `
+                <div class="panel-headline-metric">
+                    <span class="headline-value">${road.commuteImpact}</span>
+                    <span class="headline-label">Commute Saved</span>
+                </div>
+            ` : ''}
+
+            <div class="panel-stats">
+                ${statsHtml}
+            </div>
+
+            ${road.description ? `<p class="panel-description">${road.description}</p>` : ''}
+
+            ${road.documentLink ? `
+                <button class="panel-btn" onclick="UI.showGallery('${road.documentLink}')">
+                    View Source Document
+                </button>
+            ` : ''}
+        `;
+
+        this.elements.panelContent.innerHTML = content;
+    },
+
+    /**
+     * Show resource panel with breadcrumb navigation
+     */
+    showResourcePanelWithBreadcrumb(resource) {
+        const breadcrumb = this.generateBreadcrumb(resource.name);
+
+        // Resource stats are in array format { value, label }
+        const statsHtml = resource.stats ? resource.stats.map(stat => `
+            <div class="stat">
+                <span class="stat-value">${stat.value}</span>
+                <span class="stat-label">${stat.label}</span>
+            </div>
+        `).join('') : '';
+
+        const content = `
+            ${breadcrumb}
+            <div class="subtitle">Resource</div>
+            <h2>${resource.name}</h2>
+
+            <div class="panel-stats">
+                ${statsHtml}
+            </div>
+
+            ${resource.description ? `<p class="panel-description">${resource.description}</p>` : ''}
+        `;
+
+        this.elements.panelContent.innerHTML = content;
+    },
+
+    /**
+     * Show evidence group panel with breadcrumb navigation
+     */
+    showEvidenceGroupPanelWithBreadcrumb(group) {
+        const breadcrumb = this.generateBreadcrumb(group.title);
+
+        // Generate items list
+        const itemsList = (group.items || []).map(item => `
+            <button class="dashboard-item evidence-item" onclick="UI.showDashboardEvidenceItem('${group.id}', '${item.id}')">
+                <span class="dashboard-item-name">${item.title}</span>
+                <span class="dashboard-item-meta">${item.type || 'Document'}</span>
+            </button>
+        `).join('');
+
+        const content = `
+            ${breadcrumb}
+            <div class="subtitle">Evidence Library</div>
+            <h2>${group.title}</h2>
+
+            <div class="evidence-items-list">
+                ${itemsList || '<p class="dashboard-empty">No items in this group</p>'}
+            </div>
+        `;
+
+        this.elements.panelContent.innerHTML = content;
+
+        // Show markers for this group on map
+        MapManager.clearAll();
+        MapManager.showEvidenceGroupMarkers(group);
+    },
+
+    /**
+     * Show individual evidence item from dashboard
+     */
+    showDashboardEvidenceItem(groupId, itemId) {
+        const group = AppData.evidenceGroups?.[groupId];
+        if (!group) return;
+
+        const item = group.items?.find(i => i.id === itemId);
+        if (!item) return;
+
+        // Show on map if item has location
+        if (item.coords) {
+            MapManager.flyToLocation(item.coords, 15);
+        }
+
+        // Show gallery for the evidence item
+        if (item.source) {
+            this.showGallery(item.source);
+        }
+    },
+
+    /**
+     * Format stat label for display
+     */
+    formatStatLabel(key) {
+        // Convert camelCase to Title Case with spaces
+        return key
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase())
+            .trim();
+    },
+
+    /**
+     * Generate financials section for property panel
+     */
+    generateFinancialsSection(property) {
+        if (!property.financials) return '';
+
+        return `
+            <div class="financials-section">
+                <h3>Investment Projections</h3>
+                <div class="scenario-toggle" role="radiogroup" aria-label="Investment scenario">
+                    <button class="scenario-btn ${this.currentScenario === 'bear' ? 'active' : ''}"
+                            role="radio"
+                            aria-checked="${this.currentScenario === 'bear'}"
+                            onclick="UI.setScenario('bear', '${property.id}')">Bear</button>
+                    <button class="scenario-btn ${this.currentScenario === 'average' ? 'active' : ''}"
+                            role="radio"
+                            aria-checked="${this.currentScenario === 'average'}"
+                            onclick="UI.setScenario('average', '${property.id}')">Average</button>
+                    <button class="scenario-btn ${this.currentScenario === 'bull' ? 'active' : ''}"
+                            role="radio"
+                            aria-checked="${this.currentScenario === 'bull'}"
+                            onclick="UI.setScenario('bull', '${property.id}')">Bull</button>
+                </div>
+                <div id="property-chart-container">
+                    <canvas id="property-roi-chart" aria-label="ROI projection chart"></canvas>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Render property charts
+     */
+    renderPropertyCharts(property) {
+        if (!property.financials) return;
+
+        const canvas = document.getElementById('property-roi-chart');
+        if (!canvas) return;
+
+        // Destroy existing chart
+        this.destroyChart('property-roi');
+
+        const scenario = property.financials.scenarios[this.currentScenario];
+        if (!scenario) return;
+
+        // Create chart (simplified version)
+        this.charts['property-roi'] = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                datasets: [{
+                    label: 'Projected Value',
+                    data: scenario.projectedValues || [100, 105, 110, 116, 122],
+                    borderColor: '#fbb931',
+                    backgroundColor: 'rgba(251, 185, 49, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: false }
+                }
+            }
+        });
+    },
+
+    /**
+     * Set investment scenario
+     */
+    setScenario(scenario, propertyId) {
+        this.currentScenario = scenario;
+
+        const property = AppData.properties.find(p => p.id === propertyId);
+        if (property) {
+            // Re-render the property panel
+            if (this.dashboardMode) {
+                this.showPropertyPanelWithBreadcrumb(property);
+            }
+        }
     }
 };

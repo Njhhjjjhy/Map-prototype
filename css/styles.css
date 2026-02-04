@@ -218,8 +218,10 @@ a:focus-visible {
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: var(--space-4);
     background: linear-gradient(180deg, #f5f5f7 0%, #e8e8ed 100%);
     z-index: 1000;
     transition: opacity var(--duration-slow) var(--easing-accelerate);
@@ -291,6 +293,33 @@ a:focus-visible {
     50% {
         transform: translateX(6px);
     }
+}
+
+/* Skip to Dashboard - Ghost Button */
+#skip-to-dashboard-btn {
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--tracking-body);
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: none;
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    /* Entrance animation - slightly delayed */
+    opacity: 0;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.5s forwards;
+}
+
+#skip-to-dashboard-btn:hover {
+    color: var(--color-text-primary);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+#skip-to-dashboard-btn:active {
+    background: rgba(0, 0, 0, 0.08);
 }
 
 /* ================================
@@ -795,6 +824,43 @@ a:focus-visible {
 }
 
 #panel-toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Dashboard Toggle Button (mirrored from layers toggle, right side) */
+#dashboard-toggle {
+    position: absolute;
+    top: 124px; /* Aligns below panel-toggle: 80px + 36px button + 8px gap */
+    right: var(--space-3);
+    z-index: 500;
+    width: 36px;
+    height: 36px;
+    background: var(--color-bg-primary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+#dashboard-toggle:hover {
+    color: var(--color-text-primary);
+}
+
+#dashboard-toggle.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-primary);
+}
+
+#dashboard-toggle svg {
     width: 18px;
     height: 18px;
 }
@@ -1792,7 +1858,7 @@ a:focus-visible {
    ================================ */
 #layers-toggle {
     position: absolute;
-    top: var(--space-20);
+    top: 124px; /* Aligns with dashboard-toggle on same horizontal line */
     left: var(--space-3);
     z-index: 500;
     width: 36px;
@@ -1831,7 +1897,7 @@ a:focus-visible {
    ================================ */
 #data-layers {
     position: absolute;
-    top: 124px;
+    top: 168px; /* Below layers-toggle: 124px + 36px button + 8px gap */
     left: var(--space-3);
     z-index: 500;
     background: var(--color-bg-primary);
@@ -3374,4 +3440,242 @@ button.layer-item {
     html {
         scroll-behavior: auto !important;
     }
+}
+
+/* ================================
+   DASHBOARD MODE
+   ================================ */
+
+/* Dashboard Header */
+.dashboard-header {
+    padding: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.dashboard-title {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--tracking-display);
+    margin: 0;
+}
+
+/* Dashboard Sections Container */
+.dashboard-sections {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Dashboard Section (Collapsible) */
+.dashboard-section {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+    background: var(--color-bg-primary);
+}
+
+.dashboard-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    width: 100%;
+    background: var(--color-bg-secondary);
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+    text-align: left;
+}
+
+.dashboard-section-header:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.dashboard-section-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+
+.dashboard-section-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.dashboard-section-title {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.dashboard-section-chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-tertiary);
+    transition: transform var(--duration-fast) var(--easing-standard);
+    flex-shrink: 0;
+}
+
+.dashboard-section-chevron svg {
+    width: 100%;
+    height: 100%;
+}
+
+.dashboard-section.expanded .dashboard-section-chevron {
+    transform: rotate(90deg);
+}
+
+/* Dashboard Section Content */
+.dashboard-section-content {
+    display: none;
+    padding: var(--space-2);
+    background: var(--color-bg-primary);
+}
+
+.dashboard-section.expanded .dashboard-section-content {
+    display: block;
+}
+
+/* Dashboard Items */
+.dashboard-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-3);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.dashboard-item:hover {
+    background: var(--color-bg-secondary);
+}
+
+.dashboard-item-name {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
+}
+
+.dashboard-item-meta {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+}
+
+.dashboard-empty {
+    padding: var(--space-4);
+    text-align: center;
+    color: var(--color-text-tertiary);
+    font-size: var(--text-sm);
+}
+
+/* Dashboard Breadcrumb */
+.dashboard-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-6);
+    padding-bottom: var(--space-2);
+}
+
+.breadcrumb-link {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-info);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color var(--duration-fast) var(--easing-standard);
+}
+
+.breadcrumb-link:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    width: 12px;
+    height: 12px;
+    color: var(--color-text-tertiary);
+}
+
+.breadcrumb-separator svg {
+    width: 100%;
+    height: 100%;
+}
+
+.breadcrumb-current {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+/* Evidence Items List in Dashboard */
+.evidence-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-top: var(--space-4);
+}
+
+/* Panel Headline Metric (for roads) */
+.panel-headline-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-6);
+    margin: var(--space-4) 0;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-large);
+    text-align: center;
+}
+
+.headline-value {
+    font-family: var(--font-display);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    letter-spacing: var(--tracking-display);
+}
+
+.headline-label {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-1);
+}
+
+/* Financials Section */
+.financials-section {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border);
+}
+
+.financials-section h3 {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-4);
+}
+
+#property-chart-container {
+    height: 200px;
+    margin-top: var(--space-4);
 }

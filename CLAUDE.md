@@ -269,7 +269,8 @@ The following hardcoded pixel values are permitted for specific UI patterns:
 |-------|----------|-----------|
 | `1px` | Segmented control gaps (`#time-toggle`, `.scenario-toggle`) | Creates hairline separator for macOS segmented control aesthetic |
 | `2px` | Segmented control padding, badge padding, tight icon gaps | Sub-grid precision for compact UI components |
-| `124px` | Data layers panel positioning (`#data-layers { top: 124px }`) | Calculated alignment below layers toggle (80px + 36px button + 8px gap) |
+| `124px` | Layers toggle and dashboard toggle positioning | Aligns both toggles on same horizontal line |
+| `168px` | Data layers panel positioning (`#data-layers { top: 168px }`) | Calculated alignment below layers toggle (124px + 36px button + 8px gap) |
 
 ```css
 /* ✅ ALLOWED: Segmented control pattern */
@@ -279,8 +280,13 @@ The following hardcoded pixel values are permitted for specific UI patterns:
 }
 
 /* ✅ ALLOWED: Calculated positioning */
+#layers-toggle,
+#dashboard-toggle {
+  top: 124px;    /* Same horizontal line */
+}
+
 #data-layers {
-  top: 124px;    /* Aligns below #layers-toggle */
+  top: 168px;    /* Aligns below #layers-toggle */
 }
 
 /* ❌ NOT ALLOWED: Random hardcoded values */
@@ -934,7 +940,14 @@ Per HIG and WCAG 2.1 AA:
 
 ### AI Chat
 
-The AI Chat modal appears after journey completion, allowing users to ask questions about Kumamoto.
+The AI Chat modal appears after journey completion or in Dashboard mode, allowing users to ask questions about Kumamoto.
+
+#### AI Chat Context Modes
+
+| Mode | Access | CTAs Visible | Use Case |
+|------|--------|--------------|----------|
+| Post-Journey | After completing any journey | Yes | Summarize journey, restart, schedule consultation |
+| Dashboard | Via FAB in "Skip to Dashboard" | No | Explore freely without journey context |
 
 ```css
 #ai-chat {
@@ -1753,6 +1766,8 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
 - [ ] Messages margin-top is `--space-6` (24px) — section gap after header
 - [ ] Suggestions hide after first message sent
 - [ ] Both suggestions and messages maintain 24px gap from header title
+- [ ] CTAs (Download Summary, Explore Again) hidden in Dashboard mode
+- [ ] CTAs visible only after completing a journey (not in Skip to Dashboard)
 
 ### For All Modals
 
