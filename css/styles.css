@@ -1847,6 +1847,11 @@ a:focus-visible {
     stroke: #5ac8fa;
 }
 
+/* Station - teal (same as infrastructure roads) */
+.legend-marker.station svg {
+    stroke: #5ac8fa;
+}
+
 .legend-label {
     font-family: var(--font-body);
     font-size: var(--text-sm);

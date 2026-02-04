@@ -1184,6 +1184,49 @@ const UI = {
     },
 
     /**
+     * Show panel for infrastructure station
+     * @param {Object} station - Station data
+     */
+    showStationPanel(station) {
+        const statsHtml = station.stats.map(stat => `
+            <div class="stat-card">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="subtitle">Infrastructure Plan</div>
+            <h2>${station.name}</h2>
+            <p class="panel-subtitle">${station.subtitle}</p>
+
+            <div class="headline-metric" style="margin: 16px 0; padding: 16px; background: var(--color-bg-secondary); border-radius: 8px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 600; color: var(--color-success);">${station.commuteImpact}</div>
+                <div style="font-size: 14px; color: var(--color-text-secondary);">New Commute Option</div>
+            </div>
+
+            <div class="stats-grid">
+                ${statsHtml}
+            </div>
+
+            <p style="margin-top: 16px;">${station.description}</p>
+
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-bg-tertiary);">
+                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+                    <span style="color: var(--color-text-secondary);">Status</span>
+                    <span>${station.status}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                    <span style="color: var(--color-text-secondary);">Completion</span>
+                    <span>${station.completionDate}</span>
+                </div>
+            </div>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show property panel (Journey C)
      * Inspector pattern: Image at top → Property details → Financials
      */
@@ -2322,6 +2365,15 @@ const UI = {
                 <circle cx="6" cy="19" r="3"/>
                 <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
                 <circle cx="18" cy="5" r="3"/>
+            </svg>`,
+            // Train icon (Lucide: train-front)
+            station: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/>
+                <path d="m9 15-1-1"/>
+                <path d="m15 15 1-1"/>
+                <path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/>
+                <path d="m8 19-2 3"/>
+                <path d="m16 19 2 3"/>
             </svg>`
         };
 
@@ -2361,11 +2413,15 @@ const UI = {
                 </div>
             `;
         } else if (journey === 'B7') {
-            // Infrastructure roads step - show road legend item
+            // Infrastructure roads step - show road and station legend items
             html += `
                 <div class="legend-item">
                     <div class="legend-marker infrastructureRoad">${icons.infrastructureRoad}</div>
                     <span class="legend-label">Infrastructure Roads</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker station">${icons.station}</div>
+                    <span class="legend-label">New Station</span>
                 </div>
             `;
         } else if (journey === 'C') {

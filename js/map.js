@@ -37,6 +37,7 @@ const MapManager = {
     highlightedEvidenceMarker: null, // Track highlighted evidence marker for bidirectional sync
     selectedInfrastructureRoad: null, // Track selected infrastructure road for single-selection
     infrastructureRoadPolylines: {}, // Track road polylines for selection state
+    infrastructureMarkers: [], // Track infrastructure markers (station, etc.)
     layers: {
         resources: null,
         sciencePark: null,
@@ -843,6 +844,28 @@ const MapManager = {
 
         this.layers.infrastructureRoads.addTo(this.map);
 
+        // Also show station marker
+        const station = AppData.infrastructureStation;
+        if (station) {
+            const stationMarker = L.marker(station.coords, {
+                icon: L.divIcon({
+                    className: 'infrastructure-marker station-marker',
+                    html: `<div class="marker-icon" style="background: #5ac8fa; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 11V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/><path d="M4 15v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M4 11h16v4H4z"/><circle cx="7.5" cy="15.5" r="1.5"/><circle cx="16.5" cy="15.5" r="1.5"/></svg></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                })
+            });
+
+            stationMarker.on('click', () => {
+                // Deselect any selected road
+                this.clearInfrastructureRoadSelection();
+                UI.showStationPanel(station);
+            });
+
+            stationMarker.addTo(this.map);
+            this.infrastructureMarkers.push(stationMarker);
+        }
+
         // Fit bounds to show all roads
         const allCoords = AppData.infrastructureRoads.flatMap(r => r.coords);
         if (allCoords.length > 0) {
@@ -862,6 +885,12 @@ const MapManager = {
         this.map.removeLayer(this.layers.infrastructureRoads);
         this.selectedInfrastructureRoad = null;
         this.infrastructureRoadPolylines = {};
+
+        // Remove station markers
+        this.infrastructureMarkers.forEach(marker => {
+            this.map.removeLayer(marker);
+        });
+        this.infrastructureMarkers = [];
     },
 
     /**

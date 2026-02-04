@@ -520,6 +520,25 @@ const AppData = {
         }
     ],
 
+    // Journey B: Infrastructure Station (B7)
+    infrastructureStation: {
+        id: 'kikuyo-station',
+        name: 'Kikuyo Station',
+        coords: [32.88, 130.81],
+        subtitle: 'New Rail Connection',
+        status: 'Under Construction',
+        completionDate: '2026',
+        description: 'New JR Hohi Line station providing direct rail access from Kumamoto City to the Science Park corridor. Reduces commute time for semiconductor workers.',
+        stats: [
+            { value: '18 min', label: 'To Kumamoto City' },
+            { value: '8 min', label: 'To JASM' },
+            { value: '15 min', label: 'Train frequency' },
+            { value: '8,000', label: 'Daily passengers est.' }
+        ],
+        commuteImpact: 'Rail option',
+        documentLink: '#'
+    },
+
     // Evidence Groups - Hierarchical evidence with multiple sub-items
     evidenceGroups: {
         'energy-infrastructure': {
