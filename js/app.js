@@ -230,11 +230,11 @@ const App = {
         MapManager.showCompanyMarkers();
 
         UI.updateChatbox(`
-            <h3>Infrastructure Plan</h3>
-            <p>Major corporations have committed billions to this region.</p>
+            <h3>Government Support</h3>
+            <p><strong>The result:</strong> Major corporations have committed billions.</p>
             <p>Click company markers to see their investments.</p>
             <button class="chatbox-continue primary" onclick="App.stepB6()">
-                Show Time Controls
+                Show Development Timeline
             </button>
         `);
     },
