@@ -180,6 +180,9 @@ const App = {
     async stepA3_location() {
         this.state.a3Phase = 'location';
 
+        // Show airline routes legend
+        UI.showAirlineRoutesLegend();
+
         // Show airline routes with animation
         await MapManager.showAirlineRoutes();
 
@@ -202,6 +205,9 @@ const App = {
 
         UI.hideChatbox();
         UI.hidePanel();
+
+        // Hide legend before transition
+        UI.hideLegend();
 
         // Clear airline routes before transition
         MapManager.hideAirlineRoutes();

@@ -2594,6 +2594,62 @@ const UI = {
         document.getElementById('map-legend').classList.add('hidden');
     },
 
+    /**
+     * Show legend for airline routes (A3 location phase)
+     */
+    showAirlineRoutesLegend() {
+        const legendHtml = `
+            <div class="legend-item" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="
+                    width: 20px; height: 20px;
+                    background: #fbb931;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                    display: flex; align-items: center; justify-content: center;
+                ">
+                    <svg viewBox="0 0 24 24" fill="white" width="12" height="12">
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                    </svg>
+                </div>
+                <span style="font-size: var(--text-sm);">Aso Kumamoto Airport</span>
+            </div>
+            <div class="legend-item" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="
+                    width: 20px; height: 20px;
+                    background: #007aff;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                    display: flex; align-items: center; justify-content: center;
+                ">
+                    <svg viewBox="0 0 24 24" fill="white" width="12" height="12">
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                    </svg>
+                </div>
+                <span style="font-size: var(--text-sm);">Active Route</span>
+            </div>
+            <div class="legend-item" style="display: flex; align-items: center; gap: 12px;">
+                <div style="
+                    width: 20px; height: 20px;
+                    background: #a3a5a8;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                    display: flex; align-items: center; justify-content: center;
+                ">
+                    <svg viewBox="0 0 24 24" fill="white" width="12" height="12">
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                    </svg>
+                </div>
+                <span style="font-size: var(--text-sm);">Suspended Route</span>
+            </div>
+        `;
+
+        document.getElementById('legend-items').innerHTML = legendHtml;
+        document.getElementById('map-legend').classList.remove('hidden');
+    },
+
     toggleDataLayer(layerName) {
         const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
         if (!layerItem) return;
