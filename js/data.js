@@ -464,6 +464,115 @@ const AppData = {
     // JASM location for route drawing
     jasmLocation: [32.874, 130.785],
 
+    // Journey A: Airline Routes (Strategic Location)
+    airlineRoutes: {
+        origin: {
+            name: 'Aso Kumamoto Airport',
+            coords: [32.8373, 130.8551],
+            code: 'KMJ'
+        },
+        destinations: [
+            {
+                id: 'seoul-incheon',
+                name: 'Seoul Incheon',
+                coords: [37.4602, 126.4407],
+                code: 'ICN',
+                country: 'South Korea',
+                region: 'Korea',
+                status: 'active',
+                flightTime: '1h 30m',
+                airlines: ['Asiana Airlines', 'Jin Air'],
+                frequency: '7 flights/week',
+                significance: 'Direct TSMC supply chain link',
+                description: 'Direct service to Seoul\'s primary international airport.'
+            },
+            {
+                id: 'busan-gimhae',
+                name: 'Busan Gimhae',
+                coords: [35.1796, 128.9382],
+                code: 'PUS',
+                country: 'South Korea',
+                region: 'Korea',
+                status: 'active',
+                flightTime: '1h 15m',
+                airlines: ['Jin Air'],
+                frequency: '3 flights/week',
+                significance: 'TBD',
+                description: 'Direct service to South Korea\'s second-largest city.'
+            },
+            {
+                id: 'shanghai-pudong',
+                name: 'Shanghai Pudong',
+                coords: [31.1443, 121.8083],
+                code: 'PVG',
+                country: 'China',
+                region: 'China',
+                status: 'suspended',
+                flightTime: '2h 00m',
+                airlines: ['TBD'],
+                frequency: 'Suspended',
+                significance: 'Manufacturing partner access',
+                description: 'Service currently suspended.'
+            },
+            {
+                id: 'taiwan-taoyuan',
+                name: 'Taiwan Taoyuan',
+                coords: [25.0797, 121.2342],
+                code: 'TPE',
+                country: 'Taiwan',
+                region: 'Taiwan',
+                status: 'active',
+                flightTime: '2h 30m',
+                airlines: ['TBD'],
+                frequency: 'TBD',
+                significance: 'TSMC headquarters connection',
+                description: 'Direct service to Taiwan\'s main international gateway.'
+            },
+            {
+                id: 'tainan',
+                name: 'Tainan Airport',
+                coords: [22.9504, 120.2057],
+                code: 'TNN',
+                country: 'Taiwan',
+                region: 'Taiwan',
+                status: 'active',
+                flightTime: 'TBD',
+                airlines: ['TBD'],
+                frequency: 'TBD',
+                significance: 'TSMC Fab 18 access',
+                description: 'Direct service to southern Taiwan semiconductor hub.'
+            },
+            {
+                id: 'kaohsiung',
+                name: 'Kaohsiung International',
+                coords: [22.5771, 120.3500],
+                code: 'KHH',
+                country: 'Taiwan',
+                region: 'Taiwan',
+                status: 'active',
+                flightTime: '2h 15m',
+                airlines: ['TBD'],
+                frequency: 'TBD',
+                significance: 'Southern Taiwan industrial access',
+                description: 'Direct service to Taiwan\'s second-largest city.'
+            },
+            {
+                id: 'hong-kong',
+                name: 'Hong Kong International',
+                coords: [22.3080, 113.9185],
+                code: 'HKG',
+                country: 'Hong Kong',
+                region: 'Hong Kong',
+                status: 'suspended',
+                flightTime: '3h 00m',
+                airlines: ['TBD'],
+                frequency: 'Suspended',
+                significance: 'Financial hub connection',
+                description: 'Service currently suspended.'
+            }
+        ]
+    },
+
     // Journey B: Infrastructure Roads
     infrastructureRoads: [
         {
