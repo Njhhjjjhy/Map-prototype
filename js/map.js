@@ -1300,5 +1300,172 @@ const MapManager = {
             dashArray: status === 'suspended' ? '8, 6' : null,
             className: `airline-route airline-route--${status}`
         });
+    },
+
+    /**
+     * Create origin airport marker (Aso Kumamoto Airport)
+     * Larger than destination markers, branded yellow
+     */
+    createAirportOriginMarker() {
+        const origin = AppData.airlineRoutes.origin;
+
+        const marker = L.marker(origin.coords, {
+            icon: L.divIcon({
+                className: 'airport-origin-marker',
+                html: `
+                    <div style="
+                        width: 48px;
+                        height: 56px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    ">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            background: ${MAP_COLORS.primary};
+                            border: 3px solid white;
+                            border-radius: 50%;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
+                                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                            </svg>
+                        </div>
+                        <span style="
+                            font-family: var(--font-display);
+                            font-size: 11px;
+                            font-weight: 600;
+                            color: var(--color-text-primary);
+                            background: white;
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            margin-top: 4px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                        ">${origin.code}</span>
+                    </div>
+                `,
+                iconSize: [48, 56],
+                iconAnchor: [24, 28]
+            })
+        });
+
+        marker.bindTooltip(origin.name, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -30],
+            className: 'map-tooltip'
+        });
+
+        return marker;
+    },
+
+    /**
+     * Create destination airport marker
+     * @param {Object} destination - Destination data
+     */
+    createDestinationMarker(destination) {
+        const color = destination.status === 'active' ? '#007aff' : '#a3a5a8';
+
+        const marker = L.marker(destination.coords, {
+            icon: L.divIcon({
+                className: 'airport-destination-marker',
+                html: `
+                    <div style="
+                        width: 36px;
+                        height: 36px;
+                        background: ${color};
+                        border: 2px solid white;
+                        border-radius: 50%;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: transform 0.15s ease;
+                    ">
+                        <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+                            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                        </svg>
+                    </div>
+                `,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            })
+        });
+
+        marker.bindTooltip(`${destination.name} (${destination.code})`, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20],
+            className: 'map-tooltip'
+        });
+
+        marker.on('click', () => {
+            UI.showAirlineRoutePanel(destination);
+        });
+
+        return marker;
+    },
+
+    /**
+     * Utility sleep function for animations
+     * @param {number} ms - Milliseconds to sleep
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+    /**
+     * Show airline routes with staggered animation
+     * Called when A3 transitions to Strategic Location phase
+     */
+    async showAirlineRoutes() {
+        const routes = AppData.airlineRoutes;
+        const origin = routes.origin.coords;
+
+        // Clear any existing
+        this.hideAirlineRoutes();
+
+        // 1. Show origin marker immediately
+        this.airlineOriginMarker = this.createAirportOriginMarker();
+        this.layers.airlineRoutes.addLayer(this.airlineOriginMarker);
+        this.layers.airlineRoutes.addTo(this.map);
+
+        // 2. Animated zoom out to East Asia view
+        await new Promise(resolve => {
+            this.map.flyTo([28, 122], 4, { duration: 1.2 });
+            setTimeout(resolve, 1300);
+        });
+
+        // 3. Draw routes with stagger
+        for (let i = 0; i < routes.destinations.length; i++) {
+            await this.sleep(150);
+            const dest = routes.destinations[i];
+            const arcLine = this.createArcLine(origin, dest.coords, dest.status);
+            this.airlineRoutePolylines.push(arcLine);
+            this.layers.airlineRoutes.addLayer(arcLine);
+        }
+
+        // 4. Add destination markers after all routes drawn
+        await this.sleep(200);
+        routes.destinations.forEach(dest => {
+            const marker = this.createDestinationMarker(dest);
+            this.airlineDestinationMarkers.push(marker);
+            this.layers.airlineRoutes.addLayer(marker);
+        });
+    },
+
+    /**
+     * Hide airline routes and clean up
+     */
+    hideAirlineRoutes() {
+        this.layers.airlineRoutes.clearLayers();
+        this.airlineRoutePolylines = [];
+        this.airlineDestinationMarkers = [];
+        this.airlineOriginMarker = null;
     }
 };
