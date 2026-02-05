@@ -1,0 +1,10 @@
+# Worktrees
+.worktrees/
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
