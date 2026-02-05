@@ -8,6 +8,7 @@ const App = {
         journey: null, // 'A', 'B', 'C'
         step: null,    // Current step within journey
         resourcesExplored: [], // Track which resources have been viewed
+        a3Phase: null, // 'infrastructure' or 'location'
         companiesExplored: [], // Track which companies have been viewed
         evidenceGroupsViewed: [], // Track which evidence groups have been viewed
     },
@@ -154,25 +155,41 @@ const App = {
     },
 
     /**
-     * A3: Strategic Advantages — narrative only (no markers)
-     * Pair 2 of "Why Kumamoto" pillars
+     * A3 Phase 1: Existing Semiconductor Infrastructure — narrative only
      */
     stepA3() {
         this.state.step = 'A3';
+        this.state.a3Phase = 'infrastructure';
 
         UI.updateChatbox(`
             <h3>Why Kumamoto?</h3>
-            <p><strong>Beyond natural resources, Kumamoto offers strategic advantages:</strong></p>
-            <div style="margin: 16px 0;">
-                <p style="margin-bottom: 12px;">
-                    <strong>Existing Semiconductor Infrastructure</strong><br>
-                    <span style="color: var(--color-text-secondary);">TSMC chose Kumamoto because the supply chain was already here. Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.</span>
-                </p>
-                <p>
-                    <strong>Strategic Location</strong><br>
-                    <span style="color: var(--color-text-secondary);">Gateway to Asia with port access and Kumamoto Airport's growing international cargo routes. 2 hours to Shanghai, 1.5 hours to Taipei.</span>
-                </p>
-            </div>
+            <p><strong>Existing Semiconductor Infrastructure</strong></p>
+            <p style="color: var(--color-text-secondary); margin-top: 8px;">
+                TSMC chose Kumamoto because the supply chain was already here.
+                Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.
+            </p>
+            <button class="chatbox-continue primary" onclick="App.stepA3_location()">
+                See Strategic Location
+            </button>
+        `);
+    },
+
+    /**
+     * A3 Phase 2: Strategic Location — airline routes appear
+     */
+    async stepA3_location() {
+        this.state.a3Phase = 'location';
+
+        // Show airline routes with animation
+        await MapManager.showAirlineRoutes();
+
+        UI.updateChatbox(`
+            <h3>Why Kumamoto?</h3>
+            <p><strong>Strategic Location</strong></p>
+            <p style="color: var(--color-text-secondary); margin-top: 8px;">
+                Aso Kumamoto Airport connects directly to 7 international destinations
+                across 4 regions. Click destinations to see route details.
+            </p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
                 See Government Commitment
             </button>
@@ -185,6 +202,9 @@ const App = {
 
         UI.hideChatbox();
         UI.hidePanel();
+
+        // Clear airline routes before transition
+        MapManager.hideAirlineRoutes();
 
         // Show memorable journey transition (Peak-End Rule)
         await UI.showJourneyTransition('B');
@@ -467,7 +487,33 @@ const App = {
                     </button>
                 `);
             } else if (step === 'A3') {
-                this.stepA3();
+                // Restore based on which phase of A3 we're in
+                if (this.state.a3Phase === 'location') {
+                    UI.showChatbox(`
+                        <h3>Why Kumamoto?</h3>
+                        <p><strong>Strategic Location</strong></p>
+                        <p style="color: var(--color-text-secondary); margin-top: 8px;">
+                            Aso Kumamoto Airport connects directly to 7 international destinations
+                            across 4 regions. Click destinations to see route details.
+                        </p>
+                        <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
+                            See Government Commitment
+                        </button>
+                    `);
+                } else {
+                    // Default to infrastructure phase
+                    UI.showChatbox(`
+                        <h3>Why Kumamoto?</h3>
+                        <p><strong>Existing Semiconductor Infrastructure</strong></p>
+                        <p style="color: var(--color-text-secondary); margin-top: 8px;">
+                            TSMC chose Kumamoto because the supply chain was already here.
+                            Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.
+                        </p>
+                        <button class="chatbox-continue primary" onclick="App.stepA3_location()">
+                            See Strategic Location
+                        </button>
+                    `);
+                }
             } else {
                 this.updateResourceChatbox();
                 UI.elements.chatbox.classList.remove('hidden');
