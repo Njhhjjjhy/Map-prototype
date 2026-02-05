@@ -38,6 +38,9 @@ const MapManager = {
     selectedInfrastructureRoad: null, // Track selected infrastructure road for single-selection
     infrastructureRoadPolylines: {}, // Track road polylines for selection state
     infrastructureMarkers: [], // Track infrastructure markers (station, etc.)
+    airlineRoutePolylines: [],
+    airlineDestinationMarkers: [],
+    airlineOriginMarker: null,
     layers: {
         resources: null,
         sciencePark: null,
@@ -83,6 +86,7 @@ const MapManager = {
         this.layers.route = L.layerGroup();
         this.layers.evidenceMarkers = L.layerGroup();
         this.layers.infrastructureRoads = L.layerGroup();
+        this.layers.airlineRoutes = L.layerGroup();
 
         // Initialize marker cluster groups for when there are many markers
         this.initClusterGroups();
@@ -1242,6 +1246,59 @@ const MapManager = {
         this.map.flyTo(coords, zoom, {
             duration: 1,
             easeLinearity: 0.2
+        });
+    },
+
+    // ================================
+    // AIRLINE ROUTES (Journey A - Strategic Location)
+    // ================================
+
+    /**
+     * Generate points along a quadratic bezier curve
+     * @param {Array} p0 - Start point [lat, lng]
+     * @param {Array} p1 - Control point [lat, lng]
+     * @param {Array} p2 - End point [lat, lng]
+     * @param {number} numPoints - Number of points to generate
+     * @returns {Array} Array of [lat, lng] points
+     */
+    generateBezierPoints(p0, p1, p2, numPoints) {
+        const points = [];
+        for (let i = 0; i <= numPoints; i++) {
+            const t = i / numPoints;
+            const lat = (1-t)*(1-t)*p0[0] + 2*(1-t)*t*p1[0] + t*t*p2[0];
+            const lng = (1-t)*(1-t)*p0[1] + 2*(1-t)*t*p1[1] + t*t*p2[1];
+            points.push([lat, lng]);
+        }
+        return points;
+    },
+
+    /**
+     * Create an arc line (great circle approximation) between two points
+     * @param {Array} origin - Start coordinates [lat, lng]
+     * @param {Array} destination - End coordinates [lat, lng]
+     * @param {string} status - 'active' or 'suspended'
+     * @returns {L.Polyline} Leaflet polyline
+     */
+    createArcLine(origin, destination, status) {
+        const midLat = (origin[0] + destination[0]) / 2;
+        const midLng = (origin[1] + destination[1]) / 2;
+
+        // Calculate arc height with minimum floor for short routes
+        const distance = this.map.distance(origin, destination);
+        const arcHeight = Math.max(0.8, distance * 0.00015);
+
+        // Control point offset northward for arc effect
+        const arcMid = [midLat + arcHeight, midLng];
+
+        // Generate smooth bezier curve
+        const points = this.generateBezierPoints(origin, arcMid, destination, 50);
+
+        return L.polyline(points, {
+            color: status === 'active' ? '#007aff' : '#a3a5a8',
+            weight: status === 'active' ? 3 : 2,
+            opacity: status === 'active' ? 0.8 : 0.5,
+            dashArray: status === 'suspended' ? '8, 6' : null,
+            className: `airline-route airline-route--${status}`
         });
     }
 };
