@@ -1227,6 +1227,155 @@ const UI = {
     },
 
     /**
+     * Show airline route panel for a destination
+     * @param {Object} destination - Destination data
+     */
+    showAirlineRoutePanel(destination) {
+        const isSuspended = destination.status === 'suspended';
+
+        // Headline: flight time for active, status badge for suspended
+        const headlineHtml = isSuspended
+            ? `
+                <div class="stat-grid" style="grid-template-columns: 1fr;">
+                    <div class="stat-item" style="text-align: center;">
+                        <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-warning);">
+                            ⚠ Service Suspended
+                        </div>
+                    </div>
+                </div>
+            `
+            : `
+                <div class="stat-grid" style="grid-template-columns: 1fr;">
+                    <div class="stat-item" style="text-align: center;">
+                        <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-info);">${destination.flightTime}</div>
+                        <div class="stat-label">Flight Time</div>
+                    </div>
+                </div>
+            `;
+
+        // Stats grid - different for suspended vs active
+        const statsHtml = isSuspended
+            ? `
+                <div class="stat-item">
+                    <div class="stat-value">${destination.region}</div>
+                    <div class="stat-label">Region</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${destination.flightTime}</div>
+                    <div class="stat-label">Flight Time (when active)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${destination.airlines.join(', ')}</div>
+                    <div class="stat-label">Airlines</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${destination.significance}</div>
+                    <div class="stat-label">Significance</div>
+                </div>
+            `
+            : `
+                <div class="stat-item">
+                    <div class="stat-value">${destination.region}</div>
+                    <div class="stat-label">Region</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${destination.airlines.join(', ')}</div>
+                    <div class="stat-label">Airlines</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${destination.frequency}</div>
+                    <div class="stat-label">Frequency</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Active</div>
+                    <div class="stat-label">Status</div>
+                </div>
+                <div class="stat-item" style="grid-column: 1 / -1;">
+                    <div class="stat-value">${destination.significance}</div>
+                    <div class="stat-label">Significance</div>
+                </div>
+            `;
+
+        const content = `
+            <div class="subtitle">International Route</div>
+            <h2>${destination.name} (${destination.code})</h2>
+
+            ${headlineHtml}
+
+            <div class="stat-grid">
+                ${statsHtml}
+            </div>
+
+            <p>${destination.description}</p>
+
+            <button class="panel-btn secondary" onclick="UI.showAllAirlineRoutes()">
+                View All Routes →
+            </button>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
+     * Show all airline routes summary panel
+     */
+    showAllAirlineRoutes() {
+        const routes = AppData.airlineRoutes.destinations;
+        const activeRoutes = routes.filter(r => r.status === 'active');
+        const suspendedRoutes = routes.filter(r => r.status === 'suspended');
+
+        const activeHtml = activeRoutes.map(r => `
+            <div class="route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
+                padding: 12px;
+                margin-bottom: 8px;
+                background: var(--color-bg-secondary);
+                border-radius: var(--radius-medium);
+                cursor: pointer;
+                transition: background 0.15s ease;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 500;">${r.name} (${r.code})</span>
+                    <span style="color: var(--color-text-secondary);">${r.flightTime}</span>
+                </div>
+                <div style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-top: 4px;">
+                    ${r.region} · ${r.frequency}
+                </div>
+            </div>
+        `).join('');
+
+        const suspendedHtml = suspendedRoutes.map(r => `
+            <div class="route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
+                padding: 12px;
+                margin-bottom: 8px;
+                background: var(--color-bg-secondary);
+                border-radius: var(--radius-medium);
+                cursor: pointer;
+                opacity: 0.6;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 500;">${r.name} (${r.code})</span>
+                    <span style="color: var(--color-text-tertiary);">Suspended</span>
+                </div>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="subtitle">Aso Kumamoto Airport</div>
+            <h2>All International Routes</h2>
+
+            <p style="margin-bottom: 16px;">7 destinations across 4 regions connecting Kumamoto to key Asian markets.</p>
+
+            <h4 style="margin-bottom: 12px; color: var(--color-text-secondary);">Active Routes (${activeRoutes.length})</h4>
+            ${activeHtml}
+
+            <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--color-text-tertiary);">Suspended Routes (${suspendedRoutes.length})</h4>
+            ${suspendedHtml}
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show property panel (Journey C)
      * Inspector pattern: Image at top → Property details → Financials
      */
