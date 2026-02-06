@@ -1296,9 +1296,28 @@ const UI = {
                 </div>
             `;
 
+        // Semiconductor connection badge
+        const semiBadge = destination.semiconductorLink
+            ? `<div class="semiconductor-badge" style="
+                display: inline-flex;
+                align-items: center;
+                gap: var(--space-2);
+                padding: var(--space-1) var(--space-3);
+                background: ${destination.semiconductorLink.color}15;
+                border: 1px solid ${destination.semiconductorLink.color}40;
+                border-radius: var(--radius-small);
+                font-family: var(--font-display);
+                font-size: var(--text-sm);
+                font-weight: var(--font-weight-semibold);
+                color: ${destination.semiconductorLink.color};
+                margin-bottom: var(--space-4);
+            ">${destination.semiconductorLink.company} — ${destination.semiconductorLink.role}</div>`
+            : '';
+
         const content = `
             <div class="subtitle">International Route</div>
             <h2>${destination.name} (${destination.code})</h2>
+            ${semiBadge}
 
             ${headlineHtml}
 

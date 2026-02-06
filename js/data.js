@@ -512,8 +512,9 @@ const AppData = {
                 flightTime: '1h 30m',
                 airlines: ['Asiana Airlines', 'Jin Air'],
                 frequency: '7 flights/week',
-                significance: 'Direct TSMC supply chain link',
-                description: 'Direct service to Seoul\'s primary international airport.'
+                significance: 'Samsung memory division HQ link',
+                description: 'Direct service to Seoul\'s primary international airport.',
+                semiconductorLink: { company: 'Samsung', role: 'Memory Division HQ', color: '#34c759' }
             },
             {
                 id: 'busan-gimhae',
@@ -555,7 +556,8 @@ const AppData = {
                 airlines: ['TBD'],
                 frequency: 'TBD',
                 significance: 'TSMC headquarters connection',
-                description: 'Direct service to Taiwan\'s main international gateway.'
+                description: 'Direct service to Taiwan\'s main international gateway.',
+                semiconductorLink: { company: 'TSMC', role: 'Global Headquarters', color: '#007aff' }
             },
             {
                 id: 'tainan',

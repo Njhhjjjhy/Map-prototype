@@ -1719,6 +1719,23 @@ a:focus-visible {
     display: none;
 }
 
+/* Semiconductor route label (TSMC/Samsung) */
+.semiconductor-route-label {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-small);
+    padding: var(--space-1) var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    box-shadow: var(--shadow-subtle);
+    color: var(--color-text-primary);
+}
+
+.semiconductor-route-label::before {
+    display: none;
+}
+
 /* Route Line with drawing animation (per CLAUDE.md spec) */
 .route-line {
     stroke: var(--color-primary);

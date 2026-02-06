@@ -1279,7 +1279,7 @@ const MapManager = {
      * @param {string} status - 'active' or 'suspended'
      * @returns {L.Polyline} Leaflet polyline
      */
-    createArcLine(origin, destination, status) {
+    createArcLine(origin, destination, status, semiLink) {
         const midLat = (origin[0] + destination[0]) / 2;
         const midLng = (origin[1] + destination[1]) / 2;
 
@@ -1293,13 +1293,30 @@ const MapManager = {
         // Generate smooth bezier curve
         const points = this.generateBezierPoints(origin, arcMid, destination, 50);
 
-        return L.polyline(points, {
-            color: status === 'active' ? '#007aff' : '#a3a5a8',
-            weight: status === 'active' ? 3 : 2,
-            opacity: status === 'active' ? 0.8 : 0.5,
+        // Semiconductor-linked routes get emphasized styling
+        const isSemi = !!semiLink;
+        const color = isSemi ? semiLink.color : (status === 'active' ? '#007aff' : '#a3a5a8');
+        const weight = isSemi ? 4 : (status === 'active' ? 3 : 2);
+        const opacity = isSemi ? 0.9 : (status === 'active' ? 0.8 : 0.5);
+
+        const line = L.polyline(points, {
+            color,
+            weight,
+            opacity,
             dashArray: status === 'suspended' ? '8, 6' : null,
-            className: `airline-route airline-route--${status}`
+            className: `airline-route airline-route--${status}${isSemi ? ' airline-route--semiconductor' : ''}`
         });
+
+        // Add permanent company label for semiconductor routes
+        if (isSemi) {
+            line.bindTooltip(semiLink.company, {
+                permanent: true,
+                direction: 'center',
+                className: 'semiconductor-route-label'
+            });
+        }
+
+        return line;
     },
 
     /**
@@ -1445,7 +1462,7 @@ const MapManager = {
         for (let i = 0; i < routes.destinations.length; i++) {
             await this.sleep(150);
             const dest = routes.destinations[i];
-            const arcLine = this.createArcLine(origin, dest.coords, dest.status);
+            const arcLine = this.createArcLine(origin, dest.coords, dest.status, dest.semiconductorLink);
             this.airlineRoutePolylines.push(arcLine);
             this.layers.airlineRoutes.addLayer(arcLine);
         }
