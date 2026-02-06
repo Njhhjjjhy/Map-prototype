@@ -49,7 +49,8 @@ const MapManager = {
         properties: null,
         route: null,
         evidenceMarkers: null,
-        infrastructureRoads: null
+        infrastructureRoads: null,
+        kyushuEnergy: null
     },
 
     /**
@@ -305,6 +306,61 @@ const MapManager = {
             marker.addTo(this.map);
             this.markers[`water-evidence-${evidence.id}`] = marker;
         });
+    },
+
+    /**
+     * Show Kyushu-wide energy infrastructure markers
+     * Zooms out to show full Kyushu with solar, wind, nuclear icons
+     */
+    showKyushuEnergy() {
+        this.hideKyushuEnergy();
+
+        this.layers.kyushuEnergy = L.layerGroup();
+        const energyData = AppData.kyushuEnergy;
+        const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+        const iconMap = { solar: '☀', wind: '💨', nuclear: '⚛' };
+
+        ['solar', 'wind', 'nuclear'].forEach(type => {
+            energyData[type].forEach(station => {
+                const marker = L.marker(station.coords, {
+                    icon: L.divIcon({
+                        className: 'energy-marker-wrapper',
+                        html: `<div class="energy-marker energy-marker--${type}" style="background: ${colorMap[type]};">
+                            <span style="font-size: 14px;">${iconMap[type]}</span>
+                        </div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    })
+                });
+
+                marker.bindTooltip(`${station.name}<br><strong>${station.capacity}</strong>`, {
+                    direction: 'top',
+                    offset: [0, -14],
+                    className: 'map-tooltip'
+                });
+
+                marker.on('click', () => {
+                    UI.showEnergyStationPanel(station, type);
+                });
+
+                this.layers.kyushuEnergy.addLayer(marker);
+            });
+        });
+
+        this.layers.kyushuEnergy.addTo(this.map);
+
+        // Zoom out to show full Kyushu
+        this.map.flyTo([32.5, 130.5], 7, { duration: 1.8 });
+    },
+
+    /**
+     * Hide Kyushu energy markers
+     */
+    hideKyushuEnergy() {
+        if (this.layers.kyushuEnergy) {
+            this.map.removeLayer(this.layers.kyushuEnergy);
+            this.layers.kyushuEnergy = null;
+        }
     },
 
     /**

@@ -119,6 +119,24 @@ const AppData = {
         }
     },
 
+    // Kyushu-wide Energy Infrastructure (for combined utility step)
+    kyushuEnergy: {
+        solar: [
+            { id: 'solar-kagoshima', name: 'Kagoshima Solar Installations', coords: [31.56, 130.55], capacity: '24.7 MW', prefecture: 'Kagoshima' },
+            { id: 'solar-fukuoka', name: 'Fukuoka Solar Installations', coords: [33.59, 130.40], capacity: '22.9 MW', prefecture: 'Fukuoka' },
+            { id: 'solar-nagasaki', name: 'Nagasaki Solar Installations', coords: [32.75, 129.87], capacity: '10 MW', prefecture: 'Nagasaki' }
+        ],
+        wind: [
+            { id: 'wind-miyazaki', name: 'Miyazaki Wind Farm', coords: [31.91, 131.42], capacity: '65.55 MW', prefecture: 'Miyazaki' },
+            { id: 'wind-saga', name: 'Saga-Nagasaki Wind Farm', coords: [33.25, 129.95], capacity: '27.2 MW', prefecture: 'Saga/Nagasaki' },
+            { id: 'wind-goto', name: 'Goto Offshore Wind', coords: [32.70, 128.85], capacity: 'Offshore', prefecture: 'Nagasaki' }
+        ],
+        nuclear: [
+            { id: 'nuclear-genkai', name: 'Genkai Nuclear Power Station', coords: [33.515, 129.836], capacity: '3.47 GW', prefecture: 'Saga' },
+            { id: 'nuclear-sendai', name: 'Sendai Nuclear Power Station', coords: [31.8336, 130.1894], capacity: '1.78 GW', prefecture: 'Kagoshima' }
+        ]
+    },
+
     // Journey B: Infrastructure - Science Park
     sciencePark: {
         center: [32.87, 130.78],

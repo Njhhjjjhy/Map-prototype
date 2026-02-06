@@ -1038,6 +1038,49 @@ const UI = {
     },
 
     /**
+     * Show energy station panel for Kyushu energy markers
+     * @param {Object} station - Energy station data
+     * @param {string} type - 'solar', 'wind', or 'nuclear'
+     */
+    showEnergyStationPanel(station, type) {
+        const typeLabels = { solar: 'Solar Power', wind: 'Wind Energy', nuclear: 'Nuclear Power' };
+        const typeColors = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+
+        const content = `
+            <div class="subtitle">Kyushu Energy Infrastructure</div>
+            <h2>${station.name}</h2>
+            <div style="
+                display: inline-flex;
+                align-items: center;
+                gap: var(--space-2);
+                padding: var(--space-1) var(--space-3);
+                background: ${typeColors[type]}15;
+                border-radius: var(--radius-small);
+                font-family: var(--font-display);
+                font-size: var(--text-sm);
+                font-weight: var(--font-weight-semibold);
+                color: ${typeColors[type]};
+                margin-bottom: var(--space-4);
+            ">${typeLabels[type]}</div>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-value">${station.capacity}</div>
+                    <div class="stat-label">Capacity</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${station.prefecture}</div>
+                    <div class="stat-label">Prefecture</div>
+                </div>
+            </div>
+            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">
+                Kyushu leads Japan in renewable energy adoption, providing the stable and diverse power mix semiconductor manufacturing requires.
+            </p>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show Science Park panel (Journey B)
      */
     showScienceParkPanel() {

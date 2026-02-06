@@ -127,10 +127,15 @@ const App = {
     stepA2() {
         this.state.step = 'A2';
 
-        // Show resource options
+        // Show Kyushu-wide energy markers and water resource markers together
+        MapManager.showKyushuEnergy();
+        MapManager.showResourceMarker('water');
+
+        // Show combined utility infrastructure options
         UI.updateChatbox(`
             <h3>Why Kumamoto?</h3>
-            <p>Two key factors attracted the world's leading chipmakers:</p>
+            <p><strong>Utility Infrastructure</strong></p>
+            <p>Two critical resources for semiconductor manufacturing — both abundant in Kyushu:</p>
             <div class="chatbox-options">
                 <button class="chatbox-option" onclick="App.selectResource('water')">
                     Water Resources
@@ -272,8 +277,9 @@ const App = {
         // Hide legend before transition
         UI.hideLegend();
 
-        // Clear airline routes before transition
+        // Clear airline routes and energy markers before transition
         MapManager.hideAirlineRoutes();
+        MapManager.hideKyushuEnergy();
 
         // Show memorable journey transition (Peak-End Rule)
         await UI.showJourneyTransition('B');

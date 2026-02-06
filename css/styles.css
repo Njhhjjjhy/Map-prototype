@@ -1719,6 +1719,27 @@ a:focus-visible {
     display: none;
 }
 
+/* Kyushu energy infrastructure markers */
+.energy-marker-wrapper {
+    background: none;
+    border: none;
+}
+
+.energy-marker {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: var(--shadow-medium);
+}
+
+.energy-marker--solar { background: #ff9500; }
+.energy-marker--wind { background: #5ac8fa; }
+.energy-marker--nuclear { background: #ff3b30; }
+
 /* Semiconductor route label (TSMC/Samsung) */
 .semiconductor-route-label {
     background: var(--color-bg-primary);
