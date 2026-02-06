@@ -445,6 +445,9 @@ const App = {
         // Update legend for Journey C
         UI.showLegend('C');
 
+        // Show property list in right panel
+        UI.showPropertyListPanel();
+
         // Generate portfolio summary (Peak Experience)
         const portfolioSummary = UI.showPortfolioSummary();
 

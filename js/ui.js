@@ -3226,6 +3226,49 @@ const UI = {
     },
 
     /**
+     * Show property list panel — inventory view for Journey C
+     * Shows all available units as a scrollable list with key metrics
+     */
+    showPropertyListPanel() {
+        const properties = AppData.properties;
+        const formatYen = (num) => '¥' + (num / 1000000).toFixed(1) + 'M';
+
+        const listHtml = properties.map(prop => {
+            const avgYield = (prop.financials.scenarios.average.rentalYield * 100).toFixed(1);
+            return `
+                <div class="property-list-item" onclick="UI.showPropertyPanel('${prop.id}')">
+                    <div class="property-list-image">
+                        <img src="${prop.image}" alt="${prop.name}" loading="lazy">
+                    </div>
+                    <div class="property-list-info">
+                        <div class="property-list-name">${prop.name}</div>
+                        <div class="property-list-type">${prop.type}</div>
+                        <div class="property-list-stats">
+                            <span>${prop.driveTime} to JASM</span>
+                            <span>${formatYen(prop.financials.acquisitionCost)}</span>
+                        </div>
+                    </div>
+                    <div class="property-list-yield">
+                        ${avgYield}%
+                        <span class="property-list-yield-label">Yield</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const content = `
+            <div class="subtitle">Portfolio</div>
+            <h2>Available Units</h2>
+            <p>Click a property to see detailed financials and projections.</p>
+            <div class="property-list" style="margin-top: var(--space-6);">
+                ${listHtml}
+            </div>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show Performance Calculator with headline stat and progressive disclosure
      * @param {Object} property - Property to show financials for
      * @param {string} scenario - Scenario to highlight (default: 'average')
