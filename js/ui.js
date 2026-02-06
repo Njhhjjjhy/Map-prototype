@@ -3182,6 +3182,38 @@ const UI = {
         return journeys[journeyId] || journeys['complete'];
     },
 
+    /**
+     * Show MoreHarvest grand entry — branded full-screen overlay
+     * Appears between Journey B → C transition and property markers
+     */
+    showMoreHarvestEntry() {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'moreharvest-entry';
+            overlay.innerHTML = `
+                <div class="moreharvest-entry-logo">MoreHarvest</div>
+                <div class="moreharvest-entry-tagline">Investment Opportunities in Kumamoto</div>
+            `;
+            document.body.appendChild(overlay);
+
+            // Fade in
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    overlay.classList.add('visible');
+                });
+            });
+
+            // Fade out after 2.5 seconds
+            setTimeout(() => {
+                overlay.classList.remove('visible');
+                setTimeout(() => {
+                    overlay.remove();
+                    resolve();
+                }, 350);
+            }, 2500);
+        });
+    },
+
     // ================================
     // PORTFOLIO SUMMARY (Peak Experience)
     // ================================

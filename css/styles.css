@@ -3396,6 +3396,61 @@ button.layer-item {
 }
 
 /* ================================
+   MOREHARVEST GRAND ENTRY
+   ================================ */
+.moreharvest-entry {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--easing-standard);
+}
+
+.moreharvest-entry.visible {
+    opacity: 1;
+}
+
+.moreharvest-entry-logo {
+    font-family: var(--font-display);
+    font-size: var(--text-5xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-display);
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: mhEntryFadeUp 0.6s var(--easing-decelerate) 0.3s forwards;
+}
+
+.moreharvest-entry-tagline {
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    color: var(--color-text-disabled);
+    opacity: 0;
+    animation: mhEntryFadeUp 0.6s var(--easing-decelerate) 0.6s forwards;
+}
+
+@keyframes mhEntryFadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .moreharvest-entry-logo,
+    .moreharvest-entry-tagline {
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* ================================
    HEADLINE STAT (Net Profit) - Von Restorff Effect
    ================================ */
 .headline-stat {

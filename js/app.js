@@ -425,6 +425,9 @@ const App = {
         // Show memorable journey transition (Peak-End Rule)
         await UI.showJourneyTransition('C');
 
+        // Show MoreHarvest grand entry before properties
+        await UI.showMoreHarvestEntry();
+
         this.startJourneyC();
     },
 
