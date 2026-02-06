@@ -41,7 +41,7 @@ const App = {
 
     startJourneyA() {
         this.state.journey = 'A';
-        this.state.step = 'A1';
+        this.state.step = 'A0';
         this.state.resourcesExplored = [];
         this.state.evidenceGroupsViewed = [];
 
@@ -51,8 +51,71 @@ const App = {
         // Show data layers toggle for Journey A
         UI.showDataLayers('A');
 
-        // A1: Show "Why Kumamoto?" prompt
+        // A0: Opening question — frames the entire narrative
+        const q = AppData.openingQuestion;
         UI.showChatbox(`
+            <h3>${q.title}</h3>
+            <p class="chatbox-question">${q.question}</p>
+            <p style="color: var(--color-text-tertiary); margin-top: var(--space-2);">
+                ${q.questionJa}
+            </p>
+            <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
+                View the Evidence
+            </button>
+        `);
+    },
+
+    /**
+     * A0: Show supporting evidence for the opening question
+     */
+    showOpeningEvidence() {
+        const docs = AppData.openingQuestion.supportingDocs;
+        const docsHtml = docs.map(doc => {
+            const iconName = doc.type === 'government' ? 'landmark' : doc.type === 'news' ? 'newspaper' : 'bar-chart-3';
+            return `
+                <div class="evidence-item" onclick="UI.showGallery('${doc.title}')">
+                    <div class="evidence-item-icon">
+                        <i data-lucide="${iconName}"></i>
+                    </div>
+                    <div class="evidence-item-content">
+                        <div class="evidence-item-title">${doc.title}</div>
+                        <div class="evidence-item-source">${doc.source}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        UI.showPanel(`
+            <div class="subtitle">Supporting Evidence</div>
+            <h2>¥10 Trillion Commitment</h2>
+            <p>Japan designated semiconductors as critical infrastructure, committing unprecedented public funds.</p>
+            <div class="evidence-library" style="margin-top: var(--space-6);">
+                ${docsHtml}
+            </div>
+        `);
+
+        // Re-init lucide icons in the panel
+        if (window.lucide) lucide.createIcons();
+
+        // Update chatbox to continue
+        const q = AppData.openingQuestion;
+        UI.updateChatbox(`
+            <h3>${q.title}</h3>
+            <p class="chatbox-question">${q.question}</p>
+            <button class="chatbox-continue primary" onclick="App.stepA1()">
+                Why Kumamoto?
+            </button>
+        `);
+    },
+
+    /**
+     * A1: Why Kumamoto? intro
+     */
+    stepA1() {
+        this.state.step = 'A1';
+        UI.hidePanel();
+
+        UI.updateChatbox(`
             <h3>Why Kumamoto?</h3>
             <p>Discover what makes this region special for semiconductor investment.</p>
             <button class="chatbox-continue primary" onclick="App.stepA2()">
@@ -484,7 +547,16 @@ const App = {
         const { journey, step } = this.state;
 
         if (journey === 'A') {
-            if (step === 'A1') {
+            if (step === 'A0') {
+                const q = AppData.openingQuestion;
+                UI.showChatbox(`
+                    <h3>${q.title}</h3>
+                    <p class="chatbox-question">${q.question}</p>
+                    <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
+                        View the Evidence
+                    </button>
+                `);
+            } else if (step === 'A1') {
                 UI.showChatbox(`
                     <h3>Why Kumamoto?</h3>
                     <p>Discover what makes this region special for semiconductor investment.</p>

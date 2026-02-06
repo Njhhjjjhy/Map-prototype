@@ -753,6 +753,16 @@ a:focus-visible {
     display: none;
 }
 
+/* Chatbox question (opening question emphasis) */
+.chatbox-question {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--tracking-display);
+    color: var(--color-text-primary);
+}
+
 @keyframes buttonEntrance {
     from {
         opacity: 0;

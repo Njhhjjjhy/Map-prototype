@@ -12,6 +12,35 @@ const AppData = {
         propertyZoom: 14
     },
 
+    // Journey A: Opening Question (Step A0)
+    openingQuestion: {
+        title: 'The Core Question',
+        titleJa: '核心問題',
+        question: 'Why is Japan\'s government spending ¥10 trillion in Kumamoto?',
+        questionJa: '為什麼日本要投入巨大資源重塑半導體產業？',
+        supportingDocs: [
+            {
+                id: 'meti-plan',
+                title: 'Certified Semiconductor Production Facility Plan',
+                titleJa: '認定特定半導体生産施設整備等計画',
+                source: 'meti.go.jp',
+                type: 'government'
+            },
+            {
+                id: 'reuters-tsmc',
+                title: 'Tokyo Pledges $4.9B for TSMC Japan Expansion',
+                source: 'reuters.com',
+                type: 'news'
+            },
+            {
+                id: 'nippon-data',
+                title: 'Japan Making Major Investments in Semiconductor Industry',
+                source: 'nippon.com',
+                type: 'data'
+            }
+        ]
+    },
+
     // Journey A: Why Kumamoto? - Resources
     resources: {
         water: {
