@@ -3211,7 +3211,18 @@ const UI = {
             return '¥' + num.toLocaleString();
         };
 
+        // GKTK fund info
+        const gktk = AppData.gktk;
+        const gktkHtml = gktk ? `
+            <div class="gktk-banner">
+                <div class="gktk-label">${gktk.fullName}</div>
+                <div class="gktk-size">${gktk.fundSize}</div>
+                <div class="gktk-note">${gktk.fundSizeNote} &middot; ${gktk.vintage} vintage &middot; ${gktk.stats[3].value} target IRR</div>
+            </div>
+        ` : '';
+
         const content = `
+            ${gktkHtml}
             <div class="portfolio-summary">
                 <div class="portfolio-summary-label">Combined 5-Year Potential</div>
                 <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>

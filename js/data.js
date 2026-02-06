@@ -352,6 +352,22 @@ const AppData = {
         }
     ],
 
+    // GKTK Fund Vehicle
+    gktk: {
+        name: 'GKTK Fund',
+        fullName: 'Greater Kumamoto Technology Corridor Fund',
+        fundSize: '¥2.5B',
+        fundSizeNote: 'Target AUM',
+        strategy: 'Real estate investment in the semiconductor corridor',
+        vintage: '2025',
+        stats: [
+            { value: '¥2.5B', label: 'Fund size' },
+            { value: '2025', label: 'Vintage' },
+            { value: '5-7yr', label: 'Hold period' },
+            { value: '12-18%', label: 'Target IRR' }
+        ]
+    },
+
     // Journey C: Investment Properties
     properties: [
         {
