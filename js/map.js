@@ -489,6 +489,17 @@ const MapManager = {
     },
 
     /**
+     * Select a government level from the hierarchy panel
+     * Flies to the marker and shows its panel
+     */
+    selectGovernmentLevel(levelId) {
+        const level = AppData.governmentChain.levels.find(l => l.id === levelId);
+        if (!level) return;
+        this.flyTo(level.coords, 12);
+        UI.showGovernmentLevelPanel(level);
+    },
+
+    /**
      * Show future development zones (Journey B - Future view)
      */
     showFutureZones() {

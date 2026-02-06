@@ -1186,12 +1186,33 @@ const UI = {
         const typeLabel = level.type === 'concept' ? 'Future Vision' : 'Active Commitment';
         const typeColor = level.type === 'concept' ? 'var(--color-warning)' : 'var(--color-success)';
 
+        // Build vertical hierarchy showing all levels (top-to-bottom cascade)
+        const levels = AppData.governmentChain.levels;
+        const hierarchyHtml = levels.map((lvl, i) => {
+            const isSelected = lvl.id === level.id;
+            return `
+                <div class="gov-level ${isSelected ? 'gov-level--selected' : ''}"
+                     onclick="MapManager.selectGovernmentLevel('${lvl.id}')">
+                    <div class="gov-level-number">${i + 1}</div>
+                    <div class="gov-level-content">
+                        <div class="gov-level-name">${lvl.name}</div>
+                        <div class="gov-level-subtitle">${lvl.subtitle}</div>
+                    </div>
+                    <div class="gov-level-amount">${lvl.stats[0].value}</div>
+                </div>
+            `;
+        }).join('');
+
         const content = `
             <div class="subtitle" style="color: ${typeColor};">${typeLabel}</div>
             <h2>${level.name}</h2>
             <p class="panel-subtitle">${level.subtitle}</p>
             <p>${level.description}</p>
             <div class="stat-grid">${statsHtml}</div>
+            <div class="gov-hierarchy">
+                <div class="gov-hierarchy-label">Cascading Policy Alignment</div>
+                ${hierarchyHtml}
+            </div>
         `;
 
         this.showPanel(content);
