@@ -945,7 +945,7 @@ const AppData = {
             markers: [
                 { id: 'base-1', coords: [32.79, 130.69], name: 'Kumamoto City Center', type: 'City', population: '740,000' },
                 { id: 'base-2', coords: [32.84, 130.86], name: 'Kumamoto Airport', type: 'Airport', routes: '12 international' },
-                { id: 'base-3', coords: [32.93, 130.78], name: 'Mount Aso', type: 'Landmark', elevation: '1,592m' }
+                { id: 'base-3', coords: [32.8842, 131.1040], name: 'Mount Aso', type: 'Landmark', elevation: '1,592m' }
             ],
             stats: [
                 { value: '740,000', label: 'City population' },
