@@ -969,6 +969,34 @@ const MapManager = {
             this.infrastructureMarkers.push(stationMarker);
         }
 
+        // Also show Haramizu station marker
+        const haramizu = AppData.haramizuStation;
+        if (haramizu) {
+            const haramizuMarker = L.marker(haramizu.coords, {
+                icon: L.divIcon({
+                    className: 'infrastructure-marker station-marker',
+                    html: `<div class="marker-icon" style="background: #ff9500; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg></div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                })
+            });
+
+            haramizuMarker.bindTooltip(haramizu.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -16],
+                className: 'map-tooltip'
+            });
+
+            haramizuMarker.on('click', () => {
+                this.clearInfrastructureRoadSelection();
+                UI.showHaramizuPanel(haramizu);
+            });
+
+            haramizuMarker.addTo(this.map);
+            this.infrastructureMarkers.push(haramizuMarker);
+        }
+
         // Fit bounds to show all roads
         const allCoords = AppData.infrastructureRoads.flatMap(r => r.coords);
         if (allCoords.length > 0) {

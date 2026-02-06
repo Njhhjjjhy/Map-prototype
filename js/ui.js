@@ -1306,6 +1306,52 @@ const UI = {
     },
 
     /**
+     * Show Haramizu Station development panel
+     * @param {Object} station - Haramizu station data
+     */
+    showHaramizuPanel(station) {
+        const statsHtml = station.stats.map(stat => `
+            <div class="stat-item">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('');
+
+        const zonesHtml = station.zones.map(z => `
+            <div style="padding: var(--space-3); background: var(--color-bg-secondary); border-radius: var(--radius-medium); margin-bottom: var(--space-2);">
+                <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base);">
+                    ${z.name} <span style="color: var(--color-text-tertiary); font-weight: var(--font-weight-regular);">${z.nameEn}</span>
+                </div>
+                <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-1);">
+                    ${z.description}
+                </div>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="subtitle">Development Hub</div>
+            <h2>${station.name}</h2>
+            <p class="panel-subtitle">${station.nameJa}</p>
+
+            <div class="headline-metric" style="margin: var(--space-4) 0; padding: var(--space-4); background: var(--color-bg-secondary); border-radius: var(--radius-medium); text-align: center;">
+                <div style="font-size: var(--text-4xl); font-weight: var(--font-weight-bold); color: var(--color-warning);">${station.stats[0].value}</div>
+                <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">Development Area</div>
+            </div>
+
+            <div class="stat-grid">${statsHtml}</div>
+
+            <p style="margin-top: var(--space-4);">${station.description}</p>
+
+            <div style="margin-top: var(--space-6);">
+                <h3 style="margin-bottom: var(--space-3);">Development Zones</h3>
+                ${zonesHtml}
+            </div>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show airline route panel for a destination
      * @param {Object} destination - Destination data
      */

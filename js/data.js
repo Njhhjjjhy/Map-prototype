@@ -678,7 +678,7 @@ const AppData = {
         }
     ],
 
-    // Journey B: Infrastructure Station (B7)
+    // Journey B: Infrastructure Stations (B7)
     infrastructureStation: {
         id: 'kikuyo-station',
         name: 'Kikuyo Station',
@@ -694,6 +694,29 @@ const AppData = {
             { value: '8,000', label: 'Daily passengers est.' }
         ],
         commuteImpact: 'Rail option',
+        documentLink: '#'
+    },
+
+    haramizuStation: {
+        id: 'haramizu-station',
+        name: 'Haramizu Station Area',
+        nameJa: '原水駅エリア',
+        coords: [32.8698, 130.8230],
+        subtitle: 'New Development Hub',
+        status: 'Under Development',
+        description: 'Haramizu Station area is being developed as a new urban core with 70ha of mixed-use land. Three development zones planned. Mitsui Fudosan and JR Kyushu selected as development partners.',
+        stats: [
+            { value: '70ha', label: 'Development area' },
+            { value: '3 zones', label: 'Mixed-use plan' },
+            { value: 'Mitsui + JR', label: 'Development partners' },
+            { value: '2028', label: 'Phase 1 target' }
+        ],
+        zones: [
+            { name: '賑わい', nameEn: 'Vibrancy', description: 'Station-front retail, F&B, international-friendly services' },
+            { name: '知の集積', nameEn: 'Knowledge Cluster', description: 'R&D offices, co-working, university satellite' },
+            { name: '職住近接', nameEn: 'Live-Work', description: 'Mid-high density condos, serviced apartments for engineers' }
+        ],
+        commuteImpact: 'New urban core',
         documentLink: '#'
     },
 

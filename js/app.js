@@ -400,8 +400,7 @@ const App = {
         UI.updateChatbox(`
             <h3>Changes in Area</h3>
             <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
-            <p>These infrastructure projects are cutting commute times — making nearby properties more valuable.</p>
-            <p style="margin-top: 8px;"><strong>Click a highlighted road</strong> to see the impact.</p>
+            <p>Click a <strong>highlighted road</strong> or the <strong>Haramizu Station</strong> marker to see development details.</p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
                 View Investment Opportunities
             </button>
