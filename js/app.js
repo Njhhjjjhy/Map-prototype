@@ -158,7 +158,7 @@ const App = {
             this.state.resourcesExplored.push(resourceId);
         }
 
-        // Show the resource panel immediately (default to water if first time)
+        // Show the resource panel immediately
         const resource = AppData.resources[resourceId];
         if (resource) {
             UI.showResourcePanel(resource);
@@ -166,6 +166,15 @@ const App = {
 
         // Update chatbox to show what's been explored
         this.updateResourceChatbox();
+
+        // Chain: when panel closes, auto-advance to next unexplored resource
+        const nextResource = resourceId === 'water' ? 'power' : 'water';
+        const nextExplored = this.state.resourcesExplored.includes(nextResource);
+        if (!nextExplored) {
+            UI.onPanelClose(() => {
+                this.selectResource(nextResource);
+            });
+        }
     },
 
     updateResourceChatbox() {

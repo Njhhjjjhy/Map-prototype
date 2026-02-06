@@ -916,7 +916,22 @@ const UI = {
                     this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
                 }
             }
+
+            // Fire onPanelClose callback if set
+            if (this._onPanelClose) {
+                const cb = this._onPanelClose;
+                this._onPanelClose = null;
+                cb();
+            }
         }, animationDuration);
+    },
+
+    /**
+     * Set a one-time callback for when the panel closes
+     * @param {Function} callback
+     */
+    onPanelClose(callback) {
+        this._onPanelClose = callback;
     },
 
     /**
