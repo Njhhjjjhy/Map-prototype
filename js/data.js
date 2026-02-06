@@ -381,6 +381,11 @@ const AppData = {
             type: 'Single Family Residence',
             zone: 'Kikuyo Development Zone',
             image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
+            exteriorImage: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80',
+            interiorImages: [
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
+                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
+            ],
             description: 'Modern 3-bedroom residence in the heart of the development zone. Walking distance to new commercial center.',
             basicStats: [
                 { value: '12 min', label: 'Drive to JASM' },
@@ -451,6 +456,11 @@ const AppData = {
             type: 'Apartment',
             zone: 'Ozu Industrial Expansion',
             image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80',
+            exteriorImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80',
+            interiorImages: [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
+                'https://images.unsplash.com/photo-1560185127-6a62b8a7d6c8?w=800&q=80'
+            ],
             description: 'High-demand apartment in growing residential area. Strong rental history with semiconductor industry tenants.',
             basicStats: [
                 { value: '15 min', label: 'Drive to JASM' },

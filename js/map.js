@@ -579,7 +579,7 @@ const MapManager = {
 
             marker.on('click', () => {
                 this.showRouteToJasm(property);
-                UI.showPropertyPanel(property);
+                UI.showPropertyReveal(property);
             });
 
             this.markers[property.id] = marker;

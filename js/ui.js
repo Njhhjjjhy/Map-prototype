@@ -1523,7 +1523,72 @@ const UI = {
      * Show property panel (Journey C)
      * Inspector pattern: Image at top → Property details → Financials
      */
+    /**
+     * Cinematic property reveal: 2D map → 3D exterior → interior
+     * @param {Object} property - Property data object
+     */
+    async showPropertyReveal(property) {
+        // Accept string ID or object
+        if (typeof property === 'string') {
+            property = AppData.properties.find(p => p.id === property);
+            if (!property) return;
+        }
+
+        // Phase 1: Fly to property on map (2D zoom in)
+        MapManager.flyTo(property.coords, 16);
+        await this._delay(1800);
+
+        // Phase 2: Show exterior image overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'property-reveal';
+        overlay.innerHTML = `
+            <div class="property-reveal-image">
+                <img src="${property.exteriorImage || property.image}" alt="${property.name} exterior">
+                <div class="property-reveal-label">
+                    <span>${property.name}</span>
+                    <span class="property-reveal-type">${property.type || property.subtitle}</span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => overlay.classList.add('visible'));
+        });
+        await this._delay(2000);
+
+        // Phase 3: Crossfade to interior (if available)
+        if (property.interiorImages && property.interiorImages.length > 0) {
+            const img = overlay.querySelector('img');
+            img.style.transition = 'opacity 0.5s ease';
+            img.style.opacity = '0';
+            await this._delay(500);
+            img.src = property.interiorImages[0];
+            img.alt = `${property.name} interior`;
+            img.style.opacity = '1';
+            await this._delay(2000);
+        }
+
+        // Phase 4: Dismiss overlay and show detail panel
+        overlay.classList.remove('visible');
+        await this._delay(350);
+        overlay.remove();
+
+        this.showPropertyPanel(property);
+    },
+
+    /**
+     * Promise-based delay helper
+     */
+    _delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
     showPropertyPanel(property) {
+        // Accept string ID or object
+        if (typeof property === 'string') {
+            property = AppData.properties.find(p => p.id === property);
+            if (!property) return;
+        }
         this.currentProperty = property;
 
         // Property details section (type, location, zone, JASM distance)
