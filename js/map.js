@@ -674,6 +674,11 @@ const MapManager = {
                 className: 'map-tooltip'
             });
 
+            // Preload property images on hover (before click)
+            marker.on('mouseover', () => {
+                MapboxReveal.preloadImages(property);
+            });
+
             marker.on('click', () => {
                 this.showRouteToJasm(property);
                 UI.showPropertyReveal(property);

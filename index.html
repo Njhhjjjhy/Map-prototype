@@ -17,6 +17,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
+    <!-- Mapbox GL JS CSS (3D property reveal) -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+
     <!-- App CSS -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -35,6 +38,8 @@
         <!-- Map Container -->
         <div id="map-container" tabindex="-1">
             <div id="map" role="application" aria-label="Interactive map of Kumamoto investment region"></div>
+            <!-- Mapbox GL JS 3D overlay (property reveal only) -->
+            <div id="mapbox-3d" aria-hidden="true"></div>
             <!-- Screen reader announcements for map interactions -->
             <div id="map-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
@@ -224,8 +229,13 @@
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+    <!-- Mapbox GL JS (3D property reveal) -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+    <script>window.MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGV3dTVhYTE1cDgzZnEza2gzbGZocGcifQ.oR9Q__KlUYzBssiJUZf3dQ';</script>
+
     <!-- App JS -->
     <script src="js/data.js"></script>
+    <script src="js/mapbox-reveal.js"></script>
     <script src="js/map.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>

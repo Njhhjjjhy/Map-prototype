@@ -350,8 +350,40 @@ a:focus-visible {
 }
 
 #map {
+    position: relative;
+    z-index: 0;
     width: 100%;
     height: 100%;
+}
+
+/* ================================
+   MAPBOX 3D OVERLAY (Property Reveal)
+   ================================ */
+#mapbox-3d {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+    transition: opacity 0.4s var(--easing-decelerate);
+}
+
+#mapbox-3d.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Hide Mapbox UI chrome during cinematic reveal */
+#mapbox-3d .mapboxgl-ctrl-attrib,
+#mapbox-3d .mapboxgl-ctrl-logo {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #mapbox-3d {
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* ================================

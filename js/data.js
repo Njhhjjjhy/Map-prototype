@@ -469,9 +469,9 @@ const AppData = {
         {
             id: 'prop-1',
             name: 'Kikuyo Residence A',
-            coords: [32.876, 130.82],
+            coords: [32.8755, 130.8195],
             subtitle: 'New Construction',
-            address: '123 Kikuyo-machi, Kikuyo',
+            address: '969-1 Haramizu, Kikuyo-machi, Kikuchi-gun',
             distanceToJasm: '8.2 km',
             driveTime: '12 min',
             type: 'Single Family Residence',
@@ -544,9 +544,9 @@ const AppData = {
         {
             id: 'prop-2',
             name: 'Ozu Heights Unit B',
-            coords: [32.855, 130.86],
+            coords: [32.8735, 130.8225],
             subtitle: 'Apartment Investment',
-            address: '45 Ozu-machi, Ozu',
+            address: '717 Haramizu, Kikuyo, Kikuchi District',
             distanceToJasm: '10.5 km',
             driveTime: '15 min',
             type: 'Apartment',

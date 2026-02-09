@@ -1609,7 +1609,8 @@ const UI = {
      * Inspector pattern: Image at top → Property details → Financials
      */
     /**
-     * Cinematic property reveal: 2D map → 3D exterior → interior
+     * Cinematic property reveal: 2D → 3D tilt → exterior → interior
+     * Uses Mapbox GL JS for real 3D camera animation with building extrusions
      * @param {Object} property - Property data object
      */
     async showPropertyReveal(property) {
@@ -1619,11 +1620,17 @@ const UI = {
             if (!property) return;
         }
 
-        // Phase 1: Fly to property on map (2D zoom in)
-        MapManager.flyTo(property.coords, 16);
-        await this._delay(1800);
+        // Guard against concurrent reveals
+        if (MapboxReveal.revealing) return;
 
-        // Phase 2: Show exterior image overlay
+        // Stage 1a: Leaflet head-start zoom toward property
+        MapManager.flyTo(property.coords, 16);
+        await this._delay(600);
+
+        // Stage 1b: Mapbox 3D tilt — fades in, camera pitches to 60°, buildings rise
+        await MapboxReveal.forwardReveal(property, MapManager.map);
+
+        // Stage 2: Crossfade from 3D map to exterior photograph
         const overlay = document.createElement('div');
         overlay.className = 'property-reveal';
         overlay.innerHTML = `
@@ -1639,9 +1646,9 @@ const UI = {
         requestAnimationFrame(() => {
             requestAnimationFrame(() => overlay.classList.add('visible'));
         });
-        await this._delay(2000);
+        await this._delay(1200);
 
-        // Phase 3: Crossfade to interior (if available)
+        // Stage 3: Crossfade to interior (if available)
         if (property.interiorImages && property.interiorImages.length > 0) {
             const img = overlay.querySelector('img');
             img.style.transition = 'opacity 0.5s ease';
@@ -1650,15 +1657,20 @@ const UI = {
             img.src = property.interiorImages[0];
             img.alt = `${property.name} interior`;
             img.style.opacity = '1';
-            await this._delay(2000);
+            await this._delay(800);
         }
 
-        // Phase 4: Dismiss overlay and show detail panel
+        // Stage 4: Dismiss photo overlay and show detail panel
         overlay.classList.remove('visible');
         await this._delay(350);
         overlay.remove();
 
         this.showPropertyPanel(property);
+
+        // Register reverse 3D animation for when the panel closes
+        this.onPanelClose(() => {
+            MapboxReveal.reverseReveal();
+        });
     },
 
     /**

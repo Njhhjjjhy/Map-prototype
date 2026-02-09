@@ -421,6 +421,9 @@ const App = {
         this.state.journey = 'C';
         this.state.step = 'C1';
 
+        // Warm up Mapbox 3D reveal (downloads tiles in background)
+        MapboxReveal.init(window.MAPBOX_ACCESS_TOKEN);
+
         // C1: Show property markers
         MapManager.showPropertyMarkers();
 
@@ -478,6 +481,7 @@ const App = {
      * Restart the presentation
      */
     restart() {
+        MapboxReveal.destroy();
         MapManager.clearAll();
         UI.hidePanel();
         UI.hideControlBar();
