@@ -14,11 +14,11 @@ const MAP_COLORS = {
     warning: '#ff9500',
     success: '#34c759',
 
-    // Marker types (aligned with legend)
+    // Marker types
     resource: '#ff3b30',   // Red
     company: '#007aff',    // Blue
     property: '#ff9500',   // Orange/Amber
-    zone: '#ff3b30',       // Red
+    zone: '#5856D6',       // Indigo (WCAG AA contrast against Science Park red)
 
     // Map-specific
     route: '#64748b',      // Neutral gray for route lines
@@ -41,6 +41,7 @@ const MapManager = {
     airlineRoutePolylines: [],
     airlineDestinationMarkers: [],
     airlineOriginMarker: null,
+    preDataLayerView: null, // Save map state before data layer zoom
     layers: {
         resources: null,
         sciencePark: null,
@@ -168,7 +169,7 @@ const MapManager = {
      * Create a custom marker icon with distinct icons per type
      */
     createMarkerIcon(type, subtype = null) {
-        // Colors aligned with legend - uses MAP_COLORS design tokens
+        // Colors per type - uses MAP_COLORS design tokens
         const colors = {
             resource: MAP_COLORS.resource,
             company: MAP_COLORS.company,
@@ -231,6 +232,48 @@ const MapManager = {
                 justify-content: center;
                 transition: transform 0.15s ease;
             ">${icon}</div></div>`,
+            iconSize: [48, 48],
+            iconAnchor: [24, 24]
+        });
+    },
+
+    /**
+     * Create branded company marker with text-based logo representation
+     * @param {string} companyId - Company ID (jasm, sony, etc.)
+     * @returns {L.DivIcon} Leaflet div icon
+     */
+    createBrandedMarkerIcon(companyId) {
+        const brands = {
+            jasm: { text: 'JASM', bg: '#c4001a', textColor: '#ffffff', fontSize: '9px', fontWeight: '800', letterSpacing: '0.3px' },
+            sony: { text: 'SONY', bg: '#000000', textColor: '#ffffff', fontSize: '9px', fontWeight: '700', letterSpacing: '0.8px' },
+            'tokyo-electron': { text: 'TEL', bg: '#007aff', textColor: '#ffffff', fontSize: '10px', fontWeight: '700', letterSpacing: '0.5px' },
+            mitsubishi: { text: 'ME', bg: '#cc0000', textColor: '#ffffff', fontSize: '11px', fontWeight: '800', letterSpacing: '0' }
+        };
+
+        const brand = brands[companyId];
+        if (!brand) return this.createMarkerIcon('company');
+
+        return L.divIcon({
+            className: 'custom-marker-wrapper',
+            html: `<div class="custom-marker-hitarea" style="
+                width: 48px; height: 48px;
+                display: flex; align-items: center; justify-content: center; cursor: pointer;
+            "><div class="branded-marker" style="
+                width: 40px; height: 40px;
+                background: ${brand.bg};
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+                display: flex; align-items: center; justify-content: center;
+                transition: transform 0.15s ease;
+            "><span style="
+                font-family: var(--font-display);
+                font-size: ${brand.fontSize};
+                font-weight: ${brand.fontWeight};
+                color: ${brand.textColor};
+                letter-spacing: ${brand.letterSpacing};
+                line-height: 1;
+            ">${brand.text}</span></div></div>`,
             iconSize: [48, 48],
             iconAnchor: [24, 24]
         });
@@ -349,8 +392,43 @@ const MapManager = {
 
         this.layers.kyushuEnergy.addTo(this.map);
 
-        // Zoom out to show full Kyushu
-        this.map.flyTo([32.5, 130.5], 7, { duration: 1.8 });
+        // Fit bounds to show all energy sources across Kyushu
+        const allCoords = [];
+        ['solar', 'wind', 'nuclear'].forEach(type => {
+            energyData[type].forEach(station => allCoords.push(station.coords));
+        });
+        if (allCoords.length > 0) {
+            const bounds = L.latLngBounds(allCoords);
+            this.map.flyToBounds(bounds, {
+                padding: [60, 60],
+                duration: 1.8,
+                maxZoom: 8
+            });
+        }
+    },
+
+    /**
+     * Save current map view before data layer zoom changes
+     */
+    savePreDataLayerView() {
+        this.preDataLayerView = {
+            center: this.map.getCenter(),
+            zoom: this.map.getZoom()
+        };
+    },
+
+    /**
+     * Restore map view after data layer is deactivated
+     */
+    restorePreDataLayerView() {
+        if (this.preDataLayerView) {
+            this.map.flyTo(
+                [this.preDataLayerView.center.lat, this.preDataLayerView.center.lng],
+                this.preDataLayerView.zoom,
+                { duration: 1.5, easeLinearity: 0.2 }
+            );
+            this.preDataLayerView = null;
+        }
     },
 
     /**
@@ -409,7 +487,7 @@ const MapManager = {
 
         AppData.companies.forEach(company => {
             const marker = L.marker(company.coords, {
-                icon: this.createMarkerIcon('company')
+                icon: this.createBrandedMarkerIcon(company.id)
             });
 
             // Add tooltip with company name
@@ -493,6 +571,25 @@ const MapManager = {
      * Flies to the marker and shows its panel
      */
     selectGovernmentLevel(levelId) {
+        // Check new governmentTiers first (including sub-items)
+        if (AppData.governmentTiers) {
+            for (const tier of AppData.governmentTiers) {
+                if (tier.id === levelId) {
+                    this.flyTo(tier.coords, 12);
+                    UI.showGovernmentLevelPanel({ id: tier.id });
+                    return;
+                }
+                if (tier.subItems) {
+                    const sub = tier.subItems.find(s => s.id === levelId);
+                    if (sub) {
+                        this.flyTo(sub.coords, 13);
+                        UI.showGovernmentLevelPanel({ id: sub.id });
+                        return;
+                    }
+                }
+            }
+        }
+        // Fallback to original governmentChain
         const level = AppData.governmentChain.levels.find(l => l.id === levelId);
         if (!level) return;
         this.flyTo(level.coords, 12);
@@ -737,7 +834,7 @@ const MapManager = {
         group.items.forEach(item => {
             if (item.coords) {
                 const marker = L.marker(item.coords, {
-                    icon: this.createEvidenceMarkerIcon(item.type)
+                    icon: this.createEvidenceMarkerIcon(item.type, false, group.icon)
                 });
 
                 marker.on('click', () => {
@@ -772,17 +869,48 @@ const MapManager = {
     /**
      * Create evidence marker icon
      * @param {string} type - Document type (pdf, image, web)
+     * @param {boolean} highlighted - Whether marker is highlighted
+     * @param {string} groupIcon - Content-type icon from parent group (zap, route, landmark, graduation-cap)
      * @returns {L.DivIcon} Leaflet div icon
      */
-    createEvidenceMarkerIcon(type, highlighted = false) {
-        const colors = {
+    createEvidenceMarkerIcon(type, highlighted = false, groupIcon = null) {
+        // Use content-based colors when group icon is provided
+        const contentColors = {
+            'zap': '#ff9500',
+            'route': '#5ac8fa',
+            'landmark': '#007aff',
+            'graduation-cap': '#34c759'
+        };
+        const docColors = {
             'pdf': MAP_COLORS.evidencePdf,
             'image': MAP_COLORS.evidenceImage,
             'web': MAP_COLORS.evidenceWeb
         };
-        const color = colors[type] || MAP_COLORS.evidencePdf;
+        const color = (groupIcon && contentColors[groupIcon]) || docColors[type] || MAP_COLORS.evidencePdf;
 
-        const icons = {
+        // Content-based icons (Lucide-style SVGs matching the group)
+        const contentIcons = {
+            'zap': `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>`,
+            'route': `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/>
+                <path d="M12 19h4.5a3.5 3.5 0 0 0 0-7h-8a3.5 3.5 0 0 1 0-7H12"/>
+            </svg>`,
+            'landmark': `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="22" x2="21" y2="22"/>
+                <line x1="6" y1="18" x2="6" y2="11"/>
+                <line x1="10" y1="18" x2="10" y2="11"/>
+                <line x1="14" y1="18" x2="14" y2="11"/>
+                <line x1="18" y1="18" x2="18" y2="11"/>
+                <polygon points="12 2 20 7 4 7"/>
+            </svg>`,
+            'graduation-cap': `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/>
+            </svg>`
+        };
+        const docIcons = {
             'pdf': `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                 <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
                 <polyline points="14 2 14 8 20 8"/>
@@ -798,7 +926,7 @@ const MapManager = {
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
             </svg>`
         };
-        const iconSvg = icons[type] || icons['pdf'];
+        const iconSvg = (groupIcon && contentIcons[groupIcon]) || docIcons[type] || docIcons['pdf'];
 
         const highlightStyle = highlighted
             ? `box-shadow: 0 0 0 4px rgba(251, 185, 49, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);`
@@ -851,7 +979,7 @@ const MapManager = {
             const type = item?.type || 'pdf';
 
             // Update icon to highlighted state
-            marker.setIcon(this.createEvidenceMarkerIcon(type, true));
+            marker.setIcon(this.createEvidenceMarkerIcon(type, true, group?.icon));
 
             // Pan to marker
             this.map.panTo(marker.getLatLng(), { duration: 0.5 });
@@ -871,7 +999,7 @@ const MapManager = {
             const type = item?.type || 'pdf';
 
             // Reset to normal icon
-            marker.setIcon(this.createEvidenceMarkerIcon(type, false));
+            marker.setIcon(this.createEvidenceMarkerIcon(type, false, group?.icon));
             this.highlightedEvidenceMarker = null;
         }
     },
@@ -1139,15 +1267,17 @@ const MapManager = {
 
         this.layers[layerName].addTo(this.map);
 
-        // Fit bounds to show all markers
-        const allCoords = layerData.markers.filter(m => m.coords).map(m => m.coords);
-        if (allCoords.length > 0) {
-            const bounds = L.latLngBounds(allCoords);
-            this.map.flyToBounds(bounds, {
-                padding: [80, 80],
-                duration: 1,
-                maxZoom: 12
-            });
+        // Fit bounds to show all markers (skip for electricity — handled by showKyushuEnergy)
+        if (layerName !== 'electricity') {
+            const allCoords = layerData.markers.filter(m => m.coords).map(m => m.coords);
+            if (allCoords.length > 0) {
+                const bounds = L.latLngBounds(allCoords);
+                this.map.flyToBounds(bounds, {
+                    padding: [80, 80],
+                    duration: 1,
+                    maxZoom: 12
+                });
+            }
         }
     },
 
@@ -1284,7 +1414,7 @@ const MapManager = {
      */
     showSingleCompanyMarker(company) {
         const marker = L.marker(company.coords, {
-            icon: this.createMarkerIcon('company')
+            icon: this.createBrandedMarkerIcon(company.id)
         });
 
         marker.bindTooltip(company.name, {
@@ -1378,9 +1508,9 @@ const MapManager = {
         const midLat = (origin[0] + destination[0]) / 2;
         const midLng = (origin[1] + destination[1]) / 2;
 
-        // Calculate arc height with minimum floor for short routes
+        // Calculate arc height — gentle curves matching route map style
         const distance = this.map.distance(origin, destination);
-        const arcHeight = Math.max(0.8, distance * 0.00015);
+        const arcHeight = Math.max(0.3, Math.min(2.0, distance * 0.00006));
 
         // Control point offset northward for arc effect
         const arcMid = [midLat + arcHeight, midLng];
@@ -1388,35 +1518,30 @@ const MapManager = {
         // Generate smooth bezier curve
         const points = this.generateBezierPoints(origin, arcMid, destination, 50);
 
-        // Semiconductor-linked routes get emphasized styling
-        const isSemi = !!semiLink;
-        const color = isSemi ? semiLink.color : (status === 'active' ? '#007aff' : '#a3a5a8');
-        const weight = isSemi ? 4 : (status === 'active' ? 3 : 2);
-        const opacity = isSemi ? 0.9 : (status === 'active' ? 0.8 : 0.5);
+        // Use brand colors for semiconductor-linked routes
+        let routeColor = '#c0766e';
+        let weight = 1.5;
+        if (semiLink) {
+            const brandColors = { 'TSMC': '#c4001a', 'Samsung': '#1428a0' };
+            routeColor = brandColors[semiLink.company] || routeColor;
+            weight = 2.5;
+        }
+        const opacity = status === 'suspended' ? 0.4 : 0.7;
 
         const line = L.polyline(points, {
-            color,
+            color: routeColor,
             weight,
             opacity,
-            dashArray: status === 'suspended' ? '8, 6' : null,
-            className: `airline-route airline-route--${status}${isSemi ? ' airline-route--semiconductor' : ''}`
+            dashArray: status === 'suspended' ? '6, 4' : null,
+            className: `airline-route airline-route--${status}`
         });
-
-        // Add permanent company label for semiconductor routes
-        if (isSemi) {
-            line.bindTooltip(semiLink.company, {
-                permanent: true,
-                direction: 'center',
-                className: 'semiconductor-route-label'
-            });
-        }
 
         return line;
     },
 
     /**
      * Create origin airport marker (Aso Kumamoto Airport)
-     * Larger than destination markers, branded yellow
+     * Small dot with permanent city label — matches route map style
      */
     createAirportOriginMarker() {
         const origin = AppData.airlineRoutes.origin;
@@ -1426,50 +1551,32 @@ const MapManager = {
                 className: 'airport-origin-marker',
                 html: `
                     <div style="
-                        width: 48px;
-                        height: 56px;
                         display: flex;
-                        flex-direction: column;
                         align-items: center;
+                        gap: 6px;
+                        white-space: nowrap;
                     ">
                         <div style="
-                            width: 40px;
-                            height: 40px;
+                            width: 10px;
+                            height: 10px;
                             background: ${MAP_COLORS.primary};
-                            border: 3px solid white;
+                            border: 2px solid white;
                             border-radius: 50%;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        ">
-                            <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
-                                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                            </svg>
-                        </div>
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                            flex-shrink: 0;
+                        "></div>
                         <span style="
                             font-family: var(--font-display);
-                            font-size: 11px;
-                            font-weight: 600;
+                            font-size: 13px;
+                            font-weight: 700;
                             color: var(--color-text-primary);
-                            background: white;
-                            padding: 2px 6px;
-                            border-radius: 4px;
-                            margin-top: 4px;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                        ">${origin.code}</span>
+                            text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+                        ">Kumamoto</span>
                     </div>
                 `,
-                iconSize: [48, 56],
-                iconAnchor: [24, 28]
+                iconSize: [120, 20],
+                iconAnchor: [7, 10]
             })
-        });
-
-        marker.bindTooltip(origin.name, {
-            permanent: false,
-            direction: 'top',
-            offset: [0, -30],
-            className: 'map-tooltip'
         });
 
         return marker;
@@ -1480,40 +1587,106 @@ const MapManager = {
      * @param {Object} destination - Destination data
      */
     createDestinationMarker(destination) {
-        const color = destination.status === 'active' ? '#007aff' : '#a3a5a8';
+        const dotColor = '#c0766e';
+
+        // Short display name (city only, no airport suffix)
+        const cityName = destination.name.replace(/ (International|Airport|Gimhae|Pudong|Taoyuan)$/i, '');
 
         const marker = L.marker(destination.coords, {
             icon: L.divIcon({
                 className: 'airport-destination-marker',
                 html: `
                     <div style="
-                        width: 36px;
-                        height: 36px;
-                        background: ${color};
-                        border: 2px solid white;
-                        border-radius: 50%;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                         display: flex;
                         align-items: center;
-                        justify-content: center;
+                        gap: 5px;
+                        white-space: nowrap;
                         cursor: pointer;
-                        transition: transform 0.15s ease;
                     ">
-                        <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                        </svg>
+                        <div style="
+                            width: 8px;
+                            height: 8px;
+                            background: ${dotColor};
+                            border-radius: 50%;
+                            flex-shrink: 0;
+                        "></div>
+                        <span style="
+                            font-family: var(--font-display);
+                            font-size: 12px;
+                            font-weight: 500;
+                            color: var(--color-text-primary);
+                            text-shadow: 0 0 3px white, 0 0 3px white, 0 0 3px white;
+                        ">${cityName}</span>
                     </div>
                 `,
-                iconSize: [36, 36],
-                iconAnchor: [18, 18]
+                iconSize: [120, 18],
+                iconAnchor: [4, 9]
             })
         });
 
-        marker.bindTooltip(`${destination.name} (${destination.code})`, {
-            permanent: false,
-            direction: 'top',
-            offset: [0, -20],
-            className: 'map-tooltip'
+        marker.on('click', () => {
+            UI.showAirlineRoutePanel(destination);
+        });
+
+        return marker;
+    },
+
+    /**
+     * Create enhanced destination marker for semiconductor-linked routes
+     * @param {Object} destination - Destination data with semiconductorLink
+     * @returns {L.Marker} Leaflet marker
+     */
+    createBrandedDestinationMarker(destination) {
+        const link = destination.semiconductorLink;
+        const brandColors = { 'TSMC': '#c4001a', 'Samsung': '#1428a0' };
+        const color = brandColors[link.company] || '#c0766e';
+        const abbrev = link.company === 'Samsung' ? 'SS' : link.company;
+
+        const cityName = destination.name.replace(/ (International|Airport|Gimhae|Pudong|Taoyuan)$/i, '');
+
+        const marker = L.marker(destination.coords, {
+            icon: L.divIcon({
+                className: 'airport-destination-marker branded-destination',
+                html: `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        white-space: nowrap;
+                        cursor: pointer;
+                    ">
+                        <div style="
+                            width: 28px; height: 28px;
+                            background: ${color};
+                            border: 2px solid white;
+                            border-radius: 50%;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;
+                        "><span style="
+                            font-family: var(--font-display);
+                            font-size: 8px; font-weight: 800;
+                            color: white; letter-spacing: 0.3px;
+                        ">${abbrev}</span></div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="
+                                font-family: var(--font-display);
+                                font-size: 13px; font-weight: 600;
+                                color: var(--color-text-primary);
+                                text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+                            ">${cityName}</span>
+                            <span style="
+                                font-family: var(--font-display);
+                                font-size: 10px; font-weight: 500;
+                                color: ${color};
+                                text-shadow: 0 0 3px white, 0 0 3px white;
+                            ">${link.company} ${link.role}</span>
+                        </div>
+                    </div>
+                `,
+                iconSize: [180, 36],
+                iconAnchor: [16, 18]
+            })
         });
 
         marker.on('click', () => {
@@ -1547,9 +1720,9 @@ const MapManager = {
         this.layers.airlineRoutes.addLayer(this.airlineOriginMarker);
         this.layers.airlineRoutes.addTo(this.map);
 
-        // 2. Animated zoom out to East Asia view
+        // 2. Animated zoom out to show Japan + nearby destinations
         await new Promise(resolve => {
-            this.map.flyTo([28, 122], 4, { duration: 1.2 });
+            this.map.flyTo([30, 127], 5, { duration: 1.2 });
             setTimeout(resolve, 1300);
         });
 
@@ -1565,7 +1738,9 @@ const MapManager = {
         // 4. Add destination markers after all routes drawn
         await this.sleep(200);
         routes.destinations.forEach(dest => {
-            const marker = this.createDestinationMarker(dest);
+            const marker = dest.semiconductorLink
+                ? this.createBrandedDestinationMarker(dest)
+                : this.createDestinationMarker(dest);
             this.airlineDestinationMarkers.push(marker);
             this.layers.airlineRoutes.addLayer(marker);
         });

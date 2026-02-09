@@ -45,9 +45,6 @@ const App = {
         this.state.resourcesExplored = [];
         this.state.evidenceGroupsViewed = [];
 
-        // Show legend for Journey A
-        UI.showLegend('A');
-
         // Show data layers toggle for Journey A
         UI.showDataLayers('A');
 
@@ -56,9 +53,6 @@ const App = {
         UI.showChatbox(`
             <h3>${q.title}</h3>
             <p class="chatbox-question">${q.question}</p>
-            <p style="color: var(--color-text-tertiary); margin-top: var(--space-2);">
-                ${q.questionJa}
-            </p>
             <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
                 View the Evidence
             </button>
@@ -257,9 +251,6 @@ const App = {
     async stepA3_location() {
         this.state.a3Phase = 'location';
 
-        // Show airline routes legend
-        UI.showAirlineRoutesLegend();
-
         // Show airline routes with animation
         await MapManager.showAirlineRoutes();
 
@@ -282,9 +273,6 @@ const App = {
 
         UI.hideChatbox();
         UI.hidePanel();
-
-        // Hide legend before transition
-        UI.hideLegend();
 
         // Clear airline routes and energy markers before transition
         MapManager.hideAirlineRoutes();
@@ -310,9 +298,6 @@ const App = {
 
         // Show panel toggle button
         UI.showPanelToggle();
-
-        // Update legend for Journey B
-        UI.showLegend('B');
 
         // B1: Show government commitment chain with chatbox intro
         UI.showChatbox(`
@@ -394,9 +379,6 @@ const App = {
         // Show infrastructure roads on the map
         MapManager.showInfrastructureRoads();
 
-        // Update legend to include infrastructure roads
-        UI.showLegend('B7');
-
         UI.updateChatbox(`
             <h3>Changes in Area</h3>
             <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
@@ -445,24 +427,34 @@ const App = {
         // Update data layers toggle for Journey C
         UI.showDataLayers('C');
 
-        // Update legend for Journey C
-        UI.showLegend('C');
-
         // Show property list in right panel
         UI.showPropertyListPanel();
 
-        // Generate portfolio summary (Peak Experience)
-        const portfolioSummary = UI.showPortfolioSummary();
-
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>
-            <p>You've seen why Kumamoto, the government backing, and what's changing on the ground.</p>
-            <p><strong>Now let's look at specific investment opportunities.</strong></p>
-            <p style="margin-top: 12px;">Amber markers show available properties. Click to see financials.</p>
-            ${portfolioSummary}
-            <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
-                Route lines show distance to JASM employment center.
-            </p>
+            <p>Click amber markers to see property financials.</p>
+            <div class="chatbox-disclosures">
+                <details class="chatbox-disclosure">
+                    <summary>Fund Overview</summary>
+                    <div class="chatbox-disclosure-body">
+                        ${UI.showGktkSummary()}
+                    </div>
+                </details>
+                <details class="chatbox-disclosure">
+                    <summary>Portfolio Returns</summary>
+                    <div class="chatbox-disclosure-body">
+                        ${UI.showPortfolioCard()}
+                    </div>
+                </details>
+                <details class="chatbox-disclosure">
+                    <summary>Map Guide</summary>
+                    <div class="chatbox-disclosure-body">
+                        <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">
+                            Amber markers show available properties. Route lines show distance to JASM employment center.
+                        </p>
+                    </div>
+                </details>
+            </div>
             <button class="chatbox-continue primary" onclick="App.complete()">
                 Any More Questions?
             </button>
@@ -660,12 +652,31 @@ const App = {
                 `);
             }
         } else if (journey === 'C') {
-            const portfolioSummary = UI.showPortfolioSummary();
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
-                <p>You've seen why Kumamoto, the government backing, and what's changing on the ground.</p>
-                <p><strong>Click property markers to see financials.</strong></p>
-                ${portfolioSummary}
+                <p>Click amber markers to see property financials.</p>
+                <div class="chatbox-disclosures">
+                    <details class="chatbox-disclosure">
+                        <summary>Fund Overview</summary>
+                        <div class="chatbox-disclosure-body">
+                            ${UI.showGktkSummary()}
+                        </div>
+                    </details>
+                    <details class="chatbox-disclosure">
+                        <summary>Portfolio Returns</summary>
+                        <div class="chatbox-disclosure-body">
+                            ${UI.showPortfolioCard()}
+                        </div>
+                    </details>
+                    <details class="chatbox-disclosure">
+                        <summary>Map Guide</summary>
+                        <div class="chatbox-disclosure-body">
+                            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">
+                                Amber markers show available properties. Route lines show distance to JASM employment center.
+                            </p>
+                        </div>
+                    </details>
+                </div>
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     Any More Questions?
                 </button>

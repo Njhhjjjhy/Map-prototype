@@ -15,14 +15,11 @@ const AppData = {
     // Journey A: Opening Question (Step A0)
     openingQuestion: {
         title: 'The Core Question',
-        titleJa: '核心問題',
         question: 'Why is Japan\'s government spending ¥10 trillion in Kumamoto?',
-        questionJa: '為什麼日本要投入巨大資源重塑半導體產業？',
         supportingDocs: [
             {
                 id: 'meti-plan',
                 title: 'Certified Semiconductor Production Facility Plan',
-                titleJa: '認定特定半導体生産施設整備等計画',
                 source: 'meti.go.jp',
                 type: 'government'
             },
@@ -233,6 +230,105 @@ const AppData = {
             }
         ]
     },
+
+    // Journey B: Government Tiers (3-tier visual hierarchy)
+    governmentTiers: [
+        {
+            id: 'central',
+            tier: 'Central Government',
+            tierLabel: 'National Policy',
+            color: '#007aff',
+            name: 'Japan National Government',
+            coords: [32.87, 130.70],
+            description: 'The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.',
+            commitment: '¥10B',
+            commitmentLabel: 'Direct Investment',
+            stats: [
+                { value: '¥10B', label: 'Direct commitment' },
+                { value: '2021', label: 'Policy announced' },
+                { value: 'Critical', label: 'Infrastructure status' },
+                { value: '50%', label: 'JASM subsidy' }
+            ]
+        },
+        {
+            id: 'prefectural',
+            tier: 'Prefectural Government',
+            tierLabel: 'Regional Coordination',
+            color: '#34c759',
+            name: 'Kumamoto Prefecture',
+            coords: [32.79, 130.74],
+            description: 'Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region.',
+            commitment: '¥480B',
+            commitmentLabel: 'Infrastructure Budget',
+            stats: [
+                { value: '¥480B', label: 'Infrastructure budget' },
+                { value: '12', label: 'Priority projects' },
+                { value: '30%', label: 'Permit time reduction' },
+                { value: '2040', label: 'Master plan horizon' }
+            ]
+        },
+        {
+            id: 'local',
+            tier: 'Local Government',
+            tierLabel: 'Implementation',
+            color: '#ff9500',
+            name: 'Local Municipalities',
+            coords: [32.87, 130.85],
+            description: 'Three key local initiatives directly supporting the semiconductor corridor workforce and infrastructure.',
+            commitment: '¥595B',
+            commitmentLabel: 'Combined Investment',
+            stats: [
+                { value: '¥595B', label: 'Combined investment' },
+                { value: '3', label: 'Key initiatives' },
+                { value: '2028', label: 'Phase 1 targets' },
+                { value: '5,500+', label: 'Housing + jobs' }
+            ],
+            subItems: [
+                {
+                    id: 'kikuyo-city',
+                    name: 'Kikuyo Town',
+                    subtitle: 'Residential and Commercial',
+                    coords: [32.88, 130.83],
+                    commitment: '¥180B',
+                    description: 'Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.',
+                    stats: [
+                        { value: '2,500', label: 'Housing units' },
+                        { value: '¥180B', label: 'Infrastructure' },
+                        { value: '2028', label: 'Phase 1 complete' },
+                        { value: '+45%', label: 'Population target' }
+                    ]
+                },
+                {
+                    id: 'ozu-city',
+                    name: 'Ozu Town',
+                    subtitle: 'Industrial Expansion',
+                    coords: [32.86, 130.87],
+                    commitment: '¥95B',
+                    description: 'Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain.',
+                    stats: [
+                        { value: '120ha', label: 'Industrial land' },
+                        { value: '¥95B', label: 'Investment' },
+                        { value: '2027', label: 'Phase 1' },
+                        { value: '3,000', label: 'Jobs projected' }
+                    ]
+                },
+                {
+                    id: 'grand-airport',
+                    name: 'Grand Airport Concept',
+                    subtitle: 'Future Connectivity',
+                    coords: [32.84, 130.86],
+                    commitment: '¥320B',
+                    description: 'Long-term vision to expand Kumamoto Airport into a major cargo hub serving the semiconductor corridor with direct routes to Asia.',
+                    stats: [
+                        { value: '2035', label: 'Target completion' },
+                        { value: '+200%', label: 'Cargo capacity' },
+                        { value: '8', label: 'New Asia routes' },
+                        { value: '¥320B', label: 'Projected investment' }
+                    ]
+                }
+            ]
+        }
+    ],
 
     // Journey B: Infrastructure - Companies
     companies: [
@@ -726,7 +822,6 @@ const AppData = {
     haramizuStation: {
         id: 'haramizu-station',
         name: 'Haramizu Station Area',
-        nameJa: '原水駅エリア',
         coords: [32.8698, 130.8230],
         subtitle: 'New Development Hub',
         status: 'Under Development',
@@ -738,9 +833,9 @@ const AppData = {
             { value: '2028', label: 'Phase 1 target' }
         ],
         zones: [
-            { name: '賑わい', nameEn: 'Vibrancy', description: 'Station-front retail, F&B, international-friendly services' },
-            { name: '知の集積', nameEn: 'Knowledge Cluster', description: 'R&D offices, co-working, university satellite' },
-            { name: '職住近接', nameEn: 'Live-Work', description: 'Mid-high density condos, serviced apartments for engineers' }
+            { name: 'Vibrancy', description: 'Station-front retail, F&B, international-friendly services' },
+            { name: 'Knowledge Cluster', description: 'R&D offices, co-working, university satellite' },
+            { name: 'Live-Work', description: 'Mid-high density condos, serviced apartments for engineers' }
         ],
         commuteImpact: 'New urban core',
         documentLink: '#'

@@ -6,6 +6,19 @@ Interactive presentation app for real estate sales in Kumamoto, Japan. Desktop-o
 
 **Technology Stack:** HTML/CSS/JavaScript (no frameworks), Leaflet + OpenStreetMap, Vanilla JS state machine
 
+### Language Rule
+
+```
+⚠️ ENGLISH ONLY — NO JAPANESE OR OTHER NON-ENGLISH TEXT
+
+All UI text, labels, data properties, and content must be in English.
+❌ NEVER add Japanese (hiragana, katakana, kanji) text to the UI
+❌ NEVER add titleJa, nameJa, questionJa, or similar bilingual properties
+❌ NEVER display non-English translations in chatbox, panels, or overlays
+✅ Use English-only for all user-facing strings
+✅ Japanese place names should use their romanized (romaji) form only
+```
+
 ---
 
 ## Design Philosophy

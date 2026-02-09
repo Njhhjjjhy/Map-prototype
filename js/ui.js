@@ -1176,42 +1176,128 @@ const UI = {
      * @param {Object} level - Government level data
      */
     showGovernmentLevelPanel(level) {
-        const statsHtml = level.stats.map(stat => `
+        const tiers = AppData.governmentTiers;
+        const levelId = level.id;
+
+        // Find which tier (or sub-item) is selected
+        let selectedTierId = null;
+        for (const tier of tiers) {
+            if (tier.id === levelId) {
+                selectedTierId = tier.id;
+                break;
+            }
+            if (tier.subItems) {
+                const sub = tier.subItems.find(s => s.id === levelId);
+                if (sub) {
+                    selectedTierId = tier.id; // Highlight parent tier
+                    break;
+                }
+            }
+        }
+        // Map old IDs to new tier IDs
+        const idToTier = { national: 'central', prefecture: 'prefectural', 'kikuyo-city': 'local', 'ozu-city': 'local', 'grand-airport': 'local' };
+        if (!selectedTierId && idToTier[levelId]) {
+            selectedTierId = idToTier[levelId];
+        }
+
+        // Build visual hierarchy
+        const hierarchyHtml = tiers.map((tier, index) => {
+            const isSelectedTier = tier.id === selectedTierId;
+            const isLastTier = index === tiers.length - 1;
+            const circleSize = 40 - (index * 4);
+            const commitSizes = ['var(--text-3xl)', 'var(--text-2xl)', 'var(--text-xl)'];
+
+            // Sub-items for local tier
+            let subItemsHtml = '';
+            if (tier.subItems) {
+                subItemsHtml = `
+                    <div class="gov-tier-subitems">
+                        ${tier.subItems.map(sub => {
+                            const isSubSelected = sub.id === levelId;
+                            return `
+                                <div class="gov-tier-subitem ${isSubSelected ? 'gov-tier-subitem--selected' : ''}"
+                                     onclick="MapManager.selectGovernmentLevel('${sub.id}')">
+                                    <div class="gov-tier-subitem-dot" style="background: ${tier.color};"></div>
+                                    <div class="gov-tier-subitem-content">
+                                        <div class="gov-tier-subitem-name">${sub.name}</div>
+                                        <div class="gov-tier-subitem-subtitle">${sub.subtitle}</div>
+                                    </div>
+                                    <div class="gov-tier-subitem-amount">${sub.commitment}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            // Connector arrow between tiers
+            const connectorHtml = !isLastTier ? `
+                <div class="gov-tier-connector">
+                    <svg width="2" height="24" viewBox="0 0 2 24">
+                        <line x1="1" y1="0" x2="1" y2="20" stroke="${tier.color}" stroke-width="2" stroke-dasharray="4,3"/>
+                        <polygon points="0,20 1,24 2,20" fill="${tier.color}"/>
+                    </svg>
+                </div>
+            ` : '';
+
+            return `
+                <div class="gov-tier ${isSelectedTier ? 'gov-tier--selected' : ''}"
+                     onclick="MapManager.selectGovernmentLevel('${tier.id}')"
+                     style="--tier-color: ${tier.color};">
+                    <div class="gov-tier-header">
+                        <div class="gov-tier-badge" style="width: ${circleSize}px; height: ${circleSize}px; background: ${tier.color};">
+                            <span style="color: white; font-weight: 700; font-size: ${circleSize * 0.4}px;">${index + 1}</span>
+                        </div>
+                        <div class="gov-tier-info">
+                            <div class="gov-tier-label" style="color: ${tier.color};">${tier.tier}</div>
+                            <div class="gov-tier-name">${tier.name}</div>
+                        </div>
+                        <div class="gov-tier-commitment">
+                            <div class="gov-tier-amount" style="font-size: ${commitSizes[index]};">${tier.commitment}</div>
+                            <div class="gov-tier-amount-label">${tier.commitmentLabel}</div>
+                        </div>
+                    </div>
+                    ${subItemsHtml}
+                </div>
+                ${connectorHtml}
+            `;
+        }).join('');
+
+        // Find detail data for selected item
+        let detailData = null;
+        for (const tier of tiers) {
+            if (tier.id === levelId) { detailData = tier; break; }
+            if (tier.subItems) {
+                const sub = tier.subItems.find(s => s.id === levelId);
+                if (sub) { detailData = sub; break; }
+            }
+        }
+        // Fallback to original governmentChain data
+        if (!detailData) {
+            detailData = AppData.governmentChain.levels.find(l => l.id === levelId);
+        }
+        if (!detailData) {
+            detailData = tiers.find(t => t.id === selectedTierId) || tiers[0];
+        }
+
+        const statsHtml = (detailData.stats || []).map(stat => `
             <div class="stat-item">
                 <div class="stat-value">${stat.value}</div>
                 <div class="stat-label">${stat.label}</div>
             </div>
         `).join('');
 
-        const typeLabel = level.type === 'concept' ? 'Future Vision' : 'Active Commitment';
-        const typeColor = level.type === 'concept' ? 'var(--color-warning)' : 'var(--color-success)';
-
-        // Build vertical hierarchy showing all levels (top-to-bottom cascade)
-        const levels = AppData.governmentChain.levels;
-        const hierarchyHtml = levels.map((lvl, i) => {
-            const isSelected = lvl.id === level.id;
-            return `
-                <div class="gov-level ${isSelected ? 'gov-level--selected' : ''}"
-                     onclick="MapManager.selectGovernmentLevel('${lvl.id}')">
-                    <div class="gov-level-number">${i + 1}</div>
-                    <div class="gov-level-content">
-                        <div class="gov-level-name">${lvl.name}</div>
-                        <div class="gov-level-subtitle">${lvl.subtitle}</div>
-                    </div>
-                    <div class="gov-level-amount">${lvl.stats[0].value}</div>
-                </div>
-            `;
-        }).join('');
-
         const content = `
-            <div class="subtitle" style="color: ${typeColor};">${typeLabel}</div>
-            <h2>${level.name}</h2>
-            <p class="panel-subtitle">${level.subtitle}</p>
-            <p>${level.description}</p>
-            <div class="stat-grid">${statsHtml}</div>
-            <div class="gov-hierarchy">
-                <div class="gov-hierarchy-label">Cascading Policy Alignment</div>
+            <div class="subtitle">Government Support</div>
+            <h2>Cascading Policy Alignment</h2>
+            <p style="margin-bottom: var(--space-6);">Every level of government is aligned behind this corridor \u2014 from national semiconductor strategy down to local zoning approvals.</p>
+            <div class="gov-tier-hierarchy">
                 ${hierarchyHtml}
+            </div>
+            <div style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-bg-tertiary);">
+                <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-3);">${detailData.name}</h3>
+                <p>${detailData.description}</p>
+                ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
             </div>
         `;
 
@@ -1320,7 +1406,7 @@ const UI = {
         const zonesHtml = station.zones.map(z => `
             <div style="padding: var(--space-3); background: var(--color-bg-secondary); border-radius: var(--radius-medium); margin-bottom: var(--space-2);">
                 <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base);">
-                    ${z.name} <span style="color: var(--color-text-tertiary); font-weight: var(--font-weight-regular);">${z.nameEn}</span>
+                    ${z.name}
                 </div>
                 <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-1);">
                     ${z.description}
@@ -1331,7 +1417,6 @@ const UI = {
         const content = `
             <div class="subtitle">Development Hub</div>
             <h2>${station.name}</h2>
-            <p class="panel-subtitle">${station.nameJa}</p>
 
             <div class="headline-metric" style="margin: var(--space-4) 0; padding: var(--space-4); background: var(--color-bg-secondary); border-radius: var(--radius-medium); text-align: center;">
                 <div style="font-size: var(--text-4xl); font-weight: var(--font-weight-bold); color: var(--color-warning);">${station.stats[0].value}</div>
@@ -2345,30 +2430,18 @@ const UI = {
     },
 
     setTimeView(view) {
-        const legendZone = document.getElementById('legend-zone');
-
         if (view === 'future') {
             this.elements.presentBtn.classList.remove('active');
             this.elements.presentBtn.setAttribute('aria-checked', 'false');
             this.elements.futureBtn.classList.add('active');
             this.elements.futureBtn.setAttribute('aria-checked', 'true');
             MapManager.showFutureZones();
-
-            // Show Development Zone in legend
-            if (legendZone) {
-                legendZone.classList.remove('hidden');
-            }
         } else {
             this.elements.futureBtn.classList.remove('active');
             this.elements.futureBtn.setAttribute('aria-checked', 'false');
             this.elements.presentBtn.classList.add('active');
             this.elements.presentBtn.setAttribute('aria-checked', 'true');
             MapManager.hideFutureZones();
-
-            // Hide Development Zone in legend
-            if (legendZone) {
-                legendZone.classList.add('hidden');
-            }
         }
     },
 
@@ -2667,198 +2740,6 @@ const UI = {
         return names[layerName] || layerName;
     },
 
-    // ================================
-    // MAP LEGEND
-    // ================================
-
-    /**
-     * Show map legend with core items always visible plus journey-specific items
-     */
-    showLegend(journey) {
-        const legendItems = document.getElementById('legend-items');
-        const legendEl = document.getElementById('map-legend');
-
-        // Lucide SVG icons for legend markers (consistent with Data Layers panel)
-        const icons = {
-            // Map pin icon (Lucide: map-pin)
-            baseMap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-                <circle cx="12" cy="10" r="3"/>
-            </svg>`,
-            // Flask icon (Lucide: flask-conical)
-            sciencePark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/>
-                <path d="M8.5 2h7"/><path d="M7 16h10"/>
-            </svg>`,
-            // Building icon (Lucide: building-2)
-            company: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
-                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
-                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
-                <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
-            </svg>`,
-            // House icon (Lucide: house)
-            property: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
-                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            </svg>`,
-            // Droplet icon (Lucide: droplet)
-            resource: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
-            </svg>`,
-            // Target icon (Lucide: target)
-            zone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="6"/>
-                <circle cx="12" cy="12" r="2"/>
-            </svg>`,
-            // Route icon (Lucide: route)
-            route: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="6" cy="19" r="3"/>
-                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
-                <circle cx="18" cy="5" r="3"/>
-            </svg>`,
-            // Road/highway icon for infrastructure roads
-            infrastructureRoad: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="6" cy="19" r="3"/>
-                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
-                <circle cx="18" cy="5" r="3"/>
-            </svg>`,
-            // Train icon (Lucide: train-front)
-            station: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/>
-                <path d="m9 15-1-1"/>
-                <path d="m15 15 1-1"/>
-                <path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/>
-                <path d="m8 19-2 3"/>
-                <path d="m16 19 2 3"/>
-            </svg>`
-        };
-
-        // Core items always visible
-        let html = `
-            <div class="legend-item">
-                <div class="legend-marker baseMap">${icons.baseMap}</div>
-                <span class="legend-label">Base Map</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-marker sciencePark">${icons.sciencePark}</div>
-                <span class="legend-label">Science Park</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-marker company">${icons.company}</div>
-                <span class="legend-label">Corporate Sites</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-marker property">${icons.property}</div>
-                <span class="legend-label">Real Estate</span>
-            </div>
-        `;
-
-        // Add journey-specific items
-        if (journey === 'A') {
-            html += `
-                <div class="legend-item">
-                    <div class="legend-marker resource">${icons.resource}</div>
-                    <span class="legend-label">Resources</span>
-                </div>
-            `;
-        } else if (journey === 'B') {
-            html += `
-                <div class="legend-item legend-item-future hidden" id="legend-zone">
-                    <div class="legend-marker zone">${icons.zone}</div>
-                    <span class="legend-label">Development Zone</span>
-                </div>
-            `;
-        } else if (journey === 'B7') {
-            // Infrastructure roads step - show road and station legend items
-            html += `
-                <div class="legend-item">
-                    <div class="legend-marker infrastructureRoad">${icons.infrastructureRoad}</div>
-                    <span class="legend-label">Infrastructure Roads</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-marker station">${icons.station}</div>
-                    <span class="legend-label">New Station</span>
-                </div>
-            `;
-        } else if (journey === 'C') {
-            html += `
-                <div class="legend-item">
-                    <div class="legend-marker route">${icons.route}</div>
-                    <span class="legend-label">Route to JASM</span>
-                </div>
-            `;
-        }
-        // Dashboard mode shows just core items (no additional journey-specific items)
-
-        legendItems.innerHTML = html;
-        legendEl.classList.remove('hidden');
-    },
-
-    /**
-     * Hide map legend
-     */
-    hideLegend() {
-        document.getElementById('map-legend').classList.add('hidden');
-    },
-
-    /**
-     * Show legend for airline routes (A3 location phase)
-     */
-    showAirlineRoutesLegend() {
-        const legendHtml = `
-            <div class="legend-item" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <div style="
-                    width: 20px; height: 20px;
-                    background: #fbb931;
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                    display: flex; align-items: center; justify-content: center;
-                ">
-                    <svg viewBox="0 0 24 24" fill="white" width="12" height="12">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                    </svg>
-                </div>
-                <span style="font-size: var(--text-sm);">Aso Kumamoto Airport</span>
-            </div>
-            <div class="legend-item" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <div style="
-                    width: 20px; height: 20px;
-                    background: #007aff;
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                    display: flex; align-items: center; justify-content: center;
-                ">
-                    <svg viewBox="0 0 24 24" fill="white" width="12" height="12">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                    </svg>
-                </div>
-                <span style="font-size: var(--text-sm);">Active Route</span>
-            </div>
-            <div class="legend-item" style="display: flex; align-items: center; gap: 12px;">
-                <div style="
-                    width: 20px; height: 20px;
-                    background: #a3a5a8;
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                    display: flex; align-items: center; justify-content: center;
-                ">
-                    <svg viewBox="0 0 24 24" fill="white" width="12" height="12">
-                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                    </svg>
-                </div>
-                <span style="font-size: var(--text-sm);">Suspended Route</span>
-            </div>
-        `;
-
-        document.getElementById('legend-items').innerHTML = legendHtml;
-        document.getElementById('map-legend').classList.remove('hidden');
-    },
-
     toggleDataLayer(layerName) {
         const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
         if (!layerItem) return;
@@ -2875,6 +2756,15 @@ const UI = {
             MapManager.hideDataLayerMarkers(layerName);
             delete this.activeDataLayers[layerName];
 
+            // Electricity layer: hide Kyushu energy facilities and restore view
+            if (layerName === 'electricity') {
+                // Don't hide if Journey A step A2 is active (it also shows Kyushu energy)
+                if (!App || !App.state || App.state.step !== 'A2') {
+                    MapManager.hideKyushuEnergy();
+                }
+                MapManager.restorePreDataLayerView();
+            }
+
             this.announceToScreenReader(`${displayName} layer hidden`);
         } else {
             // Activate layer - show markers and panel
@@ -2889,6 +2779,12 @@ const UI = {
 
                 // Track active layer
                 this.activeDataLayers[layerName] = true;
+
+                // Electricity layer: show Kyushu-wide energy facilities
+                if (layerName === 'electricity') {
+                    MapManager.savePreDataLayerView();
+                    MapManager.showKyushuEnergy();
+                }
 
                 // Show info panel for this layer
                 this.showDataLayerPanel(layerName, layerData);
@@ -2927,12 +2823,42 @@ const UI = {
             </div>
         ` : '';
 
+        // Kyushu energy facilities section for electricity layer
+        let kyushuEnergyHtml = '';
+        if (layerName === 'electricity' && AppData.kyushuEnergy) {
+            const energy = AppData.kyushuEnergy;
+            const sectionStyle = 'margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-bg-tertiary);';
+            const typeHeaderStyle = 'font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-semibold); margin-top: var(--space-4); margin-bottom: var(--space-2);';
+            const itemStyle = 'display: flex; justify-content: space-between; padding: var(--space-2) var(--space-3); font-size: var(--text-sm);';
+            const capacityStyle = 'font-weight: var(--font-weight-semibold); color: var(--color-text-primary);';
+
+            const renderFacilities = (facilities) => facilities.map(f => `
+                <div style="${itemStyle}">
+                    <span style="color: var(--color-text-secondary);">${f.name}</span>
+                    <span style="${capacityStyle}">${f.capacity}</span>
+                </div>
+            `).join('');
+
+            kyushuEnergyHtml = `
+                <div style="${sectionStyle}">
+                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold);">Kyushu Energy Facilities</h4>
+                    <div style="${typeHeaderStyle} color: #ff9500;">Solar (${energy.solar.length})</div>
+                    ${renderFacilities(energy.solar)}
+                    <div style="${typeHeaderStyle} color: #5ac8fa;">Wind (${energy.wind.length})</div>
+                    ${renderFacilities(energy.wind)}
+                    <div style="${typeHeaderStyle} color: #ff3b30;">Nuclear (${energy.nuclear.length})</div>
+                    ${renderFacilities(energy.nuclear)}
+                </div>
+            `;
+        }
+
         const content = `
             <div class="subtitle">Data Layer</div>
             <h2>${layerData.name}</h2>
             <p>${layerData.description}</p>
             ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
             ${markersListHtml}
+            ${kyushuEnergyHtml}
         `;
 
         this.showPanel(content);
@@ -3256,8 +3182,8 @@ const UI = {
             const overlay = document.createElement('div');
             overlay.className = 'moreharvest-entry';
             overlay.innerHTML = `
-                <div class="moreharvest-entry-logo">MoreHarvest</div>
-                <div class="moreharvest-entry-tagline">Investment Opportunities in Kumamoto</div>
+                <img class="moreharvest-entry-logo" src="assets/Assets4-white.svg" alt="MoreHarvest" draggable="false">
+                <div class="moreharvest-entry-tagline">Japanese property investment made easy.</div>
             `;
             document.body.appendChild(overlay);
 
@@ -3331,6 +3257,51 @@ const UI = {
         `;
 
         return content;
+    },
+
+    /**
+     * Return GKTK fund banner HTML (for disclosure sections)
+     */
+    showGktkSummary() {
+        const gktk = AppData.gktk;
+        if (!gktk) return '<p>Fund data unavailable.</p>';
+        return `
+            <div class="gktk-banner">
+                <div class="gktk-label">${gktk.fullName}</div>
+                <div class="gktk-size">${gktk.fundSize}</div>
+                <div class="gktk-note">${gktk.fundSizeNote} &middot; ${gktk.vintage} vintage &middot; ${gktk.stats[3].value} target IRR</div>
+            </div>
+        `;
+    },
+
+    /**
+     * Return portfolio returns card HTML (for disclosure sections)
+     */
+    showPortfolioCard() {
+        const properties = AppData.properties;
+        let totalNetProfit = 0;
+        const propertyNames = [];
+
+        properties.forEach(property => {
+            totalNetProfit += property.financials.scenarios.average.netProfit;
+            propertyNames.push(property.name);
+        });
+
+        const formatYen = (num) => {
+            if (num >= 10000000) return '¥' + (num / 1000000).toFixed(1) + 'M';
+            return '¥' + num.toLocaleString();
+        };
+
+        return `
+            <div class="portfolio-summary">
+                <div class="portfolio-summary-label">Combined 5-Year Potential</div>
+                <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>
+                <div class="portfolio-summary-detail">Projected return across ${properties.length} properties</div>
+                <div class="portfolio-summary-properties">
+                    ${propertyNames.join(' • ')}
+                </div>
+            </div>
+        `;
     },
 
     /**
@@ -3579,7 +3550,7 @@ const UI = {
     },
 
     /**
-     * Handle download summary CTA
+     * Handle download summary CTA — generates and downloads an HTML summary
      */
     downloadSummary() {
         this.addChatMessage("I'd like to download a summary of this presentation.", 'user');
@@ -3587,7 +3558,97 @@ const UI = {
 
         setTimeout(() => {
             this.hideTypingIndicator();
-            this.addChatMessage("I'm preparing your personalized summary document with all the properties and projections we reviewed.<br><br><strong>Your download will begin shortly.</strong><br><br><em>(In the full version, a PDF would be generated here)</em>", 'assistant');
+
+            // Build summary content from app data
+            const properties = AppData.properties || [];
+            const companies = AppData.companies || [];
+            const gktk = AppData.gktk || {};
+            const sciencePark = AppData.sciencePark || {};
+
+            let propertiesHtml = properties.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.type || '—'}</td>
+                    <td>${p.driveTime || '—'}</td>
+                    <td>${p.basicStats?.find(s => s.label === 'Floor area')?.value || '—'}</td>
+                </tr>
+            `).join('');
+
+            let companiesHtml = companies.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.subtitle || '—'}</td>
+                    <td>${c.stats?.[0]?.value || '—'}</td>
+                    <td>${c.stats?.[1]?.value || '—'}</td>
+                </tr>
+            `).join('');
+
+            const summaryHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kumamoto Investment Summary</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1e1f20; }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  h2 { font-size: 20px; margin-top: 32px; border-bottom: 2px solid #fbb931; padding-bottom: 8px; }
+  .subtitle { color: #6e7073; font-size: 15px; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #e8e8ed; }
+  th { font-weight: 600; background: #f5f5f7; }
+  .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px; }
+  .stat-card { background: #f5f5f7; border-radius: 8px; padding: 16px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: #1e1f20; }
+  .stat-label { font-size: 13px; color: #6e7073; margin-top: 4px; }
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #e8e8ed; color: #6e7073; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>Kumamoto Investment Summary</h1>
+<p class="subtitle">Greater Kumamoto Technology Corridor — Presentation Summary</p>
+
+<h2>Fund Overview</h2>
+<div class="stat-grid">
+  ${(gktk.stats || []).map(s => `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
+</div>
+
+<h2>Science Park Corridor</h2>
+<p>${sciencePark.description || ''}</p>
+<div class="stat-grid">
+  ${(sciencePark.stats || []).map(s => `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
+</div>
+
+<h2>Corporate Partners</h2>
+<table>
+  <thead><tr><th>Company</th><th>Sector</th><th>Investment</th><th>Employees</th></tr></thead>
+  <tbody>${companiesHtml}</tbody>
+</table>
+
+<h2>Investment Properties</h2>
+<table>
+  <thead><tr><th>Property</th><th>Type</th><th>Drive to JASM</th><th>Floor Area</th></tr></thead>
+  <tbody>${propertiesHtml}</tbody>
+</table>
+
+<div class="footer">
+  <p>Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+  <p>This summary is for informational purposes only and does not constitute investment advice.</p>
+</div>
+</body>
+</html>`;
+
+            // Trigger file download
+            const blob = new Blob([summaryHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'kumamoto-investment-summary.html';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            this.addChatMessage("Your summary has been downloaded. It includes the fund overview, corporate partners, and property details we reviewed.", 'assistant');
         }, 800);
     },
 
@@ -3628,9 +3689,6 @@ const UI = {
 
             // Show dashboard toggle button (active state)
             this.showDashboardToggle();
-
-            // Show map legend with all core items
-            this.showLegend('dashboard');
 
             // Show data layers toggle button
             this.showDataLayers('dashboard');
