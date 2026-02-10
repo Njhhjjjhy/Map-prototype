@@ -15,8 +15,8 @@ const TIMING = {
     fast: 150,           // --duration-fast
     normal: 250,         // --duration-normal
     slow: 350,           // --duration-slow
-    flyDuration: 1.8,    // Leaflet flyTo seconds
-    flyEase: 0.15,       // Leaflet easeLinearity
+    flyDuration: 2000,    // Mapbox flyTo milliseconds
+    flyEase: 0.15,       // Deprecated (kept for reference)
     revealDelay: 1200,   // science park after gov chain
     buttonDelay: 2500,   // continue button after markers
     infraStagger: 100,   // infrastructure road stagger
@@ -39,21 +39,30 @@ const App = {
      */
     init() {
         UI.init();
-        MapManager.init();
+        MapController.init();
     },
 
     /**
      * Start the journey (called when Start button is clicked)
+     * Triggers cinematic 3D fly-in from Kyushu aerial to Kumamoto,
+     * then settles into 3D view and starts Journey A.
      */
-    start() {
+    async start() {
         UI.showApp();
 
-        // Wait for transition, then refresh map and start Journey A
-        setTimeout(() => {
-            // Force map to recalculate size after container becomes visible
-            MapManager.map.invalidateSize();
-            this.startJourneyA();
-        }, 600);
+        // Wait for start screen fade to complete
+        await new Promise(r => setTimeout(r, 600));
+
+        // Force map to recalculate size
+        MapController.map.resize();
+
+        // Cinematic arrival — camera descends from sky to Kumamoto
+        await MapController.cinematicEntry();
+
+        // Fly to Journey A starting position
+        await MapController.flyToStep(CAMERA_STEPS.A0);
+
+        this.startJourneyA();
     },
 
     // ================================
@@ -130,9 +139,12 @@ const App = {
         this.state.step = 'A1';
         UI.hidePanel();
 
+        // Cinematic camera re-angle
+        MapController.flyToStep(CAMERA_STEPS.A1);
+
         UI.updateChatbox(`
             <h3>Natural Advantages</h3>
-            <p>Discover what makes this region special for semiconductor investment.</p>
+            <p>Before the factories came, Kumamoto already had something most cities can't offer. Let me show you.</p>
             <button class="chatbox-continue primary" onclick="App.stepA2()">
                 Start Exploring
             </button>
@@ -143,14 +155,13 @@ const App = {
         this.state.step = 'A2';
 
         // Show Kyushu-wide energy markers and water resource markers together
-        MapManager.showKyushuEnergy();
-        MapManager.showResourceMarker('water');
+        MapController.showKyushuEnergy();
+        MapController.showResourceMarker('water');
 
         // Show combined utility infrastructure options
         UI.updateChatbox(`
             <h3>Utility Infrastructure</h3>
-            <p><strong>Critical Resources</strong></p>
-            <p>Two critical resources for semiconductor manufacturing — both abundant in Kyushu:</p>
+            <p>Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both — in surplus.</p>
             <div class="chatbox-options">
                 <button class="chatbox-option" onclick="App.selectResource('water')">
                     Water Resources
@@ -166,7 +177,7 @@ const App = {
         this.state.step = 'A3';
 
         // Show marker and fly to location
-        MapManager.showResourceMarker(resourceId);
+        MapController.showResourceMarker(resourceId);
 
         // Track explored resources
         if (!this.state.resourcesExplored.includes(resourceId)) {
@@ -201,11 +212,11 @@ const App = {
         // Build progress message
         let progressText;
         if (allExplored) {
-            progressText = 'You\'ve explored both key factors.';
+            progressText = 'Two natural advantages that money can\'t buy — and Kumamoto has both.';
         } else if (exploredCount === 1) {
-            progressText = `Explore the remaining resource to continue. (${exploredCount}/2)`;
+            progressText = 'One down. Explore the other to see the full picture.';
         } else {
-            progressText = 'Click the markers on the map to learn more.';
+            progressText = 'Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both — in surplus.';
         }
 
         let content = `
@@ -253,13 +264,12 @@ const App = {
         this.state.step = 'A3';
         this.state.a3Phase = 'infrastructure';
 
+        // Cinematic flight to semiconductor ecosystem area
+        MapController.flyToStep(CAMERA_STEPS.A3_ecosystem);
+
         UI.updateChatbox(`
             <h3>Semiconductor Ecosystem</h3>
-            <p><strong>Existing Infrastructure</strong></p>
-            <p style="color: var(--color-text-secondary); margin-top: 8px;">
-                TSMC chose Kumamoto because the supply chain was already here.
-                Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.
-            </p>
+            <p>TSMC didn't build in a vacuum. <strong>Sony has operated here since 1987.</strong> Tokyo Electron and Mitsubishi run precision manufacturing within 30km. The supply chain was already here — TSMC plugged in.</p>
             <button class="chatbox-continue primary" onclick="App.stepA3_location()">
                 See Strategic Location
             </button>
@@ -273,15 +283,12 @@ const App = {
         this.state.a3Phase = 'location';
 
         // Show airline routes with animation
-        await MapManager.showAirlineRoutes();
+        await MapController.showAirlineRoutes();
 
         UI.updateChatbox(`
             <h3>Strategic Location</h3>
-            <p><strong>International Connectivity</strong></p>
-            <p style="color: var(--color-text-secondary); margin-top: 8px;">
-                Aso Kumamoto Airport connects directly to 7 international destinations
-                across 4 regions. Click destinations to see route details.
-            </p>
+            <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
+            <p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
                 See Government Commitment
             </button>
@@ -296,11 +303,14 @@ const App = {
         UI.hidePanel();
 
         // Clear airline routes and energy markers before transition
-        MapManager.hideAirlineRoutes();
-        MapManager.hideKyushuEnergy();
+        MapController.hideAirlineRoutes();
+        MapController.hideKyushuEnergy();
 
         // Show memorable journey transition (Peak-End Rule)
         await UI.showJourneyTransition('B');
+
+        // Cinematic sweep back to corridor from new angle
+        await MapController.flyToStep(CAMERA_STEPS.A_to_B);
 
         this.startJourneyB();
     },
@@ -323,24 +333,27 @@ const App = {
         // B1: Show government commitment chain with chatbox intro
         UI.showChatbox(`
             <h3>Government Support</h3>
-            <p>${AppData.governmentChain.intro}</p>
-            <p style="margin-top: 12px;"><strong>Click the numbered markers</strong> to see each level's commitment — from national policy to local planning.</p>
+            <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level of government is aligned behind one bet: semiconductors.</p>
+            <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
         `, { skipHistory: true });
 
+        // Fly to government chain area
+        MapController.flyToStep(CAMERA_STEPS.B1);
+
         // Show government chain markers (staggered animation)
-        MapManager.showGovernmentChain();
+        MapController.showGovernmentChain();
 
         // Also show Science Park as part of B1 context
         setTimeout(() => {
-            MapManager.showSciencePark();
+            MapController.showSciencePark();
         }, TIMING.revealDelay);
 
         // After delay, add button to continue to B4
         setTimeout(() => {
             UI.updateChatbox(`
                 <h3>Government Support</h3>
-                <p>${AppData.governmentChain.intro}</p>
-                <p style="margin-top: 12px;"><strong>Click the numbered markers</strong> to explore each level's commitment.</p>
+                <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level is aligned.</p>
+                <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
                 <button class="chatbox-continue primary" onclick="App.stepB4()">
                     See Who's Building Here
                 </button>
@@ -351,12 +364,14 @@ const App = {
     stepB4() {
         this.state.step = 'B4';
 
-        MapManager.showCompanyMarkers();
+        // Cinematic flight to company cluster
+        MapController.flyToStep(CAMERA_STEPS.B4);
+        MapController.showCompanyMarkers();
 
         UI.updateChatbox(`
-            <h3>Government Support</h3>
-            <p><strong>The result:</strong> Major corporations have committed billions.</p>
-            <p>Click company markers to see their investments.</p>
+            <h3>Corporate Investment</h3>
+            <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. Rohm, Mitsubishi, Tokyo Electron — each announced expansions within 18 months.</p>
+            <p style="margin-top: 8px;">Click company markers to see the scale.</p>
             <button class="chatbox-continue primary" onclick="App.stepB6()">
                 Show Development Timeline
             </button>
@@ -366,14 +381,16 @@ const App = {
     stepB6() {
         this.state.step = 'B6';
 
+        // Cinematic flight to development area
+        MapController.flyToStep(CAMERA_STEPS.B6);
+
         // Show the Future/Present toggle
         UI.showControlBar();
         UI.showTimeToggle();
 
         UI.updateChatbox(`
-            <h3>Government Support</h3>
-            <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
-            <p>Future view shows development zones taking shape.</p>
+            <h3>Development Timeline</h3>
+            <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
             <div class="chatbox-options" style="margin-top: 12px;">
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
                     View Government Zone Plans
@@ -398,12 +415,12 @@ const App = {
         UI.setTimeView('present');
 
         // Show infrastructure roads on the map
-        MapManager.showInfrastructureRoads();
+        MapController.showInfrastructureRoads();
 
         UI.updateChatbox(`
             <h3>Changes in Area</h3>
-            <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
-            <p>Click a <strong>highlighted road</strong> or the <strong>Haramizu Station</strong> marker to see development details.</p>
+            <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. A new rail station. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
+            <p style="margin-top: 8px;">Click a highlighted road or station marker to see details.</p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
                 View Investment Opportunities
             </button>
@@ -422,7 +439,7 @@ const App = {
 
         // Hide infrastructure roads if shown
         if (this.state.step === 'B7') {
-            MapManager.hideInfrastructureRoads();
+            MapController.hideInfrastructureRoads();
         }
 
         // Show memorable journey transition (Peak-End Rule)
@@ -438,15 +455,18 @@ const App = {
     // JOURNEY C: Investment Projections
     // ================================
 
-    startJourneyC() {
+    async startJourneyC() {
         this.state.journey = 'C';
         this.state.step = 'C1';
 
-        // Warm up Mapbox 3D reveal (downloads tiles in background)
-        MapboxReveal.init(window.MAPBOX_ACCESS_TOKEN);
+        // Mapbox is already initialized from cinematic entry
+        // Elevate to 3D corridor view — the map tilts and buildings rise
+        await MapController.elevateToCorridorView();
 
-        // C1: Show property markers
-        MapManager.showPropertyMarkers();
+        // Add property markers and route lines to Mapbox 3D view
+        const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
+        MapController.addPropertyMarkers(AppData.properties);
+        MapController.addRouteLines(AppData.properties, jasmCoords);
 
         // Update data layers toggle for Journey C
         UI.showDataLayers('C');
@@ -454,9 +474,21 @@ const App = {
         // Show property list in right panel
         UI.showPropertyListPanel();
 
+        // Calculate portfolio stats for narrative
+        const propCount = AppData.properties.length;
+        let totalNetProfit = 0;
+        AppData.properties.forEach(p => {
+            totalNetProfit += p.financials.scenarios.average.netProfit;
+        });
+        const formatYen = (num) => {
+            if (num >= 10000000) return '¥' + (num / 1000000).toFixed(1) + 'M';
+            return '¥' + num.toLocaleString();
+        };
+
         UI.showChatbox(`
             <h3>Investment Opportunities</h3>
-            <p>Click amber markers to see property financials.</p>
+            <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Combined 5-year projected return: <strong>${formatYen(totalNetProfit)}</strong> across the portfolio.</p>
+            <p style="margin-top: 8px;">Click any amber marker to see the full financial picture.</p>
             <div class="chatbox-disclosures">
                 <details class="chatbox-disclosure">
                     <summary>Fund Overview</summary>
@@ -468,14 +500,6 @@ const App = {
                     <summary>Portfolio Returns</summary>
                     <div class="chatbox-disclosure-body">
                         ${UI.showPortfolioCard()}
-                    </div>
-                </details>
-                <details class="chatbox-disclosure">
-                    <summary>Map Guide</summary>
-                    <div class="chatbox-disclosure-body">
-                        <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">
-                            Amber markers show available properties. Route lines show distance to JASM employment center.
-                        </p>
                     </div>
                 </details>
             </div>
@@ -507,15 +531,14 @@ const App = {
      * Restart the presentation
      */
     restart() {
-        MapboxReveal.destroy();
-        MapManager.clearAll();
+        MapController.destroy();
         UI.hidePanel();
         UI.hideControlBar();
         UI.hideChatbox();
         UI.hideAIChat();
         UI.hideLayersToggle();
         UI.hidePanelToggle();
-        MapManager.resetView();
+        MapController.resetView();
 
         setTimeout(() => {
             this.startJourneyA();
@@ -549,7 +572,7 @@ const App = {
             this.showSingleEvidenceGroup(group);
 
             // Show markers for this group's items
-            MapManager.showEvidenceGroupMarkers(group);
+            MapController.showEvidenceGroupMarkers(group);
         }
     },
 
@@ -601,34 +624,25 @@ const App = {
             } else if (step === 'A1') {
                 UI.showChatbox(`
                     <h3>Natural Advantages</h3>
-                    <p>Discover what makes this region special for semiconductor investment.</p>
+                    <p>Before the factories came, Kumamoto already had something most cities can't offer. Let me show you.</p>
                     <button class="chatbox-continue primary" onclick="App.stepA2()">
                         Start Exploring
                     </button>
                 `);
             } else if (step === 'A3') {
-                // Restore based on which phase of A3 we're in
                 if (this.state.a3Phase === 'location') {
                     UI.showChatbox(`
                         <h3>Strategic Location</h3>
-                        <p><strong>International Connectivity</strong></p>
-                        <p style="color: var(--color-text-secondary); margin-top: 8px;">
-                            Aso Kumamoto Airport connects directly to 7 international destinations
-                            across 4 regions. Click destinations to see route details.
-                        </p>
+                        <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
+                        <p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>
                         <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
                             See Government Commitment
                         </button>
                     `);
                 } else {
-                    // Default to infrastructure phase
                     UI.showChatbox(`
                         <h3>Semiconductor Ecosystem</h3>
-                        <p><strong>Existing Infrastructure</strong></p>
-                        <p style="color: var(--color-text-secondary); margin-top: 8px;">
-                            TSMC chose Kumamoto because the supply chain was already here.
-                            Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.
-                        </p>
+                        <p>TSMC didn't build in a vacuum. <strong>Sony has operated here since 1987.</strong> Tokyo Electron and Mitsubishi run precision manufacturing within 30km. The supply chain was already here — TSMC plugged in.</p>
                         <button class="chatbox-continue primary" onclick="App.stepA3_location()">
                             See Strategic Location
                         </button>
@@ -643,25 +657,36 @@ const App = {
             if (step === 'B1') {
                 UI.showChatbox(`
                     <h3>Government Support</h3>
-                    <p>${AppData.governmentChain.intro}</p>
-                    <p style="margin-top: 12px;"><strong>Click the numbered markers</strong> to explore each level's commitment.</p>
+                    <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level is aligned.</p>
+                    <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB4()">
                         See Who's Building Here
                     </button>
                 `);
             } else if (step === 'B4') {
                 UI.showChatbox(`
-                    <h3>Government Support</h3>
-                    <p><strong>The result:</strong> Major corporations have committed billions.</p>
-                    <p>Click company markers to see their investments.</p>
+                    <h3>Corporate Investment</h3>
+                    <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. Rohm, Mitsubishi, Tokyo Electron — each announced expansions within 18 months.</p>
+                    <p style="margin-top: 8px;">Click company markers to see the scale.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB6()">
                         Show Development Timeline
                     </button>
                 `);
             } else if (step === 'B6') {
                 UI.showChatbox(`
-                    <h3>Government Support</h3>
-                    <p>Use the <strong>Future / Present</strong> toggle above to see planned developments.</p>
+                    <h3>Development Timeline</h3>
+                    <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
+                    <div class="chatbox-options" style="margin-top: 12px;">
+                        <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
+                            View Government Zone Plans
+                        </button>
+                        <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
+                            View Transportation Network
+                        </button>
+                        <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
+                            View Education Pipeline
+                        </button>
+                    </div>
                     <button class="chatbox-continue primary" onclick="App.stepB7()">
                         See What's Changing
                     </button>
@@ -669,8 +694,8 @@ const App = {
             } else if (step === 'B7') {
                 UI.showChatbox(`
                     <h3>Changes in Area</h3>
-                    <p><strong>Government commitment is one thing. Here's what's actually changing.</strong></p>
-                    <p>Click a highlighted road or the station marker to see details.</p>
+                    <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
+                    <p style="margin-top: 8px;">Click a highlighted road or station marker to see details.</p>
                     <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
                         View Investment Opportunities
                     </button>
@@ -682,9 +707,20 @@ const App = {
                 `);
             }
         } else if (journey === 'C') {
+            const propCount = AppData.properties.length;
+            let totalNetProfit = 0;
+            AppData.properties.forEach(p => {
+                totalNetProfit += p.financials.scenarios.average.netProfit;
+            });
+            const formatYen = (num) => {
+                if (num >= 10000000) return '¥' + (num / 1000000).toFixed(1) + 'M';
+                return '¥' + num.toLocaleString();
+            };
+
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
-                <p>Click amber markers to see property financials.</p>
+                <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Combined 5-year projected return: <strong>${formatYen(totalNetProfit)}</strong> across the portfolio.</p>
+                <p style="margin-top: 8px;">Click any amber marker to see the full financial picture.</p>
                 <div class="chatbox-disclosures">
                     <details class="chatbox-disclosure">
                         <summary>Fund Overview</summary>
@@ -698,21 +734,12 @@ const App = {
                             ${UI.showPortfolioCard()}
                         </div>
                     </details>
-                    <details class="chatbox-disclosure">
-                        <summary>Map Guide</summary>
-                        <div class="chatbox-disclosure-body">
-                            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">
-                                Amber markers show available properties. Route lines show distance to JASM employment center.
-                            </p>
-                        </div>
-                    </details>
                 </div>
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     Any More Questions?
                 </button>
             `);
         } else {
-            // Default: show a generic message
             UI.showChatbox(`
                 <h3>Kumamoto Investment Guide</h3>
                 <p>Explore the map to learn about investment opportunities.</p>

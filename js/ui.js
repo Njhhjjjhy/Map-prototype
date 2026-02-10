@@ -252,6 +252,19 @@ const UI = {
             }
         });
 
+        // Keyboard handling for 3D camera reveal (Escape to cancel drill-down)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this._drillDown) {
+                // Only cancel if an actual drill-down is in progress
+                // (don't exit corridor mode on Escape)
+                if (this.panelOpen) {
+                    this.hidePanel();
+                } else {
+                    this.cancelDrillDown();
+                }
+            }
+        });
+
         // Time toggle buttons
         this.elements.presentBtn.addEventListener('click', () => {
             this.setTimeView('present');
@@ -895,6 +908,12 @@ const UI = {
         // Add closing class for exit animation (uses accelerate easing)
         panel.classList.add('closing');
 
+        // If drill-down is active, cancel and reverse (to corridor or 2D map)
+        // In corridor mode, only reverse if an actual drill-down is in progress
+        if (this._drillDown) {
+            this.cancelDrillDown();
+        }
+
         // Clear panel history when closing
         this.clearPanelHistory();
 
@@ -906,7 +925,7 @@ const UI = {
             panel.classList.add('hidden');
             this.panelOpen = false;
             this.updatePanelToggleState();
-            MapManager.clearRoute();
+            MapController.clearRoute();
 
             // Also reset dashboard state if in dashboard mode
             if (this.dashboardPanelOpen) {
@@ -1216,7 +1235,7 @@ const UI = {
                             const isSubSelected = sub.id === levelId;
                             return `
                                 <div class="gov-tier-subitem ${isSubSelected ? 'gov-tier-subitem--selected' : ''}"
-                                     onclick="MapManager.selectGovernmentLevel('${sub.id}')">
+                                     onclick="MapController.selectGovernmentLevel('${sub.id}')">
                                     <div class="gov-tier-subitem-dot" style="background: ${tier.color};"></div>
                                     <div class="gov-tier-subitem-content">
                                         <div class="gov-tier-subitem-name">${sub.name}</div>
@@ -1242,7 +1261,7 @@ const UI = {
 
             return `
                 <div class="gov-tier ${isSelectedTier ? 'gov-tier--selected' : ''}"
-                     onclick="MapManager.selectGovernmentLevel('${tier.id}')"
+                     onclick="MapController.selectGovernmentLevel('${tier.id}')"
                      style="--tier-color: ${tier.color};">
                     <div class="gov-tier-header">
                         <div class="gov-tier-badge" style="width: ${circleSize}px; height: ${circleSize}px; background: ${tier.color};">
@@ -1605,12 +1624,15 @@ const UI = {
     },
 
     /**
-     * Show property panel (Journey C)
-     * Inspector pattern: Image at top → Property details → Financials
-     */
-    /**
-     * Cinematic property reveal: 2D → 3D tilt → exterior → interior
-     * Uses Mapbox GL JS for real 3D camera animation with building extrusions
+     * Cinematic property drill-down: 3-stage transition
+     *
+     * Stage 1: Bird's-eye 3D tilt (2.5s) — Mapbox camera flyTo
+     * Stage 2: Crossfade to exterior photo (hold 800ms + fade 800ms)
+     * Stage 3: Crossfade to interior gallery (800ms) — if images exist
+     *
+     * Total: ≤5s. Right panel visible throughout all stages.
+     * Interruptible via cancelDrillDown() at any point.
+     *
      * @param {Object} property - Property data object
      */
     async showPropertyReveal(property) {
@@ -1620,57 +1642,201 @@ const UI = {
             if (!property) return;
         }
 
-        // Guard against concurrent reveals
-        if (MapboxReveal.revealing) return;
-
-        // Stage 1a: Leaflet head-start zoom toward property
-        MapManager.flyTo(property.coords, 16);
-        await this._delay(600);
-
-        // Stage 1b: Mapbox 3D tilt — fades in, camera pitches to 60°, buildings rise
-        await MapboxReveal.forwardReveal(property, MapManager.map);
-
-        // Stage 2: Crossfade from 3D map to exterior photograph
-        const overlay = document.createElement('div');
-        overlay.className = 'property-reveal';
-        overlay.innerHTML = `
-            <div class="property-reveal-image">
-                <img src="${property.exteriorImage || property.image}" alt="${property.name} exterior">
-                <div class="property-reveal-label">
-                    <span>${property.name}</span>
-                    <span class="property-reveal-type">${property.type || property.subtitle}</span>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => overlay.classList.add('visible'));
-        });
-        await this._delay(1200);
-
-        // Stage 3: Crossfade to interior (if available)
-        if (property.interiorImages && property.interiorImages.length > 0) {
-            const img = overlay.querySelector('img');
-            img.style.transition = 'opacity 0.5s ease';
-            img.style.opacity = '0';
-            await this._delay(500);
-            img.src = property.interiorImages[0];
-            img.alt = `${property.name} interior`;
-            img.style.opacity = '1';
-            await this._delay(800);
+        // Cancel any in-progress drill-down
+        if (this._drillDown) {
+            this._drillDown.cancelled = true;
         }
 
-        // Stage 4: Dismiss photo overlay and show detail panel
-        overlay.classList.remove('visible');
-        await this._delay(350);
-        overlay.remove();
+        const drillDown = { cancelled: false, property };
+        this._drillDown = drillDown;
 
+        // Show right panel with property details (visible throughout all stages)
         this.showPropertyPanel(property);
 
-        // Register reverse 3D animation for when the panel closes
-        this.onPanelClose(() => {
-            MapboxReveal.reverseReveal();
-        });
+        // Stage 1: Bird's-eye 3D tilt (2.5s)
+        await MapController.forwardReveal(property);
+        if (drillDown.cancelled) return;
+
+        // Hold at bird's-eye for 800ms — let the user absorb the context
+        await this._delay(800);
+        if (drillDown.cancelled) return;
+
+        // Stage 2: Crossfade to exterior photo (800ms)
+        const overlay = this._ensureTransitionOverlay();
+        const exteriorSrc = property.exteriorImage || property.image;
+        this._setTransitionImage(overlay, exteriorSrc, `${property.name} exterior`);
+        this._setTransitionLabel(overlay, property.name, property.subtitle);
+
+        // Wait one frame for image to paint, then fade in
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        overlay.classList.add('visible');
+        await this._delay(800);
+        if (drillDown.cancelled) return;
+
+        // Stage 3: Crossfade to interior (800ms) — if images exist
+        if (property.interiorImages && property.interiorImages.length > 0) {
+            this._drillDownImages = [exteriorSrc, ...property.interiorImages];
+            this._drillDownImageIndex = 1;
+
+            this._crossfadeTransitionImage(
+                overlay,
+                property.interiorImages[0],
+                `${property.name} interior`
+            );
+            await this._delay(800);
+            if (drillDown.cancelled) return;
+
+            // Show gallery nav if multiple interior images
+            if (property.interiorImages.length > 1) {
+                this._showGalleryNav(overlay);
+            }
+        }
+    },
+
+    /**
+     * Cancel an in-progress drill-down and reverse to 2D map
+     */
+    async cancelDrillDown() {
+        if (this._drillDown) {
+            this._drillDown.cancelled = true;
+        }
+
+        // Fade out transition overlay (uses fast exit transition from CSS)
+        const overlay = document.getElementById('transition-overlay');
+        if (overlay && overlay.classList.contains('visible')) {
+            overlay.classList.remove('visible');
+            const nav = overlay.querySelector('.transition-gallery-nav');
+            if (nav) nav.classList.add('hidden');
+        }
+
+        // Reverse camera back to saved view
+        await MapController.reverseReveal();
+
+        // Cleanup
+        this._drillDown = null;
+        this._drillDownImages = null;
+        this._drillDownImageIndex = 0;
+    },
+
+    /**
+     * Create or return the transition overlay element (lazy, once)
+     * @private
+     */
+    _ensureTransitionOverlay() {
+        let overlay = document.getElementById('transition-overlay');
+        if (overlay) return overlay;
+
+        overlay = document.createElement('div');
+        overlay.id = 'transition-overlay';
+        overlay.setAttribute('aria-hidden', 'true');
+        overlay.innerHTML = `
+            <img class="transition-img transition-img-a" src="" alt="">
+            <img class="transition-img transition-img-b" src="" alt="">
+            <div class="transition-label">
+                <span class="transition-name"></span>
+                <span class="transition-type"></span>
+            </div>
+            <div class="transition-gallery-nav hidden">
+                <button class="transition-prev" aria-label="Previous image">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <span class="transition-counter"></span>
+                <button class="transition-next" aria-label="Next image">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 6 15 12 9 18"></polyline>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        // Gallery navigation handlers
+        overlay.querySelector('.transition-prev').addEventListener('click', () => this._galleryPrev());
+        overlay.querySelector('.transition-next').addEventListener('click', () => this._galleryNext());
+
+        document.getElementById('map-container').appendChild(overlay);
+        return overlay;
+    },
+
+    /**
+     * Set the initial transition image (img-a active)
+     * @private
+     */
+    _setTransitionImage(overlay, src, alt) {
+        const imgA = overlay.querySelector('.transition-img-a');
+        const imgB = overlay.querySelector('.transition-img-b');
+        imgA.src = src;
+        imgA.alt = alt;
+        imgA.classList.add('active');
+        imgB.classList.remove('active');
+        this._activeTransitionImg = 'a';
+    },
+
+    /**
+     * Set the label text on the transition overlay
+     * @private
+     */
+    _setTransitionLabel(overlay, name, type) {
+        overlay.querySelector('.transition-name').textContent = name;
+        overlay.querySelector('.transition-type').textContent = type;
+    },
+
+    /**
+     * True crossfade: swap active between img-a and img-b
+     * @private
+     */
+    _crossfadeTransitionImage(overlay, src, alt) {
+        const isA = this._activeTransitionImg === 'a';
+        const incoming = overlay.querySelector(isA ? '.transition-img-b' : '.transition-img-a');
+        const outgoing = overlay.querySelector(isA ? '.transition-img-a' : '.transition-img-b');
+
+        incoming.src = src;
+        incoming.alt = alt;
+        incoming.classList.add('active');
+        outgoing.classList.remove('active');
+
+        this._activeTransitionImg = isA ? 'b' : 'a';
+    },
+
+    /**
+     * Show gallery prev/next nav and update counter
+     * @private
+     */
+    _showGalleryNav(overlay) {
+        const nav = overlay.querySelector('.transition-gallery-nav');
+        nav.classList.remove('hidden');
+        this._updateGalleryCounter(overlay);
+    },
+
+    /** @private */
+    _updateGalleryCounter(overlay) {
+        const counter = overlay.querySelector('.transition-counter');
+        const total = this._drillDownImages ? this._drillDownImages.length : 0;
+        const current = (this._drillDownImageIndex || 0) + 1;
+        counter.textContent = `${current} / ${total}`;
+    },
+
+    /** @private */
+    _galleryPrev() {
+        if (!this._drillDownImages || this._drillDownImageIndex <= 0) return;
+        this._drillDownImageIndex--;
+        const overlay = document.getElementById('transition-overlay');
+        const src = this._drillDownImages[this._drillDownImageIndex];
+        const name = this._drillDown?.property?.name || '';
+        this._crossfadeTransitionImage(overlay, src, `${name} view`);
+        this._updateGalleryCounter(overlay);
+    },
+
+    /** @private */
+    _galleryNext() {
+        if (!this._drillDownImages || this._drillDownImageIndex >= this._drillDownImages.length - 1) return;
+        this._drillDownImageIndex++;
+        const overlay = document.getElementById('transition-overlay');
+        const src = this._drillDownImages[this._drillDownImageIndex];
+        const name = this._drillDown?.property?.name || '';
+        this._crossfadeTransitionImage(overlay, src, `${name} view`);
+        this._updateGalleryCounter(overlay);
     },
 
     /**
@@ -2250,7 +2416,7 @@ const UI = {
 
         // Highlight corresponding marker if it has distinct coords
         if (item.coords) {
-            MapManager.highlightEvidenceMarker(groupId, itemId);
+            MapController.highlightEvidenceMarker(groupId, itemId);
         }
 
         // Show detail view
@@ -2300,7 +2466,7 @@ const UI = {
         this.disclosureState[groupId] = true;
 
         // Clear marker highlight
-        MapManager.clearEvidenceMarkerHighlight();
+        MapController.clearEvidenceMarkerHighlight();
 
         // Show the evidence list panel
         this.showEvidenceListPanel(groupId);
@@ -2447,13 +2613,13 @@ const UI = {
             this.elements.presentBtn.setAttribute('aria-checked', 'false');
             this.elements.futureBtn.classList.add('active');
             this.elements.futureBtn.setAttribute('aria-checked', 'true');
-            MapManager.showFutureZones();
+            MapController.showFutureZones();
         } else {
             this.elements.futureBtn.classList.remove('active');
             this.elements.futureBtn.setAttribute('aria-checked', 'false');
             this.elements.presentBtn.classList.add('active');
             this.elements.presentBtn.setAttribute('aria-checked', 'true');
-            MapManager.hideFutureZones();
+            MapController.hideFutureZones();
         }
     },
 
@@ -2722,12 +2888,12 @@ const UI = {
         if (isActive) {
             layerItem.classList.remove('active');
             layerItem.setAttribute('aria-checked', 'false');
-            MapManager.hideLayer(layerName);
+            MapController.hideLayer(layerName);
             this.announceToScreenReader(`${this.getLayerDisplayName(layerName)} layer hidden`);
         } else {
             layerItem.classList.add('active');
             layerItem.setAttribute('aria-checked', 'true');
-            MapManager.showLayer(layerName);
+            MapController.showLayer(layerName);
             this.announceToScreenReader(`${this.getLayerDisplayName(layerName)} layer shown`);
         }
     },
@@ -2765,16 +2931,16 @@ const UI = {
             layerItem.setAttribute('aria-checked', 'false');
 
             // Hide markers and clear from active layers
-            MapManager.hideDataLayerMarkers(layerName);
+            MapController.hideDataLayerMarkers(layerName);
             delete this.activeDataLayers[layerName];
 
             // Electricity layer: hide Kyushu energy facilities and restore view
             if (layerName === 'electricity') {
                 // Don't hide if Journey A step A2 is active (it also shows Kyushu energy)
                 if (!App || !App.state || App.state.step !== 'A2') {
-                    MapManager.hideKyushuEnergy();
+                    MapController.hideKyushuEnergy();
                 }
-                MapManager.restorePreDataLayerView();
+                MapController.restorePreDataLayerView();
             }
 
             this.announceToScreenReader(`${displayName} layer hidden`);
@@ -2787,15 +2953,15 @@ const UI = {
             const layerData = AppData.dataLayers[layerName];
             if (layerData) {
                 // Show markers on map
-                MapManager.showDataLayerMarkers(layerName, layerData);
+                MapController.showDataLayerMarkers(layerName, layerData);
 
                 // Track active layer
                 this.activeDataLayers[layerName] = true;
 
                 // Electricity layer: show Kyushu-wide energy facilities
                 if (layerName === 'electricity') {
-                    MapManager.savePreDataLayerView();
-                    MapManager.showKyushuEnergy();
+                    MapController.savePreDataLayerView();
+                    MapController.showKyushuEnergy();
                 }
 
                 // Show info panel for this layer
@@ -2889,7 +3055,7 @@ const UI = {
         if (!marker) return;
 
         // Pan map to marker
-        MapManager.focusDataLayerMarker(layerName, markerId);
+        MapController.focusDataLayerMarker(layerName, markerId);
 
         // Show marker detail panel
         this.showDataLayerMarkerDetail(layerName, layerData, marker);
@@ -3690,11 +3856,11 @@ const UI = {
         // Wait for transition, then show dashboard
         setTimeout(() => {
             // Force map to recalculate size
-            MapManager.map.invalidateSize();
+            MapController.map.resize();
 
             // Reset map to clean state
-            MapManager.clearAll();
-            MapManager.resetView();
+            MapController.clearAll();
+            MapController.resetView();
 
             // Show dashboard toggle button (active state)
             this.showDashboardToggle();
@@ -3957,9 +4123,9 @@ const UI = {
         if (!property) return;
 
         // Show on map
-        MapManager.clearAll();
-        MapManager.showSinglePropertyMarker(property);
-        MapManager.flyToLocation(property.coords, 14);
+        MapController.clearAll();
+        MapController.showSinglePropertyMarker(property);
+        MapController.flyToLocation(property.coords, 14);
 
         // Show property panel with breadcrumb
         this.showPropertyPanelWithBreadcrumb(property);
@@ -3973,9 +4139,9 @@ const UI = {
         if (!company) return;
 
         // Show on map
-        MapManager.clearAll();
-        MapManager.showSingleCompanyMarker(company);
-        MapManager.flyToLocation(company.coords, 14);
+        MapController.clearAll();
+        MapController.showSingleCompanyMarker(company);
+        MapController.flyToLocation(company.coords, 14);
 
         // Show company panel with breadcrumb
         this.showCompanyPanelWithBreadcrumb(company);
@@ -3986,9 +4152,9 @@ const UI = {
      */
     showDashboardScienceParkDetail() {
         // Show on map
-        MapManager.clearAll();
-        MapManager.showSciencePark();
-        MapManager.flyToLocation(AppData.sciencePark.center, 12);
+        MapController.clearAll();
+        MapController.showSciencePark();
+        MapController.flyToLocation(AppData.sciencePark.center, 12);
 
         // Show science park panel with breadcrumb
         this.showScienceParkPanelWithBreadcrumb();
@@ -4002,8 +4168,8 @@ const UI = {
         if (!road) return;
 
         // Show on map
-        MapManager.clearAll();
-        MapManager.showSingleInfrastructureRoad(road);
+        MapController.clearAll();
+        MapController.showSingleInfrastructureRoad(road);
 
         // Show road panel with breadcrumb
         this.showRoadPanelWithBreadcrumb(road);
@@ -4017,8 +4183,8 @@ const UI = {
         if (!resource) return;
 
         // Show on map
-        MapManager.clearAll();
-        MapManager.showResourceMarker(resourceId);
+        MapController.clearAll();
+        MapController.showResourceMarker(resourceId);
 
         // Show resource panel with breadcrumb
         this.showResourcePanelWithBreadcrumb(resource);
@@ -4263,8 +4429,8 @@ const UI = {
         this.elements.panelContent.innerHTML = content;
 
         // Show markers for this group on map
-        MapManager.clearAll();
-        MapManager.showEvidenceGroupMarkers(group);
+        MapController.clearAll();
+        MapController.showEvidenceGroupMarkers(group);
     },
 
     /**
@@ -4279,7 +4445,7 @@ const UI = {
 
         // Show on map if item has location
         if (item.coords) {
-            MapManager.flyToLocation(item.coords, 15);
+            MapController.flyToLocation(item.coords, 15);
         }
 
         // Show gallery for the evidence item
