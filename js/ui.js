@@ -689,7 +689,7 @@ const UI = {
         // DON'T clear history when hiding - preserve for back navigation across journeys
 
         // Wait for animation to complete, then hide
-        const animationDuration = 150; // matches --duration-fast
+        const animationDuration = TIMING.fast; // matches --duration-fast
         setTimeout(() => {
             chatbox.classList.add('hidden');
             chatbox.classList.remove('closing');
@@ -899,7 +899,7 @@ const UI = {
         this.clearPanelHistory();
 
         // Wait for animation to complete, then remove visible
-        const animationDuration = 150; // matches --duration-fast
+        const animationDuration = TIMING.fast; // matches --duration-fast
         setTimeout(() => {
             panel.classList.remove('visible');
             panel.classList.remove('closing');
@@ -3009,7 +3009,7 @@ const UI = {
         this.lastChatType = 'aiChat';
 
         // Wait for animation to complete, then hide
-        const animationDuration = 150; // matches --duration-fast
+        const animationDuration = TIMING.fast; // matches --duration-fast
         setTimeout(() => {
             aiChat.classList.add('hidden');
             aiChat.classList.remove('closing');
@@ -3129,25 +3129,22 @@ const UI = {
      */
     showJourneyTransition(journeyId) {
         return new Promise((resolve) => {
-            // Get journey content
             const content = this.getJourneyTransitionContent(journeyId);
 
-            // Show progress indicator in chatbox instead of full-screen overlay
-            // Use skipHistory to preserve the saved history from the previous journey
             this.showChatbox(`
                 <div class="journey-progress-container">
                     <div class="journey-progress-indicator">
-                        <div class="journey-progress-spinner"></div>
+                        ${content.icon}
                     </div>
                     <h3>${content.title}</h3>
                     <p class="journey-progress-subtitle">${content.subtitle}</p>
                 </div>
             `, { skipHistory: true });
 
-            // Complete after a brief pause
+            // Hold for scene duration, then resolve
             setTimeout(() => {
                 resolve();
-            }, 1200);
+            }, TIMING.scene);
         });
     },
 

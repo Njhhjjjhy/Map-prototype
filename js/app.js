@@ -2,6 +2,27 @@
  * Main App - State Machine for Journey Progression
  */
 
+/**
+ * Shared timing constants — semantic names for setTimeout values.
+ * CSS token equivalents noted in comments.
+ */
+/**
+ * Shared timing constants — semantic names for setTimeout values.
+ * CSS token equivalents noted in comments.
+ */
+const TIMING = {
+    scene: 800,          // --duration-scene (journey transition hold)
+    fast: 150,           // --duration-fast
+    normal: 250,         // --duration-normal
+    slow: 350,           // --duration-slow
+    flyDuration: 1.8,    // Leaflet flyTo seconds
+    flyEase: 0.15,       // Leaflet easeLinearity
+    revealDelay: 1200,   // science park after gov chain
+    buttonDelay: 2500,   // continue button after markers
+    infraStagger: 100,   // infrastructure road stagger
+    restartDelay: 500,   // delay before restart
+};
+
 const App = {
     // Current journey state
     state: {
@@ -51,7 +72,7 @@ const App = {
         // A0: Opening question — frames the entire narrative
         const q = AppData.openingQuestion;
         UI.showChatbox(`
-            <h3>${q.title}</h3>
+            <h3>Why Kumamoto?</h3>
             <p class="chatbox-question">${q.question}</p>
             <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
                 View the Evidence
@@ -94,10 +115,10 @@ const App = {
         // Update chatbox to continue
         const q = AppData.openingQuestion;
         UI.updateChatbox(`
-            <h3>${q.title}</h3>
+            <h3>Why Kumamoto?</h3>
             <p class="chatbox-question">${q.question}</p>
             <button class="chatbox-continue primary" onclick="App.stepA1()">
-                Why Kumamoto?
+                Explore the Region
             </button>
         `);
     },
@@ -110,7 +131,7 @@ const App = {
         UI.hidePanel();
 
         UI.updateChatbox(`
-            <h3>Why Kumamoto?</h3>
+            <h3>Natural Advantages</h3>
             <p>Discover what makes this region special for semiconductor investment.</p>
             <button class="chatbox-continue primary" onclick="App.stepA2()">
                 Start Exploring
@@ -127,8 +148,8 @@ const App = {
 
         // Show combined utility infrastructure options
         UI.updateChatbox(`
-            <h3>Why Kumamoto?</h3>
-            <p><strong>Utility Infrastructure</strong></p>
+            <h3>Utility Infrastructure</h3>
+            <p><strong>Critical Resources</strong></p>
             <p>Two critical resources for semiconductor manufacturing — both abundant in Kyushu:</p>
             <div class="chatbox-options">
                 <button class="chatbox-option" onclick="App.selectResource('water')">
@@ -188,7 +209,7 @@ const App = {
         }
 
         let content = `
-            <h3>Why Kumamoto?</h3>
+            <h3>Utility Infrastructure</h3>
             <p>${progressText}</p>
             <div class="chatbox-options" role="group" aria-label="Resource options">
                 <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
@@ -233,8 +254,8 @@ const App = {
         this.state.a3Phase = 'infrastructure';
 
         UI.updateChatbox(`
-            <h3>Why Kumamoto?</h3>
-            <p><strong>Existing Semiconductor Infrastructure</strong></p>
+            <h3>Semiconductor Ecosystem</h3>
+            <p><strong>Existing Infrastructure</strong></p>
             <p style="color: var(--color-text-secondary); margin-top: 8px;">
                 TSMC chose Kumamoto because the supply chain was already here.
                 Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.
@@ -255,8 +276,8 @@ const App = {
         await MapManager.showAirlineRoutes();
 
         UI.updateChatbox(`
-            <h3>Why Kumamoto?</h3>
-            <p><strong>Strategic Location</strong></p>
+            <h3>Strategic Location</h3>
+            <p><strong>International Connectivity</strong></p>
             <p style="color: var(--color-text-secondary); margin-top: 8px;">
                 Aso Kumamoto Airport connects directly to 7 international destinations
                 across 4 regions. Click destinations to see route details.
@@ -312,7 +333,7 @@ const App = {
         // Also show Science Park as part of B1 context
         setTimeout(() => {
             MapManager.showSciencePark();
-        }, 1200);
+        }, TIMING.revealDelay);
 
         // After delay, add button to continue to B4
         setTimeout(() => {
@@ -324,7 +345,7 @@ const App = {
                     See Who's Building Here
                 </button>
             `);
-        }, 2500);
+        }, TIMING.buttonDelay);
     },
 
     stepB4() {
@@ -470,10 +491,15 @@ const App = {
     /**
      * Complete the presentation - show AI chat for follow-up questions
      */
-    complete() {
+    async complete() {
         this.state.step = 'complete';
 
-        // Show the AI chat for follow-up questions
+        UI.hideChatbox();
+        UI.hidePanel();
+
+        // Brief completion moment, then open AI chat
+        await UI.showJourneyTransition('complete');
+        UI.hideChatbox();
         UI.showAIChat();
     },
 
@@ -493,7 +519,7 @@ const App = {
 
         setTimeout(() => {
             this.startJourneyA();
-        }, 500);
+        }, TIMING.restartDelay);
     },
 
     // ================================
@@ -566,7 +592,7 @@ const App = {
             if (step === 'A0') {
                 const q = AppData.openingQuestion;
                 UI.showChatbox(`
-                    <h3>${q.title}</h3>
+                    <h3>Why Kumamoto?</h3>
                     <p class="chatbox-question">${q.question}</p>
                     <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
                         View the Evidence
@@ -574,7 +600,7 @@ const App = {
                 `);
             } else if (step === 'A1') {
                 UI.showChatbox(`
-                    <h3>Why Kumamoto?</h3>
+                    <h3>Natural Advantages</h3>
                     <p>Discover what makes this region special for semiconductor investment.</p>
                     <button class="chatbox-continue primary" onclick="App.stepA2()">
                         Start Exploring
@@ -584,8 +610,8 @@ const App = {
                 // Restore based on which phase of A3 we're in
                 if (this.state.a3Phase === 'location') {
                     UI.showChatbox(`
-                        <h3>Why Kumamoto?</h3>
-                        <p><strong>Strategic Location</strong></p>
+                        <h3>Strategic Location</h3>
+                        <p><strong>International Connectivity</strong></p>
                         <p style="color: var(--color-text-secondary); margin-top: 8px;">
                             Aso Kumamoto Airport connects directly to 7 international destinations
                             across 4 regions. Click destinations to see route details.
@@ -597,8 +623,8 @@ const App = {
                 } else {
                     // Default to infrastructure phase
                     UI.showChatbox(`
-                        <h3>Why Kumamoto?</h3>
-                        <p><strong>Existing Semiconductor Infrastructure</strong></p>
+                        <h3>Semiconductor Ecosystem</h3>
+                        <p><strong>Existing Infrastructure</strong></p>
                         <p style="color: var(--color-text-secondary); margin-top: 8px;">
                             TSMC chose Kumamoto because the supply chain was already here.
                             Sony, Tokyo Electron, and Mitsubishi have operated in the region for decades.

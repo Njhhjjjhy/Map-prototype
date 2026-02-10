@@ -230,7 +230,7 @@ const MapManager = {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: transform 0.15s ease;
+                transition: transform var(--duration-fast) var(--easing-standard);
             ">${icon}</div></div>`,
             iconSize: [48, 48],
             iconAnchor: [24, 24]
@@ -265,7 +265,7 @@ const MapManager = {
                 border-radius: 50%;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.35);
                 display: flex; align-items: center; justify-content: center;
-                transition: transform 0.15s ease;
+                transition: transform var(--duration-fast) var(--easing-standard);
             "><span style="
                 font-family: var(--font-display);
                 font-size: ${brand.fontSize};
@@ -284,8 +284,8 @@ const MapManager = {
      */
     flyTo(coords, zoom) {
         this.map.flyTo(coords, zoom || AppData.mapConfig.resourceZoom, {
-            duration: 1.8,
-            easeLinearity: 0.15
+            duration: TIMING.flyDuration,
+            easeLinearity: TIMING.flyEase
         });
     },
 
@@ -486,24 +486,7 @@ const MapManager = {
         const useCluster = AppData.companies.length >= 5;
 
         AppData.companies.forEach(company => {
-            const marker = L.marker(company.coords, {
-                icon: this.createBrandedMarkerIcon(company.id)
-            });
-
-            // Add tooltip with company name
-            marker.bindTooltip(company.name, {
-                permanent: false,
-                direction: 'top',
-                offset: [0, -20],
-                className: 'map-tooltip'
-            });
-
-            marker.on('click', () => {
-                UI.showCompanyPanel(company);
-            });
-
-            this.markers[company.id] = marker;
-
+            const marker = this._createCompanyMarker(company);
             if (useCluster) {
                 this.clusterGroups.companies.addLayer(marker);
             } else {
@@ -516,6 +499,29 @@ const MapManager = {
         } else {
             this.layers.companies.addTo(this.map);
         }
+    },
+
+    /**
+     * Create a company marker with tooltip and click handler
+     */
+    _createCompanyMarker(company) {
+        const marker = L.marker(company.coords, {
+            icon: this.createBrandedMarkerIcon(company.id)
+        });
+
+        marker.bindTooltip(company.name, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20],
+            className: 'map-tooltip'
+        });
+
+        marker.on('click', () => {
+            UI.showCompanyPanel(company);
+        });
+
+        this.markers[company.id] = marker;
+        return marker;
     },
 
     /**
@@ -549,7 +555,7 @@ const MapManager = {
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            transition: transform 0.15s ease;
+                            transition: transform var(--duration-fast) var(--easing-standard);
                         "><span style="font-size: 14px; font-weight: 600; color: white;">${index + 1}</span></div></div>`,
                         iconSize: [48, 48],
                         iconAnchor: [24, 24]
@@ -1037,7 +1043,7 @@ const MapManager = {
             // Stagger the fade-in animation
             setTimeout(() => {
                 polyline.setStyle({ opacity: 0.7 });
-            }, index * 100);
+            }, index * TIMING.infraStagger);
 
             // Add tooltip with road name (macOS HIG: 500ms delay)
             polyline.bindTooltip(road.name, {
@@ -1375,7 +1381,7 @@ const MapManager = {
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    transition: transform 0.15s ease;
+                    transition: transform var(--duration-fast) var(--easing-standard);
                 ">
                     <div style="width: 18px; height: 18px;">
                         ${iconSvg}

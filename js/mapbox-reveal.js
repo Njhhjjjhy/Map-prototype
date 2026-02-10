@@ -16,6 +16,8 @@ const MapboxReveal = {
     map: null,
     container: null,
     initialized: false,
+    _initStarted: false,
+    _readyPromise: null,
     revealing: false,
     reducedMotion: false,
 
@@ -24,15 +26,19 @@ const MapboxReveal = {
      * @param {string} accessToken — Mapbox API key
      */
     init(accessToken) {
-        if (this.initialized) return;
+        if (this._initStarted) return;
+        this._initStarted = true;
+
         if (!accessToken || accessToken === 'YOUR_TOKEN_HERE') {
             console.warn('MapboxReveal: No valid Mapbox access token. 3D reveal disabled.');
+            this._readyPromise = Promise.resolve(false);
             return;
         }
 
         this.container = document.getElementById('mapbox-3d');
         if (!this.container) {
             console.warn('MapboxReveal: #mapbox-3d container not found.');
+            this._readyPromise = Promise.resolve(false);
             return;
         }
 
@@ -61,15 +67,27 @@ const MapboxReveal = {
             this._addBuildingLayer();
         });
 
-        // Handle load errors (bad token, network failure, etc.)
-        this.map.on('error', (e) => {
-            console.error('MapboxReveal: Map error —', e.error?.message || e.message || e);
-        });
+        // Track ready state with a promise so forwardReveal can wait
+        this._readyPromise = new Promise((resolve) => {
+            // Handle load errors (bad token, network failure, etc.)
+            this.map.on('error', (e) => {
+                console.error('MapboxReveal: Map error —', e.error?.message || e.message || e);
+            });
 
-        // Hide container after init — it will be shown during reveals
-        this.map.on('load', () => {
-            this.container.style.display = 'none';
-            this.initialized = true;
+            // Hide container after init — it will be shown during reveals
+            this.map.on('load', () => {
+                this.container.style.display = 'none';
+                this.initialized = true;
+                resolve(true);
+            });
+
+            // Timeout: if Mapbox fails to load within 8s, give up
+            setTimeout(() => {
+                if (!this.initialized) {
+                    console.warn('MapboxReveal: Timed out waiting for map load.');
+                    resolve(false);
+                }
+            }, 8000);
         });
     },
 
@@ -81,8 +99,12 @@ const MapboxReveal = {
      */
     async forwardReveal(property, leafletMap) {
         if (this.revealing) return;
-        if (!this.initialized) {
-            // Fallback: if Mapbox failed to init, resolve immediately
+
+        // Wait for Mapbox to finish loading (handles race condition)
+        if (!this.initialized && this._readyPromise) {
+            const ready = await this._readyPromise;
+            if (!ready) return;  // Mapbox failed to load, skip 3D
+        } else if (!this.initialized) {
             return;
         }
 
@@ -107,7 +129,11 @@ const MapboxReveal = {
         map.resize();
         await this._frame();
 
-        // 3. Fade in container and animate camera simultaneously
+        // 3. Clear inline styles from init() so CSS .active can take effect
+        container.style.opacity = '';
+        container.style.pointerEvents = '';
+
+        // 4. Fade in container and animate camera simultaneously
         container.classList.add('active');
 
         const targetCenter = [property.coords[1], property.coords[0]]; // [lng, lat]
@@ -199,6 +225,8 @@ const MapboxReveal = {
         if (this.container) {
             this.container.classList.remove('active');
             this.container.style.display = 'none';
+            this.container.style.opacity = '';
+            this.container.style.pointerEvents = '';
         }
         this.revealing = false;
     },
