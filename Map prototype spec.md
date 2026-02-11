@@ -105,6 +105,18 @@ A disclosure-based panel that organizes supporting documentation into collapsibl
 ### The Control Bar
 Contains layer toggles and the future/present switch. These controls appear only when relevant to the current journey step.
 
+### The Panel Toggle
+A 36x36px button (top-right of map) that toggles right panel visibility. Uses brand yellow active state. Icon: Lucide `panel-right`.
+
+### The Dashboard Toggle
+A 36x36px button (below panel toggle, top-right) that switches to Dashboard mode with overview statistics. Uses brand yellow active state. Icon: Lucide `bar-chart-3`. Has `aria-expanded` for accessibility.
+
+### The Property Quick Look
+A macOS Quick Look-style full-screen image preview at z-index 2000. Triggered by property image interaction. Dismissible via click, Escape, or close button. Entrance animation scales from 0.9 to 1.
+
+### The Cinematic Skip Button
+A translucent button appearing during the opening 3D fly-in animation. Glass-morphism style (backdrop-filter blur). Disappears when animation completes or journey begins.
+
 ### The Data Layers Button
 A toggle button (always visible) that opens a panel for controlling map layer visibility. The button remains visible across all journey states; when journeys change, the panel closes but the button stays accessible.
 
@@ -276,10 +288,42 @@ Journey concludes. The presenter can return to earlier points on the map for fol
 All statistics, projections, company info, and map coordinates should be placeholder/mock data. Generate realistic-looking fake numbers, charts, and graphs. This is a demo.
 
 ### Map
-Use Leaflet with OpenStreetMap (free, no API key required). Add markers, polygons, and polylines dynamically based on current journey step. The Future/Present toggle swaps between two overlay states.
+Use Mapbox GL JS for 3D terrain with pitch/bearing camera control. Add markers, polygons, and polylines dynamically based on current journey step. The Future/Present toggle swaps between two overlay states. Camera positions are defined in `CAMERA_STEPS` (16 named positions) in `map-controller.js`.
+
+### Cinematic Entry
+The app opens with a 3D fly-in from high altitude descending to Kumamoto. A "Skip Intro" button appears during this animation. The heartbeat system provides ambient bearing drift when the presenter is idle (5s threshold).
+
+### Draggable Modals
+All major panels (chatbox, right panel, AI chat, gallery) are draggable via their header/title areas. Position persists during the session; `resetDragPosition()` restores defaults.
+
+### Chart.js Integration
+Three chart types render financial data: scenario comparison bars (Bear/Average/Bull), historical trend lines (appreciation), and investment comparisons. Every chart has an accessible companion `<details>` table with colorblind-safe palettes.
 
 ### State Management
-Implement a simple state machine or step counter. The app should always know which journey and step it's on. Steps proceed forward only within a journey, but the presenter can revisit map elements after completing a section.
+The app uses a state machine in `App.state` with the following properties:
+
+| Property | Type | Values |
+|----------|------|--------|
+| `journey` | string | `null`, `'A'`, `'B'`, `'C'` |
+| `step` | string | `'A0'`..`'A3'`, `'B1'`..`'B7'`, `'C1'`, `'complete'` |
+| `a3Phase` | string | `'infrastructure'` or `'location'` (A3 sub-phases) |
+| `resourcesExplored` | array | Tracks which resources (water/power) user viewed |
+| `companiesExplored` | array | Tracks companies viewed |
+| `evidenceGroupsViewed` | array | Tracks disclosure groups visited |
+| `dashboardMode` | boolean | Alternative presentation mode |
+| `dashboardPanelOpen` | boolean | Panel state in dashboard |
+
+**UI State** (tracked in `UI` object):
+- `panelHistory` / `chatboxHistory`: Navigation stacks with scroll position
+- `lastChatType`: `'chatbox'` or `'aiChat'` (determines FAB behavior)
+- `layersPanelOpen`: Data layers panel visibility
+- `disclosureState`: Expanded/collapsed state per disclosure group
+
+**MapController State:**
+- `corridorMode`: 3D corridor view active (Journey C)
+- `revealing`: Property drill-down in progress
+- `selectedInfrastructureRoad`: Single-selection tracking
+- `highlightedEvidenceMarker`: Bidirectional sync marker state
 
 ### Progressive Reveal
 All UI components except the initial button start hidden. Reveal with fade/slide transitions as each step requires them. Transitions should feel smooth, not jarring.
@@ -314,8 +358,25 @@ Evidence is organized into hierarchical groups containing multiple related items
 | `transportation-network` | Transportation Network | Journey B infrastructure |
 | `education-pipeline` | Education & Talent Pipeline | Journey B workforce |
 
+### Haramizu Station Hub
+A 70-hectare mixed-use development area near Haramizu Station. Contains 3 zones (Vibrancy, Knowledge Cluster, Live-Work) developed by Mitsui + JR Kyushu with Phase 1 targeted for 2028. Displayed during Journey B infrastructure steps with its own panel view (`showHaramizuPanel()`).
+
+### Government Tiers
+Two parallel data structures represent government commitment:
+- `governmentChain`: Linear chain of commitments (Central to Local)
+- `governmentTiers`: 3-tier hierarchy (Central, Prefectural, Local) with color-coded tiers and nested sub-items for local government zones
+
+### Airline Routes
+Origin: Aso Kumamoto Airport (KMJ). Destinations include Seoul, Busan, Shanghai, Taipei, Kaohsiung, Taichung, and Hong Kong. Each destination includes `semiconductorLink` (connecting to a corporate partner), flight time, airlines, frequency, and active/suspended status.
+
+### Property Truth Engine
+Each property in data.js includes a `truthEngine` array of value drivers (e.g., "Kikuyo Station Expansion: +15% projected value", "JASM Phase 2: +25% rental demand"). Displayed when the presenter clicks the Truth Engine button in Journey C.
+
+### Area Market Statistics
+`areaStats` in data.js tracks: average appreciation (+8.5%), average rental yield (+5.8%), occupancy rate (97.2%), and a historical track record array of yearly appreciation figures.
+
 ### Transitions Between Journeys
-These should feel conversational, not mechanical. A brief text prompt in the chatbox or a subtle UI cue works better than a "Journey Complete! Start Journey B?" dialog.
+These should feel conversational, not mechanical. A brief text prompt in the chatbox or a subtle UI cue works better than a "Journey Complete! Start Journey B?" dialog. The `TIMING.breath` (600ms) and `TIMING.breathShort` (300ms) constants provide narrative pauses between beats.
 
 ---
 

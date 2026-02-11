@@ -4,7 +4,7 @@
 
 Interactive presentation app for real estate sales in Kumamoto, Japan. Desktop-only web app that guides presenters through three sequential "journeys" building investment credibility.
 
-**Technology Stack:** HTML/CSS/JavaScript (no frameworks), Leaflet + OpenStreetMap, Vanilla JS state machine
+**Technology Stack:** HTML/CSS/JavaScript (no frameworks), Mapbox GL JS (3D), Vanilla JS state machine, Chart.js (dataviz)
 
 ### Language Rule
 
@@ -158,6 +158,10 @@ Per HIG, adjust tracking based on font size for optimal legibility:
   --color-error: #ff3b30;             /* Error states */
   --color-info: #007aff;              /* Informational */
   
+  /* Borders */
+  --color-border: rgba(0, 0, 0, 0.1);        /* Default borders */
+  --color-border-strong: rgba(0, 0, 0, 0.15); /* Emphasized borders */
+
   /* Map-Specific */
   --color-map-route: #007aff;         /* Route lines */
   --color-map-zone-future: rgba(251, 185, 49, 0.2);  /* Development zones */
@@ -608,12 +612,17 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 | Level | Usage | Shadow | Z-Index |
 |-------|-------|--------|---------|
 | 0 | Base content | none | 0 |
-| 1 | Cards, panels | `--shadow-subtle` | 10 |
-| 2 | Hover states | `--shadow-medium` | 20 |
-| 3 | Dropdowns, popovers | `--shadow-large` | 100 |
-| 4 | Modals, dialogs | `--shadow-xlarge` | 1000 |
-| 5 | Tooltips | `--shadow-medium` | 1100 |
-| 6 | Global overlays | `--shadow-xlarge` | 9999 |
+| 1 | Cards, panels, map controls | `--shadow-subtle` | 10 |
+| 2 | Markers, hover states | `--shadow-medium` | 20 |
+| 2.5 | Transition overlay | — | 50 |
+| 3 | Chatbox | `--shadow-large` | 100 |
+| 4 | Right panel | `--shadow-large` | 200 |
+| 5 | Control bar | `--shadow-medium` | 300 |
+| 6 | UI overlays (FAB, AI chat, data layers, legend) | `--shadow-large` | 500 |
+| 7 | Modals, gallery overlay | `--shadow-xlarge` | 1000 |
+| 8 | Tooltips | `--shadow-medium` | 1100 |
+| 9 | Modal backdrops (Quick Look, gallery) | `--shadow-xlarge` | 2000 |
+| 10 | Skip link | — | 9999 |
 
 ---
 
@@ -636,7 +645,8 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
   --duration-normal: 250ms;      /* Default transitions */
   --duration-slow: 350ms;        /* Complex animations */
   --duration-slower: 500ms;      /* Page transitions */
-  
+  --duration-scene: 1500ms;      /* Cinematic journey transitions */
+
   /* Easing Functions */
   --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);     /* General use */
   --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);   /* Entrances */
@@ -678,39 +688,58 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 
 ### Map Animations
 
+Three distinct marker entrance animations differentiate marker types:
+
 ```css
-/* Map zoom transitions */
-.leaflet-container {
-  transition: none;  /* Let Leaflet handle internal animations */
+/* Heavy anchor drop — Science park, government markers */
+@keyframes anchorDrop {
+  from { transform: scale(0.3) translateY(-16px); opacity: 0; }
+  65%  { transform: scale(1.06) translateY(0); opacity: 1; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Marker appearance */
-.map-marker {
-  animation: markerDrop var(--duration-normal) var(--easing-decelerate) forwards;
+/* Lighter ripple — Company markers (cascading entrance) */
+@keyframes rippleIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
 }
 
-@keyframes markerDrop {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* Gentle rise — Property markers */
+@keyframes markerEmerge {
+  from { transform: translateY(8px) scale(0.9); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* Route drawing */
-.map-route {
+/* Exit animation — All markers */
+@keyframes markerFadeOut {
+  to { opacity: 0; transform: scale(0.85) translateY(4px); }
+}
+
+/* Selected marker pulse */
+@keyframes markerPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+```
+
+**Route drawing:**
+```css
+.route-line-animated {
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
   animation: drawRoute var(--duration-slower) var(--easing-decelerate) forwards;
 }
 
 @keyframes drawRoute {
-  to {
-    stroke-dashoffset: 0;
-  }
+  to { stroke-dashoffset: 0; }
+}
+```
+
+**Infrastructure road fade-in:**
+```css
+@keyframes roadFadeIn {
+  from { opacity: 0; stroke-opacity: 0; }
+  to   { opacity: 0.7; stroke-opacity: 0.7; }
 }
 ```
 
@@ -1505,6 +1534,356 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
 - **Icon**: Chat bubble (Lucide `message-square`)
 - **Accessibility**: `aria-label="Reopen guide"`
 
+### Cinematic Skip Button
+
+A translucent button that appears during the opening 3D fly-in animation, allowing presenters to skip ahead.
+
+```css
+#cinematic-skip {
+  position: absolute;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 10;
+  padding: var(--space-2) var(--space-5);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--easing-standard);
+}
+
+#cinematic-skip.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#cinematic-skip:hover {
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+}
+```
+
+#### Skip Button Behavior
+
+- **Appears during**: Cinematic 3D fly-in entry only
+- **Hidden when**: Journey starts, or animation completes naturally
+- **Action**: Immediately ends the fly-in and settles at the Journey A starting position
+- **Text**: "Skip Intro"
+
+### Panel Toggle Button
+
+A map control button that toggles the right panel visibility.
+
+```css
+#panel-toggle {
+  position: absolute;
+  top: var(--space-20);
+  right: var(--space-3);
+  z-index: 500;
+  width: 36px;
+  height: 36px;
+  background: var(--color-bg-primary);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+#panel-toggle.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+```
+
+- **Icon**: Sidebar right (Lucide `panel-right`)
+- **Accessibility**: `aria-label="Toggle details panel"`
+
+### Dashboard Toggle Button
+
+A map control button that switches to Dashboard mode with overview statistics.
+
+```css
+#dashboard-toggle {
+  position: absolute;
+  top: 124px;  /* Aligns below panel-toggle */
+  right: var(--space-3);
+  z-index: 500;
+  width: 36px;
+  height: 36px;
+  background: var(--color-bg-primary);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+#dashboard-toggle.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+```
+
+- **Icon**: Bar chart (Lucide `bar-chart-3`)
+- **Accessibility**: `aria-expanded="false"`, toggles on click
+- **Available in**: Dashboard mode and post-journey
+
+### Property Quick Look
+
+A macOS Quick Look-style full-screen image preview for property photos. Overlays the entire viewport.
+
+```css
+#property-quick-look {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+```
+
+#### Quick Look Behavior
+
+- **Triggered by**: Hovering/clicking property images in the right panel
+- **Dismiss**: Click overlay, press Escape, or click close button
+- **Animation**: `quickLookZoomIn` — scale(0.9) to scale(1) entrance
+
+### Disclosure Groups
+
+A macOS NSOutlineView-style component for expandable content sections. Used in Evidence Library and data display.
+
+```css
+.disclosure-group {
+  margin: var(--space-4) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+.disclosure-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.disclosure-header:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.disclosure-header:focus-visible {
+  outline: 3px solid var(--color-info);
+  outline-offset: -3px;
+}
+
+.disclosure-content {
+  display: none;
+  padding: var(--space-2);
+}
+
+.disclosure-group.expanded .disclosure-content {
+  display: block;
+  animation: disclosureExpand var(--duration-normal) var(--easing-decelerate);
+}
+```
+
+#### Disclosure Group Behavior
+
+- **Expand/collapse**: Click header to toggle content visibility
+- **Triangle rotation**: Chevron rotates 90deg when expanded (macOS style)
+- **Animation**: Content fades in on expand
+- **Keyboard**: Enter/Space toggles, `aria-expanded` tracks state
+- **Nesting**: Supports items with secondary actions (location indicator, chevron)
+
+### Transition Overlay
+
+A cinematic crossfade overlay used during property drill-down sequences (3D map to exterior photo to interior gallery).
+
+```css
+#transition-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+```
+
+#### Transition Overlay Behavior
+
+- **Used during**: Property reveal drill-down (Journey C)
+- **Sequence**: 3D map view fades to exterior photo, then to interior gallery
+- **Duration**: Uses `--duration-scene` (1500ms) for cinematic pacing
+- **Sits inside**: `#map-container` so right panel remains visible above
+
+### Draggable Modals
+
+All major UI panels support drag-to-reposition interaction for presenter flexibility.
+
+#### Draggable Elements
+
+| Element | Drag Handle | Default Position |
+|---------|-------------|-----------------|
+| Chatbox | `#chatbox-body` | Bottom-left |
+| Right Panel | Panel subtitle/title | Right side |
+| AI Chat | `.ai-chat-header` | Bottom-center |
+| Gallery | `.placeholder-doc h3` | Center |
+
+#### Drag Behavior
+
+- **Activation**: Mouse down on drag handle, then drag
+- **Constraints**: Viewport boundary enforcement (cannot drag off-screen)
+- **Position memory**: `element.dataset.draggable` persists repositioned state
+- **Reset**: `resetDragPosition()` restores original CSS layout
+- **First drag**: Converts from CSS-centered position to fixed absolute coordinates
+
+### Chart.js Integration (Data Visualization)
+
+Three chart types render financial data with accessible companion tables.
+
+| Chart Type | Function | Use Case |
+|------------|----------|----------|
+| Scenario comparison bars | `renderScenarioChart()` | Bear/Average/Bull case comparison (Journey C) |
+| Historical trend line | `renderTrendChart()` | Area appreciation over time |
+| Investment comparison | `renderInvestmentChart()` | Company investment amounts |
+
+#### Chart Accessibility
+
+- Every chart includes a companion `<details>` disclosure with an accessible `<table>`
+- Tables include `<caption>`, proper heading scopes, and screen-reader-friendly structure
+- Generated via `generateDataTable(headers, rows, caption)` helper
+- Colorblind-safe palettes used for all chart colors
+
+### Dashboard Mode
+
+An alternative presentation mode for free exploration without the guided narrative.
+
+#### Entry Points
+
+- **"Skip to Dashboard"** ghost button on start screen
+- **Post-journey**: Available after completing all three journeys
+
+#### Dashboard UI Differences
+
+| Element | Journey Mode | Dashboard Mode |
+|---------|-------------|----------------|
+| Chatbox | Narrative-driven prompts | Hidden |
+| AI Chat CTAs | Download Summary, Explore Again | Hidden |
+| Dashboard toggle | Available | Active |
+| Data layers | Available | Available |
+| Panel content | Journey-step contextual | Overview statistics |
+
+#### Dashboard State
+
+```javascript
+App.state.dashboardMode = true;   // Alternative mode active
+App.state.dashboardPanelOpen = true; // Panel shows overview stats
+```
+
+### Heartbeat / Ambient Motion
+
+A continuous background animation system that maintains visual life when the presenter pauses.
+
+```javascript
+MapController._heartbeat = {
+    active: false,
+    driftInterval: null,
+    bearingPerTick: 0.05,   // ~0.5 degrees per 10 seconds
+    tickMs: 1000,           // Tick interval
+    idleTimeout: null,
+    idleThreshold: 5000,    // Activates after 5s of no interaction
+    pulsingMarkers: []      // Selective marker pulse animation
+};
+```
+
+#### Heartbeat Behavior
+
+- **Drift**: Slow bearing rotation creates subtle camera movement
+- **Idle detection**: Activates after 5 seconds of no user interaction
+- **Pause on interaction**: Any mousedown, touchstart, or wheel event pauses drift
+- **Marker pulse**: Selected markers can have subtle scale pulse via `markerPulse` keyframe
+- **Reduced motion**: Entirely disabled when `prefers-reduced-motion` is active
+
+### Camera Choreography
+
+16 named camera positions define the 3D journey through the map.
+
+```javascript
+const CAMERA_STEPS = {
+    A0:             { center: [130.78, 32.82], zoom: 11.5, pitch: 45, bearing: 10 },
+    A1:             { center: [130.78, 32.83], zoom: 11.5, pitch: 45, bearing: -5 },
+    A2_overview:    { center: [130.75, 32.80], zoom: 8.5,  pitch: 35, bearing: 0 },
+    A2_water:       { center: [130.90, 32.88], zoom: 13,   pitch: 50, bearing: 25 },
+    A2_power:       { center: [130.65, 32.75], zoom: 12,   pitch: 45, bearing: -15 },
+    A3_ecosystem:   { center: [130.78, 32.84], zoom: 11.5, pitch: 50, bearing: 20 },
+    A3_location:    { center: [129.5,  31.5],  zoom: 5,    pitch: 20, bearing: 0 },
+    A_to_B:         { center: [130.75, 32.84], zoom: 11,   pitch: 48, bearing: -10 },
+    B1:             { center: [130.78, 32.84], zoom: 11.5, pitch: 48, bearing: -10 },
+    B1_sciencePark: { center: [130.78, 32.87], zoom: 11,   pitch: 45, bearing: 5 },
+    B4:             { center: [130.80, 32.86], zoom: 12,   pitch: 52, bearing: 30 },
+    B6:             { center: [130.83, 32.87], zoom: 11.5, pitch: 50, bearing: -20 },
+    B7:             { center: [130.80, 32.86], zoom: 12,   pitch: 55, bearing: 15 },
+    B_to_C:         { center: [130.82, 32.82], zoom: 12.5, pitch: 50, bearing: -15 },
+    corridor:       { center: [130.82, 32.82], zoom: 12.5, pitch: 50, bearing: -15 },
+    complete:       { center: [130.78, 32.84], zoom: 11,   pitch: 40, bearing: 0 }
+};
+```
+
+### Narrative Timing Constants
+
+Semantic timing values used in JavaScript for orchestrating narrative beats.
+
+```javascript
+const TIMING = {
+    scene: 1500,         // Journey transition hold (synced with --duration-scene)
+    fast: 150,           // --duration-fast
+    normal: 250,         // --duration-normal
+    slow: 350,           // --duration-slow
+    flyDuration: 2000,   // Mapbox flyTo milliseconds
+    revealDelay: 1200,   // Science park reveal after gov chain
+    buttonDelay: 2500,   // Continue button after markers land
+    infraStagger: 100,   // Infrastructure road stagger
+    restartDelay: 500,   // Delay before restart
+
+    // Narrative breathing room
+    breath: 600,         // Full pause: let a scene register
+    breathMedium: 400,   // Marker cluster to next content
+    breathShort: 300,    // Quick pause: let exit complete before transition
+};
+```
+
+### Panel History & Navigation
+
+A stack-based navigation system for the right panel supporting back/forward traversal.
+
+- **`panelHistory`**: Stack of previous panel states with scroll position
+- **`chatboxHistory`**: Chatbox content navigation history
+- **Back button**: Auto-injected when history exists
+- **Scroll restore**: Previous scroll position restored on back navigation
+- **Deduplication**: Prevents duplicate entries on repeated navigations
+
 ---
 
 ## Layout Specifications
@@ -1568,6 +1947,14 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
 }
 ```
 
+**Additional z-index values used in CSS (not tokenized):**
+
+| Value | Elements | Rationale |
+|-------|----------|-----------|
+| `50` | `#transition-overlay` | Above markers, below chatbox; cinematic crossfade |
+| `500` | FAB, AI chat, data layers, legend, panel-toggle, dashboard-toggle | UI overlays above control bar, below modals |
+| `2000` | `#property-quick-look`, gallery backdrop | Modal backdrops above gallery content |
+
 ---
 
 ## CSS Custom Properties Reference
@@ -1619,7 +2006,10 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
   --color-bg-secondary: #f5f5f7;
   --color-bg-tertiary: #e8e8ed;
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
-  
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+
   --color-success: #34c759;
   --color-warning: #ff9500;
   --color-error: #ff3b30;
@@ -1667,12 +2057,13 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
   --duration-normal: 250ms;
   --duration-slow: 350ms;
   --duration-slower: 500ms;
-  
+  --duration-scene: 1500ms;
+
   --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
   --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
   --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
   --easing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  
+
   /* ========== ICONS ========== */
   --icon-xs: 12px;
   --icon-sm: 16px;
@@ -1800,6 +2191,46 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
 - [ ] Evidence markers scale up (1.2×) when highlighted
 - [ ] Highlighted markers have blue ring shadow
 
+### For Cinematic Skip Button
+
+- [ ] Appears only during 3D fly-in animation
+- [ ] Hidden after animation completes or journey starts
+- [ ] Translucent background with backdrop-filter
+- [ ] Hover brightens background to rgba(0,0,0,0.5)
+- [ ] Active state at scale(0.97)
+
+### For Panel Toggle / Dashboard Toggle
+
+- [ ] Both use 36×36px size with touch target expansion to 44px
+- [ ] Panel toggle at top: `--space-20`, right: `--space-3`
+- [ ] Dashboard toggle at top: 124px, right: `--space-3`
+- [ ] Active state uses brand yellow background
+- [ ] `backdrop-filter: blur(20px) saturate(180%)`
+
+### For Property Quick Look
+
+- [ ] Full-screen overlay at z-index: 2000
+- [ ] `quickLookZoomIn` entrance animation
+- [ ] Dismissible via click, Escape key, or close button
+- [ ] Overlay background with backdrop blur
+
+### For Disclosure Groups
+
+- [ ] Header uses `--color-bg-secondary` background
+- [ ] Hover state changes to `--color-bg-tertiary`
+- [ ] Focus-visible with inset outline (offset: -3px)
+- [ ] Triangle rotates on expand (macOS style)
+- [ ] Content fade-in via `disclosureExpand` animation
+- [ ] `aria-expanded` attribute tracks state
+
+### For Charts (Data Visualization)
+
+- [ ] Every chart has companion accessible data table in `<details>`
+- [ ] Tables include proper `<caption>` and heading scopes
+- [ ] Colorblind-safe palettes used
+- [ ] Chart.js instances tracked in `UI.charts` to prevent memory leaks
+- [ ] Canvas elements have proper IDs for lifecycle management
+
 ### For Infrastructure Roads
 
 - [ ] Roads appear as teal dashed polylines (#5ac8fa)
@@ -1818,23 +2249,31 @@ A circular button that appears when the chatbox or AI chat is closed, allowing u
 
 ```
 map-prototype/
-├── index.html          # Main entry point
+├── index.html              # Main entry point
 ├── css/
-│   ├── tokens.css      # CSS custom properties (from this document)
-│   ├── base.css        # Reset, typography, global styles
-│   ├── components.css  # Buttons, panels, cards, etc.
-│   └── utilities.css   # Spacing, visibility helpers
+│   └── styles.css          # All CSS: tokens, base, components, utilities (single file)
 ├── js/
-│   ├── app.js          # Main app logic & state machine
-│   ├── map.js          # Map setup, markers, layers
-│   ├── data.js         # All mock data
-│   └── ui.js           # Panel, chatbox, gallery, controls
+│   ├── app.js              # Main app logic & state machine (TIMING, CAMERA_STEPS)
+│   ├── map-controller.js   # Mapbox GL JS setup, markers, layers, 3D camera, heartbeat
+│   ├── data.js             # All mock data (journeys, properties, evidence, roads, etc.)
+│   └── ui.js               # Panel, chatbox, gallery, charts, draggable, disclosure
 ├── assets/
-│   └── placeholders/   # Placeholder images for gallery
-└── CLAUDE.md           # This design system document
+│   ├── placeholders/       # Placeholder images for gallery
+│   ├── Assets1.png         # Brand logo (dark)
+│   ├── Assets2.png         # Brand logo (alt)
+│   ├── Assets3.svg         # Brand mark (SVG)
+│   ├── Assets4.svg         # Brand mark (variant)
+│   └── Assets4-white.svg   # Brand mark (white, for dark backgrounds)
+├── docs/
+│   └── plans/              # Design documents and implementation plans
+├── feedback/               # User research: feedback rounds and presentation scripts
+├── BEATSHEET.md            # Narrative beat sheet for journey choreography
+├── Map prototype spec.md   # App specification (journey steps, components, behavior)
+├── CLAUDE.md               # This design system document
+└── package.json            # Dependencies (Chart.js, etc.)
 ```
 
 ---
 
-*Last updated: February 2026*
+*Last updated: February 11, 2026*
 *Based on macOS Human Interface Guidelines with project-specific customizations*
