@@ -22,8 +22,11 @@
 
     <!-- Initial Start Screen -->
     <div id="start-screen" role="main" aria-label="Welcome">
+        <img class="start-screen-logo" src="assets/Assets1.png" alt="MoreHarvest" draggable="false">
+        <h2 class="start-screen-headline">Why is Japan spending ¥10 trillion in one city?</h2>
+        <p class="start-screen-subtitle">Kumamoto semiconductor corridor investment guide.</p>
         <button id="start-btn">Start the Journey <span class="btn-arrow">→</span></button>
-        <button id="skip-to-dashboard-btn" class="ghost-btn">Skip to Dashboard</button>
+        <button id="skip-to-dashboard-btn" class="ghost-btn">I've seen this before <span class="btn-arrow">→</span></button>
     </div>
 
     <!-- Main App Container (hidden initially) -->
@@ -35,6 +38,24 @@
             </div>
             <!-- Screen reader announcements for map interactions -->
             <div id="map-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+            <!-- Journey Progress Bar -->
+            <nav id="journey-progress" class="hidden" aria-label="Journey progress">
+                <div class="journey-progress-step completed" data-step="A">
+                    <span class="journey-progress-dot"></span>
+                    <span class="journey-progress-label">Why Kumamoto</span>
+                </div>
+                <div class="journey-progress-connector"></div>
+                <div class="journey-progress-step" data-step="B">
+                    <span class="journey-progress-dot"></span>
+                    <span class="journey-progress-label">Infrastructure</span>
+                </div>
+                <div class="journey-progress-connector"></div>
+                <div class="journey-progress-step" data-step="C">
+                    <span class="journey-progress-dot"></span>
+                    <span class="journey-progress-label">Investment</span>
+                </div>
+            </nav>
 
             <!-- Control Bar (hidden initially) -->
             <div id="control-bar" class="hidden" role="toolbar" aria-label="Map controls">
@@ -160,11 +181,11 @@
         </div>
 
         <div class="ai-chat-suggestions" id="ai-chat-suggestions">
-            <button class="ai-chat-chip" data-question="Why is Japan reshaping its semiconductor industry?">
-                Why is Japan reshaping its semiconductor industry?
+            <button class="ai-chat-chip" data-question="What are the risks of investing here?">
+                What are the risks?
             </button>
-            <button class="ai-chat-chip" data-question="Why was Kumamoto chosen as the hub?">
-                Why was Kumamoto chosen as the hub?
+            <button class="ai-chat-chip" data-question="How do I start investing in Kumamoto?">
+                How do I invest?
             </button>
         </div>
 
@@ -191,7 +212,18 @@
 
         <!-- CTAs for clear calls to action (Strengthen Ending) -->
         <div class="ai-chat-ctas" id="ai-chat-ctas">
-            <button class="ai-chat-cta primary" onclick="UI.downloadSummary()">
+            <button class="ai-chat-cta primary" onclick="UI.scheduleConsultation()">
+                <span class="ai-chat-cta-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" x2="16" y1="2" y2="6"/>
+                        <line x1="8" x2="8" y1="2" y2="6"/>
+                        <line x1="3" x2="21" y1="10" y2="10"/>
+                    </svg>
+                </span>
+                Schedule a Consultation
+            </button>
+            <button class="ai-chat-cta" onclick="UI.downloadSummary()">
                 <span class="ai-chat-cta-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

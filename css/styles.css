@@ -111,7 +111,7 @@
     --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
     --easing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-    --duration-scene: 800ms;
+    --duration-scene: 1500ms;
 
     /* Icon Sizes (8pt grid) */
     --icon-xs: 12px;
@@ -221,9 +221,10 @@ a:focus-visible {
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     gap: var(--space-4);
+    padding-left: 15%;
     background: linear-gradient(180deg, #f5f5f7 0%, #e8e8ed 100%);
     z-index: 1000;
     transition: opacity var(--duration-slow) var(--easing-accelerate);
@@ -232,6 +233,38 @@ a:focus-visible {
 #start-screen.fade-out {
     opacity: 0;
     pointer-events: none;
+}
+
+.start-screen-logo {
+    width: 300px;
+    height: auto;
+    margin-bottom: var(--space-6);
+    opacity: 0;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.1s forwards;
+}
+
+.start-screen-headline {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-align: left;
+    max-width: 480px;
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--tracking-display);
+    opacity: 0;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.15s forwards;
+}
+
+.start-screen-subtitle {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-secondary);
+    text-align: left;
+    margin-bottom: var(--space-4);
+    opacity: 0;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.2s forwards;
 }
 
 #start-btn {
@@ -546,11 +579,80 @@ a:focus-visible {
     text-align: center;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    #transition-overlay,
-    .transition-img {
-        transition-duration: 0.01ms !important;
-    }
+/* (Reduced-motion for transitions — consolidated into main block below) */
+
+/* ================================
+   JOURNEY PROGRESS BAR
+   ================================ */
+#journey-progress {
+    position: absolute;
+    top: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-control-bar);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--color-bg-primary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--color-border);
+}
+
+.journey-progress-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+}
+
+.journey-progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-text-tertiary);
+    background: transparent;
+    flex-shrink: 0;
+    transition: all var(--duration-normal) var(--easing-standard);
+}
+
+.journey-progress-label {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-tertiary);
+    transition: all var(--duration-normal) var(--easing-standard);
+}
+
+.journey-progress-connector {
+    width: 24px;
+    height: 1px;
+    background: var(--color-bg-tertiary);
+    flex-shrink: 0;
+}
+
+/* Active step */
+.journey-progress-step.active .journey-progress-dot {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+}
+
+.journey-progress-step.active .journey-progress-label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+/* Completed step */
+.journey-progress-step.completed .journey-progress-dot {
+    border-color: var(--color-success);
+    background: var(--color-success);
+}
+
+.journey-progress-step.completed .journey-progress-label {
+    color: var(--color-text-secondary);
 }
 
 /* ================================
@@ -615,6 +717,17 @@ a:focus-visible {
     color: var(--color-text-disabled);
     cursor: not-allowed;
     pointer-events: none;
+}
+
+/* Coachmark pulse — draws attention when toggle first appears */
+@keyframes toggleCoachmark {
+    0%   { box-shadow: 0 0 0 0 rgba(251, 185, 49, 0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(251, 185, 49, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(251, 185, 49, 0); }
+}
+
+#time-toggle.coachmark {
+    animation: toggleCoachmark 1.2s var(--easing-standard) 3;
 }
 
 /* ================================
@@ -956,6 +1069,46 @@ a:focus-visible {
     display: none;
 }
 
+.chatbox-hint {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    text-align: center;
+    margin-top: var(--space-2);
+}
+
+/* Journey backward navigation button */
+.chatbox-nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding: var(--space-2) 0;
+    background: none;
+    border: none;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--easing-standard);
+}
+
+.chatbox-nav-back:hover {
+    color: var(--color-text-primary);
+}
+
+.chatbox-nav-back:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+    border-radius: var(--radius-small);
+}
+
+.chatbox-nav-back svg {
+    flex-shrink: 0;
+}
+
 /* Chatbox question (opening question emphasis) */
 .chatbox-question {
     font-family: var(--font-display);
@@ -991,16 +1144,7 @@ a:focus-visible {
     animation: attentionPulse 2s var(--easing-standard) infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .chatbox-continue,
-    #start-btn {
-        animation: none;
-        opacity: 1;
-    }
-    .btn-arrow {
-        animation: none;
-    }
-}
+/* (Reduced-motion for buttons — consolidated into main block below) */
 
 /* ================================
    PANEL TOGGLE BUTTON (macOS)
@@ -1335,6 +1479,29 @@ a:focus-visible {
     box-shadow: none;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+#panel-content .panel-btn.secondary {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+    margin-top: var(--space-2);
+}
+
+#panel-content .panel-btn.secondary:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+#panel-content .panel-btn.secondary:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+#panel-content .panel-btn.secondary:active {
+    background: var(--color-bg-tertiary);
+    transform: scale(0.98);
 }
 
 /* Calculator Styles (macOS) */
@@ -1842,7 +2009,16 @@ a:focus-visible {
     animation: markerPop var(--duration-fast) var(--easing-decelerate);
 }
 
-/* Marker hit area hover effect - expand inner marker */
+/* Marker hit area — cursor and smooth hover */
+.custom-marker-hitarea {
+    cursor: pointer;
+}
+
+.custom-marker {
+    transition: transform var(--duration-fast) var(--easing-standard),
+                box-shadow var(--duration-fast) var(--easing-standard);
+}
+
 .custom-marker-hitarea:hover .custom-marker {
     transform: scale(1.15);
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
@@ -1852,6 +2028,95 @@ a:focus-visible {
 .evidence-marker {
     opacity: 1 !important;
     animation: markerPop var(--duration-fast) var(--easing-decelerate);
+}
+
+/* ================================
+   MARKER ENTRANCE VARIANTS
+   ================================ */
+
+/* Anchor Drop — heavy, deliberate (science park, JASM, gov chain lead) */
+@keyframes anchorDrop {
+    from {
+        transform: scale(0.3) translateY(-16px);
+        opacity: 0;
+    }
+    65% {
+        transform: scale(1.06) translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.marker-anchor {
+    animation: anchorDrop var(--duration-slow) var(--easing-decelerate) both;
+}
+
+/* Ripple In — lighter, cascading (company markers, resource markers) */
+@keyframes rippleIn {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.marker-ripple {
+    animation: rippleIn var(--duration-fast) var(--easing-decelerate) both;
+}
+
+/* Emerge — gentle rise from ground (property HTML markers, evidence) */
+@keyframes markerEmerge {
+    from {
+        transform: translateY(8px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.marker-emerge {
+    animation: markerEmerge var(--duration-normal) var(--easing-decelerate) both;
+}
+
+/* ================================
+   MARKER EXIT
+   ================================ */
+
+@keyframes markerFadeOut {
+    to {
+        opacity: 0;
+        transform: scale(0.85) translateY(4px);
+    }
+}
+
+.marker-exiting {
+    animation: markerFadeOut var(--duration-fast) var(--easing-accelerate) forwards;
+    pointer-events: none;
+}
+
+/* ================================
+   MARKER PULSE (idle heartbeat)
+   ================================ */
+
+@keyframes markerPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.04);
+    }
+}
+
+.marker-pulse .elevated-marker {
+    animation: markerPulse 3s var(--easing-standard) infinite;
 }
 
 /* (Science Park circle — now rendered as Mapbox fill/line layers) */
@@ -2039,6 +2304,11 @@ a:focus-visible {
 }
 
 /* Branded company markers */
+.branded-marker {
+    cursor: pointer;
+    transition: transform var(--duration-fast) var(--easing-standard);
+}
+
 .branded-marker:hover {
     transform: scale(1.1);
 }
@@ -3283,7 +3553,7 @@ button.layer-item {
     border: 3px solid var(--color-bg-tertiary);
     border-top-color: var(--color-primary);
     border-radius: var(--radius-full);
-    animation: progressSpin var(--duration-scene) linear infinite;
+    animation: progressSpin var(--duration-slower) linear infinite;
 }
 
 @keyframes progressSpin {
@@ -3337,6 +3607,85 @@ button.layer-item {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* Journey Recap Card */
+.journey-recap {
+    text-align: left;
+}
+
+.journey-recap h3 {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-4);
+}
+
+.journey-recap-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+}
+
+.journey-recap-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+}
+
+.journey-recap-headline {
+    text-align: center;
+    padding: var(--space-4);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-medium);
+    margin-bottom: var(--space-6);
+}
+
+.journey-recap-headline-label {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-1);
+}
+
+.journey-recap-headline-value {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--tracking-display);
+}
+
+.journey-recap-headline-detail {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+}
+
+.journey-recap-link {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: var(--space-3);
+    padding: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--easing-standard);
+}
+
+.journey-recap-link:hover {
+    color: var(--color-text-primary);
 }
 
 /* ================================
@@ -3431,6 +3780,29 @@ button.layer-item {
 /* ================================
    CHATBOX DISCLOSURE SECTIONS (macOS HIG)
    ================================ */
+/* Inline fund stats */
+.chatbox-fund-stats {
+    margin-top: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-medium);
+}
+
+.chatbox-fund-label {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.chatbox-fund-detail {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-1);
+}
+
 .chatbox-disclosures {
     display: flex;
     flex-direction: column;
@@ -3601,7 +3973,7 @@ button.layer-item {
     margin-bottom: var(--space-6);
     opacity: 0;
     transform: translateY(20px);
-    animation: mhEntryFadeUp 0.6s var(--easing-decelerate) 0.3s forwards;
+    animation: mhEntryFadeUp var(--duration-slower) var(--easing-decelerate) 0.3s forwards;
 }
 
 .moreharvest-entry-tagline {
@@ -3609,7 +3981,7 @@ button.layer-item {
     font-size: var(--text-lg);
     color: var(--color-text-disabled);
     opacity: 0;
-    animation: mhEntryFadeUp 0.6s var(--easing-decelerate) 0.6s forwards;
+    animation: mhEntryFadeUp var(--duration-slower) var(--easing-decelerate) 0.6s forwards;
 }
 
 @keyframes mhEntryFadeUp {
@@ -3619,12 +3991,7 @@ button.layer-item {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .moreharvest-entry-logo,
-    .moreharvest-entry-tagline {
-        animation-duration: 0.01ms !important;
-    }
-}
+/* (Reduced-motion for MoreHarvest entry — consolidated into main block below) */
 
 /* ================================
    HEADLINE STAT (Net Profit) - Von Restorff Effect
@@ -3813,6 +4180,156 @@ button.layer-item {
 }
 
 /* ================================
+   TOUCH TARGET EXPANSION (44px minimum per HIG)
+   Uses ::before pseudo-element to expand hit area
+   without changing visual size.
+   ================================ */
+
+/* 24px close buttons → 44px hit area */
+#panel-close,
+#gallery-close,
+#chatbox-close,
+#chatbox-back,
+#ai-chat-close {
+    position: absolute; /* already set, reinforcing for ::before context */
+}
+
+#panel-close::before,
+#gallery-close::before,
+#chatbox-close::before,
+#chatbox-back::before,
+#ai-chat-close::before {
+    content: '';
+    position: absolute;
+    inset: -10px; /* (44 - 24) / 2 = 10px expansion */
+}
+
+/* 36px map toggles → 44px hit area */
+#layers-toggle::before,
+#panel-toggle::before,
+#dashboard-toggle::before,
+.panel-back-btn::before {
+    content: '';
+    position: absolute;
+    inset: -4px; /* (44 - 36) / 2 = 4px expansion */
+}
+
+#layers-toggle,
+#panel-toggle,
+#dashboard-toggle,
+.panel-back-btn {
+    position: absolute; /* already set for toggles, reinforcing */
+}
+
+/* 40px send button → 44px hit area */
+.ai-chat-send {
+    position: relative;
+}
+
+.ai-chat-send::before {
+    content: '';
+    position: absolute;
+    inset: -2px; /* (44 - 40) / 2 = 2px expansion */
+}
+
+/* 32px quick-look close → 44px hit area */
+#quick-look-close::before {
+    content: '';
+    position: absolute;
+    inset: -6px; /* (44 - 32) / 2 = 6px expansion */
+}
+
+/* ================================
+   PRESS FEEDBACK (:active states)
+   Consistent scale(0.98) for interactive elements
+   ================================ */
+
+/* Map toggle buttons */
+#panel-toggle:active,
+#dashboard-toggle:active,
+#layers-toggle:active {
+    transform: scale(0.92);
+}
+
+/* Layer items */
+.layer-item:active {
+    transform: scale(0.98);
+}
+
+/* Disclosure headers and items */
+.disclosure-header:active {
+    transform: scale(0.99);
+}
+
+.disclosure-item:active {
+    background: rgba(251, 185, 49, 0.12);
+}
+
+/* Government tier items */
+.gov-tier:active {
+    transform: scale(0.98);
+}
+
+/* Chatbox options */
+.chatbox-option:active:not(.completed) {
+    transform: scale(0.98);
+    background: rgba(251, 185, 49, 0.12);
+}
+
+/* Chatbox back navigation */
+.chatbox-nav-back:active {
+    color: var(--color-text-secondary);
+}
+
+/* Gallery/transition navigation */
+.transition-prev:active,
+.transition-next:active {
+    transform: scale(0.95);
+}
+
+/* Dashboard items */
+.dashboard-item:active {
+    transform: scale(0.98);
+}
+
+/* Dashboard section headers */
+.dashboard-section-header:active {
+    transform: scale(0.99);
+}
+
+/* Breadcrumb links */
+.breadcrumb-link:active {
+    color: var(--color-primary-pressed);
+}
+
+/* AI chat CTAs */
+.ai-chat-cta:active {
+    transform: scale(0.98);
+}
+
+/* Quick-look close */
+#quick-look-close:active {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(0.92);
+}
+
+/* Cinematic skip */
+#cinematic-skip:active {
+    background: rgba(0, 0, 0, 0.6);
+    transform: scale(0.97);
+}
+
+/* Disclosure back button */
+.disclosure-back-btn:active {
+    background: var(--color-bg-tertiary);
+}
+
+/* Journey recap link */
+.journey-recap-link:active {
+    color: var(--color-text-tertiary);
+}
+
+/* ================================
    REDUCED MOTION PREFERENCES
    More granular control per HIG guidelines
    ================================ */
@@ -3823,7 +4340,8 @@ button.layer-item {
      */
     #start-btn,
     .btn-arrow,
-    .attention-pulse {
+    .attention-pulse,
+    #time-toggle.coachmark {
         animation: none !important;
         opacity: 1;
     }
@@ -3840,16 +4358,33 @@ button.layer-item {
     #ai-chat,
     #chatbox,
     #gallery-content,
+    #gallery-content.closing,
     #chat-fab,
     #quick-look-content,
     #data-layers,
     .ai-chat-message,
     .chatbox-continue.primary,
     .disclosure-group.expanded .disclosure-content,
+    .financials-disclosure.expanded .financials-disclosure-content,
     .custom-marker-wrapper,
     .evidence-marker,
-    #right-panel.visible #panel-content {
+    .marker-anchor,
+    .marker-ripple,
+    .marker-emerge,
+    .marker-exiting,
+    .marker-pulse .elevated-marker,
+    #right-panel.visible #panel-content,
+    .moreharvest-entry-logo,
+    .moreharvest-entry-tagline,
+    .journey-progress-spinner {
         animation: none !important;
+    }
+
+    /* Closing animations — instant exit */
+    #chatbox.closing,
+    #ai-chat.closing {
+        animation: none !important;
+        opacity: 0;
     }
 
     /*
@@ -3881,6 +4416,14 @@ button.layer-item {
     .infrastructure-road-animated {
         animation: none !important;
         opacity: 0.7 !important;
+    }
+
+    /*
+     * TRANSITION OVERLAYS: Instant crossfade
+     */
+    #transition-overlay,
+    .transition-img {
+        transition-duration: 0.01ms !important;
     }
 
     /*
@@ -4117,6 +4660,84 @@ button.layer-item {
     margin-top: var(--space-4);
 }
 
+/* ================================
+   EVIDENCE LIBRARY (Panel Evidence Items)
+   ================================ */
+.evidence-library {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.evidence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-medium);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+.evidence-item:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-border-strong);
+}
+
+.evidence-item:active {
+    background: var(--color-bg-tertiary);
+    transform: scale(0.98);
+}
+
+.evidence-item-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+}
+
+.evidence-item-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.evidence-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.evidence-item-title {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+}
+
+.evidence-item-source {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    margin-top: var(--space-1);
+}
+
+.evidence-item-chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--color-text-tertiary);
+    align-self: center;
+    transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.evidence-item:hover .evidence-item-chevron {
+    color: var(--color-text-secondary);
+    transform: translateX(2px);
+}
+
 /* Panel Headline Metric (for roads) */
 .panel-headline-metric {
     display: flex;
@@ -4162,4 +4783,39 @@ button.layer-item {
 #property-chart-container {
     height: 200px;
     margin-top: var(--space-4);
+}
+
+/* ================================
+   LARGE MACOS DISPLAYS (iMac 24", External Monitors)
+   ================================ */
+@media (min-width: 2048px) {
+    /* Right panel — scale proportionally, cap at 520px */
+    #right-panel {
+        width: clamp(380px, 22vw, 520px);
+    }
+
+    /* Panel content — wider padding for wider panel */
+    #panel-content {
+        padding: var(--space-12) var(--space-8) var(--space-8);
+    }
+
+    /* Chatbox — modest width bump */
+    #chatbox {
+        max-width: 500px;
+    }
+
+    /* AI Chat — same treatment */
+    #ai-chat {
+        max-width: 500px;
+    }
+
+    /* AI Chat messages — more vertical room */
+    .ai-chat-messages {
+        max-height: 340px;
+    }
+
+    /* Gallery modal — more room for documents */
+    #gallery-content {
+        max-width: 1100px;
+    }
 }

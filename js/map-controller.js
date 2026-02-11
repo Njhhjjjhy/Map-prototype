@@ -114,6 +114,17 @@ const MapController = {
     // Pre-data-layer view save
     preDataLayerView: null,
 
+    // Heartbeat — ambient life between interactions
+    _heartbeat: {
+        active: false,
+        driftInterval: null,
+        bearingPerTick: 0.05,   // degrees per tick (~0.5°/10s)
+        tickMs: 1000,           // tick interval
+        idleTimeout: null,
+        idleThreshold: 5000,    // ms of no interaction before drift starts
+        pulsingMarkers: []
+    },
+
     // ================================
     // LIFECYCLE
     // ================================
@@ -254,8 +265,8 @@ const MapController = {
         await this._waitForMoveEnd(2500);
         if (thisAnimation.cancelled) return;
 
-        // Hold for a breath
-        await this._delay(300);
+        // Hold for a breath — let the audience absorb where they are
+        await this._delay(600);
         if (thisAnimation.cancelled) return;
 
         // Hide skip button
@@ -263,6 +274,9 @@ const MapController = {
 
         // Enable user interaction after cinematic entry
         this._enableInteraction();
+
+        // Start ambient heartbeat
+        this.startHeartbeat();
 
         this._currentAnimation = null;
     },
@@ -287,6 +301,7 @@ const MapController = {
         });
 
         this._enableInteraction();
+        this.startHeartbeat();
     },
 
     /**
@@ -295,6 +310,9 @@ const MapController = {
      */
     async flyToStep(config) {
         if (!this.initialized) return;
+
+        // Pause heartbeat drift during programmatic camera moves
+        this.pauseHeartbeat();
 
         const map = this.map;
         const duration = config.duration || 2000;
@@ -306,6 +324,7 @@ const MapController = {
                 pitch: config.pitch,
                 bearing: config.bearing
             });
+            this._resetIdleTimer();
             return;
         }
 
@@ -319,6 +338,9 @@ const MapController = {
         });
 
         await this._waitForMoveEnd(duration + 1500);
+
+        // Resume heartbeat idle timer after camera settles
+        this._resetIdleTimer();
     },
 
     /**
@@ -388,18 +410,18 @@ const MapController = {
             this._calculateBearing(map.getCenter(), targetCenter);
 
         if (this.reducedMotion) {
-            map.jumpTo({ center: targetCenter, zoom: 16, pitch: 50, bearing });
+            map.jumpTo({ center: targetCenter, zoom: 18, pitch: 65, bearing });
             await this._delay(100);
             this.revealing = false;
             this._currentAnimation = null;
             return;
         }
 
-        // Enhanced drill-down: zoom 16, pitch 50 (steeper than before)
+        // Street-level drill-down: zoom 18, pitch 65 for true street view
         map.flyTo({
             center: targetCenter,
-            zoom: 16,
-            pitch: 50,
+            zoom: 18,
+            pitch: 65,
             bearing: bearing,
             duration: 2500,
             essential: true
@@ -408,11 +430,11 @@ const MapController = {
         await this._waitForMoveEnd(4000);
         if (thisAnimation.cancelled) { this.revealing = false; return; }
 
-        // Enhanced: gentle orbit — rotate bearing by 10° over 2s
+        // Gentle orbit at street level — rotate bearing by 15° over 2.5s
         if (!thisAnimation.cancelled) {
             map.easeTo({
-                bearing: bearing + 10,
-                duration: 2000,
+                bearing: bearing + 15,
+                duration: 2500,
                 easing: (t) => t * (2 - t) // ease-out
             });
         }
@@ -432,6 +454,9 @@ const MapController = {
             this.map.stop();
             this._currentAnimation = null;
         }
+
+        // Restore default building opacity
+        this.setBuildingOpacity(0.5);
 
         this.revealing = false;
         const map = this.map;
@@ -491,6 +516,9 @@ const MapController = {
     _createMarker(coords, html, options = {}) {
         const el = document.createElement('div');
         el.className = options.className || 'mapbox-marker-wrapper';
+        if (options.entrance) {
+            el.classList.add(`marker-${options.entrance}`);
+        }
         el.innerHTML = html;
 
         const marker = new mapboxgl.Marker({
@@ -616,7 +644,7 @@ const MapController = {
         if (!resource) return;
 
         const html = this._markerIconHtml('resource', resourceId);
-        const { marker, element } = this._createMarker(resource.coords, html);
+        const { marker, element } = this._createMarker(resource.coords, html, { entrance: 'anchor' });
 
         this._addTooltip(marker, element, resource.name);
         element.addEventListener('click', () => UI.showResourcePanel(resource));
@@ -674,6 +702,7 @@ const MapController = {
         const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
         const iconMap = { solar: '☀', wind: '💨', nuclear: '⚛' };
 
+        let staggerIndex = 0;
         ['solar', 'wind', 'nuclear'].forEach(type => {
             energyData[type].forEach(station => {
                 const html = `<div style="
@@ -686,9 +715,15 @@ const MapController = {
                     border: 2px solid white;
                 "><span style="font-size: 14px;">${iconMap[type]}</span></div>`;
 
+                const delay = staggerIndex * 60;
+                staggerIndex++;
                 const { marker, element } = this._createMarker(station.coords, html, {
-                    className: 'energy-marker-wrapper'
+                    className: 'energy-marker-wrapper',
+                    entrance: 'ripple'
                 });
+                if (delay > 0) {
+                    element.style.animationDelay = `${delay}ms`;
+                }
 
                 this._addTooltip(marker, element, `${station.name} — ${station.capacity}`);
                 element.addEventListener('click', () => UI.showEnergyStationPanel(station, type));
@@ -799,7 +834,8 @@ const MapController = {
                 const innerHtml = `<span style="font-size: 14px; font-weight: 600; color: white;">${index + 1}</span>`;
                 const html = this._elevatedMarkerHtml(innerHtml, color);
 
-                const { marker, element } = this._createMarker(level.coords, html);
+                const entrance = index === 0 ? 'anchor' : 'ripple';
+                const { marker, element } = this._createMarker(level.coords, html, { entrance });
                 element.addEventListener('click', () => UI.showGovernmentLevelPanel(level));
 
                 const id = `govt-${level.id}`;
@@ -849,15 +885,18 @@ const MapController = {
      * Show company markers (Journey B)
      */
     showCompanyMarkers() {
-        AppData.companies.forEach(company => {
-            const html = this._brandedMarkerHtml(company.id);
-            const { marker, element } = this._createMarker(company.coords, html);
+        AppData.companies.forEach((company, index) => {
+            setTimeout(() => {
+                const html = this._brandedMarkerHtml(company.id);
+                const entrance = company.id === 'jasm' ? 'anchor' : 'ripple';
+                const { marker, element } = this._createMarker(company.coords, html, { entrance });
 
-            this._addTooltip(marker, element, company.name);
-            element.addEventListener('click', () => UI.showCompanyPanel(company));
+                this._addTooltip(marker, element, company.name);
+                element.addEventListener('click', () => UI.showCompanyPanel(company));
 
-            this.markers[company.id] = marker;
-            this._layerGroups.companies.push(company.id);
+                this.markers[company.id] = marker;
+                this._layerGroups.companies.push(company.id);
+            }, index * 80);
         });
     },
 
@@ -940,6 +979,7 @@ const MapController = {
             data: { type: 'FeatureCollection', features }
         });
 
+        // Start fully transparent — we'll fade in below
         this.map.addLayer({
             id: 'infrastructure-roads-line',
             type: 'line',
@@ -952,18 +992,8 @@ const MapController = {
                     ['boolean', ['feature-state', 'selected'], false], 7,
                     5
                 ],
-                'line-opacity': [
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false], 1.0,
-                    ['boolean', ['feature-state', 'selected'], false], 1.0,
-                    0.7
-                ],
-                'line-dasharray': [
-                    'case',
-                    ['boolean', ['feature-state', 'selected'], false],
-                    ['literal', [1, 0]],
-                    ['literal', [10, 6]]
-                ]
+                'line-opacity': 0,
+                'line-dasharray': [10, 6]
             },
             layout: {
                 'line-cap': 'round',
@@ -971,7 +1001,49 @@ const MapController = {
             }
         });
 
-        this._layerGroups.infrastructureRoads.push('infrastructure-roads-line', sourceId);
+        // Label layer — road names along the lines so they look interactive
+        this.map.addLayer({
+            id: 'infrastructure-roads-labels',
+            type: 'symbol',
+            source: sourceId,
+            layout: {
+                'symbol-placement': 'line-center',
+                'text-field': ['get', 'name'],
+                'text-size': 12,
+                'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+                'text-anchor': 'center',
+                'text-offset': [0, -1.2],
+                'text-allow-overlap': false,
+                'text-ignore-placement': false
+            },
+            paint: {
+                'text-color': '#1e1f20',
+                'text-halo-color': '#ffffff',
+                'text-halo-width': 2,
+                'text-opacity': 0
+            }
+        });
+
+        // Set 300ms transitions for the fade-in
+        this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity-transition', { duration: 300, delay: 0 });
+        this.map.setPaintProperty('infrastructure-roads-labels', 'text-opacity-transition', { duration: 300, delay: 0 });
+
+        // 300ms fade-in (CLAUDE.md spec) via Mapbox paint transition
+        requestAnimationFrame(() => {
+            if (this.map.getLayer('infrastructure-roads-line')) {
+                this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity', [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false], 1.0,
+                    ['boolean', ['feature-state', 'selected'], false], 1.0,
+                    0.7
+                ]);
+            }
+            if (this.map.getLayer('infrastructure-roads-labels')) {
+                this.map.setPaintProperty('infrastructure-roads-labels', 'text-opacity', 0.9);
+            }
+        });
+
+        this._layerGroups.infrastructureRoads.push('infrastructure-roads-line', 'infrastructure-roads-labels', sourceId);
 
         // Store road index mapping for feature-state
         this._roadIndexMap = {};
@@ -1077,7 +1149,8 @@ const MapController = {
     },
 
     hideInfrastructureRoads() {
-        // Remove line layers
+        // Remove line and label layers
+        this._safeRemoveLayer('infrastructure-roads-labels');
         this._safeRemoveLayer('infrastructure-roads-line');
         this._safeRemoveSource('infrastructure-roads');
 
@@ -1163,27 +1236,43 @@ const MapController = {
 
         map.addSource('property-markers', { type: 'geojson', data: geojson });
 
-        // White stroke ring
+        // White stroke ring — start invisible, fade in
         map.addLayer({
             id: 'property-markers-stroke',
             type: 'circle',
             source: 'property-markers',
             paint: {
-                'circle-radius': 12,
+                'circle-radius': 0,
                 'circle-color': '#ffffff',
-                'circle-opacity': 0.9
+                'circle-opacity': 0,
+                'circle-radius-transition': { duration: 400, delay: 0 },
+                'circle-opacity-transition': { duration: 400, delay: 0 }
             }
         });
 
-        // Amber fill
+        // Amber fill — start invisible, fade in
         map.addLayer({
             id: 'property-markers-circle',
             type: 'circle',
             source: 'property-markers',
             paint: {
-                'circle-radius': 9,
+                'circle-radius': 0,
                 'circle-color': '#ff9500',
-                'circle-opacity': 0.95
+                'circle-opacity': 0,
+                'circle-radius-transition': { duration: 400, delay: 0 },
+                'circle-opacity-transition': { duration: 400, delay: 0 }
+            }
+        });
+
+        // Trigger the emerge transition after a frame
+        requestAnimationFrame(() => {
+            if (map.getLayer('property-markers-stroke')) {
+                map.setPaintProperty('property-markers-stroke', 'circle-radius', 12);
+                map.setPaintProperty('property-markers-stroke', 'circle-opacity', 0.9);
+            }
+            if (map.getLayer('property-markers-circle')) {
+                map.setPaintProperty('property-markers-circle', 'circle-radius', 9);
+                map.setPaintProperty('property-markers-circle', 'circle-opacity', 0.95);
             }
         });
 
@@ -1249,19 +1338,21 @@ const MapController = {
      * Show property markers (Leaflet-compatible API for dashboard)
      */
     showPropertyMarkers() {
-        AppData.properties.forEach(property => {
-            const html = this._markerIconHtml('property');
-            const { marker, element } = this._createMarker(property.coords, html);
+        AppData.properties.forEach((property, index) => {
+            setTimeout(() => {
+                const html = this._markerIconHtml('property');
+                const { marker, element } = this._createMarker(property.coords, html, { entrance: 'emerge' });
 
-            this._addTooltip(marker, element, property.name);
+                this._addTooltip(marker, element, property.name);
 
-            element.addEventListener('mouseover', () => this.preloadImages(property));
-            element.addEventListener('click', () => {
-                UI.showPropertyReveal(property);
-            });
+                element.addEventListener('mouseover', () => this.preloadImages(property));
+                element.addEventListener('click', () => {
+                    UI.showPropertyReveal(property);
+                });
 
-            this.markers[property.id] = marker;
-            this._layerGroups.properties.push(property.id);
+                this.markers[property.id] = marker;
+                this._layerGroups.properties.push(property.id);
+            }, index * 100);
         });
     },
 
@@ -1272,12 +1363,19 @@ const MapController = {
     showEvidenceGroupMarkers(group) {
         this.clearEvidenceMarkers();
 
+        let evidenceIndex = 0;
         group.items.forEach(item => {
             if (item.coords) {
                 const html = this._evidenceMarkerHtml(item.type, false, group.icon);
+                const delay = evidenceIndex * 60;
+                evidenceIndex++;
                 const { marker, element } = this._createMarker(item.coords, html, {
-                    className: 'evidence-marker-wrapper'
+                    className: 'evidence-marker-wrapper',
+                    entrance: 'emerge'
                 });
+                if (delay > 0) {
+                    element.style.animationDelay = `${delay}ms`;
+                }
 
                 element.addEventListener('click', () => {
                     UI.selectDisclosureItem(group.id, item.id);
@@ -1504,7 +1602,7 @@ const MapController = {
         this.hideAirlineRoutes();
 
         // 1. Origin marker
-        const originHtml = `<div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+        const originHtml = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;">
             <div style="width: 10px; height: 10px; background: ${MAP_COLORS.primary}; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;"></div>
             <span style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--color-text-primary); text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;">Kumamoto</span>
         </div>`;
@@ -1587,7 +1685,7 @@ const MapController = {
         const dotColor = '#c0766e';
         const cityName = destination.name.replace(/ (International|Airport|Gimhae|Pudong|Taoyuan)$/i, '');
 
-        const html = `<div style="display: flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer;">
+        const html = `<div style="display: flex; align-items: center; gap: var(--space-1); white-space: nowrap; cursor: pointer;">
             <div style="width: 8px; height: 8px; background: ${dotColor}; border-radius: 50%; flex-shrink: 0;"></div>
             <span style="font-family: var(--font-display); font-size: 12px; font-weight: 500; color: var(--color-text-primary); text-shadow: 0 0 3px white, 0 0 3px white, 0 0 3px white;">${cityName}</span>
         </div>`;
@@ -1607,7 +1705,7 @@ const MapController = {
         const abbrev = link.company === 'Samsung' ? 'SS' : link.company;
         const cityName = destination.name.replace(/ (International|Airport|Gimhae|Pudong|Taoyuan)$/i, '');
 
-        const html = `<div style="display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer;">
+        const html = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; cursor: pointer;">
             <div style="width: 28px; height: 28px; background: ${color}; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <span style="font-family: var(--font-display); font-size: 8px; font-weight: 800; color: white; letter-spacing: 0.3px;">${abbrev}</span>
             </div>
@@ -1762,6 +1860,149 @@ const MapController = {
     },
 
     // ================================
+    // IDLE HEARTBEAT — ambient life between interactions
+    // ================================
+
+    /**
+     * Start the heartbeat system — camera drift + marker pulse
+     * when user is idle for 5+ seconds.
+     */
+    startHeartbeat() {
+        if (this.reducedMotion || !this.initialized || !this.map) return;
+        this._heartbeat.active = true;
+        this._resetIdleTimer();
+
+        // Listen for user interaction to pause drift
+        if (!this._heartbeat._boundReset) {
+            this._heartbeat._boundReset = () => this._resetIdleTimer();
+            this.map.on('mousedown', this._heartbeat._boundReset);
+            this.map.on('touchstart', this._heartbeat._boundReset);
+            this.map.on('wheel', this._heartbeat._boundReset);
+        }
+    },
+
+    /**
+     * Stop the heartbeat system entirely.
+     */
+    stopHeartbeat() {
+        this._heartbeat.active = false;
+        this._stopDrift();
+        this.clearMarkerPulse();
+        clearTimeout(this._heartbeat.idleTimeout);
+        this._heartbeat.idleTimeout = null;
+    },
+
+    /**
+     * Pause drift during programmatic camera movements.
+     * Called by flyToStep.
+     */
+    pauseHeartbeat() {
+        this._stopDrift();
+        clearTimeout(this._heartbeat.idleTimeout);
+        this._heartbeat.idleTimeout = null;
+    },
+
+    /**
+     * Reset the idle timer — starts drift after threshold.
+     */
+    _resetIdleTimer() {
+        if (!this._heartbeat.active) return;
+        this._stopDrift();
+        clearTimeout(this._heartbeat.idleTimeout);
+        this._heartbeat.idleTimeout = setTimeout(() => {
+            this._startDrift();
+        }, this._heartbeat.idleThreshold);
+    },
+
+    /**
+     * Start slow bearing drift.
+     */
+    _startDrift() {
+        if (!this._heartbeat.active || !this.map || this._heartbeat.driftInterval) return;
+        this._heartbeat.driftInterval = setInterval(() => {
+            if (!this.map) return;
+            const current = this.map.getBearing();
+            this.map.setBearing(current + this._heartbeat.bearingPerTick);
+        }, this._heartbeat.tickMs);
+    },
+
+    /**
+     * Stop the drift interval.
+     */
+    _stopDrift() {
+        if (this._heartbeat.driftInterval) {
+            clearInterval(this._heartbeat.driftInterval);
+            this._heartbeat.driftInterval = null;
+        }
+    },
+
+    /**
+     * Apply pulse animation to all markers in a layer group.
+     * @param {string} groupName — Key in this._layerGroups
+     */
+    setActiveMarkerPulse(groupName) {
+        if (this.reducedMotion) return;
+        this.clearMarkerPulse();
+        const ids = this._layerGroups[groupName] || [];
+        ids.forEach(id => {
+            const marker = this.markers[id];
+            if (marker) {
+                const el = marker.getElement();
+                if (el) {
+                    el.classList.add('marker-pulse');
+                    this._heartbeat.pulsingMarkers.push(el);
+                }
+            }
+        });
+    },
+
+    /**
+     * Remove pulse from all pulsing markers.
+     */
+    clearMarkerPulse() {
+        this._heartbeat.pulsingMarkers.forEach(el => {
+            el.classList.remove('marker-pulse');
+        });
+        this._heartbeat.pulsingMarkers = [];
+    },
+
+    // ================================
+    // MARKER EXIT CHOREOGRAPHY
+    // ================================
+
+    /**
+     * Fade out an array of Mapbox HTML markers before removing them.
+     * Applies the .marker-exiting CSS class (200ms accelerate fade),
+     * waits for the animation, then removes the markers from the map.
+     * @param {Array} markers — Array of mapboxgl.Marker instances
+     */
+    async fadeOutMarkers(markers) {
+        if (!markers || markers.length === 0) return;
+        markers.forEach(m => {
+            const el = m.getElement();
+            if (el) el.classList.add('marker-exiting');
+        });
+        await this._delay(200);
+        markers.forEach(m => m.remove());
+    },
+
+    /**
+     * Fade out all HTML markers tracked in a _layerGroups entry.
+     * @param {string} groupName — Key in this._layerGroups
+     */
+    async fadeOutMarkerGroup(groupName) {
+        const ids = this._layerGroups[groupName] || [];
+        const markers = [];
+        ids.forEach(id => {
+            if (this.markers[id]) markers.push(this.markers[id]);
+        });
+        await this.fadeOutMarkers(markers);
+        // Clean up references
+        ids.forEach(id => delete this.markers[id]);
+        this._layerGroups[groupName] = [];
+    },
+
+    // ================================
     // CLEAR / RESET / DESTROY
     // ================================
 
@@ -1838,6 +2079,8 @@ const MapController = {
      * Reset state for app restart
      */
     destroy() {
+        this.stopHeartbeat();
+
         if (this._currentAnimation) {
             this._currentAnimation.cancelled = true;
             this._currentAnimation = null;
@@ -1949,6 +2192,17 @@ const MapController = {
                 'fill-extrusion-opacity': 0.5
             }
         }, labelLayerId);
+    },
+
+    /**
+     * Set 3D building extrusion opacity (for dramatic reveal)
+     * @param {number} opacity — 0 to 1
+     */
+    setBuildingOpacity(opacity) {
+        if (!this.initialized || !this.map) return;
+        if (this.map.getLayer('3d-buildings')) {
+            this.map.setPaintProperty('3d-buildings', 'fill-extrusion-opacity', opacity);
+        }
     },
 
     /**

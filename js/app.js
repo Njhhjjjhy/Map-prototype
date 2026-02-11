@@ -6,12 +6,8 @@
  * Shared timing constants — semantic names for setTimeout values.
  * CSS token equivalents noted in comments.
  */
-/**
- * Shared timing constants — semantic names for setTimeout values.
- * CSS token equivalents noted in comments.
- */
 const TIMING = {
-    scene: 800,          // --duration-scene (journey transition hold)
+    scene: 1500,         // --duration-scene (journey transition hold — synced with CSS token)
     fast: 150,           // --duration-fast
     normal: 250,         // --duration-normal
     slow: 350,           // --duration-slow
@@ -21,6 +17,11 @@ const TIMING = {
     buttonDelay: 2500,   // continue button after markers
     infraStagger: 100,   // infrastructure road stagger
     restartDelay: 500,   // delay before restart
+
+    // Narrative breathing room — rest pauses between beats
+    breath: 600,         // full pause: let a scene register before the next begins
+    breathMedium: 400,   // marker cluster → next content
+    breathShort: 300,    // quick pause: let an exit complete before a transition starts
 };
 
 const App = {
@@ -62,6 +63,9 @@ const App = {
         // Fly to Journey A starting position
         await MapController.flyToStep(CAMERA_STEPS.A0);
 
+        // Beat: "The First Word" — let the landscape settle before the narrator speaks
+        await new Promise(r => setTimeout(r, TIMING.breath));
+
         this.startJourneyA();
     },
 
@@ -75,16 +79,22 @@ const App = {
         this.state.resourcesExplored = [];
         this.state.evidenceGroupsViewed = [];
 
+        // Show journey progress bar
+        UI.updateJourneyProgress('A');
+
         // Show data layers toggle for Journey A
         UI.showDataLayers('A');
 
-        // A0: Opening question — frames the entire narrative
-        const q = AppData.openingQuestion;
+        // Ensure heartbeat is running (may already be from cinematicEntry,
+        // but needed for restart path which skips cinematic)
+        MapController.startHeartbeat();
+
+        // A0: Opening — question already shown on start screen, go straight to action
         UI.showChatbox(`
             <h3>Why Kumamoto?</h3>
-            <p class="chatbox-question">${q.question}</p>
-            <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
-                View the Evidence
+            <p>The answer starts with three natural advantages that no amount of money can buy.</p>
+            <button class="chatbox-continue primary" onclick="App.stepA1()">
+                Discover Why
             </button>
         `);
     },
@@ -104,6 +114,9 @@ const App = {
                     <div class="evidence-item-content">
                         <div class="evidence-item-title">${doc.title}</div>
                         <div class="evidence-item-source">${doc.source}</div>
+                    </div>
+                    <div class="evidence-item-chevron">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </div>
                 </div>
             `;
@@ -151,12 +164,15 @@ const App = {
         `);
     },
 
-    stepA2() {
+    async stepA2() {
         this.state.step = 'A2';
 
         // Show Kyushu-wide energy markers and water resource markers together
         MapController.showKyushuEnergy();
         MapController.showResourceMarker('water');
+
+        // Beat: let markers land before narrator speaks
+        await new Promise(r => setTimeout(r, TIMING.breathMedium));
 
         // Show combined utility infrastructure options
         UI.updateChatbox(`
@@ -192,15 +208,6 @@ const App = {
 
         // Update chatbox to show what's been explored
         this.updateResourceChatbox();
-
-        // Chain: when panel closes, auto-advance to next unexplored resource
-        const nextResource = resourceId === 'water' ? 'power' : 'water';
-        const nextExplored = this.state.resourcesExplored.includes(nextResource);
-        if (!nextExplored) {
-            UI.onPanelClose(() => {
-                this.selectResource(nextResource);
-            });
-        }
     },
 
     updateResourceChatbox() {
@@ -222,6 +229,7 @@ const App = {
         let content = `
             <h3>Utility Infrastructure</h3>
             <p>${progressText}</p>
+            <div class="resource-progress" style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2);">${exploredCount} of 2 explored</div>
             <div class="chatbox-options" role="group" aria-label="Resource options">
                 <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
                         onclick="App.selectResource('water')"
@@ -246,12 +254,15 @@ const App = {
             `;
         }
 
-        if (allExplored) {
-            content += `
-                <button class="chatbox-continue primary" onclick="App.stepA3()">
-                    Continue
-                </button>
-            `;
+        content += `
+            <button class="chatbox-continue primary" onclick="App.stepA3()"
+                ${allExplored ? '' : 'disabled'}>
+                Continue
+            </button>
+        `;
+
+        if (!allExplored) {
+            content += `<span class="chatbox-hint">Explore both resources to continue</span>`;
         }
 
         UI.updateChatbox(content);
@@ -296,15 +307,34 @@ const App = {
     },
 
     async transitionToJourneyB() {
+        MapController.stopHeartbeat();
+
         // Save Journey A content to history BEFORE transition
         UI.saveChatboxToHistory();
 
+        // Beat: "The Farewell" — choreographed exit sequence
+        // 1. Fade out all visible markers (200ms)
+        const markersToFade = [];
+        if (MapController.airlineOriginMarker) markersToFade.push(MapController.airlineOriginMarker);
+        markersToFade.push(...MapController.airlineDestinationMarkers);
+        ['kyushuEnergy', 'resources'].forEach(group => {
+            const ids = MapController._layerGroups[group] || [];
+            ids.forEach(id => {
+                if (MapController.markers[id]) markersToFade.push(MapController.markers[id]);
+            });
+        });
+        await MapController.fadeOutMarkers(markersToFade);
+
+        // 2. Chatbox and panel exit (150ms)
         UI.hideChatbox();
         UI.hidePanel();
 
-        // Clear airline routes and energy markers before transition
+        // 3. Clean up Mapbox layers (silent — markers already faded)
         MapController.hideAirlineRoutes();
         MapController.hideKyushuEnergy();
+
+        // 4. Let the old world fully recede
+        await new Promise(r => setTimeout(r, TIMING.breathShort));
 
         // Show memorable journey transition (Peak-End Rule)
         await UI.showJourneyTransition('B');
@@ -324,6 +354,9 @@ const App = {
         this.state.step = 'B1';
         this.state.companiesExplored = [];
 
+        // Update journey progress bar
+        UI.updateJourneyProgress('B');
+
         // Show data layers toggle for Journey B
         UI.showDataLayers('B');
 
@@ -331,10 +364,18 @@ const App = {
         UI.showPanelToggle();
 
         // B1: Show government commitment chain with chatbox intro
+        // Continue button shown immediately — presenter advances when ready (no auto-update)
         UI.showChatbox(`
             <h3>Government Support</h3>
             <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level of government is aligned behind one bet: semiconductors.</p>
             <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
+            <button class="chatbox-continue primary" onclick="App.stepB4()">
+                See Who's Building Here
+            </button>
+            <button class="chatbox-nav-back" onclick="App.goBackToJourneyA()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Back to Why Kumamoto
+            </button>
         `, { skipHistory: true });
 
         // Fly to government chain area
@@ -348,25 +389,41 @@ const App = {
             MapController.showSciencePark();
         }, TIMING.revealDelay);
 
-        // After delay, add button to continue to B4
+        // Auto-reveal the national government panel — give the chain time to land
         setTimeout(() => {
-            UI.updateChatbox(`
-                <h3>Government Support</h3>
-                <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level is aligned.</p>
-                <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
-                <button class="chatbox-continue primary" onclick="App.stepB4()">
-                    See Who's Building Here
-                </button>
-            `);
-        }, TIMING.buttonDelay);
+            UI.showGovernmentLevelPanel({ id: 'central' });
+        }, TIMING.buttonDelay + TIMING.breathMedium);
+
+        // Start heartbeat + pulse on government chain markers
+        MapController.startHeartbeat();
+        setTimeout(() => {
+            MapController.setActiveMarkerPulse('governmentChain');
+        }, 2000); // After chain stagger completes
     },
 
-    stepB4() {
+    async stepB4() {
         this.state.step = 'B4';
+
+        // Switch pulse to company markers
+        MapController.clearMarkerPulse();
 
         // Cinematic flight to company cluster
         MapController.flyToStep(CAMERA_STEPS.B4);
         MapController.showCompanyMarkers();
+
+        // Beat: let company markers land before narrator speaks
+        await new Promise(r => setTimeout(r, TIMING.breathMedium));
+
+        // Pulse companies after they've landed
+        setTimeout(() => {
+            MapController.setActiveMarkerPulse('companies');
+        }, 500);
+
+        // Auto-reveal JASM as the anchor company
+        setTimeout(() => {
+            const jasm = AppData.companies.find(c => c.id === 'jasm');
+            if (jasm) UI.showCompanyPanel(jasm);
+        }, TIMING.buttonDelay);
 
         UI.updateChatbox(`
             <h3>Corporate Investment</h3>
@@ -420,7 +477,7 @@ const App = {
         UI.updateChatbox(`
             <h3>Changes in Area</h3>
             <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. A new rail station. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
-            <p style="margin-top: 8px;">Click a highlighted road or station marker to see details.</p>
+            <p style="margin-top: 8px;">Click any <strong>teal dashed road</strong> or station marker to see details.</p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
                 View Investment Opportunities
             </button>
@@ -428,19 +485,38 @@ const App = {
     },
 
     async transitionToJourneyC() {
+        MapController.stopHeartbeat();
+
         // Save Journey B content to history BEFORE transition
         UI.saveChatboxToHistory();
 
+        // Beat: "The Handoff" — choreographed exit sequence
+        // 1. Fade out visible markers (infrastructure stations, gov chain, companies)
+        const markersToFade = [...MapController.infrastructureMarkers];
+        ['governmentChain', 'companies'].forEach(group => {
+            const ids = MapController._layerGroups[group] || [];
+            ids.forEach(id => {
+                if (MapController.markers[id]) markersToFade.push(MapController.markers[id]);
+            });
+        });
+        if (markersToFade.length > 0) {
+            await MapController.fadeOutMarkers(markersToFade);
+        }
+
+        // 2. Chatbox and panel exit (150ms)
         UI.hideChatbox();
         UI.hidePanel();
 
         // Reset to present view
         UI.setTimeView('present');
 
-        // Hide infrastructure roads if shown
+        // 3. Clean up Mapbox layers (silent — markers already faded)
         if (this.state.step === 'B7') {
             MapController.hideInfrastructureRoads();
         }
+
+        // 4. Let the old world fully recede
+        await new Promise(r => setTimeout(r, TIMING.breathShort));
 
         // Show memorable journey transition (Peak-End Rule)
         await UI.showJourneyTransition('C');
@@ -459,9 +535,15 @@ const App = {
         this.state.journey = 'C';
         this.state.step = 'C1';
 
+        // Update journey progress bar
+        UI.updateJourneyProgress('C');
+
         // Mapbox is already initialized from cinematic entry
         // Elevate to 3D corridor view — the map tilts and buildings rise
         await MapController.elevateToCorridorView();
+
+        // Beat: "The Elevation" — let the corridor perspective register before populating
+        await new Promise(r => setTimeout(r, TIMING.breath));
 
         // Add property markers and route lines to Mapbox 3D view
         const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
@@ -476,6 +558,70 @@ const App = {
 
         // Calculate portfolio stats for narrative
         const propCount = AppData.properties.length;
+
+        // Pull fund stats for inline display
+        const gktk = AppData.gktk;
+        const irrValue = gktk ? gktk.stats[3].value : '12-18%';
+        const aumValue = gktk ? gktk.fundSize : '¥2.5B';
+        const holdValue = gktk ? gktk.stats[2].value : '5-7yr';
+
+        UI.showChatbox(`
+            <h3>Investment Opportunities</h3>
+            <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM.</p>
+            <div class="chatbox-fund-stats">
+                <div class="chatbox-fund-label">GKTK Fund &middot; ${irrValue} Target IRR</div>
+                <div class="chatbox-fund-detail">${aumValue} Target AUM &middot; ${holdValue} Hold</div>
+            </div>
+            <details class="chatbox-disclosure">
+                <summary>View Full Fund and Portfolio Details</summary>
+                <div class="chatbox-disclosure-body">
+                    ${UI.showGktkSummary()}
+                    ${UI.showPortfolioCard()}
+                </div>
+            </details>
+            <p style="margin-top: var(--space-3);">Click any amber marker to see the full financial picture.</p>
+            <button class="chatbox-continue primary" onclick="App.complete()">
+                See Your Summary
+            </button>
+            <button class="chatbox-nav-back" onclick="App.goBackToJourneyB()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Back to Infrastructure Plan
+            </button>
+        `, { skipHistory: true });
+
+        // Hide time toggle for clarity
+        UI.hideTimeToggle();
+
+        // Start heartbeat — Journey C has Mapbox circle layers, no marker pulse
+        MapController.startHeartbeat();
+    },
+
+    /**
+     * Complete the presentation - show AI chat for follow-up questions
+     */
+    async complete() {
+        this.state.step = 'complete';
+        MapController.stopHeartbeat();
+
+        UI.hideJourneyProgress();
+        UI.hideChatbox();
+        UI.hidePanel();
+
+        // Brief completion moment
+        await UI.showJourneyTransition('complete');
+
+        // Beat: "The Conversation" — let the journey ending breathe before recap
+        await new Promise(r => setTimeout(r, TIMING.breath));
+
+        // Show recap card instead of jumping straight to AI chat
+        this.showJourneyRecap();
+    },
+
+    /**
+     * Show journey recap with key stats and conversion CTAs
+     */
+    showJourneyRecap() {
+        const propCount = AppData.properties.length;
         let totalNetProfit = 0;
         AppData.properties.forEach(p => {
             totalNetProfit += p.financials.scenarios.average.netProfit;
@@ -486,45 +632,38 @@ const App = {
         };
 
         UI.showChatbox(`
-            <h3>Investment Opportunities</h3>
-            <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Combined 5-year projected return: <strong>${formatYen(totalNetProfit)}</strong> across the portfolio.</p>
-            <p style="margin-top: 8px;">Click any amber marker to see the full financial picture.</p>
-            <div class="chatbox-disclosures">
-                <details class="chatbox-disclosure">
-                    <summary>Fund Overview</summary>
-                    <div class="chatbox-disclosure-body">
-                        ${UI.showGktkSummary()}
+            <div class="journey-recap">
+                <h3>Journey Complete</h3>
+                <div class="journey-recap-checklist">
+                    <div class="journey-recap-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Natural advantages
                     </div>
-                </details>
-                <details class="chatbox-disclosure">
-                    <summary>Portfolio Returns</summary>
-                    <div class="chatbox-disclosure-body">
-                        ${UI.showPortfolioCard()}
+                    <div class="journey-recap-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        ¥4T+ government commitment
                     </div>
-                </details>
+                    <div class="journey-recap-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        ${propCount} investment properties
+                    </div>
+                </div>
+                <div class="journey-recap-headline">
+                    <div class="journey-recap-headline-label">Combined 5-Year Return</div>
+                    <div class="journey-recap-headline-value">${formatYen(totalNetProfit)}</div>
+                    <div class="journey-recap-headline-detail">across the portfolio</div>
+                </div>
+                <button class="chatbox-continue primary" onclick="UI.scheduleConsultation(); UI.hideChatbox(); UI.showAIChat();">
+                    Schedule a Consultation
+                </button>
+                <button class="chatbox-continue" onclick="UI.hideChatbox(); UI.showAIChat(); UI.downloadSummary();">
+                    Download Summary
+                </button>
+                <button class="journey-recap-link" onclick="UI.hideChatbox(); UI.showAIChat();">
+                    Ask me anything →
+                </button>
             </div>
-            <button class="chatbox-continue primary" onclick="App.complete()">
-                Any More Questions?
-            </button>
         `, { skipHistory: true });
-
-        // Hide time toggle for clarity
-        UI.hideTimeToggle();
-    },
-
-    /**
-     * Complete the presentation - show AI chat for follow-up questions
-     */
-    async complete() {
-        this.state.step = 'complete';
-
-        UI.hideChatbox();
-        UI.hidePanel();
-
-        // Brief completion moment, then open AI chat
-        await UI.showJourneyTransition('complete');
-        UI.hideChatbox();
-        UI.showAIChat();
     },
 
     /**
@@ -604,6 +743,37 @@ const App = {
         UI.showEvidenceListPanel();
     },
 
+    // ================================
+    // BACKWARD NAVIGATION
+    // ================================
+
+    /**
+     * Navigate back to Journey A from Journey B
+     */
+    async goBackToJourneyA() {
+        MapController.stopHeartbeat();
+        UI.hideChatbox();
+        UI.hidePanel();
+        UI.hideControlBar();
+        MapController.clearAll();
+
+        await MapController.flyToStep(CAMERA_STEPS.A1);
+        this.startJourneyA();
+    },
+
+    /**
+     * Navigate back to Journey B from Journey C
+     */
+    async goBackToJourneyB() {
+        MapController.stopHeartbeat();
+        UI.hideChatbox();
+        UI.hidePanel();
+        MapController.clearAll();
+
+        await MapController.flyToStep(CAMERA_STEPS.B1);
+        this.startJourneyB();
+    },
+
     /**
      * Restore chatbox content based on current journey state
      * Called when user clicks the FAB to reopen chatbox
@@ -613,12 +783,11 @@ const App = {
 
         if (journey === 'A') {
             if (step === 'A0') {
-                const q = AppData.openingQuestion;
                 UI.showChatbox(`
                     <h3>Why Kumamoto?</h3>
-                    <p class="chatbox-question">${q.question}</p>
-                    <button class="chatbox-continue primary" onclick="App.showOpeningEvidence()">
-                        View the Evidence
+                    <p>The answer starts with three natural advantages that no amount of money can buy.</p>
+                    <button class="chatbox-continue primary" onclick="App.stepA1()">
+                        Discover Why
                     </button>
                 `);
             } else if (step === 'A1') {
@@ -657,10 +826,14 @@ const App = {
             if (step === 'B1') {
                 UI.showChatbox(`
                     <h3>Government Support</h3>
-                    <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level is aligned.</p>
+                    <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level of government is aligned behind one bet: semiconductors.</p>
                     <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB4()">
                         See Who's Building Here
+                    </button>
+                    <button class="chatbox-nav-back" onclick="App.goBackToJourneyA()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        Back to Why Kumamoto
                     </button>
                 `);
             } else if (step === 'B4') {
@@ -695,7 +868,7 @@ const App = {
                 UI.showChatbox(`
                     <h3>Changes in Area</h3>
                     <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
-                    <p style="margin-top: 8px;">Click a highlighted road or station marker to see details.</p>
+                    <p style="margin-top: 8px;">Click any <strong>teal dashed road</strong> or station marker to see details.</p>
                     <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
                         View Investment Opportunities
                     </button>
@@ -708,35 +881,32 @@ const App = {
             }
         } else if (journey === 'C') {
             const propCount = AppData.properties.length;
-            let totalNetProfit = 0;
-            AppData.properties.forEach(p => {
-                totalNetProfit += p.financials.scenarios.average.netProfit;
-            });
-            const formatYen = (num) => {
-                if (num >= 10000000) return '¥' + (num / 1000000).toFixed(1) + 'M';
-                return '¥' + num.toLocaleString();
-            };
+            const gktk = AppData.gktk;
+            const irrValue = gktk ? gktk.stats[3].value : '12-18%';
+            const aumValue = gktk ? gktk.fundSize : '¥2.5B';
+            const holdValue = gktk ? gktk.stats[2].value : '5-7yr';
 
             UI.showChatbox(`
                 <h3>Investment Opportunities</h3>
-                <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Combined 5-year projected return: <strong>${formatYen(totalNetProfit)}</strong> across the portfolio.</p>
-                <p style="margin-top: 8px;">Click any amber marker to see the full financial picture.</p>
-                <div class="chatbox-disclosures">
-                    <details class="chatbox-disclosure">
-                        <summary>Fund Overview</summary>
-                        <div class="chatbox-disclosure-body">
-                            ${UI.showGktkSummary()}
-                        </div>
-                    </details>
-                    <details class="chatbox-disclosure">
-                        <summary>Portfolio Returns</summary>
-                        <div class="chatbox-disclosure-body">
-                            ${UI.showPortfolioCard()}
-                        </div>
-                    </details>
+                <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM.</p>
+                <div class="chatbox-fund-stats">
+                    <div class="chatbox-fund-label">GKTK Fund &middot; ${irrValue} Target IRR</div>
+                    <div class="chatbox-fund-detail">${aumValue} Target AUM &middot; ${holdValue} Hold</div>
                 </div>
+                <details class="chatbox-disclosure">
+                    <summary>View Full Fund and Portfolio Details</summary>
+                    <div class="chatbox-disclosure-body">
+                        ${UI.showGktkSummary()}
+                        ${UI.showPortfolioCard()}
+                    </div>
+                </details>
+                <p style="margin-top: var(--space-3);">Click any amber marker to see the full financial picture.</p>
                 <button class="chatbox-continue primary" onclick="App.complete()">
-                    Any More Questions?
+                    See Your Summary
+                </button>
+                <button class="chatbox-nav-back" onclick="App.goBackToJourneyB()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Back to Infrastructure Plan
                 </button>
             `);
         } else {

@@ -318,15 +318,34 @@ const UI = {
                 App.restoreChatbox();
             } else {
                 this.elements.chatbox.classList.remove('hidden');
+                this._retriggerAnimation(this.elements.chatbox);
             }
         }
     },
 
     /**
-     * Show the chat FAB button
+     * Show the chat FAB button with icon matching the chat type it will reopen
      */
     showChatFab() {
-        this.elements.chatFab.classList.remove('hidden');
+        const fab = this.elements.chatFab;
+
+        // Swap icon: sparkles for AI chat, message-square for chatbox
+        if (this.lastChatType === 'aiChat') {
+            fab.innerHTML = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                <path d="M5 3v4"></path><path d="M19 17v4"></path>
+                <path d="M3 5h4"></path><path d="M17 19h4"></path>
+            </svg>`;
+            fab.setAttribute('aria-label', 'Reopen AI chat');
+        } else {
+            fab.innerHTML = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>`;
+            fab.setAttribute('aria-label', 'Reopen guide');
+        }
+
+        fab.classList.remove('hidden');
+        this._retriggerAnimation(fab);
     },
 
     /**
@@ -690,6 +709,7 @@ const UI = {
         this._setChatboxContent(content);
         this._updateChatboxBackButton();
         this.elements.chatbox.classList.remove('hidden');
+        this._retriggerAnimation(this.elements.chatbox);
         this.hideChatFab();
     },
 
@@ -1650,18 +1670,20 @@ const UI = {
         const drillDown = { cancelled: false, property };
         this._drillDown = drillDown;
 
-        // Show right panel with property details (visible throughout all stages)
-        this.showPropertyPanel(property);
-
-        // Stage 1: Bird's-eye 3D tilt (2.5s)
+        // Stage 1: Fly to street level (2.5s) — camera only, no panel yet
         await MapController.forwardReveal(property);
         if (drillDown.cancelled) return;
 
-        // Hold at bird's-eye for 800ms — let the user absorb the context
-        await this._delay(800);
+        // Stage 2: Hold on 3D building — let the user see the structure
+        // Boost building opacity for dramatic effect
+        MapController.setBuildingOpacity(0.85);
+        await this._delay(2000);
         if (drillDown.cancelled) return;
 
-        // Stage 2: Crossfade to exterior photo (800ms)
+        // Now show the property panel (after the building has been appreciated)
+        this.showPropertyPanel(property);
+
+        // Stage 3: Crossfade to exterior photo (800ms)
         const overlay = this._ensureTransitionOverlay();
         const exteriorSrc = property.exteriorImage || property.image;
         this._setTransitionImage(overlay, exteriorSrc, `${property.name} exterior`);
@@ -1673,7 +1695,7 @@ const UI = {
         await this._delay(800);
         if (drillDown.cancelled) return;
 
-        // Stage 3: Crossfade to interior (800ms) — if images exist
+        // Stage 4: Crossfade to interior (800ms) — if images exist
         if (property.interiorImages && property.interiorImages.length > 0) {
             this._drillDownImages = [exteriorSrc, ...property.interiorImages];
             this._drillDownImageIndex = 1;
@@ -1898,9 +1920,19 @@ const UI = {
             <button class="panel-btn" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty)">
                 Performance Calculator
             </button>
+            <button class="panel-btn secondary" onclick="UI.backToAllProperties()" aria-label="Back to all properties">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>Back to All Properties
+            </button>
         `;
 
         this.showPanel(content);
+    },
+
+    /**
+     * Navigate back from property detail to corridor/map view
+     */
+    backToAllProperties() {
+        this.hidePanel();
     },
 
     /**
@@ -2601,6 +2633,12 @@ const UI = {
 
     showTimeToggle() {
         this.elements.timeToggle.classList.remove('hidden');
+
+        // Pulse coachmark to draw presenter attention (3 pulses, ~3.6s)
+        this.elements.timeToggle.classList.add('coachmark');
+        this.elements.timeToggle.addEventListener('animationend', () => {
+            this.elements.timeToggle.classList.remove('coachmark');
+        }, { once: true });
     },
 
     hideTimeToggle() {
@@ -2621,6 +2659,45 @@ const UI = {
             this.elements.presentBtn.setAttribute('aria-checked', 'true');
             MapController.hideFutureZones();
         }
+    },
+
+    // ================================
+    // JOURNEY PROGRESS BAR
+    // ================================
+
+    /**
+     * Update the journey progress bar to reflect current journey
+     * @param {string} journey - 'A', 'B', 'C', or 'complete'
+     */
+    updateJourneyProgress(journey) {
+        const progressBar = document.getElementById('journey-progress');
+        if (!progressBar) return;
+
+        // Show the progress bar
+        progressBar.classList.remove('hidden');
+
+        const steps = progressBar.querySelectorAll('.journey-progress-step');
+        const journeyOrder = ['A', 'B', 'C'];
+        const currentIndex = journeyOrder.indexOf(journey);
+
+        steps.forEach((step, i) => {
+            step.classList.remove('active', 'completed');
+            if (journey === 'complete') {
+                step.classList.add('completed');
+            } else if (i < currentIndex) {
+                step.classList.add('completed');
+            } else if (i === currentIndex) {
+                step.classList.add('active');
+            }
+        });
+    },
+
+    /**
+     * Hide the journey progress bar
+     */
+    hideJourneyProgress() {
+        const progressBar = document.getElementById('journey-progress');
+        if (progressBar) progressBar.classList.add('hidden');
     },
 
     // ================================
@@ -2858,6 +2935,7 @@ const UI = {
             this.layersPanelOpen = false;
         } else {
             this.elements.dataLayers.classList.remove('hidden');
+            this._retriggerAnimation(this.elements.dataLayers);
             this.elements.layersToggle.classList.add('active');
             this.elements.layersToggle.setAttribute('aria-expanded', 'true');
             this.layersPanelOpen = true;
@@ -3135,6 +3213,15 @@ const UI = {
         });
     },
 
+    /**
+     * Re-trigger CSS animation on an element by forcing reflow
+     */
+    _retriggerAnimation(el) {
+        el.style.animation = 'none';
+        el.offsetHeight; // force reflow
+        el.style.animation = '';
+    },
+
     showAIChat() {
         // Hide the journey chatbox (without showing FAB)
         this.elements.chatbox.classList.add('hidden');
@@ -3142,9 +3229,10 @@ const UI = {
         // Hide FAB since we're showing AI chat
         this.hideChatFab();
 
-        // Show AI chat
+        // Show AI chat with entrance animation
         const aiChat = document.getElementById('ai-chat');
         aiChat.classList.remove('hidden');
+        this._retriggerAnimation(aiChat);
 
         // Hide CTAs in dashboard mode (no journey to summarize or restart)
         const ctasElement = document.getElementById('ai-chat-ctas');
@@ -3240,8 +3328,16 @@ const UI = {
         let response = '';
         const timestamp = '<div class="ai-data-timestamp">Based on Q3 2024 data</div>';
 
+        // Risk questions
+        if (q.includes('risk')) {
+            response = "Key risks to consider:<br><br><strong>Natural disaster:</strong> The 2016 Kumamoto earthquake caused significant damage. Seismic building codes have since been upgraded.<br><br><strong>Construction delays:</strong> TSMC's second fab timeline could shift, affecting demand projections.<br><br><strong>Currency exposure:</strong> Yen-denominated assets carry FX risk for international investors.<br><br><strong>Liquidity:</strong> Regional Japanese real estate is less liquid than metro markets.<br><br>However, the ¥4T+ government commitment and TSMC's operational first fab provide strong downside protection.";
+        }
+        // How to invest
+        else if (q.includes('how') && q.includes('invest')) {
+            response = "The GKTK Fund offers a structured entry point:<br><br>1. <strong>Schedule a consultation</strong> with our Kumamoto specialists<br>2. Review the fund prospectus and individual property details<br>3. Complete KYC and accreditation verification<br>4. Fund commitment with quarterly capital calls<br><br>Minimum investment starts at ¥50M. Would you like to schedule a call with an advisor?";
+        }
         // Semiconductor industry questions
-        if (q.includes('semiconductor') || q.includes('reshaping') || q.includes('chip')) {
+        else if (q.includes('semiconductor') || q.includes('reshaping') || q.includes('chip')) {
             response = "Japan committed ¥3.9 trillion to rebuild domestic chip production as part of national economic security strategy.<br><br>TSMC's Kumamoto fab is the centerpiece—bringing cutting-edge manufacturing back to Japan.";
         }
         // Kumamoto as hub
