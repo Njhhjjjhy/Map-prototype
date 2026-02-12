@@ -84,6 +84,7 @@ const App = {
 
         // Show data layers toggle for Journey A
         UI.showDataLayers('A');
+        UI.announceToScreenReader('Journey A: Why Kumamoto');
 
         // Ensure heartbeat is running (may already be from cinematicEntry,
         // but needed for restart path which skips cinematic)
@@ -93,6 +94,11 @@ const App = {
         UI.showChatbox(`
             <h3>Why Kumamoto?</h3>
             <p>The answer starts with three natural advantages that no amount of money can buy.</p>
+            <div class="chatbox-options">
+                <button class="chatbox-option" onclick="App.showOpeningEvidence()">
+                    View evidence
+                </button>
+            </div>
             <button class="chatbox-continue primary" onclick="App.stepA1()">
                 Discover Why
             </button>
@@ -151,6 +157,7 @@ const App = {
     stepA1() {
         this.state.step = 'A1';
         UI.hidePanel();
+        UI.announceToScreenReader('Step 1: Natural advantages');
 
         // Cinematic camera re-angle
         MapController.flyToStep(CAMERA_STEPS.A1);
@@ -166,6 +173,7 @@ const App = {
 
     async stepA2() {
         this.state.step = 'A2';
+        UI.announceToScreenReader('Step 2: Utility infrastructure');
 
         // Show Kyushu-wide energy markers and water resource markers together
         MapController.showKyushuEnergy();
@@ -226,44 +234,41 @@ const App = {
             progressText = 'Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both — in surplus.';
         }
 
-        let content = `
-            <h3>Utility Infrastructure</h3>
-            <p>${progressText}</p>
-            <div class="resource-progress" style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2);">${exploredCount} of 2 explored</div>
-            <div class="chatbox-options" role="group" aria-label="Resource options">
-                <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
-                        onclick="App.selectResource('water')"
-                        ${waterExplored ? 'aria-disabled="true"' : ''}>
-                    Water Resources${waterExplored ? '<span class="sr-only"> (explored)</span>' : ''}
-                </button>
-                <button class="chatbox-option ${powerExplored ? 'completed' : ''}"
-                        onclick="App.selectResource('power')"
-                        ${powerExplored ? 'aria-disabled="true"' : ''}>
-                    Power Infrastructure${powerExplored ? '<span class="sr-only"> (explored)</span>' : ''}
-                </button>
-            </div>
+        // Build options array - all items must be inside .chatbox-options for consistent 16px gap
+        let options = `
+            <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
+                    onclick="App.selectResource('water')"
+                    ${waterExplored ? 'aria-disabled="true"' : ''}>
+                Water Resources${waterExplored ? '<span class="sr-only"> (explored)</span>' : ''}
+            </button>
+            <button class="chatbox-option ${powerExplored ? 'completed' : ''}"
+                    onclick="App.selectResource('power')"
+                    ${powerExplored ? 'aria-disabled="true"' : ''}>
+                Power Infrastructure${powerExplored ? '<span class="sr-only"> (explored)</span>' : ''}
+            </button>
         `;
 
         // Show evidence group link when power is explored
         if (powerExplored) {
             const evidenceViewed = this.state.evidenceGroupsViewed.includes('energy-infrastructure');
-            content += `
-                <button class="chatbox-option ${evidenceViewed ? 'completed' : ''}" onclick="App.showEvidenceGroupPanel('energy-infrastructure')" style="margin-top: 8px;">
-                    View Energy Infrastructure Evidence
+            options += `
+                <button class="chatbox-option ${evidenceViewed ? 'completed' : ''}" onclick="App.showEvidenceGroupPanel('energy-infrastructure')">
+                    View energy infrastructure evidence
                 </button>
             `;
         }
 
-        content += `
-            <button class="chatbox-continue primary" onclick="App.stepA3()"
-                ${allExplored ? '' : 'disabled'}>
+        let content = `
+            <h3>Utility Infrastructure</h3>
+            <p>${progressText}</p>
+            <div class="resource-progress" style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2);">${exploredCount} of 2 explored</div>
+            <div class="chatbox-options" role="group" aria-label="Resource options">
+                ${options}
+            </div>
+            <button class="chatbox-continue primary" onclick="App.stepA3()">
                 Continue
             </button>
         `;
-
-        if (!allExplored) {
-            content += `<span class="chatbox-hint">Explore both resources to continue</span>`;
-        }
 
         UI.updateChatbox(content);
     },
@@ -274,6 +279,7 @@ const App = {
     stepA3() {
         this.state.step = 'A3';
         this.state.a3Phase = 'infrastructure';
+        UI.announceToScreenReader('Step 3: Semiconductor ecosystem');
 
         // Cinematic flight to semiconductor ecosystem area
         MapController.flyToStep(CAMERA_STEPS.A3_ecosystem);
@@ -336,9 +342,6 @@ const App = {
         // 4. Let the old world fully recede
         await new Promise(r => setTimeout(r, TIMING.breathShort));
 
-        // Show memorable journey transition (Peak-End Rule)
-        await UI.showJourneyTransition('B');
-
         // Cinematic sweep back to corridor from new angle
         await MapController.flyToStep(CAMERA_STEPS.A_to_B);
 
@@ -359,6 +362,7 @@ const App = {
 
         // Show data layers toggle for Journey B
         UI.showDataLayers('B');
+        UI.announceToScreenReader('Journey B: Infrastructure plan');
 
         // Show panel toggle button
         UI.showPanelToggle();
@@ -371,10 +375,6 @@ const App = {
             <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
             <button class="chatbox-continue primary" onclick="App.stepB4()">
                 See Who's Building Here
-            </button>
-            <button class="chatbox-nav-back" onclick="App.goBackToJourneyA()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Back to Why Kumamoto
             </button>
         `, { skipHistory: true });
 
@@ -403,6 +403,7 @@ const App = {
 
     async stepB4() {
         this.state.step = 'B4';
+        UI.announceToScreenReader('Step 4: Corporate investment');
 
         // Switch pulse to company markers
         MapController.clearMarkerPulse();
@@ -437,26 +438,30 @@ const App = {
 
     stepB6() {
         this.state.step = 'B6';
+        UI.announceToScreenReader('Step 6: Development timeline');
 
         // Cinematic flight to development area
         MapController.flyToStep(CAMERA_STEPS.B6);
 
-        // Show the Future/Present toggle
-        UI.showControlBar();
+        // Show the Present/Future toggle in top-left corner
         UI.showTimeToggle();
 
+        // Update chatbox to instruct user about the toggle
         UI.updateChatbox(`
-            <h3>Development Timeline</h3>
-            <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
-            <div class="chatbox-options" style="margin-top: 12px;">
+            <h3>The Vision</h3>
+            <p>Toggle to <strong>Future View</strong> in the top-left corner to see the planned development zones.</p>
+            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
+                Explore the evidence for this transformation:
+            </p>
+            <div class="chatbox-options" style="margin-top: var(--space-3);">
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
-                    View Government Zone Plans
+                    View government zone plans
                 </button>
-                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
-                    View Transportation Network
+                <parameter name="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
+                    View transportation network
                 </button>
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
-                    View Education Pipeline
+                    View education pipeline
                 </button>
             </div>
             <button class="chatbox-continue primary" onclick="App.stepB7()">
@@ -468,8 +473,9 @@ const App = {
     stepB7() {
         this.state.step = 'B7';
 
-        // Reset to present view for clarity
+        // Reset to present view (toggle remains visible)
         UI.setTimeView('present');
+        UI.announceToScreenReader('Step 7: Infrastructure changes');
 
         // Show infrastructure roads on the map
         MapController.showInfrastructureRoads();
@@ -507,7 +513,7 @@ const App = {
         UI.hideChatbox();
         UI.hidePanel();
 
-        // Reset to present view
+        // Reset to present view (toggle remains visible)
         UI.setTimeView('present');
 
         // 3. Clean up Mapbox layers (silent — markers already faded)
@@ -517,9 +523,6 @@ const App = {
 
         // 4. Let the old world fully recede
         await new Promise(r => setTimeout(r, TIMING.breathShort));
-
-        // Show memorable journey transition (Peak-End Rule)
-        await UI.showJourneyTransition('C');
 
         // Show MoreHarvest grand entry before properties
         await UI.showMoreHarvestEntry();
@@ -552,6 +555,7 @@ const App = {
 
         // Update data layers toggle for Journey C
         UI.showDataLayers('C');
+        UI.announceToScreenReader('Journey C: Investment opportunities');
 
         // Show property list in right panel
         UI.showPropertyListPanel();
@@ -573,7 +577,7 @@ const App = {
                 <div class="chatbox-fund-detail">${aumValue} Target AUM &middot; ${holdValue} Hold</div>
             </div>
             <details class="chatbox-disclosure">
-                <summary>View Full Fund and Portfolio Details</summary>
+                <summary>View full fund and portfolio details</summary>
                 <div class="chatbox-disclosure-body">
                     ${UI.showGktkSummary()}
                     ${UI.showPortfolioCard()}
@@ -583,14 +587,7 @@ const App = {
             <button class="chatbox-continue primary" onclick="App.complete()">
                 See Your Summary
             </button>
-            <button class="chatbox-nav-back" onclick="App.goBackToJourneyB()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Back to Infrastructure Plan
-            </button>
         `, { skipHistory: true });
-
-        // Hide time toggle for clarity
-        UI.hideTimeToggle();
 
         // Start heartbeat — Journey C has Mapbox circle layers, no marker pulse
         MapController.startHeartbeat();
@@ -606,9 +603,7 @@ const App = {
         UI.hideJourneyProgress();
         UI.hideChatbox();
         UI.hidePanel();
-
-        // Brief completion moment
-        await UI.showJourneyTransition('complete');
+        UI.announceToScreenReader('Journey complete');
 
         // Beat: "The Conversation" — let the journey ending breathe before recap
         await new Promise(r => setTimeout(r, TIMING.breath));
@@ -672,7 +667,6 @@ const App = {
     restart() {
         MapController.destroy();
         UI.hidePanel();
-        UI.hideControlBar();
         UI.hideChatbox();
         UI.hideAIChat();
         UI.hideLayersToggle();
@@ -683,6 +677,15 @@ const App = {
             this.startJourneyA();
         }, TIMING.restartDelay);
     },
+
+    // ================================
+    // HOLD TO CONFIRM (Future/Present)
+    // ================================
+
+    /**
+     * Reset from future view back to present.
+     * Called from the "Back to Present View" button in the chatbox.
+     */
 
     // ================================
     // EVIDENCE GROUPS
@@ -729,7 +732,7 @@ const App = {
             <p>Select an item below to view detailed documentation.</p>
             ${groupHtml}
             <button class="panel-btn" onclick="UI.showEvidenceListPanel()">
-                View All Evidence
+                View all evidence
             </button>
         `;
 
@@ -754,7 +757,6 @@ const App = {
         MapController.stopHeartbeat();
         UI.hideChatbox();
         UI.hidePanel();
-        UI.hideControlBar();
         MapController.clearAll();
 
         await MapController.flyToStep(CAMERA_STEPS.A1);
@@ -831,10 +833,6 @@ const App = {
                     <button class="chatbox-continue primary" onclick="App.stepB4()">
                         See Who's Building Here
                     </button>
-                    <button class="chatbox-nav-back" onclick="App.goBackToJourneyA()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        Back to Why Kumamoto
-                    </button>
                 `);
             } else if (step === 'B4') {
                 UI.showChatbox(`
@@ -894,7 +892,7 @@ const App = {
                     <div class="chatbox-fund-detail">${aumValue} Target AUM &middot; ${holdValue} Hold</div>
                 </div>
                 <details class="chatbox-disclosure">
-                    <summary>View Full Fund and Portfolio Details</summary>
+                    <summary>View full fund and portfolio details</summary>
                     <div class="chatbox-disclosure-body">
                         ${UI.showGktkSummary()}
                         ${UI.showPortfolioCard()}
@@ -903,10 +901,6 @@ const App = {
                 <p style="margin-top: var(--space-3);">Click any amber marker to see the full financial picture.</p>
                 <button class="chatbox-continue primary" onclick="App.complete()">
                     See Your Summary
-                </button>
-                <button class="chatbox-nav-back" onclick="App.goBackToJourneyB()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    Back to Infrastructure Plan
                 </button>
             `);
         } else {
