@@ -405,7 +405,7 @@ a:focus-visible {
 }
 
 .mapbox-marker-wrapper:hover .elevated-marker {
-    transform: translateY(-6px) !important;
+    transform: translateY(-2px) !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.3), 0 3px 6px rgba(0,0,0,0.2) !important;
 }
 
@@ -2050,11 +2050,11 @@ a:focus-visible {
 /* Marker pop animation - subtle scale effect, always visible */
 @keyframes markerPop {
     from {
-        transform: scale(0.5);
+        scale: 0.5;
         opacity: 0.5;
     }
     to {
-        transform: scale(1);
+        scale: 1;
         opacity: 1;
     }
 }
@@ -2093,15 +2093,18 @@ a:focus-visible {
 /* Anchor Drop — heavy, deliberate (science park, JASM, gov chain lead) */
 @keyframes anchorDrop {
     from {
-        transform: scale(0.3) translateY(-16px);
+        scale: 0.3;
+        translate: 0 -16px;
         opacity: 0;
     }
     65% {
-        transform: scale(1.06) translateY(0);
+        scale: 1.06;
+        translate: 0 0;
         opacity: 1;
     }
     to {
-        transform: scale(1) translateY(0);
+        scale: 1;
+        translate: 0 0;
         opacity: 1;
     }
 }
@@ -2113,11 +2116,11 @@ a:focus-visible {
 /* Ripple In — lighter, cascading (company markers, resource markers) */
 @keyframes rippleIn {
     from {
-        transform: scale(0.6);
+        scale: 0.6;
         opacity: 0;
     }
     to {
-        transform: scale(1);
+        scale: 1;
         opacity: 1;
     }
 }
@@ -2129,11 +2132,13 @@ a:focus-visible {
 /* Emerge — gentle rise from ground (property HTML markers, evidence) */
 @keyframes markerEmerge {
     from {
-        transform: translateY(8px) scale(0.9);
+        scale: 0.9;
+        translate: 0 8px;
         opacity: 0;
     }
     to {
-        transform: translateY(0) scale(1);
+        scale: 1;
+        translate: 0 0;
         opacity: 1;
     }
 }
@@ -2149,7 +2154,8 @@ a:focus-visible {
 @keyframes markerFadeOut {
     to {
         opacity: 0;
-        transform: scale(0.85) translateY(4px);
+        scale: 0.85;
+        translate: 0 4px;
     }
 }
 
@@ -2164,10 +2170,10 @@ a:focus-visible {
 
 @keyframes markerPulse {
     0%, 100% {
-        transform: scale(1);
+        scale: 1;
     }
     50% {
-        transform: scale(1.04);
+        scale: 1.04;
     }
 }
 
@@ -2194,7 +2200,7 @@ a:focus-visible {
 /* Pin/teardrop — properties */
 .marker-shape-pin .elevated-marker {
     border-radius: 50% 50% 50% 0 !important;
-    transform: rotate(-45deg) translateY(-4px) !important;
+    transform: rotate(-45deg) !important;
 }
 
 .marker-shape-pin .elevated-marker > * {
@@ -2202,7 +2208,7 @@ a:focus-visible {
 }
 
 .marker-shape-pin:hover .elevated-marker {
-    transform: rotate(-45deg) translateY(-6px) !important;
+    transform: rotate(-45deg) translateY(-2px) !important;
 }
 
 /* Diamond — development zones */
@@ -4511,6 +4517,13 @@ button.layer-item {
     .moreharvest-entry-tagline,
     .journey-progress-spinner {
         animation: none !important;
+    }
+
+    /* Make moreharvest entry elements immediately visible when animations disabled */
+    .moreharvest-entry-logo,
+    .moreharvest-entry-tagline {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
     }
 
     /* Closing animations — instant exit */
