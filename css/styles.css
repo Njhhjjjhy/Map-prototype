@@ -661,8 +661,7 @@ a:focus-visible {
 #control-bar {
     position: absolute;
     top: var(--space-4);
-    left: 50%;
-    transform: translateX(-50%);
+    left: var(--space-3);
     z-index: 500;
     display: flex;
     gap: var(--space-2);
@@ -922,10 +921,30 @@ a:focus-visible {
 .chatbox-options {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--space-4);  /* 16px between all items */
+    margin-top: var(--space-4);  /* 16px spacing before options container */
 }
 
+/* ================================
+   MODAL LIST ITEM SPACING RULES
+   ================================
+
+   For items with status indicators (checkmarks, badges):
+   - Use justify-content: flex-start
+   - Push indicator to right edge via margin-left: auto on ::after
+   - Example: .chatbox-option.completed::after uses margin-left: auto
+
+   For items with metadata labels or chevrons:
+   - Use justify-content: space-between
+   - Examples: .dashboard-item, .data-layer-marker-item
+
+   Spacing requirements:
+   - Between items: gap: var(--space-4) (16px)
+   - Last item to CTA: margin-top: var(--space-6) (24px)
+   ================================ */
+
 .chatbox-option {
+    width: 100%;  /* Full width of modal container */
     padding: var(--space-3) var(--space-4);
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--color-border-strong);
@@ -940,7 +959,7 @@ a:focus-visible {
     text-align: left;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;  /* Checkmark pushed right via margin-left: auto */
 }
 
 .chatbox-option:hover {
@@ -968,7 +987,7 @@ a:focus-visible {
     display: inline-block;
     width: 20px;
     height: 20px;
-    margin-left: auto;
+    margin-left: auto;  /* Push to right edge, minimum 16px gap via parent padding */
     flex-shrink: 0;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2334c759' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
     background-size: 20px;
@@ -989,7 +1008,7 @@ a:focus-visible {
     letter-spacing: var(--tracking-body);
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-standard);
-    margin-top: var(--space-2);
+    margin-top: var(--space-6);  /* 24px section gap between last item and CTA */
     box-shadow: var(--shadow-subtle), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     opacity: 0;
     animation: buttonEntrance var(--duration-normal) var(--easing-decelerate) var(--duration-fast) forwards;
@@ -1069,14 +1088,11 @@ a:focus-visible {
     display: none;
 }
 
-.chatbox-hint {
-    display: block;
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    color: var(--color-text-tertiary);
-    text-align: center;
-    margin-top: var(--space-2);
-}
+/* ================================
+   HOLD-TO-CONFIRM SPLASH SCREEN
+   Full-screen overlay with circular progress button.
+   Appears at Journey B Step B6 for Future view activation.
+   ================================ */
 
 /* Journey backward navigation button */
 .chatbox-nav-back {
@@ -1888,11 +1904,28 @@ a:focus-visible {
     animation: zoomOut var(--duration-fast) var(--easing-accelerate) forwards;
 }
 
-/* Close button for gallery */
+/* Modal header - required for all modals with 8px gap between title and close button */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);  /* 8px - REQUIRED spacing */
+}
+
+.modal-title {
+    flex: 1;
+    margin: 0;
+}
+
+.modal-close {
+    flex-shrink: 0;
+}
+
+/* Close button for gallery - positioned in header area */
 #gallery-close {
     position: absolute;
-    top: var(--space-3);
-    right: var(--space-3);
+    top: var(--space-8);
+    right: var(--space-8);
     width: 24px;
     height: 24px;
     background: transparent;
@@ -1900,11 +1933,11 @@ a:focus-visible {
     border-radius: var(--radius-small);
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-standard);
-    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--color-text-tertiary);
+    z-index: 10;
 }
 
 #gallery-close:hover {
@@ -1925,9 +1958,31 @@ a:focus-visible {
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--space-12) var(--space-8) var(--space-8);
+    padding: var(--space-8);
+    position: relative;
+}
+
+.gallery-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding-right: var(--space-10);  /* Space for the positioned close button */
+}
+
+.gallery-header h3 {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-display);
+    color: var(--color-text-primary);
+    margin: 0;
 }
 
 #gallery-body img {
@@ -1939,7 +1994,8 @@ a:focus-visible {
 
 .placeholder-doc {
     text-align: center;
-    padding: var(--space-12);
+    padding: var(--space-6);
+    width: 100%;
 }
 
 .placeholder-doc .icon {
@@ -2120,6 +2176,63 @@ a:focus-visible {
 }
 
 /* (Science Park circle — now rendered as Mapbox fill/line layers) */
+
+/* ================================
+   MARKER SHAPE VARIANTS (colorblind accessibility)
+   ================================ */
+
+/* Circle — default shape (resources, government, base map) */
+.marker-shape-circle .elevated-marker {
+    /* Default border-radius: 50% from inline styles — no override needed */
+}
+
+/* Rounded square — corporate sites */
+.marker-shape-square .elevated-marker {
+    border-radius: var(--radius-small) !important;
+}
+
+/* Pin/teardrop — properties */
+.marker-shape-pin .elevated-marker {
+    border-radius: 50% 50% 50% 0 !important;
+    transform: rotate(-45deg) translateY(-4px) !important;
+}
+
+.marker-shape-pin .elevated-marker > * {
+    transform: rotate(45deg);
+}
+
+.marker-shape-pin:hover .elevated-marker {
+    transform: rotate(-45deg) translateY(-6px) !important;
+}
+
+/* Diamond — development zones */
+.marker-shape-diamond .elevated-marker {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    border-radius: 0 !important;
+    border: none !important;
+}
+
+/* Diamond border effect via pseudo-element (clip-path clips borders) */
+.marker-shape-diamond .elevated-marker::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: white;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    z-index: -1;
+}
+
+/* Keyboard focus ring on markers (WCAG) */
+.mapbox-marker-wrapper:focus-visible .elevated-marker {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+.mapbox-marker-wrapper:focus-visible {
+    outline: none;
+    z-index: 10;
+}
+
 
 /* Map Tooltips (macOS style) */
 .map-tooltip {
@@ -2418,7 +2531,13 @@ a:focus-visible {
 
 /* ================================
    DATA LAYERS PANEL (macOS)
-   ================================ */
+   ================================
+
+   NOTE: Animated route layers (Traffic Flow, Rail Commute) use
+   Mapbox GL JS paint properties for flowing dot animations,
+   controlled via MapController._startRouteAnimation().
+   Animations respect prefers-reduced-motion automatically.
+*/
 #data-layers {
     position: absolute;
     top: 168px; /* Below layers-toggle: 124px + 36px button + 8px gap */
@@ -2514,12 +2633,12 @@ button.layer-item {
     background: rgba(251, 185, 49, 0.12);
 }
 
-/* macOS-style radio button */
-.layer-radio {
+/* macOS-style checkbox */
+.layer-checkbox {
     width: var(--icon-sm);
     height: var(--icon-sm);
     border: 1.5px solid var(--color-text-tertiary);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-medium);  /* 8px - macOS HIG rounded checkbox */
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -2527,17 +2646,18 @@ button.layer-item {
     transition: all var(--duration-fast) var(--easing-standard);
 }
 
-.layer-item.active .layer-radio {
+.layer-item.active .layer-checkbox {
     border-color: var(--color-primary);
     background: var(--color-primary);
 }
 
-.layer-item.active .layer-radio::after {
+.layer-item.active .layer-checkbox::after {
     content: '';
-    width: var(--space-1);
-    height: var(--space-1);
-    background: var(--color-bg-primary);
-    border-radius: var(--radius-full);
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid var(--color-text-primary);
+    border-bottom: 2px solid var(--color-text-primary);
+    transform: rotate(-45deg) translateY(-1px);
 }
 
 .layer-icon {
@@ -2578,6 +2698,15 @@ button.layer-item {
 
 #data-layer-items .layer-item.active[data-layer="riskyArea"] .layer-icon {
     color: #ff9500;
+}
+
+/* Animated route layer icon colors */
+#data-layer-items .layer-item.active[data-layer="trafficFlow"] .layer-icon {
+    color: #ef4444; /* Red for traffic congestion */
+}
+
+#data-layer-items .layer-item.active[data-layer="railCommute"] .layer-icon {
+    color: #8b5cf6; /* Purple for rail network */
 }
 
 .layer-icon svg {
@@ -2863,6 +2992,7 @@ button.layer-item {
 .ai-chat-input-container {
     align-self: stretch;  /* Full width */
     display: flex;
+    align-items: center;  /* Vertically center input and button */
     gap: var(--space-2);  /* 8px */
     padding: var(--space-4) 0 0 0;  /* 16px top only - no bottom (parent has 32px) */
     background: transparent;
@@ -2887,9 +3017,9 @@ button.layer-item {
 
 .ai-chat-input:focus {
     outline: none;
-    border-color: var(--color-info);
+    border-color: var(--color-primary-pressed);
     background: var(--color-bg-primary);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(204, 149, 38, 0.2);
 }
 
 .ai-chat-send {
@@ -4216,9 +4346,12 @@ button.layer-item {
 
 #layers-toggle,
 #panel-toggle,
-#dashboard-toggle,
-.panel-back-btn {
+#dashboard-toggle {
     position: absolute; /* already set for toggles, reinforcing */
+}
+
+.panel-back-btn {
+    position: relative; /* relative for ::before touch target, stays in flow */
 }
 
 /* 40px send button → 44px hit area */
@@ -4467,6 +4600,11 @@ button.layer-item {
     html {
         scroll-behavior: auto !important;
     }
+
+    /*
+     * HOLD-TO-CONFIRM: Instant fill, no animation
+     * JS converts to single click when reduced motion is active
+     */
 }
 
 /* ================================

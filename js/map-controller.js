@@ -108,6 +108,14 @@ const MapController = {
     dataLayerMarkers: {},
     _dataLayerGroups: {},
 
+    // Animated route layer tracking (traffic flow, rail commute)
+    _animatedLayers: {
+        trafficFlow: { active: false, routes: [] },
+        railCommute: { active: false, routes: [] }
+    },
+    _animationFrame: null,
+    _animationOffset: 0,
+
     // Evidence marker tracking
     highlightedEvidenceMarker: null,
 
@@ -521,6 +529,19 @@ const MapController = {
         }
         el.innerHTML = html;
 
+        // Keyboard accessibility
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        if (options.ariaLabel) {
+            el.setAttribute('aria-label', options.ariaLabel);
+        }
+        el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                el.click();
+            }
+        });
+
         const marker = new mapboxgl.Marker({
             element: el,
             anchor: options.anchor || 'center',
@@ -539,10 +560,10 @@ const MapController = {
      * @param {number} size — Visual size in px
      * @param {Object} extraStyles — Additional inline styles
      */
-    _elevatedMarkerHtml(innerHtml, color, size = 36, extraStyles = {}) {
+    _elevatedMarkerHtml(innerHtml, color, size = 36, extraStyles = {}, shape = 'circle') {
         const borderWidth = size > 32 ? 3 : 2;
         const extra = Object.entries(extraStyles).map(([k, v]) => `${k}: ${v}`).join('; ');
-        return `<div class="custom-marker-hitarea" style="
+        return `<div class="custom-marker-hitarea marker-shape-${shape}" style="
             width: 48px; height: 48px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
@@ -571,6 +592,13 @@ const MapController = {
             zone: MAP_COLORS.zone
         };
 
+        const shapes = {
+            resource: 'circle',
+            company: 'square',
+            property: 'pin',
+            zone: 'diamond'
+        };
+
         const icons = {
             property: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg>`,
             company: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M22 22H2V10l7-3v3l7-3v3l6-3v15zM4 20h16v-8l-4 2v-2l-5 2v-2l-5 2v-2l-2 1v7z"/><rect x="6" y="14" width="3" height="3"/><rect x="11" y="14" width="3" height="3"/><rect x="16" y="14" width="3" height="3"/></svg>`,
@@ -581,8 +609,9 @@ const MapController = {
 
         const icon = icons[subtype] || icons[type] || '';
         const color = colors[type] || MAP_COLORS.primary;
+        const shape = shapes[type] || 'circle';
 
-        return this._elevatedMarkerHtml(icon, color);
+        return this._elevatedMarkerHtml(icon, color, 36, {}, shape);
     },
 
     /**
@@ -608,7 +637,7 @@ const MapController = {
             line-height: 1;
         ">${brand.text}</span>`;
 
-        return this._elevatedMarkerHtml(innerHtml, brand.bg, 40);
+        return this._elevatedMarkerHtml(innerHtml, brand.bg, 40, {}, 'square');
     },
 
     /**
@@ -644,7 +673,7 @@ const MapController = {
         if (!resource) return;
 
         const html = this._markerIconHtml('resource', resourceId);
-        const { marker, element } = this._createMarker(resource.coords, html, { entrance: 'anchor' });
+        const { marker, element } = this._createMarker(resource.coords, html, { entrance: 'anchor', ariaLabel: resource.name + ' resource' });
 
         this._addTooltip(marker, element, resource.name);
         element.addEventListener('click', () => UI.showResourcePanel(resource));
@@ -835,7 +864,7 @@ const MapController = {
                 const html = this._elevatedMarkerHtml(innerHtml, color);
 
                 const entrance = index === 0 ? 'anchor' : 'ripple';
-                const { marker, element } = this._createMarker(level.coords, html, { entrance });
+                const { marker, element } = this._createMarker(level.coords, html, { entrance, ariaLabel: level.name });
                 element.addEventListener('click', () => UI.showGovernmentLevelPanel(level));
 
                 const id = `govt-${level.id}`;
@@ -843,6 +872,11 @@ const MapController = {
                 this._layerGroups.governmentChain.push(id);
             }, index * 200);
         });
+
+        // Announce after all markers have landed
+        setTimeout(() => {
+            UI.announceToScreenReader(chain.levels.length + ' government commitment markers added');
+        }, chain.levels.length * 200 + 100);
     },
 
     /**
@@ -889,7 +923,7 @@ const MapController = {
             setTimeout(() => {
                 const html = this._brandedMarkerHtml(company.id);
                 const entrance = company.id === 'jasm' ? 'anchor' : 'ripple';
-                const { marker, element } = this._createMarker(company.coords, html, { entrance });
+                const { marker, element } = this._createMarker(company.coords, html, { entrance, ariaLabel: company.name });
 
                 this._addTooltip(marker, element, company.name);
                 element.addEventListener('click', () => UI.showCompanyPanel(company));
@@ -898,6 +932,11 @@ const MapController = {
                 this._layerGroups.companies.push(company.id);
             }, index * 80);
         });
+
+        // Announce after all markers have landed
+        setTimeout(() => {
+            UI.announceToScreenReader(AppData.companies.length + ' company markers added to map');
+        }, AppData.companies.length * 80 + 100);
     },
 
     /**
@@ -937,7 +976,7 @@ const MapController = {
 
             // Zone marker at center
             const markerHtml = this._markerIconHtml('zone');
-            const { marker, element } = this._createMarker(zone.coords, markerHtml);
+            const { marker, element } = this._createMarker(zone.coords, markerHtml, { ariaLabel: zone.name + ' development zone' });
 
             this._addTooltip(marker, element, zone.name);
             element.addEventListener('click', () => UI.showFutureZonePanel(zone));
@@ -1044,6 +1083,11 @@ const MapController = {
         });
 
         this._layerGroups.infrastructureRoads.push('infrastructure-roads-line', 'infrastructure-roads-labels', sourceId);
+
+        // Announce roads added
+        setTimeout(() => {
+            UI.announceToScreenReader(AppData.infrastructureRoads.length + ' infrastructure road overlays shown');
+        }, 400);
 
         // Store road index mapping for feature-state
         this._roadIndexMap = {};
@@ -1341,7 +1385,7 @@ const MapController = {
         AppData.properties.forEach((property, index) => {
             setTimeout(() => {
                 const html = this._markerIconHtml('property');
-                const { marker, element } = this._createMarker(property.coords, html, { entrance: 'emerge' });
+                const { marker, element } = this._createMarker(property.coords, html, { entrance: 'emerge', ariaLabel: property.name });
 
                 this._addTooltip(marker, element, property.name);
 
@@ -1518,6 +1562,11 @@ const MapController = {
             this._dataLayerGroups[layerName].push(id);
         });
 
+        // Show animated route layers for traffic flow and rail commute
+        if (layerName === 'trafficFlow' || layerName === 'railCommute') {
+            this.showAnimatedRouteLayer(layerName, layerData);
+        }
+
         // Fit bounds (skip for electricity — handled by showKyushuEnergy)
         if (layerName !== 'electricity') {
             const allCoords = layerData.markers.filter(m => m.coords).map(m => this._toMapbox(m.coords));
@@ -1541,6 +1590,11 @@ const MapController = {
         if (this.dataLayerMarkers[layerName]) {
             delete this.dataLayerMarkers[layerName];
         }
+
+        // Hide animated route layers for traffic flow and rail commute
+        if (layerName === 'trafficFlow' || layerName === 'railCommute') {
+            this.hideAnimatedRouteLayer(layerName);
+        }
     },
 
     focusDataLayerMarker(layerName, markerId) {
@@ -1552,6 +1606,249 @@ const MapController = {
                 duration: 800
             });
         }
+    },
+
+    // ================================
+    // ANIMATED ROUTE LAYERS (Traffic Flow, Rail Commute)
+    // ================================
+
+    /**
+     * Show animated route layer with flowing dots
+     * @param {string} layerName - 'trafficFlow' or 'railCommute'
+     * @param {Object} layerData - Data containing routes array
+     */
+    showAnimatedRouteLayer(layerName, layerData) {
+        if (!layerData || !layerData.routes || layerData.routes.length === 0) return;
+        if (!this.map || !this.map.isStyleLoaded()) return;
+
+        // Hide existing layer first
+        this.hideAnimatedRouteLayer(layerName);
+
+        const routes = layerData.routes;
+        this._animatedLayers[layerName].routes = routes;
+        this._animatedLayers[layerName].active = true;
+
+        // Add each route as a separate layer with animated dots
+        routes.forEach((route, index) => {
+            const sourceId = `${layerName}-route-${index}`;
+            const baseLayerId = `${layerName}-route-base-${index}`;
+            const dotsLayerId = `${layerName}-route-dots-${index}`;
+            const glowLayerId = `${layerName}-route-glow-${index}`;
+
+            // Create GeoJSON for the route
+            const geojson = {
+                type: 'Feature',
+                properties: {
+                    name: route.name,
+                    level: route.level || 'medium',
+                    routeType: route.type || 'main'
+                },
+                geometry: {
+                    type: 'LineString',
+                    coordinates: route.path
+                }
+            };
+
+            // Add source
+            this._safeAddSource(sourceId, {
+                type: 'geojson',
+                data: geojson,
+                lineMetrics: true
+            });
+
+            // Traffic flow: different styles per congestion level
+            if (layerName === 'trafficFlow') {
+                const levelStyles = {
+                    high: { width: 6, opacity: 0.8, dotSize: 4, dotSpacing: 30, speed: 80 },
+                    medium: { width: 5, opacity: 0.8, dotSize: 3, dotSpacing: 30, speed: 120 },
+                    low: { width: 4, opacity: 0.8, dotSize: 2.5, dotSpacing: 30, speed: 180 }
+                };
+                const style = levelStyles[route.level] || levelStyles.medium;
+
+                // Glow effect base
+                this.map.addLayer({
+                    id: glowLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': route.color,
+                        'line-width': style.width * 1.8,
+                        'line-opacity': 0.3,
+                        'line-blur': 4
+                    }
+                });
+
+                // Base line
+                this.map.addLayer({
+                    id: baseLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': route.color,
+                        'line-width': style.width,
+                        'line-opacity': style.opacity * 0.3
+                    }
+                });
+
+                // Animated dots layer using dashed line trick
+                this.map.addLayer({
+                    id: dotsLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': route.color,
+                        'line-width': style.dotSize,
+                        'line-opacity': style.opacity,
+                        'line-dasharray': [0, 2],  // Will animate this
+                        'line-gap-width': style.width
+                    }
+                });
+
+                // Store route metadata for animation
+                route._layerIds = { glow: glowLayerId, base: baseLayerId, dots: dotsLayerId };
+                route._speed = style.speed;
+                route._dotSpacing = style.dotSpacing;
+            }
+
+            // Rail commute: track-style rendering
+            if (layerName === 'railCommute') {
+                const typeStyles = {
+                    main: { width: 10, dotSize: 4, opacity: 0.9, speed: 100 },
+                    secondary: { width: 8, dotSize: 3.5, opacity: 0.8, speed: 120 },
+                    planned: { width: 6, dotSize: 3, opacity: 0.7, speed: 140 }
+                };
+                const style = typeStyles[route.type] || typeStyles.main;
+
+                // Track base (dark sleeper effect)
+                this.map.addLayer({
+                    id: baseLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': '#1a1a2e',
+                        'line-width': style.width,
+                        'line-opacity': style.opacity
+                    }
+                });
+
+                // Rails (parallel lines with dashed pattern)
+                this.map.addLayer({
+                    id: glowLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': '#666688',
+                        'line-width': 6,
+                        'line-opacity': 0.8,
+                        'line-dasharray': [0.1, 1.5]  // Sleeper pattern
+                    }
+                });
+
+                // Animated flowing dots
+                this.map.addLayer({
+                    id: dotsLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': route.color,
+                        'line-width': style.dotSize,
+                        'line-opacity': 0.9,
+                        'line-dasharray': [0, 2],  // Will animate this
+                        'line-gap-width': style.width
+                    }
+                });
+
+                // Store route metadata for animation
+                route._layerIds = { glow: glowLayerId, base: baseLayerId, dots: dotsLayerId };
+                route._speed = style.speed;
+                route._dotSpacing = 30;
+            }
+        });
+
+        // Start animation loop if not already running
+        this._startRouteAnimation();
+    },
+
+    /**
+     * Hide animated route layer
+     * @param {string} layerName - 'trafficFlow' or 'railCommute'
+     */
+    hideAnimatedRouteLayer(layerName) {
+        if (!this._animatedLayers[layerName].active) return;
+
+        const routes = this._animatedLayers[layerName].routes;
+        routes.forEach((route, index) => {
+            const sourceId = `${layerName}-route-${index}`;
+            const baseLayerId = `${layerName}-route-base-${index}`;
+            const dotsLayerId = `${layerName}-route-dots-${index}`;
+            const glowLayerId = `${layerName}-route-glow-${index}`;
+
+            this._safeRemoveLayer(dotsLayerId);
+            this._safeRemoveLayer(baseLayerId);
+            this._safeRemoveLayer(glowLayerId);
+            this._safeRemoveSource(sourceId);
+        });
+
+        this._animatedLayers[layerName].active = false;
+        this._animatedLayers[layerName].routes = [];
+
+        // Stop animation if no layers are active
+        const anyActive = Object.values(this._animatedLayers).some(layer => layer.active);
+        if (!anyActive) {
+            this._stopRouteAnimation();
+        }
+    },
+
+    /**
+     * Start the route animation loop
+     */
+    _startRouteAnimation() {
+        if (this._animationFrame || this.reducedMotion) return;
+
+        const animate = () => {
+            this._animationOffset = (this._animationOffset + 1) % 100;
+
+            // Update all active animated layers
+            Object.entries(this._animatedLayers).forEach(([layerName, layerState]) => {
+                if (!layerState.active) return;
+
+                layerState.routes.forEach(route => {
+                    if (!route._layerIds) return;
+
+                    const speed = route._speed || 100;
+                    const spacing = route._dotSpacing || 30;
+
+                    // Calculate animated offset
+                    const dashOffset = ((this._animationOffset * speed) / 100) % spacing;
+                    const dashPhase = dashOffset / spacing;
+
+                    // Update the dash array to create flowing dot effect
+                    const dotsLayerId = route._layerIds.dots;
+                    if (this.map.getLayer(dotsLayerId)) {
+                        this.map.setPaintProperty(
+                            dotsLayerId,
+                            'line-dasharray',
+                            [0, dashPhase * 4, 0.5, (1 - dashPhase) * 4]
+                        );
+                    }
+                });
+            });
+
+            this._animationFrame = requestAnimationFrame(animate);
+        };
+
+        this._animationFrame = requestAnimationFrame(animate);
+    },
+
+    /**
+     * Stop the route animation loop
+     */
+    _stopRouteAnimation() {
+        if (this._animationFrame) {
+            cancelAnimationFrame(this._animationFrame);
+            this._animationFrame = null;
+        }
+        this._animationOffset = 0;
     },
 
     _dataLayerMarkerHtml(layerName, color) {
@@ -2028,6 +2325,9 @@ const MapController = {
         Object.keys(this._dataLayerGroups).forEach(layerName => {
             this.hideDataLayerMarkers(layerName);
         });
+
+        // Stop any route animations
+        this._stopRouteAnimation();
 
         // Clear property markers and routes
         this._safeRemoveLayer('property-markers-circle');

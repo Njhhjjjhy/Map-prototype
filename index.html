@@ -57,8 +57,8 @@
                 </div>
             </nav>
 
-            <!-- Control Bar (hidden initially) -->
-            <div id="control-bar" class="hidden" role="toolbar" aria-label="Map controls">
+            <!-- Control Bar -->
+            <div id="control-bar" role="toolbar" aria-label="Map controls">
                 <div id="time-toggle" class="hidden" role="radiogroup" aria-label="Map time view">
                     <button id="present-btn" class="time-btn active" role="radio" aria-checked="true">Present</button>
                     <button id="future-btn" class="time-btn" role="radio" aria-checked="false">Future</button>
@@ -107,6 +107,7 @@
                     <!-- Populated by JS - includes both map layers and data layers -->
                 </div>
             </div>
+
 
             <!-- Panel Toggle Button (right side) -->
             <button id="panel-toggle" class="hidden" aria-label="Toggle details panel" aria-expanded="false">
@@ -168,6 +169,7 @@
         </div>
     </div>
 
+    <!-- Hold-to-Confirm Splash Screen (appears at step B6) -->
     <!-- AI Chat (appears after journey completion) -->
     <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
         <button id="ai-chat-close" aria-label="Close chat">
@@ -250,7 +252,7 @@
 
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-    <script>window.MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGV3dTVhYTE1cDgzZnEza2gzbGZocGcifQ.oR9Q__KlUYzBssiJUZf3dQ';</script>
+    <script>window.MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ';</script>
 
     <!-- App JS -->
     <script src="js/data.js"></script>

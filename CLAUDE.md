@@ -1,4 +1,4 @@
-# CLAUDE.md — Map Prototype Design System
+# CLAUDE.md - Map Prototype Design System
 
 ## Project Overview
 
@@ -9,14 +9,34 @@ Interactive presentation app for real estate sales in Kumamoto, Japan. Desktop-o
 ### Language Rule
 
 ```
-⚠️ ENGLISH ONLY — NO JAPANESE OR OTHER NON-ENGLISH TEXT
+ENGLISH ONLY - NO JAPANESE OR OTHER NON-ENGLISH TEXT
 
 All UI text, labels, data properties, and content must be in English.
-❌ NEVER add Japanese (hiragana, katakana, kanji) text to the UI
-❌ NEVER add titleJa, nameJa, questionJa, or similar bilingual properties
-❌ NEVER display non-English translations in chatbox, panels, or overlays
-✅ Use English-only for all user-facing strings
-✅ Japanese place names should use their romanized (romaji) form only
+NEVER add Japanese (hiragana, katakana, kanji) text to the UI.
+NEVER add titleJa, nameJa, questionJa, or similar bilingual properties.
+NEVER display non-English translations in chatbox, panels, or overlays.
+Use English-only for all user-facing strings.
+Japanese place names should use their romanized (romaji) form only.
+```
+
+### Claude Response Guidelines
+
+```
+STRICT RULES FOR ALL CLAUDE RESPONSES
+
+These rules apply to all Claude outputs and responses in this context window:
+
+NEVER use emojis.
+NEVER use uppercase.
+NEVER exaggerate.
+
+Always use proper grammar and end sentences with periods.
+Always use Oxford commas.
+Never use em dash.
+
+Use clear, direct, professional communication.
+Focus on factual, measured descriptions.
+Maintain a calm, helpful tone without unnecessary emphasis.
 ```
 
 ---
@@ -60,15 +80,15 @@ All font sizes use `rem` units with `1rem = 16px` base. Scale follows macOS typo
 ```css
 :root {
   /* macOS Type Scale */
-  --text-xs: 0.6875rem;    /* 11px — Caption 2 */
-  --text-sm: 0.8125rem;    /* 13px — Footnote */
-  --text-base: 0.9375rem;  /* 15px — Subheadline */
-  --text-lg: 1.0625rem;    /* 17px — Body/Headline */
-  --text-xl: 1.25rem;      /* 20px — Title 3 */
-  --text-2xl: 1.375rem;    /* 22px — Title 2 */
-  --text-3xl: 1.75rem;     /* 28px — Title 1 */
-  --text-4xl: 2.125rem;    /* 34px — Large Title */
-  --text-5xl: 2.5rem;      /* 40px — Hero */
+  --text-xs: 0.6875rem;    /* 11px - Caption 2 */
+  --text-sm: 0.8125rem;    /* 13px - Footnote */
+  --text-base: 0.9375rem;  /* 15px - Subheadline */
+  --text-lg: 1.0625rem;    /* 17px - Body/Headline */
+  --text-xl: 1.25rem;      /* 20px - Title 3 */
+  --text-2xl: 1.375rem;    /* 22px - Title 2 */
+  --text-3xl: 1.75rem;     /* 28px - Title 1 */
+  --text-4xl: 2.125rem;    /* 34px - Large Title */
+  --text-5xl: 2.5rem;      /* 40px - Hero */
 
   /* Line Heights */
   --line-height-tight: 1.25;       /* Headings, labels */
@@ -81,22 +101,37 @@ All font sizes use `rem` units with `1rem = 16px` base. Scale follows macOS typo
 
 #### Case Rules
 
+**Title Case is used ONLY for:**
+1. Primary CTAs with brand-amber fill that are action buttons
+2. Modal overlay headings (h2/h3 inside modals)
+3. Dashboard headings
+
+**Sentence case is used for:**
+- All secondary buttons and links
+- All labels and menu items
+- Panel headings and subtitles (right panel)
+- Body copy
+- Placeholder text
+- All other UI text
+
 | Element Type | Case | Example |
 |--------------|------|---------|
-| Headings | Title Case | "Investment Projections" |
-| Labels | Title Case | "View Evidence" |
-| Menu Items | Title Case | "Water Resources" |
-| CTAs/Buttons | Title Case | "Start the Journey" |
-| Body Copy | Sentence case | "Click the marker to view property details." |
-| Placeholder Text | Sentence case | "Enter your search query..." |
+| Primary CTAs (amber fill) | Title Case | "Start the Journey", "Continue", "Schedule a Consultation" |
+| Secondary buttons | Sentence case | "View evidence", "View master plan", "Corporate investment chart" |
+| Labels and options | Sentence case | "Water resources", "Power infrastructure" |
+| Modal headings | Title Case | "Ask Me Anything About Kumamoto" |
+| Panel headings | Sentence case | "Supporting evidence", "Infrastructure plan" |
+| Dashboard headings | Title Case | "Investment Overview", "Market Statistics" |
+| Body copy | Sentence case | "Click the marker to view property details." |
+| Placeholder text | Sentence case | "Enter your search query..." |
 
 #### Absolute Prohibitions
 
 ```
-❌ NEVER USE ALL CAPS — Not for headings, buttons, labels, or emphasis
-❌ NEVER USE UPPERCASE — Use bold weight or color for emphasis instead
-❌ Never center-align body text — Always left-align (align-start)
-❌ Never justify text — Creates uneven spacing
+NEVER USE ALL CAPS - Not for headings, buttons, labels, or emphasis.
+NEVER USE UPPERCASE - Use bold weight or color for emphasis instead.
+Never center-align body text - Always left-align (align-start).
+Never justify text - Creates uneven spacing.
 ```
 
 ### Font Weights
@@ -173,7 +208,7 @@ Per HIG, adjust tracking based on font size for optimal legibility:
 ### Dark Mode
 
 ```
-⛔ DARK MODE IS NOT SUPPORTED
+DARK MODE IS NOT SUPPORTED
 This application uses light mode exclusively.
 Do not implement dark mode variants or prefers-color-scheme queries.
 ```
@@ -190,9 +225,9 @@ Per HIG accessibility guidelines:
 
 **Verified Combinations:**
 
-- `#1e1f20` on `#ffffff` — 16.5:1 ✓
-- `#1e1f20` on `#fbb931` — 8.2:1 ✓
-- `#4a4b4d` on `#ffffff` — 8.6:1 ✓
+- `#1e1f20` on `#ffffff` - 16.5:1 (passes)
+- `#1e1f20` on `#fbb931` - 8.2:1 (passes)
+- `#4a4b4d` on `#ffffff` - 8.6:1 (passes)
 
 ---
 
@@ -207,18 +242,18 @@ All spacing values derive from an 8-point base unit. Use 4pt for fine-tuning ico
   
   /* Spacing Scale */
   --space-0: 0;
-  --space-1: 4px;    /* 0.5 unit — Icon gaps, fine adjustments */
-  --space-2: 8px;    /* 1 unit — Tight spacing */
-  --space-3: 12px;   /* 1.5 units — Compact elements */
-  --space-4: 16px;   /* 2 units — Default padding */
-  --space-5: 20px;   /* 2.5 units — Comfortable spacing */
-  --space-6: 24px;   /* 3 units — Section gaps */
-  --space-8: 32px;   /* 4 units — Large gaps */
-  --space-10: 40px;  /* 5 units — Panel padding */
-  --space-12: 48px;  /* 6 units — Section breaks */
-  --space-16: 64px;  /* 8 units — Major sections */
-  --space-20: 80px;  /* 10 units — Hero spacing */
-  --space-24: 96px;  /* 12 units — Page margins */
+  --space-1: 4px;    /* 0.5 unit - Icon gaps, fine adjustments */
+  --space-2: 8px;    /* 1 unit - Tight spacing */
+  --space-3: 12px;   /* 1.5 units - Compact elements */
+  --space-4: 16px;   /* 2 units - Default padding */
+  --space-5: 20px;   /* 2.5 units - Comfortable spacing */
+  --space-6: 24px;   /* 3 units - Section gaps */
+  --space-8: 32px;   /* 4 units - Large gaps */
+  --space-10: 40px;  /* 5 units - Panel padding */
+  --space-12: 48px;  /* 6 units - Section breaks */
+  --space-16: 64px;  /* 8 units - Major sections */
+  --space-20: 80px;  /* 10 units - Hero spacing */
+  --space-24: 96px;  /* 12 units - Page margins */
 }
 ```
 
@@ -253,14 +288,14 @@ Per Gestalt proximity principles: internal spacing (padding) should be less than
 ### Mandatory Spacing Rules
 
 ```
-⚠️ STRICT SPACING ENFORCEMENT — NEVER DEVIATE
+STRICT SPACING ENFORCEMENT - NEVER DEVIATE
 
-These spacing values are MANDATORY and must be followed exactly:
+These spacing values are mandatory and must be followed exactly:
 
-❌ NEVER use arbitrary pixel values — Always use spacing tokens
-❌ NEVER mix spacing systems — Only 8pt grid values
-❌ NEVER skip section gaps — Use --space-6 (24px) minimum between sections
-❌ NEVER guess spacing — Refer to this table
+NEVER use arbitrary pixel values - Always use spacing tokens.
+NEVER mix spacing systems - Only 8pt grid values.
+NEVER skip section gaps - Use --space-6 (24px) minimum between sections.
+NEVER guess spacing - Refer to this table.
 
 REQUIRED SPACING BY CONTEXT:
 ┌─────────────────────────────────────┬──────────────────────────┐
@@ -290,13 +325,13 @@ The following hardcoded pixel values are permitted for specific UI patterns:
 | `168px` | Data layers panel positioning (`#data-layers { top: 168px }`) | Calculated alignment below layers toggle (124px + 36px button + 8px gap) |
 
 ```css
-/* ✅ ALLOWED: Segmented control pattern */
+/* ALLOWED: Segmented control pattern */
 #time-toggle {
   gap: 1px;      /* Hairline separator */
   padding: 2px;  /* Tight outer padding */
 }
 
-/* ✅ ALLOWED: Calculated positioning */
+/* ALLOWED: Calculated positioning */
 #layers-toggle,
 #dashboard-toggle {
   top: 124px;    /* Same horizontal line */
@@ -306,7 +341,7 @@ The following hardcoded pixel values are permitted for specific UI patterns:
   top: 168px;    /* Aligns below #layers-toggle */
 }
 
-/* ❌ NOT ALLOWED: Random hardcoded values */
+/* NOT ALLOWED: Random hardcoded values */
 .some-component {
   padding: 6px;   /* Use --space-2 (8px) instead */
   margin: 10px;   /* Use --space-3 (12px) instead */
@@ -319,10 +354,10 @@ The following hardcoded pixel values are permitted for specific UI patterns:
 
 ### Button Hierarchy
 
-1. **Primary** — Main action, highest visual prominence (brand yellow)
-2. **Secondary** — Alternative actions (outlined or subtle fill)
-3. **Tertiary** — Lowest prominence (text-only, icon-only)
-4. **Destructive** — Irreversible actions (error red)
+1. **Primary** - Main action, highest visual prominence (brand yellow)
+2. **Secondary** - Alternative actions (outlined or subtle fill)
+3. **Tertiary** - Lowest prominence (text-only, icon-only)
+4. **Destructive** - Irreversible actions (error red)
 
 ### Primary Button Specification
 
@@ -368,14 +403,14 @@ The following hardcoded pixel values are permitted for specific UI patterns:
   box-shadow: var(--shadow-subtle);
 }
 
-/* Hover — Cursor enters button area */
+/* Hover - Cursor enters button area */
 .button-primary:hover {
   background-color: var(--color-primary-hover);  /* #e5a82c */
   box-shadow: var(--shadow-medium);
   transform: translateY(-1px);
 }
 
-/* Focused — Keyboard navigation (Tab) */
+/* Focused - Keyboard navigation (Tab) */
 .button-primary:focus-visible {
   background-color: var(--color-primary);
   outline: 3px solid var(--color-info);  /* #007aff */
@@ -383,14 +418,14 @@ The following hardcoded pixel values are permitted for specific UI patterns:
   box-shadow: var(--shadow-medium);
 }
 
-/* Pressed/Active — Mouse down or Enter key */
+/* Pressed/Active - Mouse down or Enter key */
 .button-primary:active {
   background-color: var(--color-primary-pressed);  /* #cc9526 */
   box-shadow: var(--shadow-subtle);
   transform: translateY(0);
 }
 
-/* Disabled — Cannot interact */
+/* Disabled - Cannot interact */
 .button-primary:disabled,
 .button-primary[aria-disabled="true"] {
   background-color: var(--color-primary-disabled);  /* #fdd97a */
@@ -490,11 +525,11 @@ Use **SF Symbols** design principles: optically balanced, consistent stroke weig
 
 ### Icon Guidelines
 
-1. **Optical Size Alignment** — Icons at different sizes should feel balanced, not mathematically identical
-2. **Consistent Weight** — Maintain uniform stroke weight (1.5px recommended)
-3. **Clear Silhouette** — Icons must be recognizable at smallest intended size
-4. **Filled vs Outlined** — Use filled for selected/active states; outlined for inactive
-5. **Touch Targets** — Icons clickable area must be at least 44×44px regardless of visual size
+1. **Optical Size Alignment** - Icons at different sizes should feel balanced, not mathematically identical
+2. **Consistent Weight** - Maintain uniform stroke weight (1.5px recommended)
+3. **Clear Silhouette** - Icons must be recognizable at smallest intended size
+4. **Filled vs Outlined** - Use filled for selected/active states; outlined for inactive
+5. **Touch Targets** - Icons clickable area must be at least 44×44px regardless of visual size
 
 ### Icon + Text Pairing
 
@@ -528,7 +563,7 @@ Use **SF Symbols** design principles: optically balanced, consistent stroke weig
 
 ### Radius Scale
 
-Per HIG, corner radius should relate to element size — larger elements can have larger radii.
+Per HIG, corner radius should relate to element size - larger elements can have larger radii.
 
 ```css
 :root {
@@ -581,27 +616,27 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 
 ```css
 :root {
-  /* Subtle — Default resting state */
+  /* Subtle - Default resting state */
   --shadow-subtle: 
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 1px 3px rgba(0, 0, 0, 0.08);
   
-  /* Medium — Hover states, slight elevation */
+  /* Medium - Hover states, slight elevation */
   --shadow-medium: 
     0 2px 4px rgba(0, 0, 0, 0.04),
     0 4px 8px rgba(0, 0, 0, 0.08);
   
-  /* Large — Modals, dropdowns, popovers */
+  /* Large - Modals, dropdowns, popovers */
   --shadow-large: 
     0 4px 8px rgba(0, 0, 0, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.12);
   
-  /* XLarge — Critical modals, overlays */
+  /* XLarge - Critical modals, overlays */
   --shadow-xlarge: 
     0 8px 16px rgba(0, 0, 0, 0.08),
     0 24px 48px rgba(0, 0, 0, 0.16);
   
-  /* Inset — Pressed states, wells */
+  /* Inset - Pressed states, wells */
   --shadow-inset: 
     inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
@@ -614,7 +649,7 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 | 0 | Base content | none | 0 |
 | 1 | Cards, panels, map controls | `--shadow-subtle` | 10 |
 | 2 | Markers, hover states | `--shadow-medium` | 20 |
-| 2.5 | Transition overlay | — | 50 |
+| 2.5 | Transition overlay | - | 50 |
 | 3 | Chatbox | `--shadow-large` | 100 |
 | 4 | Right panel | `--shadow-large` | 200 |
 | 5 | Control bar | `--shadow-medium` | 300 |
@@ -622,7 +657,7 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 | 7 | Modals, gallery overlay | `--shadow-xlarge` | 1000 |
 | 8 | Tooltips | `--shadow-medium` | 1100 |
 | 9 | Modal backdrops (Quick Look, gallery) | `--shadow-xlarge` | 2000 |
-| 10 | Skip link | — | 9999 |
+| 10 | Skip link | - | 9999 |
 
 ---
 
@@ -630,10 +665,10 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 
 ### Core Principles (Per HIG)
 
-1. **Purposeful** — Animation should convey meaning, not decorate
-2. **Responsive** — Immediate feedback for user actions
-3. **Natural** — Follow real-world physics (ease-out for entrances, ease-in for exits)
-4. **Respectful** — Honor `prefers-reduced-motion` preferences
+1. **Purposeful** - Animation should convey meaning, not decorate
+2. **Responsive** - Immediate feedback for user actions
+3. **Natural** - Follow real-world physics (ease-out for entrances, ease-in for exits)
+4. **Respectful** - Honor `prefers-reduced-motion` preferences
 
 ### Timing Tokens
 
@@ -691,26 +726,26 @@ Per HIG, shadows convey elevation and hierarchy. Use sparingly to maintain clari
 Three distinct marker entrance animations differentiate marker types:
 
 ```css
-/* Heavy anchor drop — Science park, government markers */
+/* Heavy anchor drop - Science park, government markers */
 @keyframes anchorDrop {
   from { transform: scale(0.3) translateY(-16px); opacity: 0; }
   65%  { transform: scale(1.06) translateY(0); opacity: 1; }
   to   { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Lighter ripple — Company markers (cascading entrance) */
+/* Lighter ripple - Company markers (cascading entrance) */
 @keyframes rippleIn {
   from { transform: scale(0.6); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
 
-/* Gentle rise — Property markers */
+/* Gentle rise - Property markers */
 @keyframes markerEmerge {
   from { transform: translateY(8px) scale(0.9); opacity: 0; }
   to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* Exit animation — All markers */
+/* Exit animation - All markers */
 @keyframes markerFadeOut {
   to { opacity: 0; transform: scale(0.85) translateY(4px); }
 }
@@ -849,12 +884,12 @@ a,
 
 Per HIG and WCAG 2.1 AA:
 
-1. **Color Contrast** — 4.5:1 for text, 3:1 for UI components
-2. **Touch Targets** — Minimum 44×44px
-3. **Focus Indicators** — Visible focus rings for keyboard navigation
-4. **Motion** — Respect `prefers-reduced-motion`
-5. **Text Scaling** — Support up to 200% zoom without loss of functionality
-6. **Semantic HTML** — Proper heading hierarchy, landmarks, ARIA where needed
+1. **Color Contrast** - 4.5:1 for text, 3:1 for UI components
+2. **Touch Targets** - Minimum 44×44px
+3. **Focus Indicators** - Visible focus rings for keyboard navigation
+4. **Motion** - Respect `prefers-reduced-motion`
+5. **Text Scaling** - Support up to 200% zoom without loss of functionality
+6. **Semantic HTML** - Proper heading hierarchy, landmarks, ARIA where needed
 
 ### ARIA Patterns
 
@@ -969,16 +1004,56 @@ Per HIG and WCAG 2.1 AA:
   bottom: var(--space-6);
   left: var(--space-6);
   width: min(360px, calc(100vw - var(--space-12)));
-  
+
   /* Visual */
   background: var(--color-bg-primary);
   border-radius: var(--radius-large);
   box-shadow: var(--shadow-large);
-  
+
   /* Spacing */
   padding: var(--space-6);
 }
 ```
+
+#### Modal List Item Spacing (MANDATORY)
+
+```
+STRICT RULE: All modal items must follow these spacing requirements.
+
+SPACING HIERARCHY:
+- Between ALL items: var(--space-4) (16px) via parent gap
+- Last item to CTA button: var(--space-6) (24px) via button margin-top
+- Checkmark to right edge: margin-left: auto (fills remaining space)
+
+STRUCTURE:
+.chatbox-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);  /* 16px between ALL items */
+}
+
+.chatbox-option {
+  width: 100%;  /* Full width of container */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;  /* For checkmark positioning */
+}
+
+.chatbox-option.completed::after {
+  margin-left: auto;  /* Push checkmark to right edge */
+}
+
+.chatbox-continue.primary {
+  margin-top: var(--space-6);  /* 24px section gap */
+}
+```
+
+**Rules:**
+- All items MUST be inside `.chatbox-options` container to benefit from gap spacing
+- Never add inline `style="margin-top"` to individual items
+- Checkmarks use `margin-left: auto` (NOT fixed spacing like `var(--space-4)`)
+- CTA buttons always have 24px spacing from last item (section gap)
+- Items with metadata labels/chevrons use `justify-content: space-between`
 
 ### AI Chat
 
@@ -988,7 +1063,7 @@ The AI Chat modal appears after journey completion or in Dashboard mode, allowin
 
 | Mode | Access | CTAs Visible | Use Case |
 |------|--------|--------------|----------|
-| Post-Journey | After completing any journey | Yes | Summarize journey, restart, schedule consultation |
+| Post-Journey | After completing any journey | Yes | Download summary, schedule consultation |
 | Dashboard | Via FAB in "Skip to Dashboard" | No | Explore freely without journey context |
 
 ```css
@@ -1016,7 +1091,7 @@ The AI Chat modal appears after journey completion or in Dashboard mode, allowin
 #### AI Chat Internal Spacing (MANDATORY)
 
 ```
-⚠️ STRICT RULE: All content sections MUST have --space-6 (24px) gap from header
+STRICT RULE: All content sections must have --space-6 (24px) gap from header.
 
 Structure:
 ┌─────────────────────────────────────┐
@@ -1035,9 +1110,9 @@ Structure:
 └─────────────────────────────────────┘
 
 REQUIRED margin-top values:
-- .ai-chat-header: var(--space-4) — gap after close button
-- .ai-chat-suggestions: var(--space-6) — section gap after header
-- .ai-chat-messages: var(--space-6) — section gap after header
+- .ai-chat-header: var(--space-4) - gap after close button
+- .ai-chat-suggestions: var(--space-6) - section gap after header
+- .ai-chat-messages: var(--space-6) - section gap after header
 ```
 
 ### Gallery Overlay
@@ -1088,7 +1163,7 @@ All modals must follow this header spacing rule:
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);  /* 8px — REQUIRED spacing between title and close button */
+  gap: var(--space-2);  /* 8px - REQUIRED spacing between title and close button */
 }
 
 .modal-title {
@@ -1210,10 +1285,10 @@ All icons use **Lucide** icon library for consistency across Legend and Data Lay
 
 | Type | Color | Icon (Lucide) | Always Visible |
 |------|-------|---------------|----------------|
-| Base Map | `#6e7073` (gray) | `map-pin` | ✓ |
-| Science Park | `#ff3b30` (red) | `flask-conical` | ✓ |
-| Corporate Sites | `#007aff` (blue) | `building-2` | ✓ |
-| Real Estate | `#ff9500` (orange) | `house` | ✓ |
+| Base Map | `#6e7073` (gray) | `map-pin` | Yes |
+| Science Park | `#ff3b30` (red) | `flask-conical` | Yes |
+| Corporate Sites | `#007aff` (blue) | `building-2` | Yes |
+| Real Estate | `#ff9500` (orange) | `house` | Yes |
 | Resources | `#ff3b30` (red) | `droplet` | Journey A only |
 | Development Zone | `#ff3b30` (red) | `target` | Journey B (Future view only) |
 | Infrastructure Roads | `#5ac8fa` (teal) | `route` | Journey B (Step B7 only) |
@@ -1334,15 +1409,59 @@ The Data Layers panel allows toggling visibility of map layers and data overlays
 - **State persistence**: When journeys change, the button remains visible but the panel closes (unselected state)
 - **Icon**: Stacked layers (Lucide `layers`)
 
+#### Data Layer Checkbox Styling
+
+```css
+/* macOS-style checkbox */
+.layer-checkbox {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  border: 1.5px solid var(--color-text-tertiary);
+  border-radius: var(--radius-medium);  /* 8px - macOS HIG rounded checkbox */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--easing-standard);
+}
+
+.layer-item.active .layer-checkbox {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.layer-item.active .layer-checkbox::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--color-text-primary);
+  border-bottom: 2px solid var(--color-text-primary);
+  transform: rotate(-45deg) translateY(-1px);
+}
+```
+
+**Design Notes:**
+- Uses `--radius-medium` (8px) for proper macOS rounded corners
+- Never fully circular (radio buttons) or sharp squares
+- Checkmark created with CSS borders for performance
+- Follows macOS Big Sur+ checkbox aesthetic
+
 #### Data Layer Items
 
-All layer icons use **Lucide** icons for consistency with the Legend:
+All layer icons use **Lucide** icons for consistency with the Legend.
+
+**Control Type:** Checkboxes (multiple selection enabled)
+
+**Visual Styling:**
+- Rounded checkboxes (`--radius-medium` / 8px) following macOS HIG
+- Checkmark indicator when active
+- Brand yellow fill (`--color-primary`) when checked
 
 | Layer | Icon (Lucide) | Default State |
 |-------|---------------|---------------|
-| Science Park | `flask-conical` | Active (Journey B, C) |
-| Corporate Sites | `building-2` | Active (Journey B, C) |
-| Properties | `house` | Active (Journey C) |
+| Science Park | `flask-conical` | Inactive |
+| Corporate Sites | `building-2` | Inactive |
+| Properties | `house` | Inactive |
 | Base Map | `map-pin` | Inactive |
 | Traffic Flow | `car` | Inactive |
 | Rail Commute | `train-front` | Inactive |
@@ -1351,6 +1470,11 @@ All layer icons use **Lucide** icons for consistency with the Legend:
 | Infrastructure Plan | `landmark` | Inactive |
 | Real Estate | `house` | Inactive |
 | Risky Area | `droplet` | Inactive |
+
+**Behavior:**
+- **Multiple selection**: Users can toggle multiple layers on/off simultaneously
+- **All inactive by default**: Layers start unchecked, users choose which to display
+- **Independent toggles**: Each layer can be shown/hidden independently
 
 ### Evidence Library Panel
 
@@ -1665,7 +1789,7 @@ A macOS Quick Look-style full-screen image preview for property photos. Overlays
 
 - **Triggered by**: Hovering/clicking property images in the right panel
 - **Dismiss**: Click overlay, press Escape, or click close button
-- **Animation**: `quickLookZoomIn` — scale(0.9) to scale(1) entrance
+- **Animation**: `quickLookZoomIn` - scale(0.9) to scale(1) entrance
 
 ### Disclosure Groups
 
@@ -1790,7 +1914,7 @@ An alternative presentation mode for free exploration without the guided narrati
 | Element | Journey Mode | Dashboard Mode |
 |---------|-------------|----------------|
 | Chatbox | Narrative-driven prompts | Hidden |
-| AI Chat CTAs | Download Summary, Explore Again | Hidden |
+| AI Chat CTAs | Download Summary, Schedule Consultation | Hidden |
 | Dashboard toggle | Available | Active |
 | Data layers | Available | Available |
 | Panel content | Journey-step contextual | Overview statistics |
@@ -1876,13 +2000,27 @@ const TIMING = {
 
 ### Panel History & Navigation
 
-A stack-based navigation system for the right panel supporting back/forward traversal.
+A stack-based navigation system for the right panel and chatbox supporting back/forward traversal.
 
 - **`panelHistory`**: Stack of previous panel states with scroll position
 - **`chatboxHistory`**: Chatbox content navigation history
-- **Back button**: Auto-injected when history exists
+- **Back icon**: Auto-injected icon button in panel/chatbox header when history exists
 - **Scroll restore**: Previous scroll position restored on back navigation
 - **Deduplication**: Prevents duplicate entries on repeated navigations
+
+#### Navigation Pattern
+
+```
+STRICT RULE: Use only icon-based back navigation.
+
+Correct: Icon-only back button in panel/chatbox header.
+Never: Text-based "Back to..." CTAs/buttons.
+Never: Redundant navigation controls.
+
+Navigation is handled by a single back icon that appears automatically when
+history exists. Do not add text-based "Back to..." buttons - they are redundant
+and violate the single-control principle.
+```
 
 ---
 
@@ -2151,6 +2289,10 @@ A stack-based navigation system for the right panel supporting back/forward trav
 - [ ] Panel closes when journey changes (button stays visible)
 - [ ] All icons use Lucide icons matching Legend
 - [ ] Science Park uses `flask-conical` icon (conveys science)
+- [ ] Checkboxes use `--radius-medium` (8px) rounded corners (macOS HIG)
+- [ ] Checkboxes show checkmark when active, not radio dot
+- [ ] All layers start inactive (unchecked) by default
+- [ ] Multiple layers can be selected simultaneously
 - [ ] Active/inactive states visually distinct
 - [ ] Layer toggles correctly show/hide map elements
 
@@ -2165,12 +2307,12 @@ A stack-based navigation system for the right panel supporting back/forward trav
 
 ### For AI Chat
 
-- [ ] Header margin-top is `--space-4` (16px) — gap after close button
-- [ ] Suggestions margin-top is `--space-6` (24px) — section gap after header
-- [ ] Messages margin-top is `--space-6` (24px) — section gap after header
+- [ ] Header margin-top is `--space-4` (16px) - gap after close button
+- [ ] Suggestions margin-top is `--space-6` (24px) - section gap after header
+- [ ] Messages margin-top is `--space-6` (24px) - section gap after header
 - [ ] Suggestions hide after first message sent
 - [ ] Both suggestions and messages maintain 24px gap from header title
-- [ ] CTAs (Download Summary, Explore Again) hidden in Dashboard mode
+- [ ] CTAs (Download Summary, Schedule Consultation) hidden in Dashboard mode
 - [ ] CTAs visible only after completing a journey (not in Skip to Dashboard)
 
 ### For All Modals
@@ -2179,6 +2321,12 @@ A stack-based navigation system for the right panel supporting back/forward trav
 - [ ] Gap between title and close button is exactly 8px (`--space-2`)
 - [ ] Close button is flex-shrink: 0 to prevent compression
 - [ ] Title has flex: 1 to fill available space
+- [ ] All items inside `.chatbox-options` container (never outside)
+- [ ] Item spacing is 16px (`gap: var(--space-4)`)
+- [ ] Last item to CTA spacing is 24px (`margin-top: var(--space-6)`)
+- [ ] Checkmarks use `margin-left: auto` (right-aligned)
+- [ ] All items are full width (`width: 100%`)
+- [ ] No inline `style="margin-top"` on individual items
 
 ### For Evidence Library
 
@@ -2275,5 +2423,5 @@ map-prototype/
 
 ---
 
-*Last updated: February 11, 2026*
+*Last updated: February 12, 2026*
 *Based on macOS Human Interface Guidelines with project-specific customizations*

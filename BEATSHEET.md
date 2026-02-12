@@ -99,9 +99,9 @@ Beats are grouped into **scenes**. Scenes are grouped into **acts**. The three-a
 
 **Feel:** Completion with momentum. Act 1 is done. The narrator wraps up, and the world prepares to shift. The audience should feel satisfied but curious — *what's next?*
 
-**Current:** `transitionToJourneyB()` fires: chatbox exits (150ms), panel exits (150ms), markers are removed (instant, no animation), journey transition screen appears with spinner (holds 1500ms), camera flies to new position (2500ms). Total: ~4.3s.
+**Current:** `transitionToJourneyB()` fires: markers fade out (200ms), chatbox exits (150ms), panel exits (150ms), brief pause (300ms), camera flies to new position (2000ms). Total: ~2.6s.
 
-**Gap:** This is the biggest gap in the entire experience. The departure from Act 1 is a *cut*, not a *choreographed exit*. Markers vanish instantly. Chatbox and panel exit simultaneously rather than in sequence. There's no sense of the old world receding before the new world arrives. The transition screen with a spinner feels like a loading state, not a narrative moment. This seam needs: (1) markers fading out, (2) chatbox departing, (3) a breath, (4) the camera moving, (5) new world arriving.
+**Gap:** The departure sequence is improving but still needs refinement. Markers now fade out before UI exits, creating a sense of the map receding first. However, chatbox and panel still exit simultaneously rather than in sequence. The 300ms pause before camera movement is too brief to register as a narrative breath. This seam needs: (1) chatbox departing first, (2) panel following 100ms later, (3) a longer pause (500-800ms) to let the emptiness register, (4) then camera moving to new world.
 
 ---
 
@@ -161,9 +161,9 @@ Beats are grouped into **scenes**. Scenes are grouped into **acts**. The three-a
 
 **Feel:** Building to climax. Act 2 has established that governments, corporations, and infrastructure are all converging. Now the audience is ready to see the actual investment opportunity. This transition should feel like *approaching the destination*.
 
-**Current:** Same mechanical transition as Act 1 departure: chatbox exit (150ms), panel exit (150ms), markers removed (instant), transition screen (1500ms), camera flight (2500ms).
+**Current:** Same transition pattern as Act 1 departure: markers fade out (200ms), chatbox exits (150ms), panel exits (150ms), brief pause (300ms), More Harvest branding screen appears (1200ms total), camera flight (2000ms).
 
-**Gap:** Same problems as The Farewell. No choreographed exit. The More Harvest branding screen (headline + subtitle staggered fade-up, 1200ms total) appears but feels disconnected from both the departure and arrival. It should feel like a title card — a deliberate pause that reframes the narrative.
+**Gap:** Similar choreography issues as The Farewell, but the More Harvest branding screen (headline + subtitle staggered fade-up) now appears without the spinner-based loading feel. The branding screen functions as a title card but still feels slightly disconnected from the departure. The UI elements still exit simultaneously rather than sequentially. Needs: (1) sequential UI departure, (2) longer pause before branding screen, (3) branding screen to feel like an intentional act break rather than a transition screen.
 
 ---
 

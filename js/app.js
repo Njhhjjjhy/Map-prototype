@@ -453,7 +453,7 @@ const App = {
             <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
                 Explore the evidence for this transformation:
             </p>
-            <div class="chatbox-options" style="margin-top: var(--space-3);">
+            <div class="chatbox-options">
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
                     View government zone plans
                 </button>
@@ -847,7 +847,7 @@ const App = {
                 UI.showChatbox(`
                     <h3>Development Timeline</h3>
                     <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
-                    <div class="chatbox-options" style="margin-top: 12px;">
+                    <div class="chatbox-options">
                         <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
                             View Government Zone Plans
                         </button>

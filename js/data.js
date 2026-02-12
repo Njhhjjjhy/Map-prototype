@@ -1041,6 +1041,43 @@ const AppData = {
                 { id: 'traffic-2', coords: [32.88, 130.76], name: 'JASM Access Road', congestion: 'Heavy (peak)', peakHours: '8:00-9:30, 18:00-19:00', avgSpeed: '32 km/h' },
                 { id: 'traffic-3', coords: [32.84, 130.82], name: 'Kikuyo Bypass', congestion: 'Light', peakHours: '8:00-9:00', avgSpeed: '58 km/h' }
             ],
+            routes: [
+                {
+                    id: 'route-57-main',
+                    name: 'Route 57 Main',
+                    path: [[130.75, 32.85], [130.78, 32.86], [130.80, 32.87], [130.83, 32.88]],
+                    level: 'high',
+                    color: '#ef4444'
+                },
+                {
+                    id: 'jasm-access',
+                    name: 'JASM Access Road',
+                    path: [[130.76, 32.88], [130.77, 32.87], [130.785, 32.874]],
+                    level: 'high',
+                    color: '#ef4444'
+                },
+                {
+                    id: 'kikuyo-bypass',
+                    name: 'Kikuyo Bypass',
+                    path: [[130.80, 32.83], [130.82, 32.84], [130.84, 32.845], [130.86, 32.85]],
+                    level: 'medium',
+                    color: '#f97316'
+                },
+                {
+                    id: 'local-roads-north',
+                    name: 'Local Roads North',
+                    path: [[130.78, 32.89], [130.80, 32.895], [130.82, 32.90]],
+                    level: 'low',
+                    color: '#fbbf24'
+                },
+                {
+                    id: 'local-roads-south',
+                    name: 'Local Roads South',
+                    path: [[130.77, 32.82], [130.79, 32.825], [130.81, 32.83]],
+                    level: 'low',
+                    color: '#fbbf24'
+                }
+            ],
             stats: [
                 { value: '23%', label: 'Increase since 2023' },
                 { value: '78%', label: 'Work commuters' },
@@ -1054,6 +1091,29 @@ const AppData = {
                 { id: 'rail-1', coords: [32.79, 130.69], name: 'Kumamoto Station', type: 'Major Hub', toJasm: '28 min', frequency: '10 min' },
                 { id: 'rail-2', coords: [32.88, 130.81], name: 'Kikuyo Station (Planned)', type: 'New Station', toJasm: '8 min', frequency: '15 min', opening: '2026' },
                 { id: 'rail-3', coords: [32.84, 130.75], name: 'Suizenji Station', type: 'Transfer Hub', toJasm: '22 min', frequency: '12 min' }
+            ],
+            routes: [
+                {
+                    id: 'jr-hohi-line',
+                    name: 'JR Hohi Line',
+                    path: [[130.69, 32.79], [130.72, 32.81], [130.75, 32.84], [130.78, 32.87], [130.81, 32.88]],
+                    color: '#8b5cf6',
+                    type: 'main'
+                },
+                {
+                    id: 'jr-kagoshima-line',
+                    name: 'JR Kagoshima Line',
+                    path: [[130.69, 32.79], [130.70, 32.77], [130.71, 32.75]],
+                    color: '#a78bfa',
+                    type: 'secondary'
+                },
+                {
+                    id: 'planned-extension',
+                    name: 'Planned Extension to Science Park',
+                    path: [[130.81, 32.88], [130.82, 32.885], [130.83, 32.89]],
+                    color: '#c4b5fd',
+                    type: 'planned'
+                }
             ],
             stats: [
                 { value: '12,000', label: 'Daily commuters' },

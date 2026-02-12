@@ -565,7 +565,7 @@ const UI = {
         });
 
         // Colorblind-safe palette
-        const colors = ['#2563eb', '#ea580c', '#0d9488', '#c026d3'];
+        const colors = ['#2563eb', '#ea580c', '#0d9488', '#7c3aed'];
 
         this.charts['investment'] = new Chart(ctx, {
             type: 'bar',
@@ -623,9 +623,6 @@ const UI = {
      * Show investment overview with company comparison chart
      */
     showInvestmentOverview() {
-        // Simulated last update time
-        const lastUpdated = new Date(Date.now() - 6 * 60 * 60 * 1000); // 6 hours ago
-        const relativeTime = this.formatRelativeTime(lastUpdated);
 
         const content = `
             <div class="subtitle">Corporate Investment</div>
@@ -646,7 +643,7 @@ const UI = {
                 </div>
             </div>
             <div class="data-attribution">
-                <p class="data-timestamp">Last updated: ${relativeTime}</p>
+                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
                 <p>Investment data from official company announcements</p>
             </div>
         `;
@@ -864,6 +861,12 @@ const UI = {
         // Show panel toggle button (will be visible/active when panel is open)
         this.showPanelToggle();
         this.updatePanelToggleState();
+
+        // Announce panel opening to screen readers
+        const titleEl = this.elements.panelContent.querySelector('h2');
+        if (titleEl) {
+            this.announceToScreenReader('Details panel opened: ' + titleEl.textContent);
+        }
     },
 
     /**
@@ -927,6 +930,7 @@ const UI = {
         const panel = this.elements.rightPanel;
         // Add closing class for exit animation (uses accelerate easing)
         panel.classList.add('closing');
+        this.announceToScreenReader('Details panel closed');
 
         // If drill-down is active, cancel and reverse (to corridor or 2D map)
         // In corridor mode, only reverse if an actual drill-down is in progress
@@ -1056,7 +1060,7 @@ const UI = {
             <div class="stat-grid">${statsHtml}</div>
             ${energyMixHtml}
             <button class="panel-btn primary" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                View Evidence
+                View evidence
             </button>
         `;
 
@@ -1152,10 +1156,10 @@ const UI = {
             <p>${sp.description}</p>
             <div class="stat-grid">${statsHtml}</div>
             <button class="panel-btn" onclick="UI.showInvestmentOverview()">
-                Corporate Investment Chart
+                Corporate investment chart
             </button>
             <button class="panel-btn primary" onclick="UI.showEvidence('sciencePark', 'sciencePark')">
-                View Master Plan
+                View master plan
             </button>
         `;
 
@@ -1179,7 +1183,7 @@ const UI = {
             <p>${company.description}</p>
             <div class="stat-grid">${statsHtml}</div>
             <button class="panel-btn primary" onclick="UI.showEvidence('${company.id}', 'company')">
-                View Press Release
+                View press release
             </button>
         `;
 
@@ -1203,7 +1207,7 @@ const UI = {
             <p>${zone.description}</p>
             <div class="stat-grid">${statsHtml}</div>
             <button class="panel-btn primary" onclick="UI.showEvidence('${zone.id}', 'zone')">
-                View Development Plan
+                View development plan
             </button>
         `;
 
@@ -1380,7 +1384,7 @@ const UI = {
             <p>${road.description}</p>
 
             <button class="panel-btn primary" onclick="UI.showGallery('${road.name} - Infrastructure Plan', 'pdf', '${road.description.replace(/'/g, "\\'")}')">
-                View Source Document
+                View source document
             </button>
         `;
 
@@ -1577,7 +1581,7 @@ const UI = {
             <p>${destination.description}</p>
 
             <button class="panel-btn secondary" onclick="UI.showAllAirlineRoutes()">
-                View All Routes →
+                View all routes →
             </button>
         `;
 
@@ -1915,13 +1919,10 @@ const UI = {
             ${detailsHtml}
             <p>${property.description}</p>
             <button class="panel-btn" onclick="UI.showTruthEngine()">
-                Truth Engine
+                Truth engine
             </button>
             <button class="panel-btn" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty)">
-                Performance Calculator
-            </button>
-            <button class="panel-btn secondary" onclick="UI.backToAllProperties()" aria-label="Back to all properties">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>Back to All Properties
+                Performance calculator
             </button>
         `;
 
@@ -1956,7 +1957,7 @@ const UI = {
             <p>Key factors driving future value appreciation for this property:</p>
             ${driversHtml}
             <button class="panel-btn primary" onclick="UI.showPerformanceCalculator()">
-                Performance Calculator
+                Performance calculator
             </button>
         `;
 
@@ -2038,10 +2039,6 @@ const UI = {
         const netProfitInfo = this.formatWithConfidence(data.netProfit, scenario);
         const confidence = this.getConfidenceInfo(scenario);
 
-        // Simulated last update time (in real app, this would come from data)
-        const lastUpdated = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2 hours ago
-        const relativeTime = this.formatRelativeTime(lastUpdated);
-
         const content = `
             <div class="subtitle">Financial Projection</div>
             <h2>Performance Calculator</h2>
@@ -2109,19 +2106,16 @@ const UI = {
             </div>
 
             <div class="data-attribution">
-                <p class="data-timestamp">Last updated: ${relativeTime}</p>
+                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
                 <p>Price data from Kumamoto Land Registry (Jan 2026)</p>
                 <p>Rental estimates based on local property managers</p>
             </div>
 
             <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
-                View Rental Report
+                View rental report
             </button>
             <button class="panel-btn" onclick="UI.showAreaStats()">
-                Area Statistics
-            </button>
-            <button class="panel-btn" onclick="UI.showPropertyPanel(UI.currentProperty)">
-                Back to Property
+                Area statistics
             </button>
         `;
 
@@ -2136,10 +2130,6 @@ const UI = {
      */
     showAreaStats() {
         const stats = AppData.areaStats;
-
-        // Simulated last update time
-        const lastUpdated = new Date(Date.now() - 4 * 60 * 60 * 1000); // 4 hours ago
-        const relativeTime = this.formatRelativeTime(lastUpdated);
 
         const content = `
             <div class="subtitle">Market Overview</div>
@@ -2170,7 +2160,7 @@ const UI = {
             </div>
 
             <div class="data-attribution">
-                <p class="data-timestamp">Last updated: ${relativeTime}</p>
+                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
                 <p>Data from Kumamoto Prefecture Real Estate Association</p>
             </div>
         `;
@@ -2194,11 +2184,13 @@ const UI = {
         };
 
         const content = `
+            <div class="gallery-header">
+                <h3>${title}</h3>
+            </div>
             <div class="placeholder-doc">
                 <div class="icon">${icons[type] || icons.pdf}</div>
-                <h3>${title}</h3>
                 <p>${description}</p>
-                <p style="margin-top: 24px; font-size: 14px; color: #6b7280;">
+                <p style="margin-top: var(--space-6); font-size: 14px; color: var(--color-text-secondary);">
                     [Placeholder - actual document would appear here]
                 </p>
             </div>
@@ -2659,7 +2651,12 @@ const UI = {
             this.elements.presentBtn.setAttribute('aria-checked', 'true');
             MapController.hideFutureZones();
         }
+
     },
+
+    // ================================
+    // HOLD TO CONFIRM (Future/Present toggle replacement)
+    // ================================
 
     // ================================
     // JOURNEY PROGRESS BAR
@@ -2774,51 +2771,51 @@ const UI = {
         let mapLayersHtml = '';
         if (journey === 'A') {
             mapLayersHtml = `
-                <button type="button" class="layer-item active" data-layer="resources"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('resources')"
+                <button type="button" class="layer-item" data-layer="resources"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('resources')"
                         title="Toggle resource markers on the map">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
                     <span class="layer-label">Resources</span>
                 </button>
             `;
         } else if (journey === 'B') {
             mapLayersHtml = `
-                <button type="button" class="layer-item active" data-layer="sciencePark"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')"
+                <button type="button" class="layer-item" data-layer="sciencePark"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
                         title="Toggle Kumamoto Science Park boundary">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
                 </button>
-                <button type="button" class="layer-item active" data-layer="companies"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')"
+                <button type="button" class="layer-item" data-layer="companies"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
                         title="Toggle corporate headquarters markers">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
                 </button>
             `;
         } else if (journey === 'C') {
             mapLayersHtml = `
-                <button type="button" class="layer-item active" data-layer="properties"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('properties')"
+                <button type="button" class="layer-item" data-layer="properties"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('properties')"
                         title="Toggle investment property markers">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
                     <span class="layer-label">Properties</span>
                 </button>
-                <button type="button" class="layer-item active" data-layer="companies"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('companies')"
+                <button type="button" class="layer-item" data-layer="companies"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
                         title="Toggle corporate headquarters markers">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
                 </button>
-                <button type="button" class="layer-item active" data-layer="sciencePark"
-                        role="switch" aria-checked="true" onclick="UI.toggleLayer('sciencePark')"
+                <button type="button" class="layer-item" data-layer="sciencePark"
+                        role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
                         title="Toggle Kumamoto Science Park boundary">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
                 </button>
@@ -2829,21 +2826,21 @@ const UI = {
                 <button type="button" class="layer-item" data-layer="properties"
                         role="switch" aria-checked="false" onclick="UI.toggleLayer('properties')"
                         title="Toggle investment property markers">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
                     <span class="layer-label">Properties</span>
                 </button>
                 <button type="button" class="layer-item" data-layer="companies"
                         role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
                         title="Toggle corporate headquarters markers">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
                     <span class="layer-label">Corporate sites</span>
                 </button>
                 <button type="button" class="layer-item" data-layer="sciencePark"
                         role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
                         title="Toggle Kumamoto Science Park boundary">
-                    <span class="layer-radio" aria-hidden="true"></span>
+                    <span class="layer-checkbox" aria-hidden="true"></span>
                     <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
                     <span class="layer-label">Science park</span>
                 </button>
@@ -2855,56 +2852,56 @@ const UI = {
             <button type="button" class="layer-item" data-layer="baseMap"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('baseMap')"
                     title="Show base map layer">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.baseMap}</span>
                 <span class="layer-label">Base map</span>
             </button>
             <button type="button" class="layer-item" data-layer="trafficFlow"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('trafficFlow')"
                     title="Show traffic flow data overlay">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.trafficFlow}</span>
                 <span class="layer-label">Traffic flow</span>
             </button>
             <button type="button" class="layer-item" data-layer="railCommute"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('railCommute')"
                     title="Show rail commute routes and times">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.railCommute}</span>
                 <span class="layer-label">Rail commute</span>
             </button>
             <button type="button" class="layer-item" data-layer="electricity"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('electricity')"
                     title="Show regional electricity usage data">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.electricity}</span>
                 <span class="layer-label">Electricity usage</span>
             </button>
             <button type="button" class="layer-item" data-layer="employment"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('employment')"
                     title="Show employment statistics by area">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.employment}</span>
                 <span class="layer-label">Employment</span>
             </button>
             <button type="button" class="layer-item" data-layer="infrastructure"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('infrastructure')"
                     title="Show planned infrastructure projects">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.infrastructure}</span>
                 <span class="layer-label">Infrastructure plan</span>
             </button>
             <button type="button" class="layer-item" data-layer="realEstate"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('realEstate')"
                     title="Show real estate market data">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.realEstate}</span>
                 <span class="layer-label">Real estate</span>
             </button>
             <button type="button" class="layer-item" data-layer="riskyArea"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('riskyArea')"
                     title="Show flood and hazard risk zones">
-                <span class="layer-radio" aria-hidden="true"></span>
+                <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
                 <span class="layer-label">Risky area</span>
             </button>
@@ -3183,6 +3180,13 @@ const UI = {
             }, 1000);
         }
     },
+
+    // ================================
+    // MAP LEGEND
+    // ================================
+
+    updateLegend() { /* removed */ },
+    hideLegend() { /* removed */ },
 
     // ================================
     // AI CHAT (Post-Journey)
@@ -3640,10 +3644,6 @@ const UI = {
         const confidence = this.getConfidenceInfo(scenario);
         const sellingPriceInfo = this.formatWithConfidence(data.sellingPrice, scenario);
 
-        // Simulated last update time
-        const lastUpdated = new Date(Date.now() - 2 * 60 * 60 * 1000);
-        const relativeTime = this.formatRelativeTime(lastUpdated);
-
         const content = `
             <div class="subtitle">Financial Projection</div>
             <h2>Performance Calculator</h2>
@@ -3683,7 +3683,7 @@ const UI = {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                             <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
-                        View Detailed Breakdown
+                        View detailed breakdown
                     </span>
                     <span class="financials-disclosure-chevron">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3726,18 +3726,15 @@ const UI = {
             </div>
 
             <div class="data-attribution">
-                <p class="data-timestamp">Last updated: ${relativeTime}</p>
+                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
                 <p>Price data from Kumamoto Land Registry (Jan 2026)</p>
             </div>
 
             <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
-                View Rental Report
+                View rental report
             </button>
             <button class="panel-btn" onclick="UI.showAreaStats()">
-                Area Statistics
-            </button>
-            <button class="panel-btn" onclick="UI.showPropertyPanel(UI.currentProperty)">
-                Back to Property
+                Area statistics
             </button>
         `;
 
@@ -3806,15 +3803,6 @@ const UI = {
                         </svg>
                     </span>
                     Schedule Consultation
-                </button>
-                <button class="ai-chat-cta" onclick="App.restart()">
-                    <span class="ai-chat-cta-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="1 4 1 10 7 10"/>
-                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-                        </svg>
-                    </span>
-                    Explore Again
                 </button>
             </div>
         `;
@@ -4461,7 +4449,7 @@ const UI = {
 
             ${road.documentLink ? `
                 <button class="panel-btn" onclick="UI.showGallery('${road.documentLink}')">
-                    View Source Document
+                    View source document
                 </button>
             ` : ''}
         `;
@@ -4587,6 +4575,7 @@ const UI = {
                 <div id="property-chart-container">
                     <canvas id="property-roi-chart" aria-label="ROI projection chart"></canvas>
                 </div>
+                <div id="property-roi-chart-table"></div>
             </div>
         `;
     },
@@ -4607,13 +4596,16 @@ const UI = {
         if (!scenario) return;
 
         // Create chart (simplified version)
+        const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
+        const values = scenario.projectedValues || [100, 105, 110, 116, 122];
+
         this.charts['property-roi'] = new Chart(canvas, {
             type: 'line',
             data: {
-                labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                labels: years,
                 datasets: [{
                     label: 'Projected Value',
-                    data: scenario.projectedValues || [100, 105, 110, 116, 122],
+                    data: values,
                     borderColor: '#fbb931',
                     backgroundColor: 'rgba(251, 185, 49, 0.1)',
                     fill: true,
@@ -4631,6 +4623,17 @@ const UI = {
                 }
             }
         });
+
+        // Add accessible companion data table
+        const tableContainer = document.getElementById('property-roi-chart-table');
+        if (tableContainer) {
+            const rows = years.map((yr, i) => [yr, '¥' + values[i].toLocaleString()]);
+            tableContainer.innerHTML = this.generateDataTable(
+                ['Year', 'Projected Value'],
+                rows,
+                'Projected property value over 5 years — ' + this.currentScenario + ' scenario'
+            );
+        }
     },
 
     /**
