@@ -30,7 +30,7 @@ const App = {
         journey: null, // 'A', 'B', 'C'
         step: null,    // Current step within journey
         resourcesExplored: [], // Track which resources have been viewed
-        a3Phase: null, // 'infrastructure' or 'location'
+        a3Phase: null, // 'infrastructure', 'location', or 'talent'
         companiesExplored: [], // Track which companies have been viewed
         evidenceGroupsViewed: [], // Track which evidence groups have been viewed
     },
@@ -54,8 +54,13 @@ const App = {
         // Wait for start screen fade to complete
         await new Promise(r => setTimeout(r, 600));
 
+        // Wait for map to be ready before resizing
+        await MapController.waitReady();
+
         // Force map to recalculate size
-        MapController.map.resize();
+        if (MapController.map) {
+            MapController.map.resize();
+        }
 
         // Cinematic arrival — camera descends from sky to Kumamoto
         await MapController.cinematicEntry();
@@ -188,10 +193,10 @@ const App = {
             <p>Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both — in surplus.</p>
             <div class="chatbox-options">
                 <button class="chatbox-option" onclick="App.selectResource('water')">
-                    Water Resources
+                    Water resources
                 </button>
                 <button class="chatbox-option" onclick="App.selectResource('power')">
-                    Power Infrastructure
+                    Power infrastructure
                 </button>
             </div>
         `);
@@ -239,12 +244,12 @@ const App = {
             <button class="chatbox-option ${waterExplored ? 'completed' : ''}"
                     onclick="App.selectResource('water')"
                     ${waterExplored ? 'aria-disabled="true"' : ''}>
-                Water Resources${waterExplored ? '<span class="sr-only"> (explored)</span>' : ''}
+                Water resources${waterExplored ? '<span class="sr-only"> (explored)</span>' : ''}
             </button>
             <button class="chatbox-option ${powerExplored ? 'completed' : ''}"
                     onclick="App.selectResource('power')"
                     ${powerExplored ? 'aria-disabled="true"' : ''}>
-                Power Infrastructure${powerExplored ? '<span class="sr-only"> (explored)</span>' : ''}
+                Power infrastructure${powerExplored ? '<span class="sr-only"> (explored)</span>' : ''}
             </button>
         `;
 
@@ -306,6 +311,44 @@ const App = {
             <h3>Strategic Location</h3>
             <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
             <p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>
+            <button class="chatbox-continue primary" onclick="App.stepA3_talent()">
+                See Talent Pipeline
+            </button>
+        `);
+    },
+
+    /**
+     * A3 Phase 3: Talent Pipeline — Kyushu-wide university/institution layer
+     */
+    async stepA3_talent() {
+        this.state.a3Phase = 'talent';
+        UI.announceToScreenReader('Talent pipeline: Kyushu universities and institutions');
+
+        // Hide airline routes before showing talent pipeline
+        MapController.hideAirlineRoutes();
+
+        // Beat: let airline routes fade before new content
+        await new Promise(r => setTimeout(r, TIMING.breathShort));
+
+        // Show talent pipeline markers across Kyushu
+        MapController.showTalentPipeline();
+
+        // Beat: let markers land
+        await new Promise(r => setTimeout(r, TIMING.breathMedium));
+
+        const pipeline = AppData.talentPipeline;
+        const instList = pipeline.institutions.map(inst =>
+            `<button class="chatbox-option" onclick="UI.showTalentPanel(AppData.talentPipeline.institutions.find(i => i.id === '${inst.id}'))">
+                ${inst.name} — ${inst.city}
+            </button>`
+        ).join('');
+
+        UI.updateChatbox(`
+            <h3>Talent Pipeline</h3>
+            <p>METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region. From mandatory semiconductor courses to JASM-partnered research centers, the talent pipeline is purpose-built.</p>
+            <div class="chatbox-options">
+                ${instList}
+            </div>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
                 See Government Commitment
             </button>
@@ -323,7 +366,7 @@ const App = {
         const markersToFade = [];
         if (MapController.airlineOriginMarker) markersToFade.push(MapController.airlineOriginMarker);
         markersToFade.push(...MapController.airlineDestinationMarkers);
-        ['kyushuEnergy', 'resources'].forEach(group => {
+        ['kyushuEnergy', 'resources', 'talentPipeline'].forEach(group => {
             const ids = MapController._layerGroups[group] || [];
             ids.forEach(id => {
                 if (MapController.markers[id]) markersToFade.push(MapController.markers[id]);
@@ -338,6 +381,7 @@ const App = {
         // 3. Clean up Mapbox layers (silent — markers already faded)
         MapController.hideAirlineRoutes();
         MapController.hideKyushuEnergy();
+        MapController.hideTalentPipeline();
 
         // 4. Let the old world fully recede
         await new Promise(r => setTimeout(r, TIMING.breathShort));
@@ -384,9 +428,10 @@ const App = {
         // Show government chain markers (staggered animation)
         MapController.showGovernmentChain();
 
-        // Also show Science Park as part of B1 context
+        // Also show Science Park and investment zones as part of B1 context
         setTimeout(() => {
             MapController.showSciencePark();
+            MapController.showInvestmentZones();
         }, TIMING.revealDelay);
 
         // Auto-reveal the national government panel — give the chain time to land
@@ -412,6 +457,11 @@ const App = {
         MapController.flyToStep(CAMERA_STEPS.B4);
         MapController.showCompanyMarkers();
 
+        // Show connection lines from all companies to JASM
+        setTimeout(() => {
+            MapController.showSemiconductorNetwork();
+        }, AppData.companies.length * 80 + 200);
+
         // Beat: let company markers land before narrator speaks
         await new Promise(r => setTimeout(r, TIMING.breathMedium));
 
@@ -428,7 +478,7 @@ const App = {
 
         UI.updateChatbox(`
             <h3>Corporate Investment</h3>
-            <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. Rohm, Mitsubishi, Tokyo Electron — each announced expansions within 18 months.</p>
+            <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron — each announced expansions within 18 months. <strong>Seven major players</strong>, all converging on Kumamoto.</p>
             <p style="margin-top: 8px;">Click company markers to see the scale.</p>
             <button class="chatbox-continue primary" onclick="App.stepB6()">
                 Show Development Timeline
@@ -457,7 +507,7 @@ const App = {
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
                     View government zone plans
                 </button>
-                <parameter name="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
+                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
                     View transportation network
                 </button>
                 <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
@@ -520,6 +570,8 @@ const App = {
         if (this.state.step === 'B7') {
             MapController.hideInfrastructureRoads();
         }
+        MapController.hideInvestmentZones();
+        MapController.hideSemiconductorNetwork();
 
         // 4. Let the old world fully recede
         await new Promise(r => setTimeout(r, TIMING.breathShort));
@@ -673,6 +725,23 @@ const App = {
         UI.hidePanelToggle();
         MapController.resetView();
 
+        // Clean up any stray overlays that weren't properly removed
+        const strayOverlays = document.querySelectorAll('.moreharvest-entry');
+        strayOverlays.forEach(el => el.remove());
+
+        // Clean up any orphaned marker elements (accumulated from multiple restarts)
+        // Mapbox wraps all markers in .mapboxgl-marker containers
+        const orphanedMarkers = document.querySelectorAll('.mapboxgl-marker');
+        orphanedMarkers.forEach(el => {
+            if (el.parentNode) el.remove();
+        });
+
+        // Also clean up any orphaned elevated-marker elements
+        const orphanedElevatedMarkers = document.querySelectorAll('.elevated-marker');
+        orphanedElevatedMarkers.forEach(el => {
+            if (el.parentNode) el.remove();
+        });
+
         setTimeout(() => {
             this.startJourneyA();
         }, TIMING.restartDelay);
@@ -801,13 +870,21 @@ const App = {
                     </button>
                 `);
             } else if (step === 'A3') {
-                if (this.state.a3Phase === 'location') {
+                if (this.state.a3Phase === 'talent') {
+                    UI.showChatbox(`
+                        <h3>Talent Pipeline</h3>
+                        <p>METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.</p>
+                        <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
+                            See Government Commitment
+                        </button>
+                    `);
+                } else if (this.state.a3Phase === 'location') {
                     UI.showChatbox(`
                         <h3>Strategic Location</h3>
                         <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
                         <p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>
-                        <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
-                            See Government Commitment
+                        <button class="chatbox-continue primary" onclick="App.stepA3_talent()">
+                            See Talent Pipeline
                         </button>
                     `);
                 } else {
@@ -837,7 +914,7 @@ const App = {
             } else if (step === 'B4') {
                 UI.showChatbox(`
                     <h3>Corporate Investment</h3>
-                    <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. Rohm, Mitsubishi, Tokyo Electron — each announced expansions within 18 months.</p>
+                    <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron — each announced expansions within 18 months. <strong>Seven major players</strong>, all converging on Kumamoto.</p>
                     <p style="margin-top: 8px;">Click company markers to see the scale.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB6()">
                         Show Development Timeline
@@ -849,13 +926,13 @@ const App = {
                     <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
                     <div class="chatbox-options">
                         <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
-                            View Government Zone Plans
+                            View government zone plans
                         </button>
                         <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
-                            View Transportation Network
+                            View transportation network
                         </button>
                         <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
-                            View Education Pipeline
+                            View education pipeline
                         </button>
                     </div>
                     <button class="chatbox-continue primary" onclick="App.stepB7()">

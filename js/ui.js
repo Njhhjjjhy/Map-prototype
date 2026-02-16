@@ -666,7 +666,10 @@ const UI = {
         }, 50);
 
         setTimeout(() => {
-            this.elements.startScreen.classList.add('hidden');
+            // Remove start-screen from DOM entirely to prevent logo accumulation
+            if (this.elements.startScreen && this.elements.startScreen.parentNode) {
+                this.elements.startScreen.remove();
+            }
         }, 500);
     },
 
@@ -1136,6 +1139,56 @@ const UI = {
         `;
 
         this.showPanel(content);
+    },
+
+    /**
+     * Show talent pipeline institution panel (Journey A)
+     */
+    showTalentPanel(institution) {
+        if (!institution) return;
+
+        const statsHtml = institution.stats.map(stat => `
+            <div class="stat-item">
+                <div class="stat-value">${stat.value}</div>
+                <div class="stat-label">${stat.label}</div>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="subtitle">Talent Pipeline</div>
+            <h2>${institution.name}</h2>
+            <div style="
+                display: inline-flex;
+                align-items: center;
+                gap: var(--space-2);
+                padding: var(--space-1) var(--space-3);
+                background: ${institution.color}15;
+                border-radius: var(--radius-small);
+                font-family: var(--font-display);
+                font-size: var(--text-sm);
+                font-weight: var(--font-weight-semibold);
+                color: ${institution.color};
+                margin-bottom: var(--space-4);
+            ">${institution.city}</div>
+            <p>${institution.role}</p>
+            <div class="stat-grid">${statsHtml}</div>
+            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">
+                Part of METI's Kyushu Semiconductor Human Resources Development Alliance, strengthening the regional talent supply chain.
+            </p>
+        `;
+
+        this.showPanel(content);
+
+        // Fly to the institution on the map
+        if (institution.coords) {
+            MapController.flyToStep({
+                center: MapController._toMapbox(institution.coords),
+                zoom: 11,
+                pitch: 35,
+                bearing: 0,
+                duration: 1500
+            });
+        }
     },
 
     /**
@@ -1695,6 +1748,7 @@ const UI = {
 
         // Wait one frame for image to paint, then fade in
         await new Promise(resolve => requestAnimationFrame(resolve));
+        document.getElementById('map-container').classList.add('immersive-active');
         overlay.classList.add('visible');
         await this._delay(800);
         if (drillDown.cancelled) return;
@@ -1734,6 +1788,9 @@ const UI = {
             const nav = overlay.querySelector('.transition-gallery-nav');
             if (nav) nav.classList.add('hidden');
         }
+
+        // Restore map controls
+        document.getElementById('map-container').classList.remove('immersive-active');
 
         // Reverse camera back to saved view
         await MapController.reverseReveal();
@@ -2198,6 +2255,7 @@ const UI = {
 
         this.elements.galleryBody.innerHTML = content;
         this.elements.galleryModal.classList.remove('hidden');
+        document.getElementById('map-container').classList.add('immersive-active');
 
         // Focus management for accessibility
         this.lastFocusedElement = document.activeElement;
@@ -2209,6 +2267,7 @@ const UI = {
 
     hideGallery() {
         this.elements.galleryModal.classList.add('hidden');
+        document.getElementById('map-container').classList.remove('immersive-active');
 
         // Remove focus trap
         this.removeFocusTrap();
@@ -3454,6 +3513,10 @@ const UI = {
      */
     showMoreHarvestEntry() {
         return new Promise(resolve => {
+            // Remove any existing overlays to prevent accumulation
+            const existingOverlays = document.querySelectorAll('.moreharvest-entry');
+            existingOverlays.forEach(el => el.remove());
+
             const overlay = document.createElement('div');
             overlay.className = 'moreharvest-entry';
             overlay.innerHTML = `
@@ -3473,7 +3536,10 @@ const UI = {
             setTimeout(() => {
                 overlay.classList.remove('visible');
                 setTimeout(() => {
-                    overlay.remove();
+                    // Ensure removal with fallback
+                    if (overlay.parentNode) {
+                        overlay.remove();
+                    }
                     resolve();
                 }, 350);
             }, 2500);
@@ -3931,37 +3997,42 @@ const UI = {
     /**
      * Start dashboard mode (skips journeys)
      */
-    startDashboardMode() {
+    async startDashboardMode() {
         this.dashboardMode = true;
 
         // Show app container (same transition as journey start)
         this.showApp();
 
-        // Wait for transition, then show dashboard
-        setTimeout(() => {
-            // Force map to recalculate size
+        // Wait for transition
+        await new Promise(r => setTimeout(r, 600));
+
+        // Wait for map to be ready before resizing
+        await MapController.waitReady();
+
+        // Force map to recalculate size
+        if (MapController.map) {
             MapController.map.resize();
+        }
 
-            // Reset map to clean state
-            MapController.clearAll();
-            MapController.resetView();
+        // Reset map to clean state
+        MapController.clearAll();
+        MapController.resetView();
 
-            // Show dashboard toggle button (active state)
-            this.showDashboardToggle();
+        // Show dashboard toggle button (active state)
+        this.showDashboardToggle();
 
-            // Show data layers toggle button
-            this.showDataLayers('dashboard');
+        // Show data layers toggle button
+        this.showDataLayers('dashboard');
 
-            // Open dashboard panel
-            setTimeout(() => {
-                this.showDashboardPanel();
-            }, 300);
+        // Open dashboard panel
+        setTimeout(() => {
+            this.showDashboardPanel();
+        }, 300);
 
-            // Show chat FAB after dashboard is ready (for AI chat access)
-            setTimeout(() => {
-                this.lastChatType = 'aiChat'; // Ensure FAB opens AI chat
-                this.showChatFab();
-            }, 600);
+        // Show chat FAB after dashboard is ready (for AI chat access)
+        setTimeout(() => {
+            this.lastChatType = 'aiChat'; // Ensure FAB opens AI chat
+            this.showChatFab();
         }, 600);
     },
 

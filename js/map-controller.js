@@ -50,6 +50,7 @@ const CAMERA_STEPS = {
     A2_power: { center: [130.65, 32.75], zoom: 12, pitch: 45, bearing: -15, duration: 2000 },
     A3_ecosystem: { center: [130.78, 32.84], zoom: 11.5, pitch: 50, bearing: 20, duration: 2000 },
     A3_location: { center: [129.5, 31.5], zoom: 5, pitch: 20, bearing: 0, duration: 3000 },
+    A3_talent: { center: [130.7, 32.5], zoom: 7, pitch: 25, bearing: 0, duration: 2500 },
     A_to_B: { center: [130.75, 32.84], zoom: 11, pitch: 48, bearing: -10, duration: 2500 },
     B1: { center: [130.78, 32.84], zoom: 11.5, pitch: 48, bearing: -10, duration: 2000 },
     B1_sciencePark: { center: [130.78, 32.87], zoom: 11, pitch: 45, bearing: 5, duration: 1500 },
@@ -91,7 +92,10 @@ const MapController = {
         infrastructureRoads: [],
         airlineRoutes: [],
         kyushuEnergy: [],
-        governmentChain: []
+        governmentChain: [],
+        investmentZones: [],
+        semiconductorNetwork: [],
+        talentPipeline: []
     },
 
     // Infrastructure road tracking
@@ -522,12 +526,21 @@ const MapController = {
      * @returns {{ marker: mapboxgl.Marker, element: HTMLElement }}
      */
     _createMarker(coords, html, options = {}) {
+        // Defensive check: ensure map exists before creating markers
+        if (!this.map || !this.initialized) {
+            console.warn('MapController: Attempted to create marker before map initialized');
+            return { marker: null, element: null };
+        }
+
         const el = document.createElement('div');
         el.className = options.className || 'mapbox-marker-wrapper';
-        if (options.entrance) {
-            el.classList.add(`marker-${options.entrance}`);
-        }
         el.innerHTML = html;
+
+        // Apply entrance animation to inner element (not wrapper)
+        // to avoid interfering with Mapbox's transform positioning
+        if (options.entrance && el.firstElementChild) {
+            el.firstElementChild.classList.add(`marker-${options.entrance}`);
+        }
 
         // Keyboard accessibility
         el.setAttribute('tabindex', '0');
@@ -542,15 +555,22 @@ const MapController = {
             }
         });
 
-        const marker = new mapboxgl.Marker({
-            element: el,
-            anchor: options.anchor || 'center',
-            offset: options.offset || [0, 0]
-        })
-        .setLngLat(this._toMapbox(coords))
-        .addTo(this.map);
+        try {
+            const marker = new mapboxgl.Marker({
+                element: el,
+                anchor: options.anchor || 'center',
+                offset: options.offset || [0, 0]
+            })
+            .setLngLat(this._toMapbox(coords))
+            .addTo(this.map);
 
-        return { marker, element: el };
+            return { marker, element: el };
+        } catch (error) {
+            console.error('MapController: Failed to create marker:', error);
+            // Clean up the orphaned element
+            if (el.parentNode) el.remove();
+            return { marker: null, element: null };
+        }
     },
 
     /**
@@ -574,7 +594,6 @@ const MapController = {
             border-radius: 50%;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15);
             display: flex; align-items: center; justify-content: center;
-            transform: translateY(-4px);
             transition: transform var(--duration-fast) var(--easing-standard),
                         box-shadow var(--duration-fast) var(--easing-standard);
             ${extra}
@@ -622,7 +641,10 @@ const MapController = {
             jasm: { text: 'JASM', bg: '#c4001a', textColor: '#ffffff', fontSize: '9px', fontWeight: '800', letterSpacing: '0.3px' },
             sony: { text: 'SONY', bg: '#000000', textColor: '#ffffff', fontSize: '9px', fontWeight: '700', letterSpacing: '0.8px' },
             'tokyo-electron': { text: 'TEL', bg: '#007aff', textColor: '#ffffff', fontSize: '10px', fontWeight: '700', letterSpacing: '0.5px' },
-            mitsubishi: { text: 'ME', bg: '#cc0000', textColor: '#ffffff', fontSize: '11px', fontWeight: '800', letterSpacing: '0' }
+            mitsubishi: { text: 'ME', bg: '#cc0000', textColor: '#ffffff', fontSize: '11px', fontWeight: '800', letterSpacing: '0' },
+            sumco: { text: 'S', bg: '#1a5276', textColor: '#ffffff', fontSize: '13px', fontWeight: '800', letterSpacing: '0' },
+            kyocera: { text: 'KC', bg: '#e74c3c', textColor: '#ffffff', fontSize: '10px', fontWeight: '700', letterSpacing: '0.3px' },
+            'rohm-apollo': { text: 'RA', bg: '#6c3483', textColor: '#ffffff', fontSize: '10px', fontWeight: '700', letterSpacing: '0.3px' }
         };
 
         const brand = brands[companyId];
@@ -672,14 +694,31 @@ const MapController = {
         const resource = AppData.resources[resourceId];
         if (!resource) return;
 
+        // Remove old marker if it exists (prevent accumulation)
+        if (this.markers[resourceId]) {
+            const oldMarker = this.markers[resourceId];
+            const oldElement = oldMarker.getElement();
+            oldMarker.remove();
+            // Ensure DOM element is also removed
+            if (oldElement && oldElement.parentNode) {
+                oldElement.remove();
+            }
+            delete this.markers[resourceId];
+        }
+
         const html = this._markerIconHtml('resource', resourceId);
         const { marker, element } = this._createMarker(resource.coords, html, { entrance: 'anchor', ariaLabel: resource.name + ' resource' });
+
+        // Guard against null marker (map not initialized)
+        if (!marker || !element) return;
 
         this._addTooltip(marker, element, resource.name);
         element.addEventListener('click', () => UI.showResourcePanel(resource));
 
         this.markers[resourceId] = marker;
-        this._layerGroups.resources.push(resourceId);
+        if (!this._layerGroups.resources.includes(resourceId)) {
+            this._layerGroups.resources.push(resourceId);
+        }
 
         // Fly to location
         this.flyToStep({
@@ -740,7 +779,6 @@ const MapController = {
                     border-radius: 50%;
                     display: flex; align-items: center; justify-content: center;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-                    transform: translateY(-4px);
                     border: 2px solid white;
                 "><span style="font-size: 14px;">${iconMap[type]}</span></div>`;
 
@@ -750,6 +788,10 @@ const MapController = {
                     className: 'energy-marker-wrapper',
                     entrance: 'ripple'
                 });
+
+                // Guard against null marker (map not initialized)
+                if (!marker || !element) return;
+
                 if (delay > 0) {
                     element.style.animationDelay = `${delay}ms`;
                 }
@@ -770,11 +812,94 @@ const MapController = {
     hideKyushuEnergy() {
         this._layerGroups.kyushuEnergy.forEach(id => {
             if (this.markers[id]) {
-                this.markers[id].remove();
+                const marker = this.markers[id];
+                const element = marker.getElement();
+                marker.remove();
+                if (element && element.parentNode) {
+                    element.remove();
+                }
                 delete this.markers[id];
             }
         });
         this._layerGroups.kyushuEnergy = [];
+    },
+
+    /**
+     * Show talent pipeline — Kyushu-wide university/institution markers
+     * Similar scope to showKyushuEnergy (extends beyond Kumamoto)
+     */
+    showTalentPipeline() {
+        this.hideTalentPipeline();
+
+        const pipeline = AppData.talentPipeline;
+        if (!pipeline || !pipeline.institutions) return;
+
+        pipeline.institutions.forEach((inst, index) => {
+            const delay = index * 80;
+
+            // Institution marker with first letter as icon
+            const initial = inst.name.charAt(0);
+            const html = `<div style="
+                width: 32px; height: 32px;
+                background: ${inst.color};
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+                border: 2px solid white;
+            "><span style="
+                font-family: var(--font-display);
+                font-size: 13px;
+                font-weight: 700;
+                color: #ffffff;
+                line-height: 1;
+            ">${initial}</span></div>`;
+
+            const { marker, element } = this._createMarker(inst.coords, html, {
+                className: 'talent-marker-wrapper',
+                entrance: 'ripple'
+            });
+
+            if (!marker || !element) return;
+
+            if (delay > 0) {
+                element.style.animationDelay = `${delay}ms`;
+            }
+
+            this._addTooltip(marker, element, `${inst.name} — ${inst.city}`);
+            element.addEventListener('click', () => {
+                if (typeof UI !== 'undefined') {
+                    UI.showTalentPanel(inst);
+                }
+            });
+
+            const id = `talent-${inst.id}`;
+            this.markers[id] = marker;
+            this._layerGroups.talentPipeline.push(id);
+        });
+
+        // Fly to Kyushu overview to show all institutions
+        this.flyToStep({
+            center: [130.7, 32.5],
+            zoom: 7,
+            pitch: 25,
+            bearing: 0,
+            duration: 2500
+        });
+    },
+
+    hideTalentPipeline() {
+        this._layerGroups.talentPipeline.forEach(id => {
+            if (this.markers[id]) {
+                const marker = this.markers[id];
+                const element = marker.getElement();
+                marker.remove();
+                if (element && element.parentNode) {
+                    element.remove();
+                }
+                delete this.markers[id];
+            }
+        });
+        this._layerGroups.talentPipeline = [];
     },
 
     /**
@@ -940,6 +1065,56 @@ const MapController = {
     },
 
     /**
+     * Show semiconductor network — all 7 companies with connection lines to JASM
+     * Visual pattern: thin lines from each company to JASM facility (per feedback map-1.png)
+     */
+    showSemiconductorNetwork() {
+        this.hideSemiconductorNetwork();
+
+        const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
+        const jasmLngLat = this._toMapbox(jasmCoords);
+
+        // Build connection line GeoJSON from each non-JASM company to JASM
+        const features = AppData.companies
+            .filter(c => c.id !== 'jasm')
+            .map(company => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [this._toMapbox(company.coords), jasmLngLat]
+                },
+                properties: { companyId: company.id, name: company.name }
+            }));
+
+        const sourceId = 'semiconductor-network';
+        this._safeAddSource(sourceId, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features }
+        });
+
+        this.map.addLayer({
+            id: `${sourceId}-line`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': 'rgba(0, 122, 255, 0.35)',
+                'line-width': 1.5,
+                'line-dasharray': [4, 4]
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        this._layerGroups.semiconductorNetwork.push(`${sourceId}-line`, sourceId);
+    },
+
+    hideSemiconductorNetwork() {
+        this._removeLayerGroup('semiconductorNetwork');
+    },
+
+    /**
      * Show future development zones (Journey B - Future view)
      */
     showFutureZones() {
@@ -988,6 +1163,82 @@ const MapController = {
 
     hideFutureZones() {
         this._removeLayerGroup('futureZones');
+    },
+
+    /**
+     * Show investment zone overlays with persistent labels (Journey B)
+     */
+    showInvestmentZones() {
+        AppData.investmentZones.forEach(zone => {
+            const centerLngLat = this._toMapbox(zone.coords);
+            const circleGeoJson = this._generateCirclePolygon(centerLngLat, zone.radius);
+
+            const sourceId = `inv-zone-${zone.id}`;
+            this._safeAddSource(sourceId, { type: 'geojson', data: circleGeoJson });
+
+            this.map.addLayer({
+                id: `${sourceId}-fill`,
+                type: 'fill',
+                source: sourceId,
+                paint: {
+                    'fill-color': zone.color,
+                    'fill-opacity': 1
+                }
+            });
+
+            this.map.addLayer({
+                id: `${sourceId}-stroke`,
+                type: 'line',
+                source: sourceId,
+                paint: {
+                    'line-color': zone.strokeColor,
+                    'line-width': 2,
+                    'line-dasharray': [5, 10]
+                }
+            });
+
+            this._layerGroups.investmentZones.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
+        });
+
+        // Persistent zone labels as a single symbol layer
+        const labelSourceId = 'inv-zone-labels';
+        const labelFeatures = AppData.investmentZones.map(zone => ({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: this._toMapbox(zone.coords)
+            },
+            properties: { name: zone.name }
+        }));
+
+        this._safeAddSource(labelSourceId, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: labelFeatures }
+        });
+
+        this.map.addLayer({
+            id: `${labelSourceId}-text`,
+            type: 'symbol',
+            source: labelSourceId,
+            layout: {
+                'text-field': ['get', 'name'],
+                'text-size': 14,
+                'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true
+            },
+            paint: {
+                'text-color': '#1e1f20',
+                'text-halo-color': '#ffffff',
+                'text-halo-width': 2.5
+            }
+        });
+
+        this._layerGroups.investmentZones.push(`${labelSourceId}-text`, labelSourceId);
+    },
+
+    hideInvestmentZones() {
+        this._removeLayerGroup('investmentZones');
     },
 
     // ================================
@@ -1147,7 +1398,6 @@ const MapController = {
                 display: flex; align-items: center; justify-content: center;
                 border: 2px solid white;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-                transform: translateY(-4px);
             "><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 11V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/><path d="M4 15v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M4 11h16v4H4z"/><circle cx="7.5" cy="15.5" r="1.5"/><circle cx="16.5" cy="15.5" r="1.5"/></svg></div>`;
 
             const { marker, element } = this._createMarker(station.coords, stationHtml, {
@@ -1172,7 +1422,6 @@ const MapController = {
                 display: flex; align-items: center; justify-content: center;
                 border: 2px solid white;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-                transform: translateY(-4px);
             "><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg></div>`;
 
             const { marker, element } = this._createMarker(haramizu.coords, haramizuHtml, {
@@ -1199,13 +1448,24 @@ const MapController = {
         this._safeRemoveSource('infrastructure-roads');
 
         // Remove station markers
-        this.infrastructureMarkers.forEach(m => m.remove());
+        this.infrastructureMarkers.forEach(m => {
+            const element = m.getElement();
+            m.remove();
+            if (element && element.parentNode) {
+                element.remove();
+            }
+        });
         this.infrastructureMarkers = [];
 
         // Clean up marker references
         this._layerGroups.infrastructureRoads.forEach(id => {
             if (this.markers[id]) {
-                this.markers[id].remove();
+                const marker = this.markers[id];
+                const element = marker.getElement();
+                marker.remove();
+                if (element && element.parentNode) {
+                    element.remove();
+                }
                 delete this.markers[id];
             }
         });
@@ -1512,8 +1772,8 @@ const MapController = {
         const iconSvg = (groupIcon && contentIcons[groupIcon]) || docIcons[type] || docIcons['pdf'];
 
         const highlightStyle = highlighted
-            ? `box-shadow: 0 0 0 4px rgba(251, 185, 49, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3); transform: scale(1.2) translateY(-4px);`
-            : `box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); transform: translateY(-4px);`;
+            ? `box-shadow: 0 0 0 4px rgba(251, 185, 49, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3); transform: scale(1.2);`
+            : `box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);`;
 
         return `<div style="
             width: 28px; height: 28px;
@@ -1581,7 +1841,13 @@ const MapController = {
         if (this._dataLayerGroups[layerName]) {
             this._dataLayerGroups[layerName].forEach(id => {
                 if (this.markers[id]) {
-                    this.markers[id].remove();
+                    const marker = this.markers[id];
+                    const element = marker.getElement();
+                    marker.remove();
+                    // Ensure DOM element is also removed
+                    if (element && element.parentNode) {
+                        element.remove();
+                    }
                     delete this.markers[id];
                 }
             });
@@ -1872,7 +2138,6 @@ const MapController = {
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            transform: translateY(-4px);
             transition: transform var(--duration-fast) var(--easing-standard);
         "><div style="width: 18px; height: 18px;">${iconSvg}</div></div>`;
     },
@@ -2030,10 +2295,20 @@ const MapController = {
 
         // Remove markers
         if (this.airlineOriginMarker) {
+            const element = this.airlineOriginMarker.getElement();
             this.airlineOriginMarker.remove();
+            if (element && element.parentNode) {
+                element.remove();
+            }
             this.airlineOriginMarker = null;
         }
-        this.airlineDestinationMarkers.forEach(m => m.remove());
+        this.airlineDestinationMarkers.forEach(m => {
+            const element = m.getElement();
+            m.remove();
+            if (element && element.parentNode) {
+                element.remove();
+            }
+        });
         this.airlineDestinationMarkers = [];
     },
 
@@ -2114,7 +2389,13 @@ const MapController = {
     hideLayer(layerName) {
         this._layerGroups[layerName]?.forEach(id => {
             if (this.markers[id]) {
-                this.markers[id].remove();
+                const marker = this.markers[id];
+                const element = marker.getElement();
+                marker.remove();
+                // Ensure DOM element is also removed
+                if (element && element.parentNode) {
+                    element.remove();
+                }
             }
         });
 
@@ -2277,7 +2558,13 @@ const MapController = {
         if (!markers || markers.length === 0) return;
         markers.forEach(m => {
             const el = m.getElement();
-            if (el) el.classList.add('marker-exiting');
+            // Apply exit animation to inner element (not wrapper)
+            // to avoid interfering with Mapbox's transform positioning
+            if (el && el.firstElementChild) {
+                el.firstElementChild.classList.add('marker-exiting');
+            } else if (el) {
+                el.classList.add('marker-exiting');
+            }
         });
         await this._delay(200);
         markers.forEach(m => m.remove());
@@ -2304,9 +2591,16 @@ const MapController = {
     // ================================
 
     clearAll() {
-        // Remove all HTML markers
+        // Remove all HTML markers AND their DOM elements
         Object.values(this.markers).forEach(marker => {
-            if (marker && marker.remove) marker.remove();
+            if (marker && marker.remove) {
+                const element = marker.getElement();
+                marker.remove();
+                // Ensure DOM element is also removed
+                if (element && element.parentNode) {
+                    element.remove();
+                }
+            }
         });
         this.markers = {};
         this._markerElements = {};
@@ -2340,10 +2634,29 @@ const MapController = {
         this.hideAirlineRoutes();
 
         // Clear infrastructure
-        this.infrastructureMarkers.forEach(m => m.remove());
+        this.infrastructureMarkers.forEach(m => {
+            const element = m.getElement();
+            m.remove();
+            if (element && element.parentNode) {
+                element.remove();
+            }
+        });
         this.infrastructureMarkers = [];
         this.selectedInfrastructureRoad = null;
         this.highlightedEvidenceMarker = null;
+
+        // Clean up any orphaned marker elements that weren't tracked in this.markers
+        // Mapbox wraps all custom marker elements in .mapboxgl-marker containers
+        const orphanedMarkers = document.querySelectorAll('.mapboxgl-marker');
+        orphanedMarkers.forEach(el => {
+            if (el.parentNode) el.remove();
+        });
+
+        // Also clean up any orphaned elevated-marker elements that escaped their parent
+        const orphanedElevatedMarkers = document.querySelectorAll('.elevated-marker');
+        orphanedElevatedMarkers.forEach(el => {
+            if (el.parentNode) el.remove();
+        });
     },
 
     clearRoute() {
@@ -2580,9 +2893,15 @@ const MapController = {
         if (!group) return;
 
         group.forEach(id => {
-            // Remove HTML marker
+            // Remove HTML marker AND its DOM element
             if (this.markers[id]) {
-                this.markers[id].remove();
+                const marker = this.markers[id];
+                const element = marker.getElement();
+                marker.remove();
+                // Ensure DOM element is also removed
+                if (element && element.parentNode) {
+                    element.remove();
+                }
                 delete this.markers[id];
             }
             // Remove Mapbox layer

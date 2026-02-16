@@ -6,38 +6,7 @@ Interactive presentation app for real estate sales in Kumamoto, Japan. Desktop-o
 
 **Technology Stack:** HTML/CSS/JavaScript (no frameworks), Mapbox GL JS (3D), Vanilla JS state machine, Chart.js (dataviz)
 
-### Language Rule
-
-```
-ENGLISH ONLY - NO JAPANESE OR OTHER NON-ENGLISH TEXT
-
-All UI text, labels, data properties, and content must be in English.
-NEVER add Japanese (hiragana, katakana, kanji) text to the UI.
-NEVER add titleJa, nameJa, questionJa, or similar bilingual properties.
-NEVER display non-English translations in chatbox, panels, or overlays.
-Use English-only for all user-facing strings.
-Japanese place names should use their romanized (romaji) form only.
-```
-
-### Claude Response Guidelines
-
-```
-STRICT RULES FOR ALL CLAUDE RESPONSES
-
-These rules apply to all Claude outputs and responses in this context window:
-
-NEVER use emojis.
-NEVER use uppercase.
-NEVER exaggerate.
-
-Always use proper grammar and end sentences with periods.
-Always use Oxford commas.
-Never use em dash.
-
-Use clear, direct, professional communication.
-Focus on factual, measured descriptions.
-Maintain a calm, helpful tone without unnecessary emphasis.
-```
+See **Strict Rules > Process Rules** for language and Claude response style constraints.
 
 ---
 
@@ -49,6 +18,72 @@ This design system follows **macOS Human Interface Guidelines (HIG)** principles
 - **Deference:** The interface supports the map content without competing for attention; controls exist to serve the user's task
 - **Depth:** Visual layering, smooth transitions, and logical hierarchy create spatial relationships that guide users naturally
 - **Consistency:** Uniform patterns across all journeys reduce cognitive load and build trust
+
+---
+
+## Strict Rules
+
+All mandatory constraints are collected here. Each rule has one canonical definition in this section. Subsections below cross-reference back here.
+
+### Process Rules
+
+**Language:**
+- English only. No Japanese (hiragana, katakana, kanji) in UI text.
+- Never add bilingual properties (titleJa, nameJa, questionJa).
+- Japanese place names use romanized (romaji) form only.
+
+**Claude response style:**
+- Never use emojis, uppercase, or exaggeration.
+- Always use proper grammar, Oxford commas, and end sentences with periods.
+- Never use em dash.
+- Use clear, direct, professional communication.
+
+**Dynamically created overlays:**
+- Always remove existing instances before creating new ones (prevent element accumulation).
+- Check `element.parentNode` exists before calling `.remove()`.
+- Clean up in all restart/reset functions.
+
+### Visual Rules
+
+**Typography prohibitions:**
+- Never use all caps or uppercase for any UI text. Use bold weight or color for emphasis.
+- Never center-align body text. Always left-align (align-start).
+- Never justify text.
+
+**Dark mode:**
+- Not supported. Light mode only. Do not implement `prefers-color-scheme` queries.
+
+**Spacing enforcement:**
+- Always use spacing tokens from the 8pt grid. Never use arbitrary pixel values.
+- Never skip section gaps. Use `--space-6` (24px) minimum between sections.
+- Required spacing by context:
+
+| Context | Required Token |
+|---------|----------------|
+| Title to next section | `--space-6` (24px) |
+| Header to content block | `--space-6` (24px) |
+| Between related items | `--space-3` or `--space-4` |
+| Between unrelated sections | `--space-6` to `--space-8` |
+| Panel/card internal padding | `--space-6` (24px) |
+| Icon to adjacent text | `--space-2` (8px) |
+| Button internal padding | `--space-3` x `--space-6` |
+
+When in doubt: `--space-6` (24px) for section gaps, `--space-4` (16px) for related elements.
+
+**Modal list item spacing:**
+- All items inside `.chatbox-options` container (`gap: var(--space-4)`).
+- Never add inline `style="margin-top"` to individual items.
+- Checkmarks use `margin-left: auto` (not fixed spacing).
+- CTA buttons: `margin-top: var(--space-6)` (24px section gap from last item).
+- Items with metadata labels/chevrons use `justify-content: space-between`.
+
+**AI Chat internal spacing:**
+- `.ai-chat-header`: `margin-top: var(--space-4)` (gap after close button).
+- `.ai-chat-suggestions` and `.ai-chat-messages`: `margin-top: var(--space-6)` (section gap after header).
+
+**Navigation pattern:**
+- Icon-only back button in panel/chatbox header. Never text-based "Back to..." CTAs.
+- Back icon appears automatically when history exists. No redundant navigation controls.
 
 ---
 
@@ -125,14 +160,7 @@ All font sizes use `rem` units with `1rem = 16px` base. Scale follows macOS typo
 | Body copy | Sentence case | "Click the marker to view property details." |
 | Placeholder text | Sentence case | "Enter your search query..." |
 
-#### Absolute Prohibitions
-
-```
-NEVER USE ALL CAPS - Not for headings, buttons, labels, or emphasis.
-NEVER USE UPPERCASE - Use bold weight or color for emphasis instead.
-Never center-align body text - Always left-align (align-start).
-Never justify text - Creates uneven spacing.
-```
+See **Strict Rules > Visual Rules > Typography prohibitions** for case and alignment constraints.
 
 ### Font Weights
 
@@ -205,13 +233,7 @@ Per HIG, adjust tracking based on font size for optimal legibility:
 }
 ```
 
-### Dark Mode
-
-```
-DARK MODE IS NOT SUPPORTED
-This application uses light mode exclusively.
-Do not implement dark mode variants or prefers-color-scheme queries.
-```
+See **Strict Rules > Visual Rules > Dark mode**. Light mode only.
 
 ### Contrast Requirements (WCAG AA)
 
@@ -262,7 +284,7 @@ All spacing values derive from an 8-point base unit. Use 4pt for fine-tuning ico
 | Context | Recommended Spacing |
 |---------|-------------------|
 | Icon to text | `--space-2` (8px) |
-| Button internal padding | `--space-3` horizontal, `--space-2` vertical |
+| Button internal padding | `--space-3` vertical, `--space-6` horizontal |
 | Form field internal padding | `--space-4` (16px) |
 | Between form fields | `--space-4` (16px) |
 | Card internal padding | `--space-6` (24px) |
@@ -285,33 +307,7 @@ Per Gestalt proximity principles: internal spacing (padding) should be less than
 └──────────────────────────┘
 ```
 
-### Mandatory Spacing Rules
-
-```
-STRICT SPACING ENFORCEMENT - NEVER DEVIATE
-
-These spacing values are mandatory and must be followed exactly:
-
-NEVER use arbitrary pixel values - Always use spacing tokens.
-NEVER mix spacing systems - Only 8pt grid values.
-NEVER skip section gaps - Use --space-6 (24px) minimum between sections.
-NEVER guess spacing - Refer to this table.
-
-REQUIRED SPACING BY CONTEXT:
-┌─────────────────────────────────────┬──────────────────────────┐
-│ Context                             │ Required Token           │
-├─────────────────────────────────────┼──────────────────────────┤
-│ Title to next section               │ --space-6 (24px)         │
-│ Header to content block             │ --space-6 (24px)         │
-│ Between related items               │ --space-3 or --space-4   │
-│ Between unrelated sections          │ --space-6 to --space-8   │
-│ Panel/card internal padding         │ --space-6 (24px)         │
-│ Icon to adjacent text               │ --space-2 (8px)          │
-│ Button internal padding             │ --space-3 × --space-6    │
-└─────────────────────────────────────┴──────────────────────────┘
-
-When in doubt: --space-6 (24px) for section gaps, --space-4 (16px) for related elements.
-```
+See **Strict Rules > Visual Rules > Spacing enforcement** for mandatory spacing values.
 
 ### Allowed Exceptions
 
@@ -1015,45 +1011,7 @@ Per HIG and WCAG 2.1 AA:
 }
 ```
 
-#### Modal List Item Spacing (MANDATORY)
-
-```
-STRICT RULE: All modal items must follow these spacing requirements.
-
-SPACING HIERARCHY:
-- Between ALL items: var(--space-4) (16px) via parent gap
-- Last item to CTA button: var(--space-6) (24px) via button margin-top
-- Checkmark to right edge: margin-left: auto (fills remaining space)
-
-STRUCTURE:
-.chatbox-options {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);  /* 16px between ALL items */
-}
-
-.chatbox-option {
-  width: 100%;  /* Full width of container */
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;  /* For checkmark positioning */
-}
-
-.chatbox-option.completed::after {
-  margin-left: auto;  /* Push checkmark to right edge */
-}
-
-.chatbox-continue.primary {
-  margin-top: var(--space-6);  /* 24px section gap */
-}
-```
-
-**Rules:**
-- All items MUST be inside `.chatbox-options` container to benefit from gap spacing
-- Never add inline `style="margin-top"` to individual items
-- Checkmarks use `margin-left: auto` (NOT fixed spacing like `var(--space-4)`)
-- CTA buttons always have 24px spacing from last item (section gap)
-- Items with metadata labels/chevrons use `justify-content: space-between`
+See **Strict Rules > Visual Rules > Modal list item spacing** for chatbox option spacing constraints.
 
 ### AI Chat
 
@@ -1088,32 +1046,7 @@ The AI Chat modal appears after journey completion or in Dashboard mode, allowin
 }
 ```
 
-#### AI Chat Internal Spacing (MANDATORY)
-
-```
-STRICT RULE: All content sections must have --space-6 (24px) gap from header.
-
-Structure:
-┌─────────────────────────────────────┐
-│  [X] Close button (top-right)       │
-│                                     │
-│  ← --space-4 margin-top →           │
-│  Ask Me Anything About Kumamoto     │  ← Header (h3)
-│                                     │
-│  ← --space-6 margin-top →           │  ← REQUIRED 24px gap
-│  ┌─────────────────────────────┐    │
-│  │ Suggestion chips OR         │    │  ← .ai-chat-suggestions
-│  │ Message bubbles             │    │     OR .ai-chat-messages
-│  └─────────────────────────────┘    │
-│                                     │
-│  [Input field]                      │
-└─────────────────────────────────────┘
-
-REQUIRED margin-top values:
-- .ai-chat-header: var(--space-4) - gap after close button
-- .ai-chat-suggestions: var(--space-6) - section gap after header
-- .ai-chat-messages: var(--space-6) - section gap after header
-```
+See **Strict Rules > Visual Rules > AI Chat internal spacing** for required margin-top values.
 
 ### Gallery Overlay
 
@@ -1153,6 +1086,8 @@ REQUIRED margin-top values:
   padding: var(--space-8);
 }
 ```
+
+See **Strict Rules > Process Rules > Dynamically created overlays** for the cleanup pattern.
 
 ### Modal Header (Required for ALL Modals)
 
@@ -1417,7 +1352,7 @@ The Data Layers panel allows toggling visibility of map layers and data overlays
   width: var(--icon-sm);
   height: var(--icon-sm);
   border: 1.5px solid var(--color-text-tertiary);
-  border-radius: var(--radius-medium);  /* 8px - macOS HIG rounded checkbox */
+  border-radius: var(--radius-small);  /* 4px - macOS Big Sur rounded checkbox */
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1441,7 +1376,8 @@ The Data Layers panel allows toggling visibility of map layers and data overlays
 ```
 
 **Design Notes:**
-- Uses `--radius-medium` (8px) for proper macOS rounded corners
+- Uses `--radius-small` (4px) on 16px box for proper macOS rounded-square corners
+- Never use `--radius-medium` (8px) on 16px boxes - this produces a circle (8px = 50% of 16px)
 - Never fully circular (radio buttons) or sharp squares
 - Checkmark created with CSS borders for performance
 - Follows macOS Big Sur+ checkbox aesthetic
@@ -1453,7 +1389,7 @@ All layer icons use **Lucide** icons for consistency with the Legend.
 **Control Type:** Checkboxes (multiple selection enabled)
 
 **Visual Styling:**
-- Rounded checkboxes (`--radius-medium` / 8px) following macOS HIG
+- Rounded checkboxes (`--radius-small` / 4px) following macOS HIG
 - Checkmark indicator when active
 - Brand yellow fill (`--color-primary`) when checked
 
@@ -2008,19 +1944,7 @@ A stack-based navigation system for the right panel and chatbox supporting back/
 - **Scroll restore**: Previous scroll position restored on back navigation
 - **Deduplication**: Prevents duplicate entries on repeated navigations
 
-#### Navigation Pattern
-
-```
-STRICT RULE: Use only icon-based back navigation.
-
-Correct: Icon-only back button in panel/chatbox header.
-Never: Text-based "Back to..." CTAs/buttons.
-Never: Redundant navigation controls.
-
-Navigation is handled by a single back icon that appears automatically when
-history exists. Do not add text-based "Back to..." buttons - they are redundant
-and violate the single-control principle.
-```
+See **Strict Rules > Visual Rules > Navigation pattern** for back navigation constraints.
 
 ---
 
@@ -2095,140 +2019,6 @@ and violate the single-control principle.
 
 ---
 
-## CSS Custom Properties Reference
-
-### Complete Token Export
-
-```css
-:root {
-  /* ========== TYPOGRAPHY ========== */
-  --font-display: "Rem", sans-serif;
-  --font-body: "Noto Sans JP", sans-serif;
-
-  --text-xs: 0.6875rem;    /* 11px */
-  --text-sm: 0.8125rem;    /* 13px */
-  --text-base: 0.9375rem;  /* 15px */
-  --text-lg: 1.0625rem;    /* 17px */
-  --text-xl: 1.25rem;      /* 20px */
-  --text-2xl: 1.375rem;    /* 22px */
-  --text-3xl: 1.75rem;     /* 28px */
-  --text-4xl: 2.125rem;    /* 34px */
-  --text-5xl: 2.5rem;      /* 40px */
-  
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
-  
-  --tracking-display: -0.02em;
-  --tracking-body: 0;
-  --tracking-small: 0.01em;
-  
-  /* ========== COLORS ========== */
-  --color-primary: #fbb931;
-  --color-primary-hover: #e5a82c;
-  --color-primary-pressed: #cc9526;
-  --color-primary-disabled: #fdd97a;
-  
-  --color-text-primary: #1e1f20;
-  --color-text-secondary: #4a4b4d;
-  --color-text-tertiary: #6e7073;
-  --color-text-disabled: #a3a5a8;
-  --color-text-on-primary: #1e1f20;
-  
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f5f5f7;
-  --color-bg-tertiary: #e8e8ed;
-  --color-bg-overlay: rgba(0, 0, 0, 0.5);
-
-  --color-border: rgba(0, 0, 0, 0.1);
-  --color-border-strong: rgba(0, 0, 0, 0.15);
-
-  --color-success: #34c759;
-  --color-warning: #ff9500;
-  --color-error: #ff3b30;
-  --color-info: #007aff;
-  
-  --color-map-route: #007aff;
-  --color-map-zone-future: rgba(251, 185, 49, 0.2);
-  --color-map-radius: rgba(255, 59, 48, 0.15);
-  --color-map-infrastructure: #5ac8fa;
-  
-  /* ========== SPACING ========== */
-  --space-unit: 8px;
-  --space-0: 0;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 96px;
-  
-  /* ========== RADIUS ========== */
-  --radius-none: 0;
-  --radius-small: 4px;
-  --radius-medium: 8px;
-  --radius-large: 12px;
-  --radius-xlarge: 16px;
-  --radius-full: 9999px;
-  
-  /* ========== SHADOWS ========== */
-  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-large: 0 4px 8px rgba(55, 26, 26, 0.04), 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-xlarge: 0 8px 16px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(0, 0, 0, 0.16);
-  --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.08);
-  
-  /* ========== MOTION ========== */
-  --duration-instant: 0ms;
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 350ms;
-  --duration-slower: 500ms;
-  --duration-scene: 1500ms;
-
-  --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
-  --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
-  --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
-  --easing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-  /* ========== ICONS ========== */
-  --icon-xs: 12px;
-  --icon-sm: 16px;
-  --icon-md: 20px;
-  --icon-lg: 24px;
-  --icon-xl: 32px;
-  --icon-2xl: 48px;
-  --icon-stroke-weight: 1.5px;
-  
-  /* ========== INTERACTIVE ========== */
-  --touch-target-min: 44px;
-  --touch-target-comfortable: 48px;
-  
-  /* ========== Z-INDEX ========== */
-  --z-map: 0;
-  --z-map-controls: 10;
-  --z-markers: 20;
-  --z-chatbox: 100;
-  --z-panel: 200;
-  --z-control-bar: 300;
-  --z-gallery: 1000;
-  --z-tooltip: 1100;
-}
-```
-
----
-
 ## Checklist for Implementation
 
 ### Before Each Component
@@ -2289,7 +2079,7 @@ and violate the single-control principle.
 - [ ] Panel closes when journey changes (button stays visible)
 - [ ] All icons use Lucide icons matching Legend
 - [ ] Science Park uses `flask-conical` icon (conveys science)
-- [ ] Checkboxes use `--radius-medium` (8px) rounded corners (macOS HIG)
+- [ ] Checkboxes use `--radius-small` (4px) rounded corners on 16px boxes (macOS HIG)
 - [ ] Checkboxes show checkmark when active, not radio dot
 - [ ] All layers start inactive (unchecked) by default
 - [ ] Multiple layers can be selected simultaneously
@@ -2327,6 +2117,7 @@ and violate the single-control principle.
 - [ ] Checkmarks use `margin-left: auto` (right-aligned)
 - [ ] All items are full width (`width: 100%`)
 - [ ] No inline `style="margin-top"` on individual items
+- [ ] Dynamically created overlays clean up existing instances before creating new ones (prevent accumulation)
 
 ### For Evidence Library
 
@@ -2407,8 +2198,8 @@ map-prototype/
 │   └── ui.js               # Panel, chatbox, gallery, charts, draggable, disclosure
 ├── assets/
 │   ├── placeholders/       # Placeholder images for gallery
-│   ├── Assets1.png         # Brand logo (dark)
-│   ├── Assets2.png         # Brand logo (alt)
+│   ├── Assets1.webp        # Brand logo (dark)
+│   ├── Assets2.webp        # Brand logo (alt)
 │   ├── Assets3.svg         # Brand mark (SVG)
 │   ├── Assets4.svg         # Brand mark (variant)
 │   └── Assets4-white.svg   # Brand mark (white, for dark backgrounds)

@@ -44,7 +44,7 @@ const AppData = {
             id: 'water',
             name: 'Aso Groundwater Basin',
             coords: [32.88, 130.90],
-            subtitle: 'Natural Water Resources',
+            subtitle: 'Natural water resources',
             description: 'Kumamoto sits atop one of Japan\'s largest groundwater basins, fed by Mount Aso\'s volcanic soil. This pristine water supply is critical for semiconductor manufacturing, which requires enormous quantities of ultrapure water.',
             stats: [
                 { value: '1.8B', label: 'Cubic meters annual capacity' },
@@ -91,7 +91,7 @@ const AppData = {
             id: 'power',
             name: 'Kyushu Power Grid',
             coords: [32.75, 130.65],
-            subtitle: 'Power Infrastructure',
+            subtitle: 'Power infrastructure',
             description: 'Kyushu Electric provides stable, competitively priced power to the region. The diverse energy mix ensures grid stability critical for semiconductor manufacturing.',
             stats: [
                 { value: '2.4GW', label: 'Available industrial capacity' },
@@ -131,6 +131,94 @@ const AppData = {
         nuclear: [
             { id: 'nuclear-genkai', name: 'Genkai Nuclear Power Station', coords: [33.515, 129.836], capacity: '3.47 GW', prefecture: 'Saga' },
             { id: 'nuclear-sendai', name: 'Sendai Nuclear Power Station', coords: [31.8336, 130.1894], capacity: '1.78 GW', prefecture: 'Kagoshima' }
+        ]
+    },
+
+    // Journey A: Talent Pipeline (Kyushu-wide scope)
+    talentPipeline: {
+        description: 'The Kyushu Semiconductor Human Resources Development Alliance, led by METI, coordinates talent cultivation across the region to ensure a steady pipeline of semiconductor engineers and technicians.',
+        government: {
+            id: 'meti',
+            name: 'Ministry of Economy, Trade and Industry',
+            role: 'Leads the Kyushu Semiconductor Human Resources Development Alliance',
+            goals: 'Strengthen talent cultivation and supply chain stability'
+        },
+        institutions: [
+            {
+                id: 'kyutech',
+                name: 'Kyutech',
+                fullName: 'Kyushu Institute of Technology',
+                city: 'Kitakyushu',
+                coords: [33.88, 130.84],
+                color: '#e74c3c',
+                role: 'Established cross-departmental semiconductor human resources center',
+                stats: [
+                    { value: 'Cross-dept', label: 'Program scope' },
+                    { value: 'HR center', label: 'Semiconductor focus' },
+                    { value: '300+', label: 'Annual graduates' },
+                    { value: 'Research', label: 'Core strength' }
+                ]
+            },
+            {
+                id: 'kyushu-university',
+                name: 'Kyushu University',
+                fullName: 'Kyushu University',
+                city: 'Fukuoka',
+                coords: [33.60, 130.42],
+                color: '#8e44ad',
+                role: 'Established adult semiconductor retraining center',
+                stats: [
+                    { value: 'Retraining', label: 'Program type' },
+                    { value: 'Adults', label: 'Target audience' },
+                    { value: '500+', label: 'Annual intake' },
+                    { value: 'Top 5', label: 'Japan university rank' }
+                ]
+            },
+            {
+                id: 'oita-university',
+                name: 'Oita University',
+                fullName: 'Oita University',
+                city: 'Oita',
+                coords: [33.23, 131.60],
+                color: '#2980b9',
+                role: 'Established semiconductor core talent retraining center for working professionals',
+                stats: [
+                    { value: 'Professionals', label: 'Target audience' },
+                    { value: 'Core talent', label: 'Program focus' },
+                    { value: 'Retraining', label: 'Program type' },
+                    { value: 'Industry', label: 'Partnership model' }
+                ]
+            },
+            {
+                id: 'kumamoto-university',
+                name: 'Kumamoto University',
+                fullName: 'Kumamoto University',
+                city: 'Kumamoto',
+                coords: [32.81, 130.73],
+                color: '#27ae60',
+                role: 'Partnered with JASM (TSMC) on semiconductor research center as industry-academia collaboration',
+                stats: [
+                    { value: 'JASM', label: 'Industry partner' },
+                    { value: 'Research', label: 'Center type' },
+                    { value: 'Academia', label: 'Collaboration model' },
+                    { value: '400+', label: 'Researchers' }
+                ]
+            },
+            {
+                id: 'prefectural-kumamoto',
+                name: 'Prefectural University of Kumamoto',
+                fullName: 'Prefectural University of Kumamoto',
+                city: 'Kumamoto',
+                coords: [32.83, 130.76],
+                color: '#f39c12',
+                role: 'Since 2023, all first-year science and engineering students required to take semiconductor introductory courses taught by industry experts',
+                stats: [
+                    { value: '2023', label: 'Mandate start' },
+                    { value: 'All 1st-year', label: 'Requirement scope' },
+                    { value: 'Industry', label: 'Instructor source' },
+                    { value: 'Mandatory', label: 'Course status' }
+                ]
+            }
         ]
     },
 
@@ -403,6 +491,60 @@ const AppData = {
                 type: 'pdf',
                 description: 'EV market expansion strategy'
             }
+        },
+        {
+            id: 'sumco',
+            name: 'SUMCO',
+            coords: [32.93, 130.70],
+            subtitle: 'Silicon Wafer Manufacturing',
+            description: 'One of the world\'s largest silicon wafer manufacturers. SUMCO\'s Kyushu facilities produce high-purity wafers essential for advanced semiconductor fabrication.',
+            stats: [
+                { value: '¥180B', label: 'Investment' },
+                { value: '1,500', label: 'Employees' },
+                { value: '30%', label: 'Global wafer share' },
+                { value: '2026', label: 'Expansion complete' }
+            ],
+            evidence: {
+                title: 'SUMCO Kyushu Expansion',
+                type: 'pdf',
+                description: 'Wafer production capacity expansion plan'
+            }
+        },
+        {
+            id: 'kyocera',
+            name: 'Kyocera',
+            coords: [32.91, 130.88],
+            subtitle: 'Ceramic Packages & Components',
+            description: 'Kyocera manufactures ceramic packages and electronic components critical to semiconductor assembly. Their Kyushu operations serve the entire Asia-Pacific market.',
+            stats: [
+                { value: '¥95B', label: 'Investment' },
+                { value: '2,800', label: 'Employees' },
+                { value: 'IC packages', label: 'Core product' },
+                { value: 'Asia-Pacific', label: 'Market served' }
+            ],
+            evidence: {
+                title: 'Kyocera Component Expansion',
+                type: 'pdf',
+                description: 'Regional manufacturing strategy'
+            }
+        },
+        {
+            id: 'rohm-apollo',
+            name: 'Rohm Apollo',
+            coords: [32.89, 130.76],
+            subtitle: 'Analog & Power Semiconductors',
+            description: 'Rohm Apollo Semiconductor produces analog ICs and power devices in Kumamoto. Expanding capacity to meet growing EV and industrial automation demand.',
+            stats: [
+                { value: '¥120B', label: 'Investment' },
+                { value: '1,100', label: 'Employees' },
+                { value: 'SiC power', label: 'Key technology' },
+                { value: '+60%', label: 'Capacity expansion' }
+            ],
+            evidence: {
+                title: 'Rohm Apollo SiC Expansion',
+                type: 'pdf',
+                description: 'Silicon carbide power device production plan'
+            }
         }
     ],
 
@@ -445,6 +587,34 @@ const AppData = {
                 type: 'pdf',
                 description: 'Industrial development documentation'
             }
+        }
+    ],
+
+    // Journey B: Investment Zones (spatial framework for property evaluation)
+    investmentZones: [
+        {
+            id: 'central-city',
+            name: 'Central city',
+            coords: [32.80, 130.71],
+            radius: 4000,
+            color: 'rgba(251, 185, 49, 0.15)',
+            strokeColor: 'rgba(251, 185, 49, 0.4)'
+        },
+        {
+            id: 'middle-zone',
+            name: 'Middle zone',
+            coords: [32.83, 130.77],
+            radius: 3500,
+            color: 'rgba(255, 149, 0, 0.15)',
+            strokeColor: 'rgba(255, 149, 0, 0.4)'
+        },
+        {
+            id: 'tsmc-area',
+            name: 'TSMC area',
+            coords: [32.87, 130.82],
+            radius: 4500,
+            color: 'rgba(0, 122, 255, 0.15)',
+            strokeColor: 'rgba(0, 122, 255, 0.4)'
         }
     ],
 

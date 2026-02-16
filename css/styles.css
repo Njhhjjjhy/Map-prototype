@@ -487,6 +487,21 @@ a:focus-visible {
     transition: opacity var(--duration-scene) var(--easing-decelerate);
 }
 
+/* Immersive mode: hide all map controls during property reveal / gallery */
+#map-container.immersive-active #journey-progress,
+#map-container.immersive-active #control-bar,
+#map-container.immersive-active #chatbox,
+#map-container.immersive-active #layers-toggle,
+#map-container.immersive-active #chat-fab,
+#map-container.immersive-active #data-layers,
+#map-container.immersive-active #panel-toggle,
+#map-container.immersive-active #dashboard-toggle,
+#map-container.immersive-active #map-legend {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity var(--duration-fast) var(--easing-accelerate);
+}
+
 /* A/B image pair for true crossfade */
 .transition-img {
     position: absolute;
@@ -2211,21 +2226,18 @@ a:focus-visible {
     transform: rotate(-45deg) translateY(-2px) !important;
 }
 
-/* Diamond — development zones */
+/* Diamond — development zones (rotated rounded square, same approach as pin) */
 .marker-shape-diamond .elevated-marker {
-    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-    border-radius: 0 !important;
-    border: none !important;
+    border-radius: var(--radius-small) !important;
+    transform: rotate(45deg) !important;
 }
 
-/* Diamond border effect via pseudo-element (clip-path clips borders) */
-.marker-shape-diamond .elevated-marker::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: white;
-    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-    z-index: -1;
+.marker-shape-diamond .elevated-marker > * {
+    transform: rotate(-45deg);
+}
+
+.marker-shape-diamond:hover .elevated-marker {
+    transform: rotate(45deg) translateY(-2px) !important;
 }
 
 /* Keyboard focus ring on markers (WCAG) */
@@ -2644,7 +2656,7 @@ button.layer-item {
     width: var(--icon-sm);
     height: var(--icon-sm);
     border: 1.5px solid var(--color-text-tertiary);
-    border-radius: var(--radius-medium);  /* 8px - macOS HIG rounded checkbox */
+    border-radius: var(--radius-small);  /* 4px - macOS Big Sur rounded checkbox */
     flex-shrink: 0;
     display: flex;
     align-items: center;
