@@ -3,6 +3,40 @@
  * All data is placeholder for demonstration purposes
  */
 
+/**
+ * Step-to-stage lookup: flat, one-directional mapping.
+ * Each fine-grained step ID maps to a stage number that determines
+ * the inspector panel tab set and card manifest.
+ */
+const STAGE_MAP = {
+    'A0': 1,           // Opening question
+    'A1': 2,           // Natural advantages
+    'A2': 2,           // Utility infrastructure
+    'A3': 3,           // Talent pipeline, universities
+    'B1': 4,           // Science park, government support
+    // Stage 5: card manifest order matches map pin-drop animation sequence.
+    // If pin-drop order changes in app.js stepB4(), update manifest order to match.
+    'B4': 5,           // Corporate investment markers
+    'B6': 6,           // Future zones, silicon triangle
+    'B7': 7,           // Risk areas, infrastructure roads
+    'C1': 8,           // Real estate thesis
+    'complete': 9      // Property detail, financials
+};
+
+/**
+ * Tab sets and labels per inspector stage.
+ * Stages 1-2 have no panel (map + chatbox only).
+ */
+const STAGE_TABS = {
+    3: { label: 'Talent pipeline', tabs: ['Workforce', 'Universities', 'Sources'] },
+    4: { label: 'Infrastructure', tabs: ['Plans', 'Timeline', 'Sources'] },
+    5: { label: 'Corporate investment', tabs: ['Investment', 'Timeline', 'Press'] },
+    6: { label: 'Silicon triangle', tabs: ['Profile', 'Metrics', 'Sources'] },
+    7: { label: 'Risk assessment', tabs: ['Assessment', 'History', 'Mitigation'] },
+    8: { label: 'Real estate', tabs: ['Demand', 'Yields', 'Properties'] },
+    9: { label: 'Property detail', tabs: ['Overview', 'Financials', 'Evidence'] }
+};
+
 const AppData = {
     // Map center and zoom settings
     mapConfig: {
@@ -708,7 +742,41 @@ const AppData = {
             rentalReport: {
                 title: 'Property Rental Analysis',
                 type: 'pdf',
-                description: 'Detailed rental market analysis from property manager'
+                description: 'Detailed rental market analysis from property manager',
+                date: '2025-01',
+                viewed: false
+            },
+            // Inspector panel data gaps filled below
+            recommendation: 'pursue',
+            decisionMetrics: [
+                { label: 'Proximity to JASM', value: '8.2 km (top 10%)' },
+                { label: 'Projected yield', value: '5.5% net (avg scenario)' },
+                { label: 'Demand catalyst', value: 'JASM Phase 2 (+3,000 workers)' }
+            ],
+            thumbnail: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=60',
+            brokerMetrics: {
+                rentalHigh: 240000,
+                rentalAvg: 222000,
+                rentalLow: 182000,
+                projectedGrowth: 0.08,
+                areaAverage: 195000
+            },
+            costBreakdown: {
+                hardCosts: 42000000,
+                acquisitionFees: 2425000,
+                fitOut: 1800000,
+                stampDuty: 1455000,
+                legalFees: 820000
+            },
+            rentalProjections: {
+                bear: { monthlyRent: 182000, managementFee: 18200, vacancyRate: 0.08, annualNetIncome: 1810000 },
+                average: { monthlyRent: 222000, managementFee: 22200, vacancyRate: 0.05, annualNetIncome: 2280000 },
+                bull: { monthlyRent: 263000, managementFee: 26300, vacancyRate: 0.03, annualNetIncome: 2760000 }
+            },
+            commuteShifts: {
+                shift2am: '8 min',
+                shift8am: '18 min',
+                shiftMidnight: '10 min'
             }
         },
         {
@@ -783,7 +851,40 @@ const AppData = {
             rentalReport: {
                 title: 'Property Rental Analysis',
                 type: 'pdf',
-                description: 'Detailed rental market analysis from property manager'
+                description: 'Detailed rental market analysis from property manager',
+                date: '2025-02',
+                viewed: false
+            },
+            recommendation: 'pursue',
+            decisionMetrics: [
+                { label: 'Rental demand', value: 'High (Tokyo Electron + JASM)' },
+                { label: 'Projected yield', value: '6.0% net (avg scenario)' },
+                { label: 'Infrastructure', value: 'Route 57 bypass (-5 min commute)' }
+            ],
+            thumbnail: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=60',
+            brokerMetrics: {
+                rentalHigh: 187000,
+                rentalAvg: 160000,
+                rentalLow: 133000,
+                projectedGrowth: 0.07,
+                areaAverage: 148000
+            },
+            costBreakdown: {
+                hardCosts: 27500000,
+                acquisitionFees: 1600000,
+                fitOut: 1200000,
+                stampDuty: 960000,
+                legalFees: 740000
+            },
+            rentalProjections: {
+                bear: { monthlyRent: 133000, managementFee: 13300, vacancyRate: 0.10, annualNetIncome: 1294000 },
+                average: { monthlyRent: 160000, managementFee: 16000, vacancyRate: 0.06, annualNetIncome: 1625000 },
+                bull: { monthlyRent: 187000, managementFee: 18700, vacancyRate: 0.03, annualNetIncome: 1960000 }
+            },
+            commuteShifts: {
+                shift2am: '10 min',
+                shift8am: '25 min',
+                shiftMidnight: '12 min'
             }
         }
     ],
@@ -1022,6 +1123,8 @@ const AppData = {
                     id: 'solar-power',
                     title: 'Solar Power Capacity',
                     type: 'pdf',
+                    date: '2024-09',
+                    viewed: false,
                     description: 'Kyushu leads Japan in solar energy adoption with extensive photovoltaic installations across the region, providing stable renewable power to the semiconductor corridor.',
                     coords: [32.95, 130.55],
                     stats: [
@@ -1035,6 +1138,8 @@ const AppData = {
                     id: 'wind-power',
                     title: 'Wind Energy Network',
                     type: 'pdf',
+                    date: '2024-08',
+                    viewed: false,
                     description: 'Offshore and onshore wind installations along the Kyushu coast provide complementary renewable energy, particularly during peak demand periods.',
                     coords: [32.68, 130.42],
                     stats: [
@@ -1048,6 +1153,8 @@ const AppData = {
                     id: 'nuclear-kyushu',
                     title: 'Kyushu Nuclear (Sendai)',
                     type: 'pdf',
+                    date: '2024-06',
+                    viewed: false,
                     description: 'Sendai Nuclear Power Plant provides baseload electricity for the region, ensuring stable power supply for high-demand semiconductor manufacturing.',
                     coords: null,
                     stats: [
@@ -1068,6 +1175,8 @@ const AppData = {
                     id: 'planned-roads',
                     title: 'Planned Road Extensions',
                     type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
                     description: 'Route 57 bypass and new arterial roads will reduce commute times and improve logistics access to the semiconductor corridor.',
                     coords: [32.84, 130.76],
                     stats: [
@@ -1081,6 +1190,8 @@ const AppData = {
                     id: 'railway-expansion',
                     title: 'Railway Expansion',
                     type: 'pdf',
+                    date: '2024-11',
+                    viewed: false,
                     description: 'New Kikuyo Station and expanded JR Hohi Line service will provide direct rail access for semiconductor workers commuting from Kumamoto City.',
                     coords: [32.88, 130.81],
                     stats: [
@@ -1094,6 +1205,8 @@ const AppData = {
                     id: 'airport-access',
                     title: 'Kumamoto Airport Access',
                     type: 'web',
+                    date: '2025-02',
+                    viewed: false,
                     description: 'Aso Kumamoto Airport provides international cargo and passenger connections, with new routes planned to support semiconductor industry logistics.',
                     coords: [32.84, 130.86],
                     stats: [
@@ -1114,6 +1227,8 @@ const AppData = {
                     id: 'science-park-plan',
                     title: 'Kumamoto Science Park',
                     type: 'pdf',
+                    date: '2024-03',
+                    viewed: false,
                     description: 'The flagship development zone designated by Kumamoto Prefecture for semiconductor and advanced technology industries.',
                     coords: [32.87, 130.78],
                     stats: [
@@ -1127,6 +1242,8 @@ const AppData = {
                     id: 'kikuyo-plan',
                     title: 'Kikuyo Long-term Plan',
                     type: 'pdf',
+                    date: '2024-07',
+                    viewed: false,
                     description: 'Kikuyo Town\'s comprehensive development plan integrating residential, commercial, and infrastructure growth to support the semiconductor workforce.',
                     coords: [32.88, 130.83],
                     stats: [
@@ -1140,6 +1257,8 @@ const AppData = {
                     id: 'ozu-plan',
                     title: 'Ozu Long-term Plan',
                     type: 'pdf',
+                    date: '2024-05',
+                    viewed: false,
                     description: 'Ozu Town\'s industrial expansion plan focused on logistics, supply chain support, and secondary manufacturing facilities.',
                     coords: [32.86, 130.87],
                     stats: [
@@ -1160,6 +1279,8 @@ const AppData = {
                     id: 'university-programs',
                     title: 'University Programs',
                     type: 'pdf',
+                    date: '2024-10',
+                    viewed: false,
                     description: 'Kumamoto University has launched dedicated semiconductor engineering programs in partnership with TSMC and Sony to train the next generation of chip engineers.',
                     coords: [32.81, 130.73],
                     stats: [
@@ -1173,6 +1294,8 @@ const AppData = {
                     id: 'training-centers',
                     title: 'Training Centers',
                     type: 'web',
+                    date: '2025-01',
+                    viewed: false,
                     description: 'TSMC-sponsored vocational training centers provide rapid upskilling for technicians and manufacturing specialists entering the semiconductor industry.',
                     coords: [32.86, 130.79],
                     stats: [
@@ -1186,6 +1309,8 @@ const AppData = {
                     id: 'graduate-numbers',
                     title: 'Graduate Employment',
                     type: 'pdf',
+                    date: '2024-12',
+                    viewed: false,
                     description: 'Regional employment statistics showing semiconductor industry hiring trends and salary growth across Kumamoto Prefecture.',
                     coords: null,
                     stats: [
@@ -1203,6 +1328,33 @@ const AppData = {
     // DATA LAYERS - Mock data for toggleable map layers
     // ================================
     dataLayers: {
+        sciencePark: {
+            name: 'Science Park',
+            description: 'Kumamoto Prefectural Government designated semiconductor development zone with tax incentives, streamlined permitting, and infrastructure investments.',
+            stats: [
+                { value: '¥4.8T', label: 'Government investment' },
+                { value: '2040', label: 'Completion target' },
+                { value: '50,000', label: 'Projected new jobs' }
+            ]
+        },
+        companies: {
+            name: 'Corporate Sites',
+            description: 'Major semiconductor manufacturers operating within the Kumamoto corridor.',
+            stats: [
+                { value: '5', label: 'Major fabs' },
+                { value: '9,600+', label: 'Direct employees' },
+                { value: '¥3.2T', label: 'Combined investment' }
+            ]
+        },
+        properties: {
+            name: 'Properties',
+            description: 'Investment properties in the semiconductor corridor development zone.',
+            stats: [
+                { value: '+9.1%', label: 'Avg appreciation' },
+                { value: '5.5%', label: 'Rental yield' },
+                { value: '96%', label: 'Occupancy' }
+            ]
+        },
         trafficFlow: {
             name: 'Traffic Flow',
             description: 'Real-time and historical traffic patterns across the Kumamoto semiconductor corridor.',
@@ -1376,5 +1528,18 @@ const AppData = {
                 { value: '#15', label: 'Japan metro rank' }
             ]
         }
+    },
+
+    // Demand projections for stage 8 real estate thesis
+    demandProjections: {
+        rentalDemandForecast: [
+            { year: '2024', units: 1200, growth: '+18%', driver: 'JASM Phase 1 operational' },
+            { year: '2025', units: 1850, growth: '+54%', driver: 'Sony expansion + Tokyo Electron opening' },
+            { year: '2026', units: 2400, growth: '+30%', driver: 'JASM Phase 2 construction workforce' },
+            { year: '2027', units: 3100, growth: '+29%', driver: 'Full corridor operational' },
+            { year: '2028', units: 3600, growth: '+16%', driver: 'Stabilization at capacity' }
+        ],
+        inventoryConstraints: 'Current housing stock serves 65% of projected demand. New construction permits lag behind workforce arrival by 12-18 months, creating sustained rental pressure through 2027.',
+        seasonalNotes: 'Semiconductor shift work creates year-round demand with no seasonal dip. April hiring cycles cause 15-20% rental inquiry spikes.'
     }
 };

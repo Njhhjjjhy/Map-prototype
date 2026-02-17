@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-12
 **Branch:** `feat/hybrid-presentation`
-**Status:** ✅ Completed
+**Status:** Completed
 **Related Plans:**
 - [Hold-to-Confirm Toggle (Previous Approach)](./2026-02-12-hold-to-confirm-toggle.md)
 - [Present/Future Toggle Redesign (Approved Plan)](./2026-02-12-present-future-toggle-redesign.md)
@@ -14,12 +14,12 @@
 Successfully reverted from the hold-to-confirm splash screen interaction back to the **original macOS-style segmented toggle** for Present/Future view switching in Journey B. The toggle was repositioned from top-center (conflicting with progress bar) to **top-left corner**, eliminating all spatial conflicts while maintaining familiar UI patterns. **The toggle remains visible as a permanent map control once it appears at Step B6.**
 
 ### Key Results
-- ✅ **Removed** 22 lines of HTML (hold-splash element)
-- ✅ **Removed** ~170 lines of CSS (hold-splash styles)
-- ✅ **Removed** ~155 lines of JavaScript (4 hold-related methods)
-- ✅ **Restored** original toggle interaction with `setTimeView()` method
-- ✅ **Repositioned** control bar from `right: 24px` to `left: 12px`
-- ✅ **Zero conflicts** with progress bar, right panel, or other UI elements
+- Removed 22 lines of HTML (hold-splash element)
+- Removed ~170 lines of CSS (hold-splash styles)
+- Removed ~155 lines of JavaScript (4 hold-related methods)
+- Restored original toggle interaction with `setTimeView()` method
+- Repositioned control bar from `right: 24px` to `left: 12px`
+- Zero conflicts with progress bar, right panel, or other UI elements
 
 ---
 
@@ -344,10 +344,10 @@ stepB6() {
 ```
 
 **Key Changes:**
-- ❌ Removed `UI.hideChatbox()` and splash screen flow
-- ✅ Added `UI.showTimeToggle()` to reveal segmented control
-- ✅ Chatbox instructs user to use top-left toggle
-- ✅ Evidence options remain available during step
+- Removed `UI.hideChatbox()` and splash screen flow
+- Added `UI.showTimeToggle()` to reveal segmented control
+- Chatbox instructs user to use top-left toggle
+- Evidence options remain available during step
 
 ---
 
@@ -359,7 +359,7 @@ stepB7() {
     this.state.step = 'B7';
 
     // Reset to present view
-    UI.setTimeViewFromHold('present');  // ❌ Deleted method
+    UI.setTimeViewFromHold('present');  // [DELETED METHOD]
     UI.announceToScreenReader('Step 7: Infrastructure changes');
 
     // Show infrastructure roads on the map
@@ -382,7 +382,7 @@ stepB7() {
     this.state.step = 'B7';
 
     // Reset to present view (toggle remains visible)
-    UI.setTimeView('present');          // ✅ Use original method
+    UI.setTimeView('present');          // [USE ORIGINAL METHOD]
     UI.announceToScreenReader('Step 7: Infrastructure changes');
 
     // Show infrastructure roads on the map
@@ -400,8 +400,8 @@ stepB7() {
 ```
 
 **Key Changes:**
-- ✅ Changed `setTimeViewFromHold()` → `setTimeView()`
-- ✅ Toggle remains visible (not hidden)
+- Changed `setTimeViewFromHold()` → `setTimeView()`
+- Toggle remains visible (not hidden)
 
 ---
 
@@ -422,7 +422,7 @@ async transitionToJourneyC() {
     UI.hidePanel();
 
     // Reset to present view
-    UI.setTimeViewFromHold('present');  // ❌ Deleted method
+    UI.setTimeViewFromHold('present');  // [DELETED METHOD]
 
     // 3. Clean up Mapbox layers (silent — markers already faded)
     if (this.state.step === 'B7') {
@@ -448,7 +448,7 @@ async transitionToJourneyC() {
     UI.hidePanel();
 
     // Reset to present view (toggle remains visible)
-    UI.setTimeView('present');          // ✅ Use original method
+    UI.setTimeView('present');          // [USE ORIGINAL METHOD]
 
     // 3. Clean up Mapbox layers (silent — markers already faded)
     if (this.state.step === 'B7') {
@@ -460,8 +460,8 @@ async transitionToJourneyC() {
 ```
 
 **Key Changes:**
-- ✅ Changed `setTimeViewFromHold()` → `setTimeView()`
-- ✅ Toggle remains visible (persists across journey transitions)
+- Changed `setTimeViewFromHold()` → `setTimeView()`
+- Toggle remains visible (persists across journey transitions)
 
 ---
 
@@ -546,7 +546,7 @@ Toggle persists during transition (remains top-left)
 
 ## Testing Checklist
 
-### ✅ Completed Verifications
+### Completed Verifications
 
 - [x] Toggle appears at top-left (12px from left edge) on Step B6 entry
 - [x] Coachmark animation plays on first appearance (3 pulses, ~3.6s)
@@ -704,7 +704,7 @@ If this implementation needs to be reverted:
 **Approved By:** [Pending]
 **Deployment Date:** 2026-02-12
 
-**Status:** ✅ Implementation complete, ready for user testing
+**Status:** Implementation complete, ready for user testing
 
 **Toggle Behavior:** Once revealed at Step B6, the Present/Future toggle remains visible as a permanent map control throughout the rest of the presentation, allowing users to freely switch between time views.
 

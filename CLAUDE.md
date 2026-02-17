@@ -38,6 +38,12 @@ All mandatory constraints are collected here. Each rule has one canonical defini
 - Never use em dash.
 - Use clear, direct, professional communication.
 
+**Context window management:**
+- Never exceed 50% context window usage (100,000 tokens out of 200,000).
+- Break large tasks into smaller steps to prevent context overflow.
+- After completing each step, verify token usage before proceeding.
+- If approaching 50% (100k tokens), pause and ask user before continuing.
+
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).
 - Check `element.parentNode` exists before calling `.remove()`.

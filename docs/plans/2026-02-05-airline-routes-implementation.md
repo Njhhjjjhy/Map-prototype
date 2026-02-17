@@ -471,7 +471,7 @@ Add after `showStationPanel` method (around line 1227):
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
                         <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-warning);">
-                            ⚠ Service Suspended
+                            [WARNING] Service Suspended
                         </div>
                     </div>
                 </div>

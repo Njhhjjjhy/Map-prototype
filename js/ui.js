@@ -851,18 +851,19 @@ const UI = {
             }
         }
 
-        // Inject back button if there's history
-        let finalContent = content;
-        if (this.panelHistory.length > 0) {
-            finalContent = this.injectBackButton(content);
-        }
-
-        this.elements.panelContent.innerHTML = finalContent;
+        this.elements.panelContent.innerHTML = content;
         this.elements.rightPanel.classList.remove('hidden');
         this.elements.rightPanel.classList.add('visible');
         this.panelOpen = true;
+
+        // Update toolbar back button based on history
+        this._updateToolbarBackButton();
+
         // Show panel toggle button (will be visible/active when panel is open)
-        this.showPanelToggle();
+        // Skip in dashboard mode — dashboard uses its own toggle
+        if (!this.dashboardMode) {
+            this.showPanelToggle();
+        }
         this.updatePanelToggleState();
 
         // Announce panel opening to screen readers
@@ -873,27 +874,33 @@ const UI = {
     },
 
     /**
-     * Inject back button into panel content header
+     * Inject back button into panel toolbar
      */
     injectBackButton(content) {
-        // Skip if back button already exists (panel-back-btn or disclosure-back-btn)
-        if (content.includes('panel-back-btn') || content.includes('disclosure-back-btn')) {
-            return content;
-        }
-
-        // Find the subtitle element and inject back button before it
-        const subtitleMatch = content.match(/<div class="subtitle">/);
-        if (subtitleMatch) {
-            const backButtonHtml = `
-                <button class="panel-back-btn" onclick="UI.navigateBack()" aria-label="Go back">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
-            `;
-            return content.replace(/<div class="subtitle">/, backButtonHtml + '<div class="subtitle">');
-        }
+        // Back button is now injected into .panel-toolbar, not into content
+        // This is handled in showPanel via _updateToolbarBackButton
         return content;
+    },
+
+    /**
+     * Update toolbar back button based on history state
+     */
+    _updateToolbarBackButton() {
+        const toolbar = document.querySelector('.panel-toolbar');
+        if (!toolbar) return;
+
+        // Remove existing back button
+        const existing = toolbar.querySelector('.panel-back-btn');
+        if (existing) existing.remove();
+
+        if (this.panelHistory.length > 0) {
+            const backBtn = document.createElement('button');
+            backBtn.className = 'panel-back-btn';
+            backBtn.setAttribute('aria-label', 'Go back');
+            backBtn.onclick = () => this.navigateBack();
+            backBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
+            toolbar.insertBefore(backBtn, toolbar.firstChild);
+        }
     },
 
     /**
@@ -905,13 +912,10 @@ const UI = {
         const previousView = this.panelHistory.pop();
         if (previousView) {
             // Check if we still have more history after this pop
-            let contentToShow = previousView.content;
-            if (this.panelHistory.length > 0) {
-                // Still have history, re-inject back button
-                contentToShow = this.injectBackButton(previousView.content);
-            }
+            this.elements.panelContent.innerHTML = previousView.content;
 
-            this.elements.panelContent.innerHTML = contentToShow;
+            // Update toolbar back button
+            this._updateToolbarBackButton();
 
             // Restore scroll position
             if (previousView.scrollTop !== undefined) {
@@ -955,12 +959,16 @@ const UI = {
             MapController.clearRoute();
 
             // Also reset dashboard state if in dashboard mode
-            if (this.dashboardPanelOpen) {
+            if (this.dashboardPanelOpen || this.dashboardMode) {
                 this.dashboardPanelOpen = false;
+                // Remove floating style
+                panel.classList.remove('dashboard-floating');
                 if (this.elements.dashboardToggle) {
                     this.elements.dashboardToggle.classList.remove('active');
                     this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
                 }
+                // Keep dashboard toggle visible so user can reopen
+                this.showDashboardToggle();
             }
 
             // Fire onPanelClose callback if set
@@ -1030,9 +1038,9 @@ const UI = {
      */
     showResourcePanel(resource) {
         const statsHtml = resource.stats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
+            <div class="panel-bento-stat">
+                <div class="panel-bento-stat-value">${stat.value}</div>
+                <div class="panel-bento-stat-label">${stat.label}</div>
             </div>
         `).join('');
 
@@ -1040,16 +1048,20 @@ const UI = {
         let energyMixHtml = '';
         if (resource.id === 'power' && resource.energyMix) {
             const sourcesHtml = resource.energyMix.sources.map(source => `
-                <div class="energy-source">
+                <div class="energy-source" style="padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border);">
                     <strong>${source.type}:</strong> ${source.examples}
                 </div>
             `).join('');
 
             energyMixHtml = `
-                <div class="energy-mix-section" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-bg-tertiary);">
-                    <h4 style="margin: 0 0 8px 0; font-size: 15px;">Energy Mix</h4>
-                    <p style="font-size: 14px; color: var(--color-text-secondary); margin-bottom: 12px;">${resource.energyMix.description}</p>
-                    <div class="energy-sources" style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+                <div class="panel-bento-card">
+                    <div class="panel-bento-header">
+                        <span class="panel-bento-label">Energy Mix</span>
+                    </div>
+                    <div class="panel-bento-body">
+                        <p>${resource.energyMix.description}</p>
+                    </div>
+                    <div style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-secondary);">
                         ${sourcesHtml}
                     </div>
                 </div>
@@ -1059,12 +1071,33 @@ const UI = {
         const content = `
             <div class="subtitle">${resource.subtitle}</div>
             <h2>${resource.name}</h2>
-            <p>${resource.description}</p>
-            <div class="stat-grid">${statsHtml}</div>
-            ${energyMixHtml}
-            <button class="panel-btn primary" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                View evidence
-            </button>
+
+            <div class="panel-bento-layout">
+                <!-- Description Card -->
+                <div class="panel-bento-card primary">
+                    <div class="panel-bento-body">
+                        <p>${resource.description}</p>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="panel-bento-card">
+                    <div class="panel-bento-stats">
+                        ${statsHtml}
+                    </div>
+                </div>
+
+                ${energyMixHtml}
+
+                <!-- Actions Card -->
+                <div class="panel-bento-card primary">
+                    <div class="panel-bento-actions">
+                        <button class="panel-bento-btn primary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
+                            View Evidence
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
 
         this.showPanel(content);
@@ -1142,394 +1175,30 @@ const UI = {
     },
 
     /**
-     * Show talent pipeline institution panel (Journey A)
+     * Show inspector stage 3 focused on a single institution (Journey A talent pipeline).
+     * Accepts an institution ID string or institution object.
      */
-    showTalentPanel(institution) {
-        if (!institution) return;
+    showTalentInspector(instOrId) {
+        const institutions = AppData.talentPipeline?.institutions || [];
+        const inst = typeof instOrId === 'string'
+            ? institutions.find(i => i.id === instOrId)
+            : instOrId;
+        if (!inst) return;
 
-        const statsHtml = institution.stats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
+        const flyTo = inst.coords ? {
+            center: MapController._toMapbox(inst.coords),
+            zoom: 11,
+            pitch: 35,
+            bearing: 0,
+            duration: 1500
+        } : undefined;
 
-        const content = `
-            <div class="subtitle">Talent Pipeline</div>
-            <h2>${institution.name}</h2>
-            <div style="
-                display: inline-flex;
-                align-items: center;
-                gap: var(--space-2);
-                padding: var(--space-1) var(--space-3);
-                background: ${institution.color}15;
-                border-radius: var(--radius-small);
-                font-family: var(--font-display);
-                font-size: var(--text-sm);
-                font-weight: var(--font-weight-semibold);
-                color: ${institution.color};
-                margin-bottom: var(--space-4);
-            ">${institution.city}</div>
-            <p>${institution.role}</p>
-            <div class="stat-grid">${statsHtml}</div>
-            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">
-                Part of METI's Kyushu Semiconductor Human Resources Development Alliance, strengthening the regional talent supply chain.
-            </p>
-        `;
-
-        this.showPanel(content);
-
-        // Fly to the institution on the map
-        if (institution.coords) {
-            MapController.flyToStep({
-                center: MapController._toMapbox(institution.coords),
-                zoom: 11,
-                pitch: 35,
-                bearing: 0,
-                duration: 1500
-            });
-        }
-    },
-
-    /**
-     * Show Science Park panel (Journey B)
-     */
-    showScienceParkPanel() {
-        const sp = AppData.sciencePark;
-        const statsHtml = sp.stats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-
-        const content = `
-            <div class="subtitle">${sp.subtitle}</div>
-            <h2>${sp.name}</h2>
-            <p>${sp.description}</p>
-            <div class="stat-grid">${statsHtml}</div>
-            <button class="panel-btn" onclick="UI.showInvestmentOverview()">
-                Corporate investment chart
-            </button>
-            <button class="panel-btn primary" onclick="UI.showEvidence('sciencePark', 'sciencePark')">
-                View master plan
-            </button>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
-     * Show company panel (Journey B)
-     */
-    showCompanyPanel(company) {
-        const statsHtml = company.stats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-
-        const content = `
-            <div class="subtitle">${company.subtitle}</div>
-            <h2>${company.name}</h2>
-            <p>${company.description}</p>
-            <div class="stat-grid">${statsHtml}</div>
-            <button class="panel-btn primary" onclick="UI.showEvidence('${company.id}', 'company')">
-                View press release
-            </button>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
-     * Show future zone panel (Journey B - Future view)
-     */
-    showFutureZonePanel(zone) {
-        const statsHtml = zone.stats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-
-        const content = `
-            <div class="subtitle">${zone.subtitle}</div>
-            <h2>${zone.name}</h2>
-            <p>${zone.description}</p>
-            <div class="stat-grid">${statsHtml}</div>
-            <button class="panel-btn primary" onclick="UI.showEvidence('${zone.id}', 'zone')">
-                View development plan
-            </button>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
-     * Show panel for government commitment level
-     * @param {Object} level - Government level data
-     */
-    showGovernmentLevelPanel(level) {
-        const tiers = AppData.governmentTiers;
-        const levelId = level.id;
-
-        // Find which tier (or sub-item) is selected
-        let selectedTierId = null;
-        for (const tier of tiers) {
-            if (tier.id === levelId) {
-                selectedTierId = tier.id;
-                break;
-            }
-            if (tier.subItems) {
-                const sub = tier.subItems.find(s => s.id === levelId);
-                if (sub) {
-                    selectedTierId = tier.id; // Highlight parent tier
-                    break;
-                }
-            }
-        }
-        // Map old IDs to new tier IDs
-        const idToTier = { national: 'central', prefecture: 'prefectural', 'kikuyo-city': 'local', 'ozu-city': 'local', 'grand-airport': 'local' };
-        if (!selectedTierId && idToTier[levelId]) {
-            selectedTierId = idToTier[levelId];
-        }
-
-        // Build visual hierarchy
-        const hierarchyHtml = tiers.map((tier, index) => {
-            const isSelectedTier = tier.id === selectedTierId;
-            const isLastTier = index === tiers.length - 1;
-            const circleSize = 40 - (index * 4);
-            const commitSizes = ['var(--text-3xl)', 'var(--text-2xl)', 'var(--text-xl)'];
-
-            // Sub-items for local tier
-            let subItemsHtml = '';
-            if (tier.subItems) {
-                subItemsHtml = `
-                    <div class="gov-tier-subitems">
-                        ${tier.subItems.map(sub => {
-                            const isSubSelected = sub.id === levelId;
-                            return `
-                                <div class="gov-tier-subitem ${isSubSelected ? 'gov-tier-subitem--selected' : ''}"
-                                     onclick="MapController.selectGovernmentLevel('${sub.id}')">
-                                    <div class="gov-tier-subitem-dot" style="background: ${tier.color};"></div>
-                                    <div class="gov-tier-subitem-content">
-                                        <div class="gov-tier-subitem-name">${sub.name}</div>
-                                        <div class="gov-tier-subitem-subtitle">${sub.subtitle}</div>
-                                    </div>
-                                    <div class="gov-tier-subitem-amount">${sub.commitment}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-            }
-
-            // Connector arrow between tiers
-            const connectorHtml = !isLastTier ? `
-                <div class="gov-tier-connector">
-                    <svg width="2" height="24" viewBox="0 0 2 24">
-                        <line x1="1" y1="0" x2="1" y2="20" stroke="${tier.color}" stroke-width="2" stroke-dasharray="4,3"/>
-                        <polygon points="0,20 1,24 2,20" fill="${tier.color}"/>
-                    </svg>
-                </div>
-            ` : '';
-
-            return `
-                <div class="gov-tier ${isSelectedTier ? 'gov-tier--selected' : ''}"
-                     onclick="MapController.selectGovernmentLevel('${tier.id}')"
-                     style="--tier-color: ${tier.color};">
-                    <div class="gov-tier-header">
-                        <div class="gov-tier-badge" style="width: ${circleSize}px; height: ${circleSize}px; background: ${tier.color};">
-                            <span style="color: white; font-weight: 700; font-size: ${circleSize * 0.4}px;">${index + 1}</span>
-                        </div>
-                        <div class="gov-tier-info">
-                            <div class="gov-tier-label" style="color: ${tier.color};">${tier.tier}</div>
-                            <div class="gov-tier-name">${tier.name}</div>
-                        </div>
-                        <div class="gov-tier-commitment">
-                            <div class="gov-tier-amount" style="font-size: ${commitSizes[index]};">${tier.commitment}</div>
-                            <div class="gov-tier-amount-label">${tier.commitmentLabel}</div>
-                        </div>
-                    </div>
-                    ${subItemsHtml}
-                </div>
-                ${connectorHtml}
-            `;
-        }).join('');
-
-        // Find detail data for selected item
-        let detailData = null;
-        for (const tier of tiers) {
-            if (tier.id === levelId) { detailData = tier; break; }
-            if (tier.subItems) {
-                const sub = tier.subItems.find(s => s.id === levelId);
-                if (sub) { detailData = sub; break; }
-            }
-        }
-        // Fallback to original governmentChain data
-        if (!detailData) {
-            detailData = AppData.governmentChain.levels.find(l => l.id === levelId);
-        }
-        if (!detailData) {
-            detailData = tiers.find(t => t.id === selectedTierId) || tiers[0];
-        }
-
-        const statsHtml = (detailData.stats || []).map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-
-        const content = `
-            <div class="subtitle">Government Support</div>
-            <h2>Cascading Policy Alignment</h2>
-            <p style="margin-bottom: var(--space-6);">Every level of government is aligned behind this corridor \u2014 from national semiconductor strategy down to local zoning approvals.</p>
-            <div class="gov-tier-hierarchy">
-                ${hierarchyHtml}
-            </div>
-            <div style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-bg-tertiary);">
-                <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-3);">${detailData.name}</h3>
-                <p>${detailData.description}</p>
-                ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
-            </div>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
-     * Show infrastructure road panel (Journey B - Infrastructure Roads)
-     */
-    showRoadPanel(road) {
-        const content = `
-            <div class="subtitle">Infrastructure Plan</div>
-            <h2>${road.name}</h2>
-
-            <div class="stat-grid" style="grid-template-columns: 1fr;">
-                <div class="stat-item" style="text-align: center;">
-                    <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-success);">${road.commuteImpact}</div>
-                    <div class="stat-label">Commute Saved</div>
-                </div>
-            </div>
-
-            <div class="stat-grid">
-                <div class="stat-item">
-                    <div class="stat-value">${road.driveToJasm}</div>
-                    <div class="stat-label">Drive to JASM</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${road.status}</div>
-                    <div class="stat-label">Status</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${road.completionDate}</div>
-                    <div class="stat-label">Completion</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${road.budget}</div>
-                    <div class="stat-label">Budget</div>
-                </div>
-            </div>
-
-            <p>${road.description}</p>
-
-            <button class="panel-btn primary" onclick="UI.showGallery('${road.name} - Infrastructure Plan', 'pdf', '${road.description.replace(/'/g, "\\'")}')">
-                View source document
-            </button>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
-     * Show panel for infrastructure station
-     * @param {Object} station - Station data
-     */
-    showStationPanel(station) {
-        const statsHtml = station.stats.map(stat => `
-            <div class="stat-card">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-
-        const content = `
-            <div class="subtitle">Infrastructure Plan</div>
-            <h2>${station.name}</h2>
-            <p class="panel-subtitle">${station.subtitle}</p>
-
-            <div class="headline-metric" style="margin: 16px 0; padding: 16px; background: var(--color-bg-secondary); border-radius: 8px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 600; color: var(--color-success);">${station.commuteImpact}</div>
-                <div style="font-size: 14px; color: var(--color-text-secondary);">New Commute Option</div>
-            </div>
-
-            <div class="stats-grid">
-                ${statsHtml}
-            </div>
-
-            <p style="margin-top: 16px;">${station.description}</p>
-
-            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-bg-tertiary);">
-                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
-                    <span style="color: var(--color-text-secondary);">Status</span>
-                    <span>${station.status}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                    <span style="color: var(--color-text-secondary);">Completion</span>
-                    <span>${station.completionDate}</span>
-                </div>
-            </div>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
-     * Show Haramizu Station development panel
-     * @param {Object} station - Haramizu station data
-     */
-    showHaramizuPanel(station) {
-        const statsHtml = station.stats.map(stat => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-
-        const zonesHtml = station.zones.map(z => `
-            <div style="padding: var(--space-3); background: var(--color-bg-secondary); border-radius: var(--radius-medium); margin-bottom: var(--space-2);">
-                <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base);">
-                    ${z.name}
-                </div>
-                <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-1);">
-                    ${z.description}
-                </div>
-            </div>
-        `).join('');
-
-        const content = `
-            <div class="subtitle">Development Hub</div>
-            <h2>${station.name}</h2>
-
-            <div class="headline-metric" style="margin: var(--space-4) 0; padding: var(--space-4); background: var(--color-bg-secondary); border-radius: var(--radius-medium); text-align: center;">
-                <div style="font-size: var(--text-4xl); font-weight: var(--font-weight-bold); color: var(--color-warning);">${station.stats[0].value}</div>
-                <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">Development Area</div>
-            </div>
-
-            <div class="stat-grid">${statsHtml}</div>
-
-            <p style="margin-top: var(--space-4);">${station.description}</p>
-
-            <div style="margin-top: var(--space-6);">
-                <h3 style="margin-bottom: var(--space-3);">Development Zones</h3>
-                ${zonesHtml}
-            </div>
-        `;
-
-        this.showPanel(content);
+        this.renderInspectorPanel(3, {
+            title: inst.name,
+            institution: inst,
+            startTab: 1,
+            flyTo
+        });
     },
 
     /**
@@ -1737,8 +1406,8 @@ const UI = {
         await this._delay(2000);
         if (drillDown.cancelled) return;
 
-        // Now show the property panel (after the building has been appreciated)
-        this.showPropertyPanel(property);
+        // Now show the inspector panel (after the building has been appreciated)
+        this.renderInspectorPanel(9, { title: property.name, property });
 
         // Stage 3: Crossfade to exterior photo (800ms)
         const overlay = this._ensureTransitionOverlay();
@@ -1927,63 +1596,6 @@ const UI = {
      */
     _delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
-    },
-
-    showPropertyPanel(property) {
-        // Accept string ID or object
-        if (typeof property === 'string') {
-            property = AppData.properties.find(p => p.id === property);
-            if (!property) return;
-        }
-        this.currentProperty = property;
-
-        // Property details section (type, location, zone, JASM distance)
-        const detailsHtml = `
-            <div class="property-details">
-                <div class="property-detail-row">
-                    <span class="property-detail-label">Type</span>
-                    <span class="property-detail-value">${property.type || property.subtitle}</span>
-                </div>
-                <div class="property-detail-row">
-                    <span class="property-detail-label">Location</span>
-                    <span class="property-detail-value">${property.address}</span>
-                </div>
-                <div class="property-detail-row">
-                    <span class="property-detail-label">Zone</span>
-                    <span class="property-detail-value">${property.zone || 'Science Park Corridor'}</span>
-                </div>
-                <div class="property-detail-row">
-                    <span class="property-detail-label">Distance to JASM</span>
-                    <span class="property-detail-value">${property.distanceToJasm} (${property.driveTime} drive)</span>
-                </div>
-            </div>
-        `;
-
-        const content = `
-            <div class="property-image-container" onclick="UI.showPropertyImageQuickLook('${property.image}', '${property.name.replace(/'/g, "\\'")}')">
-                <img src="${property.image}" alt="${property.name}" class="property-image" loading="lazy">
-                <div class="property-image-expand" aria-label="Expand image">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="15 3 21 3 21 9"></polyline>
-                        <polyline points="9 21 3 21 3 15"></polyline>
-                        <line x1="21" y1="3" x2="14" y2="10"></line>
-                        <line x1="3" y1="21" x2="10" y2="14"></line>
-                    </svg>
-                </div>
-            </div>
-            <div class="subtitle">${property.subtitle}</div>
-            <h2>${property.name}</h2>
-            ${detailsHtml}
-            <p>${property.description}</p>
-            <button class="panel-btn" onclick="UI.showTruthEngine()">
-                Truth engine
-            </button>
-            <button class="panel-btn" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty)">
-                Performance calculator
-            </button>
-        `;
-
-        this.showPanel(content);
     },
 
     /**
@@ -3029,6 +2641,14 @@ const UI = {
             layerItem.setAttribute('aria-checked', 'true');
             MapController.showLayer(layerName);
             this.announceToScreenReader(`${this.getLayerDisplayName(layerName)} layer shown`);
+
+            // In dashboard mode, show layer info in the panel
+            if (this.dashboardMode) {
+                const layerData = AppData.dataLayers[layerName];
+                if (layerData) {
+                    this.showDataLayerPanel(layerName, layerData);
+                }
+            }
         }
     },
 
@@ -3646,49 +3266,6 @@ const UI = {
     },
 
     /**
-     * Show property list panel — inventory view for Journey C
-     * Shows all available units as a scrollable list with key metrics
-     */
-    showPropertyListPanel() {
-        const properties = AppData.properties;
-        const formatYen = (num) => '¥' + (num / 1000000).toFixed(1) + 'M';
-
-        const listHtml = properties.map(prop => {
-            const avgYield = (prop.financials.scenarios.average.rentalYield * 100).toFixed(1);
-            return `
-                <div class="property-list-item" onclick="UI.showPropertyPanel('${prop.id}')">
-                    <div class="property-list-image">
-                        <img src="${prop.image}" alt="${prop.name}" loading="lazy">
-                    </div>
-                    <div class="property-list-info">
-                        <div class="property-list-name">${prop.name}</div>
-                        <div class="property-list-type">${prop.type}</div>
-                        <div class="property-list-stats">
-                            <span>${prop.driveTime} to JASM</span>
-                            <span>${formatYen(prop.financials.acquisitionCost)}</span>
-                        </div>
-                    </div>
-                    <div class="property-list-yield">
-                        ${avgYield}%
-                        <span class="property-list-yield-label">Yield</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        const content = `
-            <div class="subtitle">Portfolio</div>
-            <h2>Available Units</h2>
-            <p>Click a property to see detailed financials and projections.</p>
-            <div class="property-list" style="margin-top: var(--space-6);">
-                ${listHtml}
-            </div>
-        `;
-
-        this.showPanel(content);
-    },
-
-    /**
      * Show Performance Calculator with headline stat and progressive disclosure
      * @param {Object} property - Property to show financials for
      * @param {string} scenario - Scenario to highlight (default: 'average')
@@ -3849,7 +3426,7 @@ const UI = {
     getAIChatCTAsHtml() {
         return `
             <div class="ai-chat-ctas">
-                <button class="ai-chat-cta primary" onclick="UI.downloadSummary()">
+                <button class="ai-chat-cta" onclick="UI.downloadSummary()">
                     <span class="ai-chat-cta-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -3857,18 +3434,7 @@ const UI = {
                             <line x1="12" x2="12" y1="15" y2="3"/>
                         </svg>
                     </span>
-                    Download Summary
-                </button>
-                <button class="ai-chat-cta" onclick="UI.scheduleConsultation()">
-                    <span class="ai-chat-cta-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" x2="16" y1="2" y2="6"/>
-                            <line x1="8" x2="8" y1="2" y2="6"/>
-                            <line x1="3" x2="21" y1="10" y2="10"/>
-                        </svg>
-                    </span>
-                    Schedule Consultation
+                    Download summary
                 </button>
             </div>
         `;
@@ -4000,38 +3566,43 @@ const UI = {
     async startDashboardMode() {
         this.dashboardMode = true;
 
-        // Show app container (same transition as journey start)
         this.showApp();
-
-        // Wait for transition
         await new Promise(r => setTimeout(r, 600));
-
-        // Wait for map to be ready before resizing
         await MapController.waitReady();
+        if (MapController.map) MapController.map.resize();
 
-        // Force map to recalculate size
-        if (MapController.map) {
-            MapController.map.resize();
+        try {
+            MapController.clearAll();
+            MapController.resetView();
+        } catch (e) {
+            console.warn('Dashboard: Error resetting map:', e);
         }
 
-        // Reset map to clean state
-        MapController.clearAll();
-        MapController.resetView();
-
-        // Show dashboard toggle button (active state)
         this.showDashboardToggle();
+        this.hidePanelToggle();
 
-        // Show data layers toggle button
+        const controlBar = document.getElementById('control-bar');
+        if (controlBar) controlBar.classList.add('hidden');
+
+        try {
+            this.createDashboardMarkers();
+        } catch (e) {
+            console.error('Dashboard: Error creating markers:', e);
+        }
+
         this.showDataLayers('dashboard');
 
-        // Open dashboard panel
+        // Open inspector panel at stage 8 (real estate overview)
         setTimeout(() => {
-            this.showDashboardPanel();
+            this.renderInspectorPanel(8, { title: 'Kumamoto corridor' });
+            this.dashboardPanelOpen = true;
+            if (this.elements.rightPanel) {
+                this.elements.rightPanel.classList.add('dashboard-floating');
+            }
         }, 300);
 
-        // Show chat FAB after dashboard is ready (for AI chat access)
         setTimeout(() => {
-            this.lastChatType = 'aiChat'; // Ensure FAB opens AI chat
+            this.lastChatType = 'aiChat';
             this.showChatFab();
         }, 600);
     },
@@ -4066,26 +3637,24 @@ const UI = {
     },
 
     /**
-     * Show the dashboard panel
+     * Show the dashboard panel (inspector mode)
      */
     showDashboardPanel() {
         this.dashboardPanelOpen = true;
 
-        // Update toggle button state
         if (this.elements.dashboardToggle) {
             this.elements.dashboardToggle.classList.add('active');
             this.elements.dashboardToggle.setAttribute('aria-expanded', 'true');
         }
 
-        // Generate dashboard content
-        const content = this.generateDashboardContent();
+        this.hidePanelToggle();
 
-        // Show in right panel (clear history for fresh start)
-        this.panelHistory = [];
-        this.elements.panelContent.innerHTML = content;
-        this.elements.rightPanel.classList.remove('hidden');
-        this.elements.rightPanel.classList.add('visible');
-        this.panelOpen = true;
+        const stage = this.inspectorStage || 8;
+        this.renderInspectorPanel(stage, { title: this.inspectorTitle || 'Kumamoto corridor' });
+
+        if (this.dashboardMode && this.elements.rightPanel) {
+            this.elements.rightPanel.classList.add('dashboard-floating');
+        }
     },
 
     /**
@@ -4100,6 +3669,9 @@ const UI = {
             this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
         }
 
+        // Remove floating panel style
+        this.elements.rightPanel.classList.remove('dashboard-floating');
+
         // Hide panel
         this.elements.rightPanel.classList.remove('visible');
         this.elements.rightPanel.classList.add('hidden');
@@ -4107,505 +3679,1049 @@ const UI = {
     },
 
     /**
-     * Generate dashboard panel content
+     * Create core markers for Dashboard mode (no entrance animations)
+     * These markers are needed for data layer toggles to work
      */
-    generateDashboardContent() {
-        return `
-            <div class="dashboard-header">
-                <h2 class="dashboard-title">Investment Dashboard</h2>
-            </div>
-
-            <div class="dashboard-sections">
-                ${this.generateDashboardSection('Properties', 'house', this.generatePropertiesList())}
-                ${this.generateDashboardSection('Corporate Sites', 'building-2', this.generateCorporatesList())}
-                ${this.generateDashboardSection('Infrastructure', 'landmark', this.generateInfrastructureList())}
-                ${this.generateDashboardSection('Evidence Library', 'file-text', this.generateEvidenceList())}
-            </div>
-        `;
-    },
-
-    /**
-     * Generate a collapsible dashboard section
-     */
-    generateDashboardSection(title, icon, content) {
-        const sectionId = title.toLowerCase().replace(/\s+/g, '-');
-        const isExpanded = this.disclosureState[`dashboard-${sectionId}`] !== false; // Default to expanded
-
-        return `
-            <div class="dashboard-section ${isExpanded ? 'expanded' : ''}" data-section="${sectionId}">
-                <button class="dashboard-section-header" onclick="UI.toggleDashboardSection('${sectionId}')" aria-expanded="${isExpanded}">
-                    <span class="dashboard-section-icon">
-                        ${this.getDashboardIcon(icon)}
-                    </span>
-                    <span class="dashboard-section-title">${title}</span>
-                    <span class="dashboard-section-chevron">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </span>
-                </button>
-                <div class="dashboard-section-content">
-                    ${content}
-                </div>
-            </div>
-        `;
-    },
-
-    /**
-     * Get icon SVG for dashboard sections
-     */
-    getDashboardIcon(iconName) {
-        const icons = {
-            'house': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-            'building-2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>',
-            'landmark': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
-            'file-text': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>'
-        };
-        return icons[iconName] || icons['file-text'];
-    },
-
-    /**
-     * Toggle dashboard section expanded/collapsed
-     */
-    toggleDashboardSection(sectionId) {
-        const stateKey = `dashboard-${sectionId}`;
-        this.disclosureState[stateKey] = !this.disclosureState[stateKey];
-
-        // Re-render dashboard content
-        this.elements.panelContent.innerHTML = this.generateDashboardContent();
-    },
-
-    /**
-     * Generate properties list for dashboard
-     */
-    generatePropertiesList() {
-        const properties = AppData.properties || [];
-        if (properties.length === 0) {
-            return '<p class="dashboard-empty">No properties available</p>';
+    createDashboardMarkers() {
+        // Defensive check: ensure map is initialized before accessing it
+        if (!MapController.map || !MapController.initialized) {
+            console.warn('Dashboard: Map not ready, skipping marker creation');
+            return;
         }
 
-        return properties.map(property => `
-            <button class="dashboard-item" onclick="UI.showDashboardPropertyDetail('${property.id}')">
-                <span class="dashboard-item-name">${property.name}</span>
-                <span class="dashboard-item-meta">${property.stats?.type || 'Property'}</span>
-            </button>
-        `).join('');
-    },
+        // Create property markers (for 'properties' layer)
+        AppData.properties.forEach((property) => {
+            const html = MapController._markerIconHtml('property');
+            const { marker, element } = MapController._createMarker(property.coords, html, { entrance: 'none', ariaLabel: property.name });
 
-    /**
-     * Generate corporate sites list for dashboard
-     */
-    generateCorporatesList() {
-        const companies = AppData.companies || [];
-        if (companies.length === 0) {
-            return '<p class="dashboard-empty">No corporate sites available</p>';
-        }
+            MapController._addTooltip(marker, element, property.name);
+            element.addEventListener('click', () => UI.showPropertyReveal(property));
 
-        return companies.map(company => `
-            <button class="dashboard-item" onclick="UI.showDashboardCompanyDetail('${company.id}')">
-                <span class="dashboard-item-name">${company.name}</span>
-                <span class="dashboard-item-meta">${company.subtitle || ''}</span>
-            </button>
-        `).join('');
-    },
+            MapController.markers[property.id] = marker;
+            if (!MapController._layerGroups.properties) MapController._layerGroups.properties = [];
+            MapController._layerGroups.properties.push(property.id);
 
-    /**
-     * Generate infrastructure list for dashboard
-     */
-    generateInfrastructureList() {
-        // Include science park and infrastructure roads
-        let items = '';
-
-        // Science Park
-        if (AppData.sciencePark) {
-            items += `
-                <button class="dashboard-item" onclick="UI.showDashboardScienceParkDetail()">
-                    <span class="dashboard-item-name">${AppData.sciencePark.name || 'Kumamoto Science Park'}</span>
-                    <span class="dashboard-item-meta">Development Zone</span>
-                </button>
-            `;
-        }
-
-        // Infrastructure roads
-        const roads = AppData.infrastructureRoads || [];
-        roads.forEach(road => {
-            items += `
-                <button class="dashboard-item" onclick="UI.showDashboardRoadDetail('${road.id}')">
-                    <span class="dashboard-item-name">${road.name}</span>
-                    <span class="dashboard-item-meta">${road.status || 'Infrastructure'}</span>
-                </button>
-            `;
+            // Start hidden by default (user toggles visibility)
+            marker.remove();
         });
 
-        // Resources (water, power)
-        if (AppData.resources) {
-            Object.keys(AppData.resources).forEach(key => {
-                const resource = AppData.resources[key];
-                items += `
-                    <button class="dashboard-item" onclick="UI.showDashboardResourceDetail('${key}')">
-                        <span class="dashboard-item-name">${resource.name}</span>
-                        <span class="dashboard-item-meta">Resource</span>
-                    </button>
-                `;
+        // Create company markers (for 'companies' layer)
+        AppData.companies.forEach((company) => {
+            const html = MapController._brandedMarkerHtml(company.id);
+            const { marker, element } = MapController._createMarker(company.coords, html, { entrance: 'none', ariaLabel: company.name });
+
+            MapController._addTooltip(marker, element, company.name);
+            element.addEventListener('click', () => UI.renderInspectorPanel(5, { title: company.name }));
+
+            MapController.markers[company.id] = marker;
+            if (!MapController._layerGroups.companies) MapController._layerGroups.companies = [];
+            MapController._layerGroups.companies.push(company.id);
+
+            // Start hidden by default
+            marker.remove();
+        });
+
+        // Create science park boundary and marker (for 'sciencePark' layer)
+        const sp = AppData.sciencePark;
+        if (!MapController._layerGroups.sciencePark) MapController._layerGroups.sciencePark = [];
+
+        // Add boundary circle as Mapbox layer
+        if (!MapController.map.getSource('science-park-source')) {
+            MapController.map.addSource('science-park-source', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: MapController._toMapbox(sp.center)
+                    }
+                }
+            });
+
+            MapController.map.addLayer({
+                id: 'science-park-circle',
+                type: 'circle',
+                source: 'science-park-source',
+                paint: {
+                    'circle-radius': { stops: [[10, 50], [15, 200]] },
+                    'circle-color': '#ff3b30',
+                    'circle-opacity': 0.15,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ff3b30',
+                    'circle-stroke-opacity': 0.4
+                },
+                layout: { 'visibility': 'none' }
             });
         }
 
-        return items || '<p class="dashboard-empty">No infrastructure data available</p>';
+        // Create science park marker
+        const spHtml = MapController._markerIconHtml('sciencePark');
+        const { marker: spMarker, element: spElement } = MapController._createMarker(sp.center, spHtml, { entrance: 'none', ariaLabel: 'Kumamoto Science Park' });
+
+        MapController._addTooltip(spMarker, spElement, 'Kumamoto Science Park');
+        spElement.addEventListener('click', () => {
+            UI.renderInspectorPanel(4, { title: 'Kumamoto Science Park' });
+        });
+
+        MapController.markers['science-park'] = spMarker;
+        MapController._layerGroups.sciencePark.push('science-park');
+
+        // Start hidden by default
+        spMarker.remove();
     },
 
+    // ================================
+    // INSPECTOR PANEL SYSTEM
+    // ================================
+
+    // Inspector state
+    inspectorStage: null,
+    inspectorTab: 0,
+    inspectorTitle: '',
+    inspectorView: 'fund',
+
     /**
-     * Generate evidence list for dashboard
+     * Render the inspector panel for a given stage
      */
-    generateEvidenceList() {
-        const groups = AppData.evidenceGroups ? Object.values(AppData.evidenceGroups) : [];
-        if (groups.length === 0) {
-            return '<p class="dashboard-empty">No evidence available</p>';
+    renderInspectorPanel(stage, options = {}) {
+        const tabDef = STAGE_TABS[stage];
+        if (!tabDef) return;
+
+        this.inspectorStage = stage;
+        this.inspectorTitle = options.title || tabDef.label || '';
+
+        if (options.property) this.currentProperty = options.property;
+
+        // Auto-select tab when entity focus requires it (e.g. institution -> Universities tab)
+        const startTab = options.startTab || 0;
+        this.inspectorTab = startTab;
+
+        const subtitle = tabDef.label || '';
+        const tabs = tabDef.tabs || [];
+
+        let tabsHtml = '';
+        if (tabs.length > 1) {
+            tabsHtml = '<div class="inspector-tabs">' +
+                tabs.map((t, i) =>
+                    `<button class="inspector-tab${i === startTab ? ' active' : ''}" data-tab-index="${i}">${t}</button>`
+                ).join('') +
+                '</div>';
         }
 
-        return groups.map(group => `
-            <button class="dashboard-item" onclick="UI.showDashboardEvidenceGroup('${group.id}')">
-                <span class="dashboard-item-name">${group.title}</span>
-                <span class="dashboard-item-meta">${group.items?.length || 0} items</span>
-            </button>
-        `).join('');
-    },
+        const bodyContent = this.renderStageTab(stage, startTab, options);
 
-    /**
-     * Show property detail from dashboard (with breadcrumb)
-     */
-    showDashboardPropertyDetail(propertyId) {
-        const property = AppData.properties.find(p => p.id === propertyId);
-        if (!property) return;
-
-        // Show on map
-        MapController.clearAll();
-        MapController.showSinglePropertyMarker(property);
-        MapController.flyToLocation(property.coords, 14);
-
-        // Show property panel with breadcrumb
-        this.showPropertyPanelWithBreadcrumb(property);
-    },
-
-    /**
-     * Show company detail from dashboard
-     */
-    showDashboardCompanyDetail(companyId) {
-        const company = AppData.companies.find(c => c.id === companyId);
-        if (!company) return;
-
-        // Show on map
-        MapController.clearAll();
-        MapController.showSingleCompanyMarker(company);
-        MapController.flyToLocation(company.coords, 14);
-
-        // Show company panel with breadcrumb
-        this.showCompanyPanelWithBreadcrumb(company);
-    },
-
-    /**
-     * Show science park detail from dashboard
-     */
-    showDashboardScienceParkDetail() {
-        // Show on map
-        MapController.clearAll();
-        MapController.showSciencePark();
-        MapController.flyToLocation(AppData.sciencePark.center, 12);
-
-        // Show science park panel with breadcrumb
-        this.showScienceParkPanelWithBreadcrumb();
-    },
-
-    /**
-     * Show road detail from dashboard
-     */
-    showDashboardRoadDetail(roadId) {
-        const road = AppData.infrastructureRoads?.find(r => r.id === roadId);
-        if (!road) return;
-
-        // Show on map
-        MapController.clearAll();
-        MapController.showSingleInfrastructureRoad(road);
-
-        // Show road panel with breadcrumb
-        this.showRoadPanelWithBreadcrumb(road);
-    },
-
-    /**
-     * Show resource detail from dashboard
-     */
-    showDashboardResourceDetail(resourceId) {
-        const resource = AppData.resources[resourceId];
-        if (!resource) return;
-
-        // Show on map
-        MapController.clearAll();
-        MapController.showResourceMarker(resourceId);
-
-        // Show resource panel with breadcrumb
-        this.showResourcePanelWithBreadcrumb(resource);
-    },
-
-    /**
-     * Show evidence group from dashboard
-     */
-    showDashboardEvidenceGroup(groupId) {
-        const group = AppData.evidenceGroups?.[groupId];
-        if (!group) return;
-
-        // Show evidence group panel with breadcrumb
-        this.showEvidenceGroupPanelWithBreadcrumb(group);
-    },
-
-    /**
-     * Generate breadcrumb header for detail views
-     */
-    generateBreadcrumb(currentTitle) {
-        return `
-            <nav class="dashboard-breadcrumb" aria-label="Breadcrumb">
-                <button class="breadcrumb-link" onclick="UI.showDashboardPanel()">
-                    Dashboard
-                </button>
-                <span class="breadcrumb-separator">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                </span>
-                <span class="breadcrumb-current">${currentTitle}</span>
-            </nav>
-        `;
-    },
-
-    /**
-     * Show property panel with breadcrumb navigation
-     */
-    showPropertyPanelWithBreadcrumb(property) {
-        const breadcrumb = this.generateBreadcrumb(property.name);
-        const propertyContent = this.generatePropertyContent(property);
-
-        const content = `
-            ${breadcrumb}
-            ${propertyContent}
+        const html = `
+            <div class="inspector-resize-handle"></div>
+            <div class="inspector-title-bar">
+                <div class="inspector-subtitle">${subtitle}</div>
+                <h2 class="inspector-title">${this.inspectorTitle}</h2>
+            </div>
+            ${tabsHtml}
+            <div class="inspector-body">
+                <div class="icard-grid">${bodyContent}</div>
+            </div>
         `;
 
-        this.elements.panelContent.innerHTML = content;
+        this.showPanel(html, { clearHistory: true });
 
-        // Render charts after DOM update
         setTimeout(() => {
-            this.renderPropertyCharts(property);
-        }, 50);
+            const panel = this.elements.rightPanel;
+            if (!panel) return;
+
+            if (this.dashboardMode) {
+                panel.classList.add('dashboard-floating');
+            }
+
+            panel.querySelectorAll('.inspector-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.switchInspectorTab(parseInt(btn.dataset.tabIndex, 10), options);
+                });
+            });
+
+            this.initPanelResize();
+            this._attachInspectorHandlers(options);
+        }, 0);
+
+        // Fly to entity coordinates if provided
+        if (options.flyTo && typeof MapController !== 'undefined') {
+            MapController.flyToStep(options.flyTo);
+        }
     },
 
     /**
-     * Generate property content (reusable)
+     * Switch active inspector tab
      */
-    generatePropertyContent(property) {
-        // Use basicStats array format from property data
-        const statsHtml = property.basicStats ? property.basicStats.map(stat => `
-            <div class="stat">
-                <span class="stat-value">${stat.value}</span>
-                <span class="stat-label">${stat.label}</span>
-            </div>
-        `).join('') : '';
+    switchInspectorTab(tabIndex, options = {}) {
+        this.inspectorTab = tabIndex;
+        const panel = this.elements.rightPanel;
+        if (!panel) return;
 
-        return `
-            <div class="subtitle">Investment Property</div>
-            <h2>${property.name}</h2>
+        panel.querySelectorAll('.inspector-tab').forEach((btn, i) => {
+            btn.classList.toggle('active', i === tabIndex);
+        });
 
-            <div class="panel-stats">
-                ${statsHtml}
-            </div>
-
-            ${property.description ? `<p class="panel-description">${property.description}</p>` : ''}
-
-            ${property.financials ? this.generateFinancialsSection(property) : ''}
-        `;
+        const body = panel.querySelector('.inspector-body');
+        if (body) {
+            body.innerHTML = '<div class="icard-grid">' +
+                this.renderStageTab(this.inspectorStage, tabIndex, options) +
+                '</div>';
+            this._attachInspectorHandlers(options);
+        }
     },
 
     /**
-     * Show company panel with breadcrumb navigation
+     * Update inspector panel based on current step
      */
-    showCompanyPanelWithBreadcrumb(company) {
-        const breadcrumb = this.generateBreadcrumb(company.name);
+    updateInspectorForStep(stepId) {
+        const stage = STAGE_MAP[stepId];
+        if (!stage || stage <= 2) return;
 
-        // Company stats are in array format { value, label }
-        const statsHtml = company.stats ? company.stats.map(stat => `
-            <div class="stat">
-                <span class="stat-value">${stat.value}</span>
-                <span class="stat-label">${stat.label}</span>
-            </div>
-        `).join('') : '';
-
-        const content = `
-            ${breadcrumb}
-            <div class="subtitle">${company.subtitle || 'Corporate Site'}</div>
-            <h2>${company.name}</h2>
-
-            <div class="panel-stats">
-                ${statsHtml}
-            </div>
-
-            ${company.description ? `<p class="panel-description">${company.description}</p>` : ''}
-        `;
-
-        this.elements.panelContent.innerHTML = content;
+        if (stage !== this.inspectorStage) {
+            const tabDef = STAGE_TABS[stage] || {};
+            this.renderInspectorPanel(stage, { title: tabDef.label || '' });
+        }
     },
 
     /**
-     * Show science park panel with breadcrumb navigation
+     * Initialize left-edge panel resize
      */
-    showScienceParkPanelWithBreadcrumb() {
-        const breadcrumb = this.generateBreadcrumb('Science Park');
-        const sciencePark = AppData.sciencePark;
+    initPanelResize() {
+        const panel = this.elements.rightPanel;
+        if (!panel) return;
+        const handle = panel.querySelector('.inspector-resize-handle');
+        if (!handle) return;
 
-        // Science park stats are in array format { value, label }
-        const statsHtml = sciencePark.stats ? sciencePark.stats.map(stat => `
-            <div class="stat">
-                <span class="stat-value">${stat.value}</span>
-                <span class="stat-label">${stat.label}</span>
-            </div>
-        `).join('') : '';
-
-        const content = `
-            ${breadcrumb}
-            <div class="subtitle">Development Zone</div>
-            <h2>${sciencePark.name || 'Kumamoto Science Park'}</h2>
-
-            <div class="panel-stats">
-                ${statsHtml}
-            </div>
-
-            ${sciencePark.description ? `<p class="panel-description">${sciencePark.description}</p>` : ''}
-        `;
-
-        this.elements.panelContent.innerHTML = content;
+        handle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            const onMouseMove = (ev) => {
+                const maxWidth = window.innerWidth * 0.6;
+                let width = window.innerWidth - ev.clientX;
+                width = Math.max(320, Math.min(width, maxWidth));
+                panel.style.setProperty('--panel-width', width + 'px');
+                panel.style.width = width + 'px';
+            };
+            const onMouseUp = () => {
+                handle.classList.remove('active');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
     },
 
     /**
-     * Show road panel with breadcrumb navigation
+     * Render content for a stage tab
      */
-    showRoadPanelWithBreadcrumb(road) {
-        const breadcrumb = this.generateBreadcrumb(road.name);
-
-        // Construct stats from flat road properties
-        const stats = [];
-        if (road.driveToJasm) stats.push({ value: road.driveToJasm, label: 'Drive to JASM' });
-        if (road.status) stats.push({ value: road.status, label: 'Status' });
-        if (road.completionDate) stats.push({ value: road.completionDate, label: 'Completion' });
-        if (road.budget) stats.push({ value: road.budget, label: 'Budget' });
-
-        const statsHtml = stats.map(stat => `
-            <div class="stat">
-                <span class="stat-value">${stat.value}</span>
-                <span class="stat-label">${stat.label}</span>
-            </div>
-        `).join('');
-
-        const content = `
-            ${breadcrumb}
-            <div class="subtitle">Infrastructure Plan</div>
-            <h2>${road.name}</h2>
-
-            ${road.commuteImpact ? `
-                <div class="panel-headline-metric">
-                    <span class="headline-value">${road.commuteImpact}</span>
-                    <span class="headline-label">Commute Saved</span>
-                </div>
-            ` : ''}
-
-            <div class="panel-stats">
-                ${statsHtml}
-            </div>
-
-            ${road.description ? `<p class="panel-description">${road.description}</p>` : ''}
-
-            ${road.documentLink ? `
-                <button class="panel-btn" onclick="UI.showGallery('${road.documentLink}')">
-                    View source document
-                </button>
-            ` : ''}
-        `;
-
-        this.elements.panelContent.innerHTML = content;
+    renderStageTab(stage, tabIndex, options = {}) {
+        switch (stage) {
+            case 3: return this._renderStage3(tabIndex, options);
+            case 4: return this._renderStage4(tabIndex);
+            case 5: return this._renderStage5(tabIndex);
+            case 6: return this._renderStage6(tabIndex, options);
+            case 7: return this._renderStage7(tabIndex);
+            case 8: return this._renderStage8(tabIndex);
+            case 9: return this._renderStage9(tabIndex, options);
+            default: return '';
+        }
     },
 
-    /**
-     * Show resource panel with breadcrumb navigation
-     */
-    showResourcePanelWithBreadcrumb(resource) {
-        const breadcrumb = this.generateBreadcrumb(resource.name);
-
-        // Resource stats are in array format { value, label }
-        const statsHtml = resource.stats ? resource.stats.map(stat => `
-            <div class="stat">
-                <span class="stat-value">${stat.value}</span>
-                <span class="stat-label">${stat.label}</span>
-            </div>
-        `).join('') : '';
-
-        const content = `
-            ${breadcrumb}
-            <div class="subtitle">Resource</div>
-            <h2>${resource.name}</h2>
-
-            <div class="panel-stats">
-                ${statsHtml}
-            </div>
-
-            ${resource.description ? `<p class="panel-description">${resource.description}</p>` : ''}
-        `;
-
-        this.elements.panelContent.innerHTML = content;
+    _renderStage3(tabIndex, options = {}) {
+        switch (tabIndex) {
+            case 0: return this.renderWorkforceCard();
+            case 1:
+                // Entity-focused view: single institution card
+                if (options.institution) {
+                    return this.renderInstitutionCard(options.institution);
+                }
+                return (AppData.talentPipeline?.institutions || [])
+                    .map(inst => this.renderInstitutionCard(inst)).join('');
+            case 2: return this._renderEvidenceForGroup('education-pipeline');
+            default: return '';
+        }
     },
 
-    /**
-     * Show evidence group panel with breadcrumb navigation
-     */
-    showEvidenceGroupPanelWithBreadcrumb(group) {
-        const breadcrumb = this.generateBreadcrumb(group.title);
-
-        // Generate items list
-        const itemsList = (group.items || []).map(item => `
-            <button class="dashboard-item evidence-item" onclick="UI.showDashboardEvidenceItem('${group.id}', '${item.id}')">
-                <span class="dashboard-item-name">${item.title}</span>
-                <span class="dashboard-item-meta">${item.type || 'Document'}</span>
-            </button>
-        `).join('');
-
-        const content = `
-            ${breadcrumb}
-            <div class="subtitle">Evidence Library</div>
-            <h2>${group.title}</h2>
-
-            <div class="evidence-items-list">
-                ${itemsList || '<p class="dashboard-empty">No items in this group</p>'}
-            </div>
-        `;
-
-        this.elements.panelContent.innerHTML = content;
-
-        // Show markers for this group on map
-        MapController.clearAll();
-        MapController.showEvidenceGroupMarkers(group);
+    _renderStage4(tabIndex) {
+        switch (tabIndex) {
+            case 0: {
+                let html = this.renderZoneProfileCard(AppData.sciencePark);
+                const tiers = AppData.governmentTiers || [];
+                tiers.forEach(t => {
+                    html += `<div class="icard icard-standard">
+                        <div class="icard-title">${t.name}</div>
+                        <div class="icard-stats-grid">
+                            ${(t.stats || []).map(s => `<div class="icard-stat">
+                                <div class="icard-stat-value">${s.value}</div>
+                                <div class="icard-stat-label">${s.label}</div>
+                            </div>`).join('')}
+                        </div>
+                    </div>`;
+                });
+                return html;
+            }
+            case 1: return this.renderTimelineCard(this._gatherTimelineItems('infrastructure'), 'Infrastructure timeline');
+            case 2: return this._renderEvidenceForGroup('government-zones');
+            default: return '';
+        }
     },
 
-    /**
-     * Show individual evidence item from dashboard
-     */
-    showDashboardEvidenceItem(groupId, itemId) {
+    _renderStage5(tabIndex) {
+        const companies = AppData.companies || [];
+        switch (tabIndex) {
+            case 0:
+                // Stage 5: card order matches pin-drop animation sequence
+                return companies.map(c => this.renderCorporateCard(c)).join('');
+            case 1: {
+                const items = companies.map(c => ({
+                    date: (c.stats?.find(s => s.label.includes('operational') || s.label.includes('Opening') || s.label.includes('Completion'))?.value) || '',
+                    title: c.name,
+                    meta: (c.stats?.find(s => s.label.includes('investment') || s.label === 'Investment')?.value) || '',
+                    status: 'Confirmed'
+                }));
+                return this.renderTimelineCard(items, 'Corporate commitment timeline');
+            }
+            case 2: {
+                return companies.map(c => {
+                    if (!c.evidence) return '';
+                    return this.renderEvidenceDocCard({
+                        id: c.id + '-evidence',
+                        title: c.evidence.title || c.name + ' announcement',
+                        type: c.evidence.type || 'pdf',
+                        date: '',
+                        viewed: false
+                    });
+                }).join('');
+            }
+            default: return '';
+        }
+    },
+
+    _renderStage6(tabIndex, options) {
+        const zones = AppData.futureZones || [];
+        const zone = options.zone || zones[0] || {};
+        switch (tabIndex) {
+            case 0: return this.renderZoneProfileCard(zone);
+            case 1: {
+                let html = '';
+                const props = AppData.properties || [];
+                if (props.length) {
+                    const avgYield = props.reduce((s, p) => {
+                        const avg = p.financials?.scenarios?.average;
+                        return s + (avg?.rentalYield || 0);
+                    }, 0) / props.length;
+                    html += this.renderYieldSummaryCard({
+                        financials: { scenarios: {
+                            bear: { rentalYield: avgYield * 0.8 },
+                            average: { rentalYield: avgYield },
+                            bull: { rentalYield: avgYield * 1.2 }
+                        }}
+                    });
+                }
+                return html;
+            }
+            case 2: return this._renderEvidenceForGroup('government-zones');
+            default: return '';
+        }
+    },
+
+    _renderStage7(tabIndex) {
+        switch (tabIndex) {
+            case 0: {
+                let html = '';
+                const risks = AppData.dataLayers?.riskyArea?.markers || [];
+                risks.forEach(r => html += this.renderRiskCard(r));
+                const roads = AppData.infrastructureRoads || [];
+                roads.forEach(road => {
+                    html += `<div class="icard icard-standard">
+                        <div class="icard-title">${road.name}</div>
+                        <div class="icard-stats-grid">
+                            <div class="icard-stat">
+                                <div class="icard-stat-value">${road.status}</div>
+                                <div class="icard-stat-label">Status</div>
+                            </div>
+                            <div class="icard-stat">
+                                <div class="icard-stat-value">${road.commuteImpact}</div>
+                                <div class="icard-stat-label">Commute saved</div>
+                            </div>
+                            <div class="icard-stat">
+                                <div class="icard-stat-value">${road.completionDate}</div>
+                                <div class="icard-stat-label">Completion</div>
+                            </div>
+                            <div class="icard-stat">
+                                <div class="icard-stat-value">${road.budget}</div>
+                                <div class="icard-stat-label">Budget</div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                return html;
+            }
+            case 1: return this.renderTimelineCard(this._gatherTimelineItems('history'), 'Event history');
+            case 2: {
+                let html = this.renderTimelineCard(this._gatherTimelineItems('mitigation'), 'Mitigation investments');
+                html += this._renderEvidenceForGroup('transportation-network');
+                return html;
+            }
+            default: return '';
+        }
+    },
+
+    _renderStage8(tabIndex) {
+        switch (tabIndex) {
+            case 0: return this.renderDemandCard();
+            case 1: {
+                let html = '';
+                const props = AppData.properties || [];
+                if (props.length) {
+                    html += this.renderYieldSummaryCard(props[0]);
+                }
+                const stats = AppData.areaStats || {};
+                html += `<div class="icard icard-standard">
+                    <div class="icard-title">Area statistics</div>
+                    <div class="icard-yield-row">
+                        <div class="icard-yield-item">
+                            <div class="icard-yield-value">${stats.avgAppreciation || 'n/a'}</div>
+                            <div class="icard-yield-label">Avg appreciation</div>
+                        </div>
+                        <div class="icard-yield-item">
+                            <div class="icard-yield-value">${stats.avgRentalYield || 'n/a'}</div>
+                            <div class="icard-yield-label">Avg rental yield</div>
+                        </div>
+                        <div class="icard-yield-item">
+                            <div class="icard-yield-value">${stats.occupancyRate || 'n/a'}</div>
+                            <div class="icard-yield-label">Occupancy rate</div>
+                        </div>
+                    </div>
+                </div>`;
+                return html;
+            }
+            case 2:
+                return (AppData.properties || []).map(p => this.renderPropertySummaryCard(p)).join('');
+            default: return '';
+        }
+    },
+
+    _renderStage9(tabIndex, options) {
+        const property = options.property || this.currentProperty || (AppData.properties && AppData.properties[0]) || {};
+        switch (tabIndex) {
+            case 0:
+                return this.renderDecisionBadgeCard(property) +
+                    this.renderCalculatorCard(property) +
+                    this.renderYieldSummaryCard(property) +
+                    this.renderCommuteCard(property);
+            case 1:
+                return this.renderStickySummaryRow(property) +
+                    this.renderFinancialTableCard(this._buildAcquisitionTable(property), 'Acquisition costs') +
+                    this.renderFinancialTableCard(this._buildRentalTable(property), 'Rental income projection');
+            case 2: {
+                let html = '';
+                const images = [property.exteriorImage, ...(property.interiorImages || [])].filter(Boolean);
+                if (images.length) {
+                    html += this.renderEvidenceGalleryCard(images, property.name || 'Property gallery');
+                }
+                if (property.rentalReport) {
+                    html += this.renderEvidenceDocCard({
+                        ...property.rentalReport,
+                        id: property.id + '-rental-report'
+                    });
+                }
+                return html;
+            }
+            default: return '';
+        }
+    },
+
+    // ---- Evidence / timeline helpers ----
+
+    _renderEvidenceForGroup(groupId) {
         const group = AppData.evidenceGroups?.[groupId];
-        if (!group) return;
+        if (!group || !group.items?.length) {
+            return '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No evidence documents available.</p></div>';
+        }
+        return group.items.map(item => this.renderEvidenceDocCard(item)).join('');
+    },
 
-        const item = group.items?.find(i => i.id === itemId);
-        if (!item) return;
+    _gatherTimelineItems(type) {
+        if (type === 'infrastructure') {
+            const roads = AppData.infrastructureRoads || [];
+            const station = AppData.infrastructureStation ? [AppData.infrastructureStation] : [];
+            const haramizu = AppData.haramizuStation ? [AppData.haramizuStation] : [];
+            return [...roads, ...station, ...haramizu].map(item => ({
+                date: item.completionDate || item.completion || '',
+                title: item.name || '',
+                meta: item.budget || '',
+                status: item.status || ''
+            }));
+        }
+        if (type === 'history') {
+            return [
+                { date: '2016', title: 'Kumamoto earthquake', meta: 'M7.3, significant infrastructure damage', status: 'Past' },
+                { date: '2021', title: 'TSMC Japan announced', meta: 'National semiconductor strategy launched', status: 'Past' },
+                { date: '2022', title: 'JASM construction begins', meta: 'Phase 1 groundbreaking', status: 'Past' },
+                { date: '2024', title: 'JASM Phase 1 operational', meta: 'First wafers produced', status: 'Past' },
+                { date: '2025', title: 'Phase 2 construction', meta: 'Second fab under construction', status: 'Current' }
+            ];
+        }
+        if (type === 'mitigation') {
+            const risks = AppData.dataLayers?.riskyArea?.markers || [];
+            return risks.map(r => ({
+                date: r.mitigation?.includes('2025') ? '2025' : '2024',
+                title: r.name,
+                meta: r.mitigation || '',
+                status: 'Planned'
+            }));
+        }
+        return [];
+    },
 
-        // Show on map if item has location
-        if (item.coords) {
-            MapController.flyToLocation(item.coords, 15);
+    _buildAcquisitionTable(property) {
+        const cost = property.financials?.acquisitionCost || 0;
+        const breakdown = property.costBreakdown || {};
+        return {
+            headers: ['Item', 'Amount'],
+            rows: [
+                { label: 'Hard costs', values: [this.formatYen(breakdown.hardCosts || Math.round(cost * 0.87))] },
+                { label: 'Acquisition fees', values: [this.formatYen(breakdown.acquisitionFees || Math.round(cost * 0.05))], isDisclosure: true, subRows: [
+                    { label: 'Agent commission', values: [this.formatYen(Math.round(cost * 0.03))] },
+                    { label: 'Legal and admin', values: [this.formatYen(breakdown.legalFees || Math.round(cost * 0.02))] }
+                ]},
+                { label: 'Fit-out', values: [this.formatYen(breakdown.fitOut || Math.round(cost * 0.04))] },
+                { label: 'Stamp duty', values: [this.formatYen(breakdown.stampDuty || Math.round(cost * 0.03))] },
+                { label: 'Total investment', values: [this.formatYen(cost)], isTotal: true }
+            ]
+        };
+    },
+
+    _buildRentalTable(property) {
+        const rp = property.rentalProjections || {};
+        const bear = rp.bear || {};
+        const avg = rp.average || {};
+        const bull = rp.bull || {};
+        return {
+            headers: ['', 'Bear', 'Average', 'Bull'],
+            rows: [
+                { label: 'Monthly rent', values: [this.formatYen(bear.monthlyRent || 0), this.formatYen(avg.monthlyRent || 0), this.formatYen(bull.monthlyRent || 0)] },
+                { label: 'Management fee', values: [this.formatYen(bear.managementFee || 0), this.formatYen(avg.managementFee || 0), this.formatYen(bull.managementFee || 0)] },
+                { label: 'Vacancy rate', values: [(bear.vacancyRate * 100 || 0).toFixed(0) + '%', (avg.vacancyRate * 100 || 0).toFixed(0) + '%', (bull.vacancyRate * 100 || 0).toFixed(0) + '%'] },
+                { label: 'Net annual income', values: [this.formatYen(bear.annualNetIncome || 0), this.formatYen(avg.annualNetIncome || 0), this.formatYen(bull.annualNetIncome || 0)], isTotal: true }
+            ]
+        };
+    },
+
+    // ---- Card renderers ----
+
+    renderDecisionBadgeCard(property) {
+        const rec = property.recommendation || 'hold';
+        const metrics = property.decisionMetrics || [];
+        return `<div class="icard icard-compact icard-decision ${rec}">
+            <div class="icard-decision-label">${rec}</div>
+            <div class="icard-decision-metrics">
+                ${metrics.map(m => `<div class="icard-decision-metric"><strong>${m.label}:</strong> ${m.value}</div>`).join('')}
+            </div>
+        </div>`;
+    },
+
+    renderFinancialTableCard(tableData, title) {
+        if (!tableData) return '';
+        const headers = tableData.headers || [];
+        const rows = tableData.rows || [];
+
+        const renderRow = (row) => {
+            const cls = row.isTotal ? 'row-total' : (row.isDisclosure ? 'icard-disclosure-row' : 'row-header');
+            let html = `<tr class="${cls}"${row.isDisclosure ? ' data-disclosure="collapsed"' : ''}>
+                <td>${row.isDisclosure ? '<span class="disclosure-arrow">&#9654;</span> ' : ''}${row.label}</td>
+                ${(row.values || []).map(v => `<td>${v}</td>`).join('')}
+            </tr>`;
+            if (row.isDisclosure && row.subRows) {
+                row.subRows.forEach(sr => {
+                    html += `<tr class="icard-sub-row" style="display: none;">
+                        <td>${sr.label}</td>
+                        ${(sr.values || []).map(v => `<td>${v}</td>`).join('')}
+                    </tr>`;
+                });
+            }
+            return html;
+        };
+
+        return `<div class="icard icard-hero">
+            <div class="icard-title">${title}</div>
+            <table class="icard-financial-table">
+                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <tbody>${rows.map(r => renderRow(r)).join('')}</tbody>
+            </table>
+        </div>`;
+    },
+
+    renderCalculatorCard(property) {
+        const fin = property.financials || {};
+        const scenarios = fin.scenarios || {};
+        const scenario = this.currentScenario || 'average';
+        const sc = scenarios[scenario] || {};
+        const view = this.inspectorView || 'fund';
+        const broker = property.brokerMetrics || {};
+        const thumb = property.thumbnail || '';
+
+        let statsHtml = '';
+        if (view === 'fund') {
+            const rows = [
+                { label: 'Total cost', value: this.formatYen(fin.acquisitionCost || 0) },
+                { label: 'Selling price', value: this.formatYen(sc.sellingPrice || 0) },
+                { label: 'Tax', value: this.formatYen(sc.taxes || 0) },
+                { label: 'Annual rent', value: this.formatYen(sc.annualRent || 0) },
+                { label: 'Net profit', value: this.formatYen(sc.netProfit || 0), highlight: true }
+            ];
+            statsHtml = rows.map(r => `<div class="icard-calc-row">
+                <span class="icard-calc-label">${r.label}</span>
+                <span class="icard-calc-value${r.highlight ? ' highlight' : ''}">${r.value}</span>
+            </div>`).join('');
+        } else {
+            const rows = [
+                { label: 'Rental high', value: this.formatYen(broker.rentalHigh || 0) + '/mo' },
+                { label: 'Rental average', value: this.formatYen(broker.rentalAvg || 0) + '/mo' },
+                { label: 'Rental low', value: this.formatYen(broker.rentalLow || 0) + '/mo' },
+                { label: 'Projected growth', value: ((broker.projectedGrowth || 0) * 100).toFixed(1) + '%' },
+                { label: 'Area average', value: this.formatYen(broker.areaAverage || 0) + '/mo' }
+            ];
+            statsHtml = rows.map(r => `<div class="icard-calc-row">
+                <span class="icard-calc-label">${r.label}</span>
+                <span class="icard-calc-value">${r.value}</span>
+            </div>`).join('');
         }
 
-        // Show gallery for the evidence item
-        if (item.source) {
-            this.showGallery(item.source);
+        return `<div class="icard icard-hero icard-calculator">
+            <div class="icard-calculator-header">
+                <div class="icard-title">Return calculator</div>
+                ${thumb ? `<img class="icard-calculator-thumbnail" src="${thumb}" alt="${property.name || ''}" />` : ''}
+            </div>
+            <div class="icard-calculator-controls">
+                <div class="icard-scenario-toggle">
+                    <button class="icard-scenario-btn${scenario === 'bear' ? ' active' : ''}" data-scenario="bear">Bear</button>
+                    <button class="icard-scenario-btn${scenario === 'average' ? ' active' : ''}" data-scenario="average">Avg</button>
+                    <button class="icard-scenario-btn${scenario === 'bull' ? ' active' : ''}" data-scenario="bull">Bull</button>
+                </div>
+                <div class="icard-view-toggle">
+                    <button class="icard-view-btn${view === 'fund' ? ' active' : ''}" data-view="fund">Fund manager</button>
+                    <button class="icard-view-btn${view === 'broker' ? ' active' : ''}" data-view="broker">Broker</button>
+                </div>
+            </div>
+            <div class="icard-calc-stats">${statsHtml}</div>
+        </div>`;
+    },
+
+    renderYieldSummaryCard(property) {
+        const fin = property.financials || {};
+        const scenarios = fin.scenarios || {};
+        const bear = scenarios.bear || {};
+        const avg = scenarios.average || {};
+        const bull = scenarios.bull || {};
+
+        const grossYield = (v) => ((v.rentalYield || 0) * 100).toFixed(1);
+        const netYield = (v) => ((v.rentalYield || 0) * 100 * 0.85).toFixed(1);
+        const cashOnCash = (v) => ((v.netProfit || 0) / (fin.acquisitionCost || 1) * 100).toFixed(1);
+
+        return `<div class="icard icard-standard">
+            <div class="icard-title">Yield summary</div>
+            <div class="icard-yield-row">
+                <div class="icard-yield-item">
+                    <div class="icard-yield-value">${grossYield(avg)}%</div>
+                    <div class="icard-yield-label">Gross yield</div>
+                    <div class="icard-yield-range">${grossYield(bear)}% - ${grossYield(bull)}%</div>
+                </div>
+                <div class="icard-yield-item">
+                    <div class="icard-yield-value">${netYield(avg)}%</div>
+                    <div class="icard-yield-label">Net yield</div>
+                    <div class="icard-yield-range">${netYield(bear)}% - ${netYield(bull)}%</div>
+                </div>
+                <div class="icard-yield-item">
+                    <div class="icard-yield-value">${cashOnCash(avg)}%</div>
+                    <div class="icard-yield-label">Cash-on-cash</div>
+                    <div class="icard-yield-range">${cashOnCash(bear)}% - ${cashOnCash(bull)}%</div>
+                </div>
+            </div>
+        </div>`;
+    },
+
+    renderEvidenceDocCard(item) {
+        const meta = [item.date || ''].filter(Boolean).join(' ');
+        return `<div class="icard icard-compact" data-evidence-id="${item.id || ''}">
+            <div class="icard-evidence-doc">
+                <div class="icard-evidence-thumb">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                </div>
+                <div class="icard-evidence-info">
+                    <div class="icard-evidence-title">${item.title || 'Document'}</div>
+                    ${meta ? `<div class="icard-evidence-meta">${meta}</div>` : ''}
+                </div>
+                ${item.viewed ? '<span class="icard-evidence-viewed">&#10003;</span>' : ''}
+            </div>
+        </div>`;
+    },
+
+    renderEvidenceGalleryCard(images, title) {
+        const thumbs = (images || []).slice(0, 6);
+        return `<div class="icard icard-compact">
+            <div class="icard-title">${title || 'Gallery'}</div>
+            <div class="icard-gallery-grid">
+                ${thumbs.map((src, i) => `<img class="icard-gallery-thumb" src="${src}" alt="${title || 'Image'}" data-gallery-index="${i}" loading="lazy" />`).join('')}
+            </div>
+        </div>`;
+    },
+
+    renderCorporateCard(company) {
+        const initial = (company.name || 'C').charAt(0);
+        const stats = company.stats || [];
+        return `<div class="icard icard-standard" data-company-id="${company.id || ''}">
+            <div class="icard-source">${company.evidence?.title || ''}</div>
+            <div class="icard-corporate-header">
+                <div class="icard-corporate-logo">${initial}</div>
+                <div>
+                    <div class="icard-corporate-name">${company.name}</div>
+                    <div class="icard-corporate-subtitle">${company.subtitle || ''}</div>
+                </div>
+            </div>
+            <div class="icard-stats-grid">
+                ${stats.map(s => `<div class="icard-stat">
+                    <div class="icard-stat-value">${s.value}</div>
+                    <div class="icard-stat-label">${s.label}</div>
+                </div>`).join('')}
+            </div>
+        </div>`;
+    },
+
+    renderTimelineCard(items, title) {
+        if (!items || !items.length) {
+            return `<div class="icard icard-hero"><div class="icard-title">${title || 'Timeline'}</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No timeline data available.</p></div>`;
+        }
+        const now = new Date().getFullYear();
+        return `<div class="icard icard-hero">
+            <div class="icard-title">${title || 'Timeline'}</div>
+            <div class="icard-timeline">
+                ${items.map(item => {
+                    const year = parseInt(String(item.date), 10);
+                    const isFuture = item.status === 'Planning' || item.status === 'Planned' || (year && year > now);
+                    return `<div class="icard-timeline-item${isFuture ? ' future' : ''}">
+                        <div class="icard-timeline-date">${item.date || ''}</div>
+                        <div class="icard-timeline-title">${item.title || ''}</div>
+                        ${item.meta ? `<div class="icard-timeline-meta">${item.meta}</div>` : ''}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    },
+
+    renderCommuteCard(property) {
+        const shifts = property.commuteShifts || {};
+        return `<div class="icard icard-standard">
+            <div class="icard-title">Commute to JASM</div>
+            <div class="icard-stats-grid">
+                <div class="icard-stat">
+                    <div class="icard-stat-value">${property.distanceToJasm || 'n/a'}</div>
+                    <div class="icard-stat-label">Distance</div>
+                </div>
+                <div class="icard-stat">
+                    <div class="icard-stat-value">${property.driveTime || 'n/a'}</div>
+                    <div class="icard-stat-label">Drive time</div>
+                </div>
+            </div>
+            <table class="icard-commute-table">
+                <thead><tr><th>Shift</th><th>Drive time</th></tr></thead>
+                <tbody>
+                    <tr><td>2:00 am</td><td>${shifts.shift2am || 'n/a'}</td></tr>
+                    <tr><td>8:00 am</td><td>${shifts.shift8am || 'n/a'}</td></tr>
+                    <tr><td>Midnight</td><td>${shifts.shiftMidnight || 'n/a'}</td></tr>
+                </tbody>
+            </table>
+        </div>`;
+    },
+
+    renderRiskCard(risk) {
+        const level = (risk.risk || 'moderate').toLowerCase();
+        return `<div class="icard icard-standard">
+            <div class="icard-risk-header">
+                <span class="icard-risk-severity ${level}"></span>
+                <span class="icard-risk-type">${risk.type || 'Risk'} - ${risk.risk || 'Moderate'}</span>
+            </div>
+            <div class="icard-title">${risk.name || ''}</div>
+            ${risk.mitigation ? `<div class="icard-risk-description">${risk.mitigation}</div>` : ''}
+        </div>`;
+    },
+
+    renderZoneProfileCard(zone) {
+        if (!zone) return '';
+        const stats = zone.stats || [];
+        return `<div class="icard icard-hero">
+            <div class="icard-title">${zone.name || 'Zone profile'}</div>
+            ${zone.subtitle ? `<div class="icard-source">${zone.subtitle}</div>` : ''}
+            <div class="icard-stats-grid">
+                ${stats.map(s => `<div class="icard-stat">
+                    <div class="icard-stat-value">${s.value}</div>
+                    <div class="icard-stat-label">${s.label}</div>
+                </div>`).join('')}
+            </div>
+            ${zone.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3); line-height: var(--line-height-normal);">${zone.description}</p>` : ''}
+        </div>`;
+    },
+
+    renderWorkforceCard() {
+        const pipeline = AppData.talentPipeline || {};
+        const institutions = pipeline.institutions || [];
+        return `<div class="icard icard-hero">
+            <div class="icard-title">Semiconductor talent pipeline</div>
+            ${pipeline.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal); margin-bottom: var(--space-3);">${pipeline.description}</p>` : ''}
+            <div class="icard-workforce-institutions">
+                ${institutions.map(inst => `<div class="icard-institution">
+                    <span class="icard-institution-color" style="background: ${inst.color || '#007aff'}"></span>
+                    <div>
+                        <div class="icard-institution-name">${inst.name}</div>
+                        <div class="icard-institution-role">${inst.role || ''}</div>
+                    </div>
+                </div>`).join('')}
+            </div>
+        </div>`;
+    },
+
+    renderInstitutionCard(inst) {
+        if (!inst) return '';
+        return `<div class="icard icard-standard">
+            <div class="icard-title">${inst.fullName || inst.name}</div>
+            <div class="icard-source">${inst.city || ''}</div>
+            <div class="icard-stats-grid">
+                ${(inst.stats || []).map(s => `<div class="icard-stat">
+                    <div class="icard-stat-value">${s.value}</div>
+                    <div class="icard-stat-label">${s.label}</div>
+                </div>`).join('')}
+            </div>
+            ${inst.role ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3); line-height: var(--line-height-normal);">${inst.role}</p>` : ''}
+        </div>`;
+    },
+
+    renderDemandCard() {
+        const demand = AppData.demandProjections || {};
+        const forecast = demand.rentalDemandForecast || [];
+        if (!forecast.length) {
+            return '<div class="icard icard-hero"><div class="icard-title">Rental demand forecast</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No forecast data available.</p></div>';
+        }
+        const maxUnits = Math.max(...forecast.map(f => f.units || 0), 1);
+        return `<div class="icard icard-hero">
+            <div class="icard-title">Rental demand forecast</div>
+            <div class="icard-demand-rows">
+                ${forecast.map(f => {
+                    const pct = Math.round(((f.units || 0) / maxUnits) * 100);
+                    return `<div class="icard-demand-row">
+                        <span class="icard-demand-year">${f.year || ''}</span>
+                        <div class="icard-demand-bar"><div class="icard-demand-fill" style="width: ${pct}%"></div></div>
+                        <span class="icard-demand-value">${(f.units || 0).toLocaleString()}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+            ${demand.inventoryConstraints ? `<p style="font-size: var(--text-xs); color: var(--color-text-tertiary); margin-top: var(--space-3); line-height: var(--line-height-normal);">${demand.inventoryConstraints}</p>` : ''}
+        </div>`;
+    },
+
+    renderStickySummaryRow(property) {
+        const cost = property.financials?.acquisitionCost || 0;
+        const avg = property.financials?.scenarios?.average || {};
+        return `<div class="icard-sticky-summary">
+            <div>
+                <div class="icard-sticky-label">Total investment</div>
+                <div class="icard-sticky-value">${this.formatYen(cost)}</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="icard-sticky-label">Projected annual income</div>
+                <div class="icard-sticky-value">${this.formatYen(avg.annualRent || 0)}</div>
+            </div>
+        </div>`;
+    },
+
+    renderPropertySummaryCard(property) {
+        const thumb = property.thumbnail || property.image || '';
+        return `<div class="icard icard-standard" data-property-id="${property.id || ''}" style="cursor: pointer;">
+            <div style="display: flex; gap: var(--space-3);">
+                ${thumb ? `<img style="width: 64px; height: 48px; border-radius: var(--radius-small); object-fit: cover; flex-shrink: 0;" src="${thumb}" alt="${property.name || ''}" loading="lazy" />` : ''}
+                <div>
+                    <div class="icard-title" style="margin-bottom: var(--space-1);">${property.name || 'Property'}</div>
+                    <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${property.distanceToJasm || ''} ${property.driveTime ? '- ' + property.driveTime : ''}</div>
+                </div>
+            </div>
+        </div>`;
+    },
+
+    formatYen(amount) {
+        if (!amount) return '\u00a50';
+        const abs = Math.abs(amount);
+        const sign = amount < 0 ? '-' : '';
+        if (abs >= 1e12) return sign + '\u00a5' + (abs / 1e12).toFixed(1) + 'T';
+        if (abs >= 1e9) return sign + '\u00a5' + (abs / 1e9).toFixed(1) + 'B';
+        if (abs >= 1e6) return sign + '\u00a5' + (abs / 1e6).toFixed(1) + 'M';
+        return sign + '\u00a5' + abs.toLocaleString();
+    },
+
+    // ---- Inspector event handlers ----
+
+    _attachInspectorHandlers(options = {}) {
+        const panel = this.elements.rightPanel;
+        if (!panel) return;
+
+        // Scenario toggle (calculator card)
+        panel.querySelectorAll('.icard-scenario-toggle .icard-scenario-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.currentScenario = btn.dataset.scenario;
+                this._refreshCalculator(options);
+            });
+        });
+
+        // View toggle (fund / broker)
+        panel.querySelectorAll('.icard-view-toggle .icard-view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.inspectorView = btn.dataset.view;
+                this._refreshCalculator(options);
+            });
+        });
+
+        // Financial table disclosure rows
+        panel.querySelectorAll('.icard-disclosure-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const isCollapsed = row.dataset.disclosure === 'collapsed';
+                row.dataset.disclosure = isCollapsed ? 'expanded' : 'collapsed';
+                const arrow = row.querySelector('.disclosure-arrow');
+                if (arrow) arrow.style.transform = isCollapsed ? 'rotate(90deg)' : '';
+                let sibling = row.nextElementSibling;
+                while (sibling && sibling.classList.contains('icard-sub-row')) {
+                    sibling.style.display = isCollapsed ? 'table-row' : 'none';
+                    sibling = sibling.nextElementSibling;
+                }
+            });
+        });
+
+        // Gallery thumbs
+        panel.querySelectorAll('.icard-gallery-thumb').forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                const grid = thumb.closest('.icard-gallery-grid');
+                if (!grid) return;
+                const allImgs = Array.from(grid.querySelectorAll('img')).map(img => img.src);
+                const idx = parseInt(thumb.dataset.galleryIndex, 10) || 0;
+                this.showQuickLook({ type: 'gallery', images: allImgs, startIndex: idx, title: 'Gallery' });
+            });
+        });
+
+        // Property summary cards (click to open stage 9)
+        panel.querySelectorAll('[data-property-id]').forEach(card => {
+            card.addEventListener('click', () => {
+                const propId = card.dataset.propertyId;
+                const property = (AppData.properties || []).find(p => p.id === propId);
+                if (property) {
+                    this.currentProperty = property;
+                    this.renderInspectorPanel(9, { title: property.name, property });
+                }
+            });
+        });
+    },
+
+    _refreshCalculator(options = {}) {
+        const panel = this.elements.rightPanel;
+        if (!panel) return;
+        const calc = panel.querySelector('.icard-calculator');
+        if (!calc) return;
+        const property = options.property || this.currentProperty || AppData.properties?.[0] || {};
+        const newHtml = this.renderCalculatorCard(property);
+        const temp = document.createElement('div');
+        temp.innerHTML = newHtml;
+        if (temp.firstElementChild) {
+            calc.replaceWith(temp.firstElementChild);
+            // Reattach only calculator toggle handlers on the new element
+            const newCalc = panel.querySelector('.icard-calculator');
+            if (newCalc) {
+                newCalc.querySelectorAll('.icard-scenario-toggle .icard-scenario-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentScenario = btn.dataset.scenario;
+                        this._refreshCalculator(options);
+                    });
+                });
+                newCalc.querySelectorAll('.icard-view-toggle .icard-view-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.inspectorView = btn.dataset.view;
+                        this._refreshCalculator(options);
+                    });
+                });
+            }
+        }
+    },
+
+    // ---- Quick Look ----
+
+    showQuickLook(options = {}) {
+        const quickLook = document.getElementById('property-quick-look');
+        if (!quickLook) return;
+        const content = document.getElementById('quick-look-content');
+        if (!content) return;
+
+        const type = options.type || 'image';
+
+        if (type === 'image') {
+            content.innerHTML = `
+                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
+                </button>
+                <img id="quick-look-image" src="${options.src || ''}" alt="${options.title || ''}" />
+            `;
+        } else if (type === 'gallery') {
+            const images = options.images || [];
+            const idx = options.startIndex || 0;
+            quickLook.dataset.galleryImages = JSON.stringify(images);
+            quickLook.dataset.galleryIndex = idx;
+            const src = images[idx] || '';
+            content.innerHTML = `
+                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
+                </button>
+                <button id="quick-look-prev" aria-label="Previous" onclick="UI._quickLookNav(-1)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <img id="quick-look-image" src="${src}" alt="${options.title || ''}" />
+                <button id="quick-look-next" aria-label="Next" onclick="UI._quickLookNav(1)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+                <div style="position: absolute; bottom: var(--space-3); left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: var(--text-xs);">${idx + 1} / ${images.length}</div>
+            `;
+            this._quickLookKeyHandler = (e) => {
+                if (e.key === 'ArrowLeft') this._quickLookNav(-1);
+                else if (e.key === 'ArrowRight') this._quickLookNav(1);
+                else if (e.key === 'Escape') this.hideQuickLook();
+            };
+            document.addEventListener('keydown', this._quickLookKeyHandler);
+        }
+
+        quickLook.classList.remove('hidden');
+    },
+
+    _quickLookNav(direction) {
+        const quickLook = document.getElementById('property-quick-look');
+        if (!quickLook) return;
+        let images;
+        try { images = JSON.parse(quickLook.dataset.galleryImages || '[]'); } catch (e) { return; }
+        if (!images.length) return;
+        let idx = parseInt(quickLook.dataset.galleryIndex, 10) || 0;
+        idx += direction;
+        if (idx < 0) idx = images.length - 1;
+        if (idx >= images.length) idx = 0;
+        quickLook.dataset.galleryIndex = idx;
+        const img = document.getElementById('quick-look-image');
+        if (img) img.src = images[idx] || '';
+        const counter = quickLook.querySelector('[style*="bottom"]');
+        if (counter) counter.textContent = `${idx + 1} / ${images.length}`;
+    },
+
+    hideQuickLook() {
+        const quickLook = document.getElementById('property-quick-look');
+        if (quickLook) quickLook.classList.add('hidden');
+        if (this._quickLookKeyHandler) {
+            document.removeEventListener('keydown', this._quickLookKeyHandler);
+            this._quickLookKeyHandler = null;
         }
     },
 
@@ -4613,7 +4729,6 @@ const UI = {
      * Format stat label for display
      */
     formatStatLabel(key) {
-        // Convert camelCase to Title Case with spaces
         return key
             .replace(/([A-Z])/g, ' $1')
             .replace(/^./, str => str.toUpperCase())
@@ -4621,104 +4736,16 @@ const UI = {
     },
 
     /**
-     * Generate financials section for property panel
-     */
-    generateFinancialsSection(property) {
-        if (!property.financials) return '';
-
-        return `
-            <div class="financials-section">
-                <h3>Investment Projections</h3>
-                <div class="scenario-toggle" role="radiogroup" aria-label="Investment scenario">
-                    <button class="scenario-btn ${this.currentScenario === 'bear' ? 'active' : ''}"
-                            role="radio"
-                            aria-checked="${this.currentScenario === 'bear'}"
-                            onclick="UI.setScenario('bear', '${property.id}')">Bear</button>
-                    <button class="scenario-btn ${this.currentScenario === 'average' ? 'active' : ''}"
-                            role="radio"
-                            aria-checked="${this.currentScenario === 'average'}"
-                            onclick="UI.setScenario('average', '${property.id}')">Average</button>
-                    <button class="scenario-btn ${this.currentScenario === 'bull' ? 'active' : ''}"
-                            role="radio"
-                            aria-checked="${this.currentScenario === 'bull'}"
-                            onclick="UI.setScenario('bull', '${property.id}')">Bull</button>
-                </div>
-                <div id="property-chart-container">
-                    <canvas id="property-roi-chart" aria-label="ROI projection chart"></canvas>
-                </div>
-                <div id="property-roi-chart-table"></div>
-            </div>
-        `;
-    },
-
-    /**
-     * Render property charts
-     */
-    renderPropertyCharts(property) {
-        if (!property.financials) return;
-
-        const canvas = document.getElementById('property-roi-chart');
-        if (!canvas) return;
-
-        // Destroy existing chart
-        this.destroyChart('property-roi');
-
-        const scenario = property.financials.scenarios[this.currentScenario];
-        if (!scenario) return;
-
-        // Create chart (simplified version)
-        const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
-        const values = scenario.projectedValues || [100, 105, 110, 116, 122];
-
-        this.charts['property-roi'] = new Chart(canvas, {
-            type: 'line',
-            data: {
-                labels: years,
-                datasets: [{
-                    label: 'Projected Value',
-                    data: values,
-                    borderColor: '#fbb931',
-                    backgroundColor: 'rgba(251, 185, 49, 0.1)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: false }
-                }
-            }
-        });
-
-        // Add accessible companion data table
-        const tableContainer = document.getElementById('property-roi-chart-table');
-        if (tableContainer) {
-            const rows = years.map((yr, i) => [yr, '¥' + values[i].toLocaleString()]);
-            tableContainer.innerHTML = this.generateDataTable(
-                ['Year', 'Projected Value'],
-                rows,
-                'Projected property value over 5 years — ' + this.currentScenario + ' scenario'
-            );
-        }
-    },
-
-    /**
-     * Set investment scenario
+     * Set investment scenario and refresh inspector
      */
     setScenario(scenario, propertyId) {
         this.currentScenario = scenario;
-
-        const property = AppData.properties.find(p => p.id === propertyId);
-        if (property) {
-            // Re-render the property panel
-            if (this.dashboardMode) {
-                this.showPropertyPanelWithBreadcrumb(property);
-            }
+        if (propertyId) {
+            const property = AppData.properties.find(p => p.id === propertyId);
+            if (property) this.currentProperty = property;
+        }
+        if (this.inspectorStage === 9) {
+            this._refreshCalculator({ property: this.currentProperty });
         }
     }
 };

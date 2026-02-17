@@ -83,6 +83,7 @@ const App = {
         this.state.step = 'A0';
         this.state.resourcesExplored = [];
         this.state.evidenceGroupsViewed = [];
+        UI.updateInspectorForStep(this.state.step);
 
         // Show journey progress bar
         UI.updateJourneyProgress('A');
@@ -161,6 +162,7 @@ const App = {
      */
     stepA1() {
         this.state.step = 'A1';
+        UI.updateInspectorForStep(this.state.step);
         UI.hidePanel();
         UI.announceToScreenReader('Step 1: Natural advantages');
 
@@ -178,6 +180,7 @@ const App = {
 
     async stepA2() {
         this.state.step = 'A2';
+        UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 2: Utility infrastructure');
 
         // Show Kyushu-wide energy markers and water resource markers together
@@ -284,6 +287,7 @@ const App = {
     stepA3() {
         this.state.step = 'A3';
         this.state.a3Phase = 'infrastructure';
+        UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 3: Semiconductor ecosystem');
 
         // Cinematic flight to semiconductor ecosystem area
@@ -338,7 +342,7 @@ const App = {
 
         const pipeline = AppData.talentPipeline;
         const instList = pipeline.institutions.map(inst =>
-            `<button class="chatbox-option" onclick="UI.showTalentPanel(AppData.talentPipeline.institutions.find(i => i.id === '${inst.id}'))">
+            `<button class="chatbox-option" onclick="UI.showTalentInspector('${inst.id}')">
                 ${inst.name} — ${inst.city}
             </button>`
         ).join('');
@@ -400,6 +404,7 @@ const App = {
         this.state.journey = 'B';
         this.state.step = 'B1';
         this.state.companiesExplored = [];
+        UI.updateInspectorForStep(this.state.step);
 
         // Update journey progress bar
         UI.updateJourneyProgress('B');
@@ -407,9 +412,6 @@ const App = {
         // Show data layers toggle for Journey B
         UI.showDataLayers('B');
         UI.announceToScreenReader('Journey B: Infrastructure plan');
-
-        // Show panel toggle button
-        UI.showPanelToggle();
 
         // B1: Show government commitment chain with chatbox intro
         // Continue button shown immediately — presenter advances when ready (no auto-update)
@@ -434,11 +436,6 @@ const App = {
             MapController.showInvestmentZones();
         }, TIMING.revealDelay);
 
-        // Auto-reveal the national government panel — give the chain time to land
-        setTimeout(() => {
-            UI.showGovernmentLevelPanel({ id: 'central' });
-        }, TIMING.buttonDelay + TIMING.breathMedium);
-
         // Start heartbeat + pulse on government chain markers
         MapController.startHeartbeat();
         setTimeout(() => {
@@ -448,6 +445,7 @@ const App = {
 
     async stepB4() {
         this.state.step = 'B4';
+        UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 4: Corporate investment');
 
         // Switch pulse to company markers
@@ -470,12 +468,6 @@ const App = {
             MapController.setActiveMarkerPulse('companies');
         }, 500);
 
-        // Auto-reveal JASM as the anchor company
-        setTimeout(() => {
-            const jasm = AppData.companies.find(c => c.id === 'jasm');
-            if (jasm) UI.showCompanyPanel(jasm);
-        }, TIMING.buttonDelay);
-
         UI.updateChatbox(`
             <h3>Corporate Investment</h3>
             <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron — each announced expansions within 18 months. <strong>Seven major players</strong>, all converging on Kumamoto.</p>
@@ -488,6 +480,7 @@ const App = {
 
     stepB6() {
         this.state.step = 'B6';
+        UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 6: Development timeline');
 
         // Cinematic flight to development area
@@ -522,6 +515,7 @@ const App = {
 
     stepB7() {
         this.state.step = 'B7';
+        UI.updateInspectorForStep(this.state.step);
 
         // Reset to present view (toggle remains visible)
         UI.setTimeView('present');
@@ -589,6 +583,7 @@ const App = {
     async startJourneyC() {
         this.state.journey = 'C';
         this.state.step = 'C1';
+        UI.updateInspectorForStep(this.state.step);
 
         // Update journey progress bar
         UI.updateJourneyProgress('C');
@@ -608,9 +603,6 @@ const App = {
         // Update data layers toggle for Journey C
         UI.showDataLayers('C');
         UI.announceToScreenReader('Journey C: Investment opportunities');
-
-        // Show property list in right panel
-        UI.showPropertyListPanel();
 
         // Calculate portfolio stats for narrative
         const propCount = AppData.properties.length;
@@ -650,6 +642,7 @@ const App = {
      */
     async complete() {
         this.state.step = 'complete';
+        // Skip updateInspectorForStep -- hidePanel() follows immediately and recap takes over
         MapController.stopHeartbeat();
 
         UI.hideJourneyProgress();
@@ -700,14 +693,16 @@ const App = {
                     <div class="journey-recap-headline-value">${formatYen(totalNetProfit)}</div>
                     <div class="journey-recap-headline-detail">across the portfolio</div>
                 </div>
-                <button class="chatbox-continue primary" onclick="UI.scheduleConsultation(); UI.hideChatbox(); UI.showAIChat();">
-                    Schedule a Consultation
+                <button class="chatbox-continue primary" onclick="UI.hideChatbox(); UI.showAIChat();">
+                    Ask Me Anything
                 </button>
-                <button class="chatbox-continue" onclick="UI.hideChatbox(); UI.showAIChat(); UI.downloadSummary();">
-                    Download Summary
-                </button>
-                <button class="journey-recap-link" onclick="UI.hideChatbox(); UI.showAIChat();">
-                    Ask me anything →
+                <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); UI.showAIChat(); UI.downloadSummary();">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" x2="12" y1="15" y2="3"/>
+                    </svg>
+                    Download summary
                 </button>
             </div>
         `, { skipHistory: true });

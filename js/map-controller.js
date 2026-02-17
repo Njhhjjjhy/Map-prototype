@@ -868,7 +868,7 @@ const MapController = {
             this._addTooltip(marker, element, `${inst.name} — ${inst.city}`);
             element.addEventListener('click', () => {
                 if (typeof UI !== 'undefined') {
-                    UI.showTalentPanel(inst);
+                    UI.showTalentInspector(inst.id);
                 }
             });
 
@@ -990,7 +990,7 @@ const MapController = {
 
                 const entrance = index === 0 ? 'anchor' : 'ripple';
                 const { marker, element } = this._createMarker(level.coords, html, { entrance, ariaLabel: level.name });
-                element.addEventListener('click', () => UI.showGovernmentLevelPanel(level));
+                element.addEventListener('click', () => UI.renderInspectorPanel(4, { title: level.name }));
 
                 const id = `govt-${level.id}`;
                 this.markers[id] = marker;
@@ -1015,7 +1015,7 @@ const MapController = {
                         center: this._toMapbox(tier.coords),
                         zoom: 12, pitch: 50, bearing: 15, duration: 2000
                     });
-                    UI.showGovernmentLevelPanel({ id: tier.id });
+                    UI.renderInspectorPanel(4, { title: tier.name });
                     return;
                 }
                 if (tier.subItems) {
@@ -1025,7 +1025,7 @@ const MapController = {
                             center: this._toMapbox(sub.coords),
                             zoom: 13, pitch: 50, bearing: 20, duration: 2000
                         });
-                        UI.showGovernmentLevelPanel({ id: sub.id });
+                        UI.renderInspectorPanel(4, { title: sub.name });
                         return;
                     }
                 }
@@ -1037,7 +1037,7 @@ const MapController = {
             center: this._toMapbox(level.coords),
             zoom: 12, pitch: 50, bearing: 15, duration: 2000
         });
-        UI.showGovernmentLevelPanel(level);
+        UI.renderInspectorPanel(4, { title: level.name });
     },
 
     /**
@@ -1051,7 +1051,7 @@ const MapController = {
                 const { marker, element } = this._createMarker(company.coords, html, { entrance, ariaLabel: company.name });
 
                 this._addTooltip(marker, element, company.name);
-                element.addEventListener('click', () => UI.showCompanyPanel(company));
+                element.addEventListener('click', () => UI.renderInspectorPanel(5, { title: company.name }));
 
                 this.markers[company.id] = marker;
                 this._layerGroups.companies.push(company.id);
@@ -1154,7 +1154,7 @@ const MapController = {
             const { marker, element } = this._createMarker(zone.coords, markerHtml, { ariaLabel: zone.name + ' development zone' });
 
             this._addTooltip(marker, element, zone.name);
-            element.addEventListener('click', () => UI.showFutureZonePanel(zone));
+            element.addEventListener('click', () => UI.renderInspectorPanel(6, { title: zone.name, zone }));
 
             this.markers[zone.id] = marker;
             this._layerGroups.futureZones.push(zone.id);
@@ -1383,7 +1383,7 @@ const MapController = {
                 const road = AppData.infrastructureRoads.find(r => r.id === roadId);
                 if (road) {
                     this.selectInfrastructureRoad(roadId);
-                    UI.showRoadPanel(road);
+                    UI.renderInspectorPanel(7, { title: road.name });
                 }
             }
         });
@@ -1405,7 +1405,7 @@ const MapController = {
             });
             element.addEventListener('click', () => {
                 this.clearInfrastructureRoadSelection();
-                UI.showStationPanel(station);
+                UI.renderInspectorPanel(7, { title: station.name });
             });
             this.infrastructureMarkers.push(marker);
             this._layerGroups.infrastructureRoads.push(`station-${station.id}`);
@@ -1430,7 +1430,7 @@ const MapController = {
             this._addTooltip(marker, element, haramizu.name);
             element.addEventListener('click', () => {
                 this.clearInfrastructureRoadSelection();
-                UI.showHaramizuPanel(haramizu);
+                UI.renderInspectorPanel(7, { title: haramizu.name });
             });
             this.infrastructureMarkers.push(marker);
             this._layerGroups.infrastructureRoads.push(`station-${haramizu.id}`);
@@ -1519,81 +1519,45 @@ const MapController = {
     addPropertyMarkers(properties) {
         if (!this.initialized || !this.map) return;
 
-        const map = this.map;
-
-        // Remove existing
+        // Remove any legacy circle layers (safe no-op if absent)
         this._safeRemoveLayer('property-markers-circle');
         this._safeRemoveLayer('property-markers-stroke');
         this._safeRemoveSource('property-markers');
 
-        const geojson = {
-            type: 'FeatureCollection',
-            features: properties.map(p => ({
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: this._toMapbox(p.coords)
-                },
-                properties: { id: p.id, name: p.name }
-            }))
-        };
-
-        map.addSource('property-markers', { type: 'geojson', data: geojson });
-
-        // White stroke ring — start invisible, fade in
-        map.addLayer({
-            id: 'property-markers-stroke',
-            type: 'circle',
-            source: 'property-markers',
-            paint: {
-                'circle-radius': 0,
-                'circle-color': '#ffffff',
-                'circle-opacity': 0,
-                'circle-radius-transition': { duration: 400, delay: 0 },
-                'circle-opacity-transition': { duration: 400, delay: 0 }
+        // Remove existing DOM property markers
+        this._layerGroups.properties.forEach(id => {
+            if (this.markers[id]) {
+                const el = this.markers[id].getElement();
+                this.markers[id].remove();
+                if (el && el.parentNode) el.remove();
+                delete this.markers[id];
             }
         });
+        this._layerGroups.properties = [];
 
-        // Amber fill — start invisible, fade in
-        map.addLayer({
-            id: 'property-markers-circle',
-            type: 'circle',
-            source: 'property-markers',
-            paint: {
-                'circle-radius': 0,
-                'circle-color': '#ff9500',
-                'circle-opacity': 0,
-                'circle-radius-transition': { duration: 400, delay: 0 },
-                'circle-opacity-transition': { duration: 400, delay: 0 }
-            }
-        });
+        // Create DOM-based icon markers (consistent with dashboard)
+        properties.forEach((property, index) => {
+            setTimeout(() => {
+                const html = this._markerIconHtml('property');
+                const { marker, element } = this._createMarker(property.coords, html, {
+                    entrance: 'emerge',
+                    ariaLabel: property.name
+                });
 
-        // Trigger the emerge transition after a frame
-        requestAnimationFrame(() => {
-            if (map.getLayer('property-markers-stroke')) {
-                map.setPaintProperty('property-markers-stroke', 'circle-radius', 12);
-                map.setPaintProperty('property-markers-stroke', 'circle-opacity', 0.9);
-            }
-            if (map.getLayer('property-markers-circle')) {
-                map.setPaintProperty('property-markers-circle', 'circle-radius', 9);
-                map.setPaintProperty('property-markers-circle', 'circle-opacity', 0.95);
-            }
-        });
+                if (!marker) return;
 
-        // Click handler
-        map.on('click', 'property-markers-circle', (e) => {
-            const propId = e.features[0].properties.id;
-            const property = properties.find(p => p.id === propId);
-            if (property && typeof UI !== 'undefined') {
-                UI.showPropertyReveal(property);
-            }
-        });
+                this._addTooltip(marker, element, property.name);
 
-        map.on('mouseenter', 'property-markers-circle', () => {
-            map.getCanvas().style.cursor = 'pointer';
-        });
-        map.on('mouseleave', 'property-markers-circle', () => {
-            map.getCanvas().style.cursor = '';
+                element.addEventListener('mouseover', () => this.preloadImages(property));
+                element.addEventListener('click', () => {
+                    if (typeof UI !== 'undefined') {
+                        UI.showPropertyReveal(property);
+                    }
+                });
+
+                this.markers[property.id] = marker;
+                this._layerGroups.properties.push(property.id);
+            }, index * 100);
         });
     },
 
@@ -1635,7 +1599,7 @@ const MapController = {
                 'line-cap': 'round',
                 'line-join': 'round'
             }
-        }, 'property-markers-stroke');
+        });
     },
 
     /**
@@ -2410,7 +2374,7 @@ const MapController = {
     _getMapboxLayerIds(layerName) {
         // Return any map layer IDs associated with a named group
         const mapping = {
-            sciencePark: ['science-park-circle-fill', 'science-park-circle-stroke'],
+            sciencePark: ['science-park-circle-fill', 'science-park-circle-stroke', 'science-park-circle'],
             infrastructureRoads: ['infrastructure-roads-line']
         };
         return mapping[layerName] || [];

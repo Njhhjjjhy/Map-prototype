@@ -271,7 +271,7 @@ Direct service to Seoul's primary international airport.
 [Title]    Shanghai Pudong (PVG)
 
 [Headline Badge]
-⚠ Service Suspended
+[WARNING] Service Suspended
 
 [Stats Grid]
 Region            | China
