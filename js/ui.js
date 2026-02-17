@@ -33,7 +33,6 @@ const UI = {
             startScreen: document.getElementById('start-screen'),
             startBtn: document.getElementById('start-btn'),
             appContainer: document.getElementById('app-container'),
-            controlBar: document.getElementById('control-bar'),
             timeToggle: document.getElementById('time-toggle'),
             presentBtn: document.getElementById('present-btn'),
             futureBtn: document.getElementById('future-btn'),
@@ -2283,16 +2282,8 @@ const UI = {
     },
 
     // ================================
-    // CONTROL BAR
+    // TIME TOGGLE
     // ================================
-
-    showControlBar() {
-        this.elements.controlBar.classList.remove('hidden');
-    },
-
-    hideControlBar() {
-        this.elements.controlBar.classList.add('hidden');
-    },
 
     showTimeToggle() {
         this.elements.timeToggle.classList.remove('hidden');
@@ -3576,8 +3567,8 @@ const UI = {
         this.showDashboardToggle();
         this.hidePanelToggle();
 
-        const controlBar = document.getElementById('control-bar');
-        if (controlBar) controlBar.classList.add('hidden');
+        const timeToggle = document.getElementById('time-toggle');
+        if (timeToggle) timeToggle.classList.add('hidden');
 
         try {
             this.createDashboardMarkers();

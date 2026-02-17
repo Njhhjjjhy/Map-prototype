@@ -489,7 +489,7 @@ a:focus-visible {
 
 /* Immersive mode: hide all map controls during property reveal / gallery */
 #map-container.immersive-active #journey-progress,
-#map-container.immersive-active #control-bar,
+#map-container.immersive-active #time-toggle,
 #map-container.immersive-active #chatbox,
 #map-container.immersive-active #layers-toggle,
 #map-container.immersive-active #chat-fab,
@@ -671,32 +671,20 @@ a:focus-visible {
 }
 
 /* ================================
-   CONTROL BAR (macOS Toolbar)
+   TIME TOGGLE (macOS Segmented Control)
    ================================ */
-#control-bar {
+#time-toggle {
     position: absolute;
     top: var(--space-4);
     left: var(--space-3);
     z-index: 500;
-    display: flex;
-    gap: var(--space-2);
-    background: var(--color-bg-primary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-medium);
-    box-shadow: var(--shadow-medium);
-    border: 1px solid var(--color-border);
-}
-
-/* macOS Segmented Control */
-#time-toggle {
     display: flex;
     gap: 1px;
     background: var(--color-bg-tertiary);
     padding: 2px;
     border-radius: var(--radius-small);
     border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-medium);
 }
 
 .time-btn {
