@@ -135,8 +135,8 @@ const App = {
         }).join('');
 
         UI.showPanel(`
-            <div class="subtitle">Supporting Evidence</div>
-            <h2>¥10 Trillion Commitment</h2>
+            <div class="subtitle">Supporting evidence</div>
+            <h2>¥10 trillion commitment</h2>
             <p>Japan designated semiconductors as critical infrastructure, committing unprecedented public funds.</p>
             <div class="evidence-library" style="margin-top: var(--space-6);">
                 ${docsHtml}
@@ -170,7 +170,7 @@ const App = {
         MapController.flyToStep(CAMERA_STEPS.A1);
 
         UI.updateChatbox(`
-            <h3>Natural Advantages</h3>
+            <h3>Natural advantages</h3>
             <p>Before the factories came, Kumamoto already had something most cities can't offer. Let me show you.</p>
             <button class="chatbox-continue primary" onclick="App.stepA2()">
                 Start Exploring
@@ -192,7 +192,7 @@ const App = {
 
         // Show combined utility infrastructure options
         UI.updateChatbox(`
-            <h3>Utility Infrastructure</h3>
+            <h3>Utility infrastructure</h3>
             <p>Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both — in surplus.</p>
             <div class="chatbox-options">
                 <button class="chatbox-option" onclick="App.selectResource('water')">
@@ -267,7 +267,7 @@ const App = {
         }
 
         let content = `
-            <h3>Utility Infrastructure</h3>
+            <h3>Utility infrastructure</h3>
             <p>${progressText}</p>
             <div class="resource-progress" style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2);">${exploredCount} of 2 explored</div>
             <div class="chatbox-options" role="group" aria-label="Resource options">
@@ -294,7 +294,7 @@ const App = {
         MapController.flyToStep(CAMERA_STEPS.A3_ecosystem);
 
         UI.updateChatbox(`
-            <h3>Semiconductor Ecosystem</h3>
+            <h3>Semiconductor ecosystem</h3>
             <p>TSMC didn't build in a vacuum. <strong>Sony has operated here since 1987.</strong> Tokyo Electron and Mitsubishi run precision manufacturing within 30km. The supply chain was already here — TSMC plugged in.</p>
             <button class="chatbox-continue primary" onclick="App.stepA3_location()">
                 See Strategic Location
@@ -312,7 +312,7 @@ const App = {
         await MapController.showAirlineRoutes();
 
         UI.updateChatbox(`
-            <h3>Strategic Location</h3>
+            <h3>Strategic location</h3>
             <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
             <p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>
             <button class="chatbox-continue primary" onclick="App.stepA3_talent()">
@@ -348,7 +348,7 @@ const App = {
         ).join('');
 
         UI.updateChatbox(`
-            <h3>Talent Pipeline</h3>
+            <h3>Talent pipeline</h3>
             <p>METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region. From mandatory semiconductor courses to JASM-partnered research centers, the talent pipeline is purpose-built.</p>
             <div class="chatbox-options">
                 ${instList}
@@ -416,7 +416,7 @@ const App = {
         // B1: Show government commitment chain with chatbox intro
         // Continue button shown immediately — presenter advances when ready (no auto-update)
         UI.showChatbox(`
-            <h3>Government Support</h3>
+            <h3>Government support</h3>
             <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level of government is aligned behind one bet: semiconductors.</p>
             <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
             <button class="chatbox-continue primary" onclick="App.stepB4()">
@@ -469,7 +469,7 @@ const App = {
         }, 500);
 
         UI.updateChatbox(`
-            <h3>Corporate Investment</h3>
+            <h3>Corporate investment</h3>
             <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron — each announced expansions within 18 months. <strong>Seven major players</strong>, all converging on Kumamoto.</p>
             <p style="margin-top: 8px;">Click company markers to see the scale.</p>
             <button class="chatbox-continue primary" onclick="App.stepB6()">
@@ -491,7 +491,7 @@ const App = {
 
         // Update chatbox to instruct user about the toggle
         UI.updateChatbox(`
-            <h3>The Vision</h3>
+            <h3>The vision</h3>
             <p>Toggle to <strong>Future View</strong> in the top-left corner to see the planned development zones.</p>
             <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
                 Explore the evidence for this transformation:
@@ -525,7 +525,7 @@ const App = {
         MapController.showInfrastructureRoads();
 
         UI.updateChatbox(`
-            <h3>Changes in Area</h3>
+            <h3>Changes in area</h3>
             <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. A new rail station. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
             <p style="margin-top: 8px;">Click any <strong>teal dashed road</strong> or station marker to see details.</p>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
@@ -614,7 +614,7 @@ const App = {
         const holdValue = gktk ? gktk.stats[2].value : '5-7yr';
 
         UI.showChatbox(`
-            <h3>Investment Opportunities</h3>
+            <h3>Investment opportunities</h3>
             <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM.</p>
             <div class="chatbox-fund-stats">
                 <div class="chatbox-fund-label">GKTK Fund &middot; ${irrValue} Target IRR</div>
@@ -673,7 +673,7 @@ const App = {
 
         UI.showChatbox(`
             <div class="journey-recap">
-                <h3>Journey Complete</h3>
+                <h3>Journey complete</h3>
                 <div class="journey-recap-checklist">
                     <div class="journey-recap-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -791,7 +791,7 @@ const App = {
         const groupHtml = UI.generateDisclosureGroup(group);
 
         const content = `
-            <div class="subtitle">Supporting Evidence</div>
+            <div class="subtitle">Supporting evidence</div>
             <h2>${group.title}</h2>
             <p>Select an item below to view detailed documentation.</p>
             ${groupHtml}
@@ -858,7 +858,7 @@ const App = {
                 `);
             } else if (step === 'A1') {
                 UI.showChatbox(`
-                    <h3>Natural Advantages</h3>
+                    <h3>Natural advantages</h3>
                     <p>Before the factories came, Kumamoto already had something most cities can't offer. Let me show you.</p>
                     <button class="chatbox-continue primary" onclick="App.stepA2()">
                         Start Exploring
@@ -867,7 +867,7 @@ const App = {
             } else if (step === 'A3') {
                 if (this.state.a3Phase === 'talent') {
                     UI.showChatbox(`
-                        <h3>Talent Pipeline</h3>
+                        <h3>Talent pipeline</h3>
                         <p>METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.</p>
                         <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
                             See Government Commitment
@@ -875,7 +875,7 @@ const App = {
                     `);
                 } else if (this.state.a3Phase === 'location') {
                     UI.showChatbox(`
-                        <h3>Strategic Location</h3>
+                        <h3>Strategic location</h3>
                         <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
                         <p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>
                         <button class="chatbox-continue primary" onclick="App.stepA3_talent()">
@@ -884,7 +884,7 @@ const App = {
                     `);
                 } else {
                     UI.showChatbox(`
-                        <h3>Semiconductor Ecosystem</h3>
+                        <h3>Semiconductor ecosystem</h3>
                         <p>TSMC didn't build in a vacuum. <strong>Sony has operated here since 1987.</strong> Tokyo Electron and Mitsubishi run precision manufacturing within 30km. The supply chain was already here — TSMC plugged in.</p>
                         <button class="chatbox-continue primary" onclick="App.stepA3_location()">
                             See Strategic Location
@@ -899,7 +899,7 @@ const App = {
         } else if (journey === 'B') {
             if (step === 'B1') {
                 UI.showChatbox(`
-                    <h3>Government Support</h3>
+                    <h3>Government support</h3>
                     <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level of government is aligned behind one bet: semiconductors.</p>
                     <p style="margin-top: 12px;">Click the numbered markers to trace the commitment chain.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB4()">
@@ -908,7 +908,7 @@ const App = {
                 `);
             } else if (step === 'B4') {
                 UI.showChatbox(`
-                    <h3>Corporate Investment</h3>
+                    <h3>Corporate investment</h3>
                     <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron — each announced expansions within 18 months. <strong>Seven major players</strong>, all converging on Kumamoto.</p>
                     <p style="margin-top: 8px;">Click company markers to see the scale.</p>
                     <button class="chatbox-continue primary" onclick="App.stepB6()">
@@ -917,7 +917,7 @@ const App = {
                 `);
             } else if (step === 'B6') {
                 UI.showChatbox(`
-                    <h3>Development Timeline</h3>
+                    <h3>Development timeline</h3>
                     <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
                     <div class="chatbox-options">
                         <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
@@ -936,7 +936,7 @@ const App = {
                 `);
             } else if (step === 'B7') {
                 UI.showChatbox(`
-                    <h3>Changes in Area</h3>
+                    <h3>Changes in area</h3>
                     <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
                     <p style="margin-top: 8px;">Click any <strong>teal dashed road</strong> or station marker to see details.</p>
                     <button class="chatbox-continue primary" onclick="App.transitionToJourneyC()">
@@ -945,7 +945,7 @@ const App = {
                 `);
             } else {
                 UI.showChatbox(`
-                    <h3>Infrastructure Plan</h3>
+                    <h3>Infrastructure plan</h3>
                     <p>Explore the markers on the map to learn about developments.</p>
                 `);
             }
@@ -957,7 +957,7 @@ const App = {
             const holdValue = gktk ? gktk.stats[2].value : '5-7yr';
 
             UI.showChatbox(`
-                <h3>Investment Opportunities</h3>
+                <h3>Investment opportunities</h3>
                 <p>${propCount} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM.</p>
                 <div class="chatbox-fund-stats">
                     <div class="chatbox-fund-label">GKTK Fund &middot; ${irrValue} Target IRR</div>
@@ -977,7 +977,7 @@ const App = {
             `);
         } else {
             UI.showChatbox(`
-                <h3>Kumamoto Investment Guide</h3>
+                <h3>Kumamoto investment guide</h3>
                 <p>Explore the map to learn about investment opportunities.</p>
             `);
         }

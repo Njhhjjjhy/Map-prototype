@@ -3815,17 +3815,6 @@ button.layer-item {
     color: var(--color-text-primary);
 }
 
-.data-layer-marker-item .marker-chevron {
-    width: 16px;
-    height: 16px;
-    color: var(--color-text-tertiary);
-    flex-shrink: 0;
-}
-
-.data-layer-marker-item .marker-chevron svg {
-    width: 16px;
-    height: 16px;
-}
 
 /* Data layer marker on map */
 .data-layer-marker {
@@ -4422,7 +4411,7 @@ button.layer-item {
 #chatbox-close,
 #chatbox-back,
 #ai-chat-close {
-    position: absolute; /* already set, reinforcing for ::before context */
+    position: relative; /* positioning context for ::before hit area expansion */
 }
 
 #panel-close::before,
@@ -5084,6 +5073,11 @@ button.layer-item {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.icard-calc-stats.fading {
+    opacity: 0;
 }
 
 .icard-calc-row {
@@ -5358,15 +5352,27 @@ button.layer-item {
 }
 
 .icard-commute-table th {
-    text-align: left;
     font-weight: var(--font-weight-medium);
     color: var(--color-text-tertiary);
     font-size: var(--text-xs);
 }
 
 .icard-commute-table td {
-    text-align: right;
     color: var(--color-text-primary);
+}
+
+/* First column (shift labels): left-aligned, flush with card edge */
+.icard-commute-table th:first-child,
+.icard-commute-table td:first-child {
+    text-align: left;
+    padding-left: 0;
+}
+
+/* Last column (drive times): right-aligned, flush with card edge */
+.icard-commute-table th:last-child,
+.icard-commute-table td:last-child {
+    text-align: right;
+    padding-right: 0;
 }
 
 .icard-commute-highlight {

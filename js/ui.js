@@ -487,7 +487,7 @@ const UI = {
             data: {
                 labels: years,
                 datasets: [{
-                    label: 'Annual Appreciation',
+                    label: 'Annual appreciation',
                     data: values,
                     borderColor: '#2563eb',
                     backgroundColor: 'rgba(37, 99, 235, 0.1)',
@@ -625,8 +625,8 @@ const UI = {
     showInvestmentOverview() {
 
         const content = `
-            <div class="subtitle">Corporate Investment</div>
-            <h2>Investment Comparison</h2>
+            <div class="subtitle">Corporate investment</div>
+            <h2>Investment comparison</h2>
             <p>Total corporate investment in the Kumamoto semiconductor corridor.</p>
             <div class="chart-container" style="height: 200px; margin: 24px 0;">
                 <canvas id="investment-chart" role="img" aria-label="Bar chart comparing corporate investments: JASM leads with ¥1.2T, followed by Sony ¥850B, Tokyo Electron ¥320B, Mitsubishi ¥260B"></canvas>
@@ -635,11 +635,11 @@ const UI = {
             <div class="stat-grid">
                 <div class="stat-item">
                     <div class="stat-value">¥2.6T+</div>
-                    <div class="stat-label">Total Investment</div>
+                    <div class="stat-label">Total investment</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">9,600+</div>
-                    <div class="stat-label">Direct Jobs</div>
+                    <div class="stat-label">Direct jobs</div>
                 </div>
             </div>
             <div class="data-attribution">
@@ -1056,7 +1056,7 @@ const UI = {
             energyMixHtml = `
                 <div class="panel-bento-card">
                     <div class="panel-bento-header">
-                        <span class="panel-bento-label">Energy Mix</span>
+                        <span class="panel-bento-label">Energy mix</span>
                     </div>
                     <div class="panel-bento-body">
                         <p>${resource.energyMix.description}</p>
@@ -1093,7 +1093,7 @@ const UI = {
                 <div class="panel-bento-card primary">
                     <div class="panel-bento-actions">
                         <button class="panel-bento-btn primary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                            View Evidence
+                            View evidence
                         </button>
                     </div>
                 </div>
@@ -1116,7 +1116,7 @@ const UI = {
         `).join('');
 
         const content = `
-            <div class="subtitle">Water Quality Evidence</div>
+            <div class="subtitle">Water quality evidence</div>
             <h2>${evidence.name}</h2>
             <p class="panel-subtitle">${evidence.subtitle}</p>
             <p>${evidence.description}</p>
@@ -1137,11 +1137,11 @@ const UI = {
      * @param {string} type - 'solar', 'wind', or 'nuclear'
      */
     showEnergyStationPanel(station, type) {
-        const typeLabels = { solar: 'Solar Power', wind: 'Wind Energy', nuclear: 'Nuclear Power' };
+        const typeLabels = { solar: 'Solar power', wind: 'Wind energy', nuclear: 'Nuclear power' };
         const typeColors = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
 
         const content = `
-            <div class="subtitle">Kyushu Energy Infrastructure</div>
+            <div class="subtitle">Kyushu energy infrastructure</div>
             <h2>${station.name}</h2>
             <div style="
                 display: inline-flex;
@@ -1214,7 +1214,7 @@ const UI = {
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
                         <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-warning);">
-                            ⚠ Service Suspended
+                            ⚠ Service suspended
                         </div>
                     </div>
                 </div>
@@ -1223,7 +1223,7 @@ const UI = {
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
                         <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-info);">${destination.flightTime}</div>
-                        <div class="stat-label">Flight Time</div>
+                        <div class="stat-label">Flight time</div>
                     </div>
                 </div>
             `;
@@ -1237,7 +1237,7 @@ const UI = {
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">${destination.flightTime}</div>
-                    <div class="stat-label">Flight Time (when active)</div>
+                    <div class="stat-label">Flight time (when active)</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">${destination.airlines.join(', ')}</div>
@@ -1290,7 +1290,7 @@ const UI = {
             : '';
 
         const content = `
-            <div class="subtitle">International Route</div>
+            <div class="subtitle">International route</div>
             <h2>${destination.name} (${destination.code})</h2>
             ${semiBadge}
 
@@ -1355,14 +1355,14 @@ const UI = {
 
         const content = `
             <div class="subtitle">Aso Kumamoto Airport</div>
-            <h2>All International Routes</h2>
+            <h2>All international routes</h2>
 
             <p style="margin-bottom: 16px;">7 destinations across 4 regions connecting Kumamoto to key Asian markets.</p>
 
-            <h4 style="margin-bottom: 12px; color: var(--color-text-secondary);">Active Routes (${activeRoutes.length})</h4>
+            <h4 style="margin-bottom: 12px; color: var(--color-text-secondary);">Active routes (${activeRoutes.length})</h4>
             ${activeHtml}
 
-            <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--color-text-tertiary);">Suspended Routes (${suspendedRoutes.length})</h4>
+            <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--color-text-tertiary);">Suspended routes (${suspendedRoutes.length})</h4>
             ${suspendedHtml}
         `;
 
@@ -1621,8 +1621,8 @@ const UI = {
         `).join('');
 
         const content = `
-            <div class="subtitle">Growth Drivers</div>
-            <h2>Truth Engine</h2>
+            <div class="subtitle">Growth drivers</div>
+            <h2>Truth engine</h2>
             <p>Key factors driving future value appreciation for this property:</p>
             ${driversHtml}
             <button class="panel-btn primary" onclick="UI.showPerformanceCalculator()">
@@ -1709,11 +1709,11 @@ const UI = {
         const confidence = this.getConfidenceInfo(scenario);
 
         const content = `
-            <div class="subtitle">Financial Projection</div>
-            <h2>Performance Calculator</h2>
+            <div class="subtitle">Financial projection</div>
+            <h2>Performance calculator</h2>
 
             <div class="calculator-section">
-                <h4>Scenario Comparison</h4>
+                <h4>Scenario comparison</h4>
                 <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
                     <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios: Bear case ${formatYen(fin.scenarios.bear.netProfit)}, Average case ${formatYen(fin.scenarios.average.netProfit)}, Bull case ${formatYen(fin.scenarios.bull.netProfit)}"></canvas>
                 </div>
@@ -1733,15 +1733,15 @@ const UI = {
                 </div>
 
                 <div class="calc-row">
-                    <span class="calc-label">Acquisition Cost</span>
+                    <span class="calc-label">Acquisition cost</span>
                     <span class="calc-value">${formatYen(fin.acquisitionCost)}</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Appreciation Rate</span>
+                    <span class="calc-label">Appreciation rate</span>
                     <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Est. Selling Price (5yr)</span>
+                    <span class="calc-label">Est. selling price (5yr)</span>
                     <div class="calc-value-with-confidence">
                         <span class="calc-value">${sellingPriceInfo.display}</span>
                         <span class="confidence-range" title="${confidence.level} confidence">
@@ -1751,19 +1751,19 @@ const UI = {
                     </div>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Rental Yield</span>
+                    <span class="calc-label">Rental yield</span>
                     <span class="calc-value">${formatPercent(data.rentalYield)}</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Annual Rental Income</span>
+                    <span class="calc-label">Annual rental income</span>
                     <span class="calc-value">${formatYen(data.annualRent)}</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Applicable Taxes</span>
+                    <span class="calc-label">Applicable taxes</span>
                     <span class="calc-value negative">${formatYen(data.taxes)}</span>
                 </div>
                 <div class="calc-row total">
-                    <span class="calc-label">Net Profit (5yr)</span>
+                    <span class="calc-label">Net profit (5yr)</span>
                     <div class="calc-value-with-confidence">
                         <span class="calc-value positive">${formatYenSigned(data.netProfit)}</span>
                         <span class="confidence-range" title="${confidence.level} confidence">
@@ -1801,26 +1801,26 @@ const UI = {
         const stats = AppData.areaStats;
 
         const content = `
-            <div class="subtitle">Market Overview</div>
-            <h2>Area Statistics</h2>
+            <div class="subtitle">Market overview</div>
+            <h2>Area statistics</h2>
 
             <div class="stat-grid">
                 <div class="stat-item">
                     <div class="stat-value">${stats.avgAppreciation}</div>
-                    <div class="stat-label">Avg. Annual Appreciation</div>
+                    <div class="stat-label">Avg. annual appreciation</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">${stats.avgRentalYield}</div>
-                    <div class="stat-label">Avg. Rental Yield</div>
+                    <div class="stat-label">Avg. rental yield</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">${stats.occupancyRate}</div>
-                    <div class="stat-label">Occupancy Rate</div>
+                    <div class="stat-label">Occupancy rate</div>
                 </div>
             </div>
 
             <div class="calculator-section">
-                <h4>Appreciation Trend</h4>
+                <h4>Appreciation trend</h4>
                 <div class="chart-container" style="height: 160px; margin: 16px 0;">
                     <canvas id="trend-chart" role="img" aria-label="Line chart showing appreciation trend: 2022 at 6.2%, 2023 at 9.1%, 2024 at 11.3% - showing accelerating growth"></canvas>
                 </div>
@@ -2182,8 +2182,8 @@ const UI = {
         const groupsHtml = groups.map(group => this.generateDisclosureGroup(group)).join('');
 
         const content = `
-            <div class="subtitle">Evidence Library</div>
-            <h2>Supporting Documents</h2>
+            <div class="subtitle">Evidence library</div>
+            <h2>Supporting documents</h2>
             <p>Explore detailed evidence and documentation for each category.</p>
             ${groupsHtml}
         `;
@@ -2745,11 +2745,6 @@ const UI = {
                 ${layerData.markers.map(marker => `
                     <button class="data-layer-marker-item" onclick="UI.focusDataLayerMarker('${layerName}', '${marker.id}')">
                         <span class="marker-name">${marker.name}</span>
-                        <span class="marker-chevron">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </span>
                     </button>
                 `).join('')}
             </div>
@@ -2773,7 +2768,7 @@ const UI = {
 
             kyushuEnergyHtml = `
                 <div style="${sectionStyle}">
-                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold);">Kyushu Energy Facilities</h4>
+                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold);">Kyushu energy facilities</h4>
                     <div style="${typeHeaderStyle} color: #ff9500;">Solar (${energy.solar.length})</div>
                     ${renderFacilities(energy.solar)}
                     <div style="${typeHeaderStyle} color: #5ac8fa;">Wind (${energy.wind.length})</div>
@@ -2785,7 +2780,7 @@ const UI = {
         }
 
         const content = `
-            <div class="subtitle">Data Layer</div>
+            <div class="subtitle">Data layer</div>
             <h2>${layerData.name}</h2>
             <p>${layerData.description}</p>
             ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
@@ -3099,7 +3094,7 @@ const UI = {
     getJourneyTransitionContent(journeyId) {
         const journeys = {
             'B': {
-                title: 'Infrastructure Plan',
+                title: 'Infrastructure plan',
                 subtitle: 'See how billions in corporate investment are transforming the region',
                 icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
@@ -3108,7 +3103,7 @@ const UI = {
                 </svg>`
             },
             'C': {
-                title: 'Investment Opportunities',
+                title: 'Investment opportunities',
                 subtitle: 'Explore properties positioned for growth in the semiconductor corridor',
                 icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
@@ -3116,7 +3111,7 @@ const UI = {
                 </svg>`
             },
             'complete': {
-                title: 'Journey Complete',
+                title: 'Journey complete',
                 subtitle: 'You\'ve explored the Kumamoto investment opportunity',
                 icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -3208,7 +3203,7 @@ const UI = {
         const content = `
             ${gktkHtml}
             <div class="portfolio-summary">
-                <div class="portfolio-summary-label">Combined 5-Year Potential</div>
+                <div class="portfolio-summary-label">Combined 5-year potential</div>
                 <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>
                 <div class="portfolio-summary-detail">Projected return across ${properties.length} properties</div>
                 <div class="portfolio-summary-properties">
@@ -3255,7 +3250,7 @@ const UI = {
 
         return `
             <div class="portfolio-summary">
-                <div class="portfolio-summary-label">Combined 5-Year Potential</div>
+                <div class="portfolio-summary-label">Combined 5-year potential</div>
                 <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>
                 <div class="portfolio-summary-detail">Projected return across ${properties.length} properties</div>
                 <div class="portfolio-summary-properties">
@@ -3288,19 +3283,19 @@ const UI = {
         const sellingPriceInfo = this.formatWithConfidence(data.sellingPrice, scenario);
 
         const content = `
-            <div class="subtitle">Financial Projection</div>
-            <h2>Performance Calculator</h2>
+            <div class="subtitle">Financial projection</div>
+            <h2>Performance calculator</h2>
 
             <!-- HEADLINE STAT - Von Restorff Effect -->
             <div class="headline-stat">
-                <div class="headline-stat-label">Projected 5-Year Return</div>
+                <div class="headline-stat-label">Projected 5-year return</div>
                 <div class="headline-stat-value">${formatYenCompact(data.netProfit)}</div>
                 <div class="headline-stat-sublabel">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} case scenario</div>
             </div>
 
             <!-- SCENARIO SELECTOR -->
             <div class="calculator-section">
-                <h4>Scenario Comparison</h4>
+                <h4>Scenario comparison</h4>
                 <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
                     <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios"></canvas>
                 </div>
@@ -3336,15 +3331,15 @@ const UI = {
                 </button>
                 <div class="financials-disclosure-content" id="financials-details">
                     <div class="calc-row">
-                        <span class="calc-label">Acquisition Cost</span>
+                        <span class="calc-label">Acquisition cost</span>
                         <span class="calc-value">${formatYen(fin.acquisitionCost)}</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Appreciation Rate</span>
+                        <span class="calc-label">Appreciation rate</span>
                         <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Est. Selling Price (5yr)</span>
+                        <span class="calc-label">Est. selling price (5yr)</span>
                         <div class="calc-value-with-confidence">
                             <span class="calc-value">${sellingPriceInfo.display}</span>
                             <span class="confidence-range" title="${confidence.level} confidence">
@@ -3354,15 +3349,15 @@ const UI = {
                         </div>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Rental Yield</span>
+                        <span class="calc-label">Rental yield</span>
                         <span class="calc-value">${formatPercent(data.rentalYield)}</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Annual Rental Income</span>
+                        <span class="calc-label">Annual rental income</span>
                         <span class="calc-value">${formatYen(data.annualRent)}</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Applicable Taxes</span>
+                        <span class="calc-label">Applicable taxes</span>
                         <span class="calc-value negative">${formatYen(data.taxes)}</span>
                     </div>
                 </div>
@@ -3478,7 +3473,7 @@ const UI = {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Kumamoto Investment Summary</title>
+<title>Kumamoto investment summary</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1e1f20; }
   h1 { font-size: 28px; margin-bottom: 8px; }
@@ -3495,27 +3490,27 @@ const UI = {
 </style>
 </head>
 <body>
-<h1>Kumamoto Investment Summary</h1>
-<p class="subtitle">Greater Kumamoto Technology Corridor — Presentation Summary</p>
+<h1>Kumamoto investment summary</h1>
+<p class="subtitle">Greater Kumamoto Technology Corridor — presentation summary</p>
 
-<h2>Fund Overview</h2>
+<h2>Fund overview</h2>
 <div class="stat-grid">
   ${(gktk.stats || []).map(s => `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
 </div>
 
-<h2>Science Park Corridor</h2>
+<h2>Science Park corridor</h2>
 <p>${sciencePark.description || ''}</p>
 <div class="stat-grid">
   ${(sciencePark.stats || []).map(s => `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
 </div>
 
-<h2>Corporate Partners</h2>
+<h2>Corporate partners</h2>
 <table>
   <thead><tr><th>Company</th><th>Sector</th><th>Investment</th><th>Employees</th></tr></thead>
   <tbody>${companiesHtml}</tbody>
 </table>
 
-<h2>Investment Properties</h2>
+<h2>Investment properties</h2>
 <table>
   <thead><tr><th>Property</th><th>Type</th><th>Drive to JASM</th><th>Floor Area</th></tr></thead>
   <tbody>${propertiesHtml}</tbody>
@@ -4628,27 +4623,57 @@ const UI = {
         const calc = panel.querySelector('.icard-calculator');
         if (!calc) return;
         const property = options.property || this.currentProperty || AppData.properties?.[0] || {};
-        const newHtml = this.renderCalculatorCard(property);
-        const temp = document.createElement('div');
-        temp.innerHTML = newHtml;
-        if (temp.firstElementChild) {
-            calc.replaceWith(temp.firstElementChild);
-            // Reattach only calculator toggle handlers on the new element
-            const newCalc = panel.querySelector('.icard-calculator');
-            if (newCalc) {
-                newCalc.querySelectorAll('.icard-scenario-toggle .icard-scenario-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        this.currentScenario = btn.dataset.scenario;
-                        this._refreshCalculator(options);
-                    });
-                });
-                newCalc.querySelectorAll('.icard-view-toggle .icard-view-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        this.inspectorView = btn.dataset.view;
-                        this._refreshCalculator(options);
-                    });
-                });
-            }
+
+        // Update toggle button active states in-place (no DOM replacement)
+        const scenario = this.currentScenario || 'average';
+        const view = this.inspectorView || 'fund';
+        calc.querySelectorAll('.icard-scenario-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.scenario === scenario);
+        });
+        calc.querySelectorAll('.icard-view-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === view);
+        });
+
+        // Build new stats HTML
+        const fin = property.financials || {};
+        const scenarios = fin.scenarios || {};
+        const sc = scenarios[scenario] || {};
+        const broker = property.brokerMetrics || {};
+        let statsHtml = '';
+        if (view === 'fund') {
+            const rows = [
+                { label: 'Total cost', value: this.formatYen(fin.acquisitionCost || 0) },
+                { label: 'Selling price', value: this.formatYen(sc.sellingPrice || 0) },
+                { label: 'Tax', value: this.formatYen(sc.taxes || 0) },
+                { label: 'Annual rent', value: this.formatYen(sc.annualRent || 0) },
+                { label: 'Net profit', value: this.formatYen(sc.netProfit || 0), highlight: true }
+            ];
+            statsHtml = rows.map(r => `<div class="icard-calc-row">
+                <span class="icard-calc-label">${r.label}</span>
+                <span class="icard-calc-value${r.highlight ? ' highlight' : ''}">${r.value}</span>
+            </div>`).join('');
+        } else {
+            const rows = [
+                { label: 'Rental high', value: this.formatYen(broker.rentalHigh || 0) + '/mo' },
+                { label: 'Rental average', value: this.formatYen(broker.rentalAvg || 0) + '/mo' },
+                { label: 'Rental low', value: this.formatYen(broker.rentalLow || 0) + '/mo' },
+                { label: 'Projected growth', value: ((broker.projectedGrowth || 0) * 100).toFixed(1) + '%' },
+                { label: 'Area average', value: this.formatYen(broker.areaAverage || 0) + '/mo' }
+            ];
+            statsHtml = rows.map(r => `<div class="icard-calc-row">
+                <span class="icard-calc-label">${r.label}</span>
+                <span class="icard-calc-value">${r.value}</span>
+            </div>`).join('');
+        }
+
+        // Crossfade: fade out, swap content, fade in
+        const statsEl = calc.querySelector('.icard-calc-stats');
+        if (statsEl) {
+            statsEl.classList.add('fading');
+            setTimeout(() => {
+                statsEl.innerHTML = statsHtml;
+                statsEl.classList.remove('fading');
+            }, 150);
         }
     },
 

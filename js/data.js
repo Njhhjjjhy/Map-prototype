@@ -48,24 +48,24 @@ const AppData = {
 
     // Journey A: Opening Question (Step A0)
     openingQuestion: {
-        title: 'The Core Question',
+        title: 'The core question',
         question: 'Why is Japan\'s government spending ¥10 trillion in Kumamoto?',
         supportingDocs: [
             {
                 id: 'meti-plan',
-                title: 'Certified Semiconductor Production Facility Plan',
+                title: 'Certified semiconductor production facility plan',
                 source: 'meti.go.jp',
                 type: 'government'
             },
             {
                 id: 'reuters-tsmc',
-                title: 'Tokyo Pledges $4.9B for TSMC Japan Expansion',
+                title: 'Tokyo pledges $4.9B for TSMC Japan expansion',
                 source: 'reuters.com',
                 type: 'news'
             },
             {
                 id: 'nippon-data',
-                title: 'Japan Making Major Investments in Semiconductor Industry',
+                title: 'Japan making major investments in semiconductor industry',
                 source: 'nippon.com',
                 type: 'data'
             }
@@ -87,7 +87,7 @@ const AppData = {
                 { value: '60%', label: 'Lower than Tokyo rates' }
             ],
             evidence: {
-                title: 'Kumamoto Water Resources Report',
+                title: 'Kumamoto water resources report',
                 type: 'pdf',
                 description: 'Official government report on groundwater sustainability and industrial allocation'
             },
@@ -97,7 +97,7 @@ const AppData = {
                     id: 'coca-cola',
                     name: 'Coca-Cola Bottlers Japan',
                     coords: [32.74, 130.72],
-                    subtitle: 'Kumamoto Plant',
+                    subtitle: 'Kumamoto plant',
                     description: 'Major beverage manufacturer chose Kumamoto for exceptional water quality and abundance. The plant produces beverages for the entire Kyushu region.',
                     stats: [
                         { value: '1987', label: 'Established' },
@@ -110,13 +110,13 @@ const AppData = {
                     id: 'suntory',
                     name: 'Suntory Kyushu Kumamoto Factory',
                     coords: [32.82, 130.85],
-                    subtitle: 'Premium Beverage Production',
+                    subtitle: 'Premium beverage production',
                     description: 'Suntory selected Kashima, Kamimashiki for its pristine groundwater. The facility produces premium beverages requiring the highest water purity standards.',
                     stats: [
                         { value: '1991', label: 'Established' },
                         { value: 'Kashima', label: 'Location' },
-                        { value: 'Premium', label: 'Product Grade' },
-                        { value: '100%', label: 'Local Water' }
+                        { value: 'Premium', label: 'Product grade' },
+                        { value: '100%', label: 'Local water' }
                     ]
                 }
             ]
@@ -134,7 +134,7 @@ const AppData = {
                 { value: '15%', label: 'Renewable mix' }
             ],
             evidence: {
-                title: 'Kyushu Electric Infrastructure Plan',
+                title: 'Kyushu Electric infrastructure plan',
                 type: 'pdf',
                 description: 'Investment roadmap for semiconductor corridor power infrastructure'
             },
@@ -261,7 +261,7 @@ const AppData = {
         center: [32.87, 130.78],
         radius: 15000, // meters
         name: 'Kumamoto Science Park Corridor',
-        subtitle: 'Government Development Zone',
+        subtitle: 'Government development zone',
         description: 'The Kumamoto Prefectural Government has designated this area as a special semiconductor development zone, offering tax incentives, streamlined permitting, and infrastructure investments totaling ¥4.8 trillion.',
         stats: [
             { value: '¥4.8T', label: 'Government investment' },
@@ -270,7 +270,7 @@ const AppData = {
             { value: '12', label: 'Major facilities planned' }
         ],
         evidence: {
-            title: 'Kumamoto Science Park Master Plan',
+            title: 'Kumamoto Science Park master plan',
             type: 'pdf',
             description: 'Official development roadmap and zoning documentation'
         }
@@ -284,7 +284,7 @@ const AppData = {
                 id: 'national',
                 name: 'Japan National Government',
                 coords: [32.87, 130.70],
-                subtitle: 'Strategic Semiconductor Policy',
+                subtitle: 'Strategic semiconductor policy',
                 type: 'commitment',
                 description: 'The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.',
                 stats: [
@@ -298,7 +298,7 @@ const AppData = {
                 id: 'prefecture',
                 name: 'Kumamoto Prefecture',
                 coords: [32.79, 130.74],
-                subtitle: 'Regional Coordination',
+                subtitle: 'Regional coordination',
                 type: 'commitment',
                 description: 'Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region.',
                 stats: [
@@ -312,7 +312,7 @@ const AppData = {
                 id: 'kikuyo-city',
                 name: 'Kikuyo Town',
                 coords: [32.88, 130.83],
-                subtitle: 'Local Development Plan',
+                subtitle: 'Local development plan',
                 type: 'commitment',
                 description: 'Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.',
                 stats: [
@@ -326,7 +326,7 @@ const AppData = {
                 id: 'ozu-city',
                 name: 'Ozu Town',
                 coords: [32.86, 130.87],
-                subtitle: 'Industrial Expansion',
+                subtitle: 'Industrial expansion',
                 type: 'commitment',
                 description: 'Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain.',
                 stats: [
@@ -340,7 +340,7 @@ const AppData = {
                 id: 'grand-airport',
                 name: 'Grand Airport Concept',
                 coords: [32.84, 130.86],
-                subtitle: 'Future Connectivity Vision',
+                subtitle: 'Future connectivity vision',
                 type: 'concept',
                 description: 'Long-term vision to expand Kumamoto Airport into a major cargo hub serving the semiconductor corridor with direct routes to Asia.',
                 stats: [
@@ -409,7 +409,7 @@ const AppData = {
                 {
                     id: 'kikuyo-city',
                     name: 'Kikuyo Town',
-                    subtitle: 'Residential and Commercial',
+                    subtitle: 'Residential and commercial',
                     coords: [32.88, 130.83],
                     commitment: '¥180B',
                     description: 'Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.',
@@ -423,7 +423,7 @@ const AppData = {
                 {
                     id: 'ozu-city',
                     name: 'Ozu Town',
-                    subtitle: 'Industrial Expansion',
+                    subtitle: 'Industrial expansion',
                     coords: [32.86, 130.87],
                     commitment: '¥95B',
                     description: 'Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain.',
@@ -437,7 +437,7 @@ const AppData = {
                 {
                     id: 'grand-airport',
                     name: 'Grand Airport Concept',
-                    subtitle: 'Future Connectivity',
+                    subtitle: 'Future connectivity',
                     coords: [32.84, 130.86],
                     commitment: '¥320B',
                     description: 'Long-term vision to expand Kumamoto Airport into a major cargo hub serving the semiconductor corridor with direct routes to Asia.',
@@ -458,7 +458,7 @@ const AppData = {
             id: 'jasm',
             name: 'JASM (TSMC Japan)',
             coords: [32.874, 130.785],
-            subtitle: 'Semiconductor Manufacturing',
+            subtitle: 'Semiconductor manufacturing',
             description: 'Joint venture between TSMC, Sony, and Denso. Japan\'s most advanced semiconductor fab, producing chips for automotive and industrial applications.',
             stats: [
                 { value: '¥1.2T', label: 'Total investment' },
@@ -467,7 +467,7 @@ const AppData = {
                 { value: '22nm', label: 'Process node' }
             ],
             evidence: {
-                title: 'JASM Press Release',
+                title: 'JASM press release',
                 type: 'pdf',
                 description: 'Official announcement of Phase 2 expansion'
             }
@@ -476,7 +476,7 @@ const AppData = {
             id: 'sony',
             name: 'Sony Semiconductor',
             coords: [32.90, 130.82],
-            subtitle: 'Image Sensor Production',
+            subtitle: 'Image sensor production',
             description: 'Sony\'s flagship image sensor facility supplies Apple, Samsung, and global smartphone manufacturers. Recent expansion doubled production capacity.',
             stats: [
                 { value: '¥850B', label: 'Expansion investment' },
@@ -485,7 +485,7 @@ const AppData = {
                 { value: '2026', label: 'Expansion complete' }
             ],
             evidence: {
-                title: 'Sony Kumamoto Expansion',
+                title: 'Sony Kumamoto expansion',
                 type: 'pdf',
                 description: 'Facility expansion and hiring announcement'
             }
@@ -494,7 +494,7 @@ const AppData = {
             id: 'tokyo-electron',
             name: 'Tokyo Electron',
             coords: [32.85, 130.73],
-            subtitle: 'Equipment Manufacturing',
+            subtitle: 'Equipment manufacturing',
             description: 'World\'s third-largest semiconductor equipment manufacturer. New Kumamoto facility will produce next-generation chip-making tools.',
             stats: [
                 { value: '¥320B', label: 'Investment' },
@@ -503,7 +503,7 @@ const AppData = {
                 { value: '#3', label: 'Global equipment rank' }
             ],
             evidence: {
-                title: 'Tokyo Electron Announcement',
+                title: 'Tokyo Electron announcement',
                 type: 'pdf',
                 description: 'New facility press release'
             }
@@ -512,7 +512,7 @@ const AppData = {
             id: 'mitsubishi',
             name: 'Mitsubishi Electric',
             coords: [32.82, 130.80],
-            subtitle: 'Power Semiconductors',
+            subtitle: 'Power semiconductors',
             description: 'Major expansion of power semiconductor production for electric vehicles and renewable energy systems.',
             stats: [
                 { value: '¥260B', label: 'Investment' },
@@ -521,7 +521,7 @@ const AppData = {
                 { value: '40%', label: 'Capacity increase' }
             ],
             evidence: {
-                title: 'Mitsubishi Power Semiconductor Plan',
+                title: 'Mitsubishi power semiconductor plan',
                 type: 'pdf',
                 description: 'EV market expansion strategy'
             }
@@ -530,7 +530,7 @@ const AppData = {
             id: 'sumco',
             name: 'SUMCO',
             coords: [32.93, 130.70],
-            subtitle: 'Silicon Wafer Manufacturing',
+            subtitle: 'Silicon wafer manufacturing',
             description: 'One of the world\'s largest silicon wafer manufacturers. SUMCO\'s Kyushu facilities produce high-purity wafers essential for advanced semiconductor fabrication.',
             stats: [
                 { value: '¥180B', label: 'Investment' },
@@ -539,7 +539,7 @@ const AppData = {
                 { value: '2026', label: 'Expansion complete' }
             ],
             evidence: {
-                title: 'SUMCO Kyushu Expansion',
+                title: 'SUMCO Kyushu expansion',
                 type: 'pdf',
                 description: 'Wafer production capacity expansion plan'
             }
@@ -548,7 +548,7 @@ const AppData = {
             id: 'kyocera',
             name: 'Kyocera',
             coords: [32.91, 130.88],
-            subtitle: 'Ceramic Packages & Components',
+            subtitle: 'Ceramic packages & components',
             description: 'Kyocera manufactures ceramic packages and electronic components critical to semiconductor assembly. Their Kyushu operations serve the entire Asia-Pacific market.',
             stats: [
                 { value: '¥95B', label: 'Investment' },
@@ -557,7 +557,7 @@ const AppData = {
                 { value: 'Asia-Pacific', label: 'Market served' }
             ],
             evidence: {
-                title: 'Kyocera Component Expansion',
+                title: 'Kyocera component expansion',
                 type: 'pdf',
                 description: 'Regional manufacturing strategy'
             }
@@ -566,7 +566,7 @@ const AppData = {
             id: 'rohm-apollo',
             name: 'Rohm Apollo',
             coords: [32.89, 130.76],
-            subtitle: 'Analog & Power Semiconductors',
+            subtitle: 'Analog & power semiconductors',
             description: 'Rohm Apollo Semiconductor produces analog ICs and power devices in Kumamoto. Expanding capacity to meet growing EV and industrial automation demand.',
             stats: [
                 { value: '¥120B', label: 'Investment' },
@@ -575,7 +575,7 @@ const AppData = {
                 { value: '+60%', label: 'Capacity expansion' }
             ],
             evidence: {
-                title: 'Rohm Apollo SiC Expansion',
+                title: 'Rohm Apollo SiC expansion',
                 type: 'pdf',
                 description: 'Silicon carbide power device production plan'
             }
@@ -589,7 +589,7 @@ const AppData = {
             name: 'Kikuyo Development Zone',
             coords: [32.88, 130.83],
             radius: 5000,
-            subtitle: 'Residential & Commercial',
+            subtitle: 'Residential & commercial',
             description: 'Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, and support services for semiconductor workers.',
             stats: [
                 { value: '2,500', label: 'Housing units planned' },
@@ -598,7 +598,7 @@ const AppData = {
                 { value: '15min', label: 'To JASM' }
             ],
             evidence: {
-                title: 'Kikuyo Town Development Plan',
+                title: 'Kikuyo Town development plan',
                 type: 'pdf',
                 description: 'Official rezoning and infrastructure roadmap'
             }
@@ -608,7 +608,7 @@ const AppData = {
             name: 'Ozu Industrial Expansion',
             coords: [32.86, 130.87],
             radius: 4000,
-            subtitle: 'Industrial & Logistics',
+            subtitle: 'Industrial & logistics',
             description: 'Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain.',
             stats: [
                 { value: '120ha', label: 'Industrial land' },
@@ -617,7 +617,7 @@ const AppData = {
                 { value: '3,000', label: 'Jobs projected' }
             ],
             evidence: {
-                title: 'Ozu Industrial Zone Plan',
+                title: 'Ozu industrial zone plan',
                 type: 'pdf',
                 description: 'Industrial development documentation'
             }
@@ -674,7 +674,7 @@ const AppData = {
             id: 'prop-1',
             name: 'Kikuyo Residence A',
             coords: [32.8755, 130.8195],
-            subtitle: 'New Construction',
+            subtitle: 'New construction',
             address: '969-1 Haramizu, Kikuyo-machi, Kikuchi-gun',
             distanceToJasm: '8.2 km',
             driveTime: '12 min',
@@ -695,12 +695,12 @@ const AppData = {
             ],
             truthEngine: [
                 {
-                    title: 'Kikuyo Station Expansion',
+                    title: 'Kikuyo Station expansion',
                     description: 'New train station with direct line to Kumamoto City center. Completion 2026.',
                     impact: '+15% projected value increase'
                 },
                 {
-                    title: 'International School',
+                    title: 'International school',
                     description: 'English-language school announced for TSMC engineer families.',
                     impact: '+8% rental premium for international tenants'
                 },
@@ -740,7 +740,7 @@ const AppData = {
                 }
             },
             rentalReport: {
-                title: 'Property Rental Analysis',
+                title: 'Property rental analysis',
                 type: 'pdf',
                 description: 'Detailed rental market analysis from property manager',
                 date: '2025-01',
@@ -783,7 +783,7 @@ const AppData = {
             id: 'prop-2',
             name: 'Ozu Heights Unit B',
             coords: [32.8735, 130.8225],
-            subtitle: 'Apartment Investment',
+            subtitle: 'Apartment investment',
             address: '717 Haramizu, Kikuyo, Kikuchi District',
             distanceToJasm: '10.5 km',
             driveTime: '15 min',
@@ -804,17 +804,17 @@ const AppData = {
             ],
             truthEngine: [
                 {
-                    title: 'Highway Extension',
+                    title: 'Highway extension',
                     description: 'Route 57 bypass reduces commute to JASM by 5 minutes.',
                     impact: '+12% value from improved access'
                 },
                 {
-                    title: 'Commercial Development',
+                    title: 'Commercial development',
                     description: 'New shopping center approved 500m from property.',
                     impact: '+6% neighborhood desirability'
                 },
                 {
-                    title: 'Tokyo Electron Opening',
+                    title: 'Tokyo Electron opening',
                     description: 'New facility 4km away, 1,200 new employees seeking housing.',
                     impact: '+30% rental inquiry rate'
                 }
@@ -849,7 +849,7 @@ const AppData = {
                 }
             },
             rentalReport: {
-                title: 'Property Rental Analysis',
+                title: 'Property rental analysis',
                 type: 'pdf',
                 description: 'Detailed rental market analysis from property manager',
                 date: '2025-02',
@@ -1076,7 +1076,7 @@ const AppData = {
         id: 'kikuyo-station',
         name: 'Kikuyo Station',
         coords: [32.88, 130.81],
-        subtitle: 'New Rail Connection',
+        subtitle: 'New rail connection',
         status: 'Under Construction',
         completionDate: '2026',
         description: 'New JR Hohi Line station providing direct rail access from Kumamoto City to the Science Park corridor. Reduces commute time for semiconductor workers.',
@@ -1094,7 +1094,7 @@ const AppData = {
         id: 'haramizu-station',
         name: 'Haramizu Station Area',
         coords: [32.8698, 130.8230],
-        subtitle: 'New Development Hub',
+        subtitle: 'New development hub',
         status: 'Under Development',
         description: 'Haramizu Station area is being developed as a new urban core with 70ha of mixed-use land. Three development zones planned. Mitsui Fudosan and JR Kyushu selected as development partners.',
         stats: [
@@ -1105,7 +1105,7 @@ const AppData = {
         ],
         zones: [
             { name: 'Vibrancy', description: 'Station-front retail, F&B, international-friendly services' },
-            { name: 'Knowledge Cluster', description: 'R&D offices, co-working, university satellite' },
+            { name: 'Knowledge cluster', description: 'R&D offices, co-working, university satellite' },
             { name: 'Live-Work', description: 'Mid-high density condos, serviced apartments for engineers' }
         ],
         commuteImpact: 'New urban core',
@@ -1116,12 +1116,12 @@ const AppData = {
     evidenceGroups: {
         'energy-infrastructure': {
             id: 'energy-infrastructure',
-            title: 'Energy Infrastructure',
+            title: 'Energy infrastructure',
             icon: 'zap',
             items: [
                 {
                     id: 'solar-power',
-                    title: 'Solar Power Capacity',
+                    title: 'Solar power capacity',
                     type: 'pdf',
                     date: '2024-09',
                     viewed: false,
@@ -1136,7 +1136,7 @@ const AppData = {
                 },
                 {
                     id: 'wind-power',
-                    title: 'Wind Energy Network',
+                    title: 'Wind energy network',
                     type: 'pdf',
                     date: '2024-08',
                     viewed: false,
@@ -1151,7 +1151,7 @@ const AppData = {
                 },
                 {
                     id: 'nuclear-kyushu',
-                    title: 'Kyushu Nuclear (Sendai)',
+                    title: 'Kyushu nuclear (Sendai)',
                     type: 'pdf',
                     date: '2024-06',
                     viewed: false,
@@ -1168,12 +1168,12 @@ const AppData = {
         },
         'transportation-network': {
             id: 'transportation-network',
-            title: 'Transportation Network',
+            title: 'Transportation network',
             icon: 'route',
             items: [
                 {
                     id: 'planned-roads',
-                    title: 'Planned Road Extensions',
+                    title: 'Planned road extensions',
                     type: 'pdf',
                     date: '2025-01',
                     viewed: false,
@@ -1188,7 +1188,7 @@ const AppData = {
                 },
                 {
                     id: 'railway-expansion',
-                    title: 'Railway Expansion',
+                    title: 'Railway expansion',
                     type: 'pdf',
                     date: '2024-11',
                     viewed: false,
@@ -1203,7 +1203,7 @@ const AppData = {
                 },
                 {
                     id: 'airport-access',
-                    title: 'Kumamoto Airport Access',
+                    title: 'Kumamoto Airport access',
                     type: 'web',
                     date: '2025-02',
                     viewed: false,
@@ -1220,7 +1220,7 @@ const AppData = {
         },
         'government-zones': {
             id: 'government-zones',
-            title: 'Government Zones',
+            title: 'Government zones',
             icon: 'landmark',
             items: [
                 {
@@ -1240,7 +1240,7 @@ const AppData = {
                 },
                 {
                     id: 'kikuyo-plan',
-                    title: 'Kikuyo Long-term Plan',
+                    title: 'Kikuyo long-term plan',
                     type: 'pdf',
                     date: '2024-07',
                     viewed: false,
@@ -1255,7 +1255,7 @@ const AppData = {
                 },
                 {
                     id: 'ozu-plan',
-                    title: 'Ozu Long-term Plan',
+                    title: 'Ozu long-term plan',
                     type: 'pdf',
                     date: '2024-05',
                     viewed: false,
@@ -1272,12 +1272,12 @@ const AppData = {
         },
         'education-pipeline': {
             id: 'education-pipeline',
-            title: 'Education Pipeline',
+            title: 'Education pipeline',
             icon: 'graduation-cap',
             items: [
                 {
                     id: 'university-programs',
-                    title: 'University Programs',
+                    title: 'University programs',
                     type: 'pdf',
                     date: '2024-10',
                     viewed: false,
@@ -1292,7 +1292,7 @@ const AppData = {
                 },
                 {
                     id: 'training-centers',
-                    title: 'Training Centers',
+                    title: 'Training centers',
                     type: 'web',
                     date: '2025-01',
                     viewed: false,
@@ -1307,7 +1307,7 @@ const AppData = {
                 },
                 {
                     id: 'graduate-numbers',
-                    title: 'Graduate Employment',
+                    title: 'Graduate employment',
                     type: 'pdf',
                     date: '2024-12',
                     viewed: false,
@@ -1338,7 +1338,7 @@ const AppData = {
             ]
         },
         companies: {
-            name: 'Corporate Sites',
+            name: 'Corporate sites',
             description: 'Major semiconductor manufacturers operating within the Kumamoto corridor.',
             stats: [
                 { value: '5', label: 'Major fabs' },
@@ -1356,7 +1356,7 @@ const AppData = {
             ]
         },
         trafficFlow: {
-            name: 'Traffic Flow',
+            name: 'Traffic flow',
             description: 'Real-time and historical traffic patterns across the Kumamoto semiconductor corridor.',
             markers: [
                 { id: 'traffic-1', coords: [32.87, 130.80], name: 'Route 57 Junction', congestion: 'Moderate', peakHours: '7:30-9:00, 17:00-18:30', avgSpeed: '45 km/h' },
@@ -1387,14 +1387,14 @@ const AppData = {
                 },
                 {
                     id: 'local-roads-north',
-                    name: 'Local Roads North',
+                    name: 'Local roads north',
                     path: [[130.78, 32.89], [130.80, 32.895], [130.82, 32.90]],
                     level: 'low',
                     color: '#fbbf24'
                 },
                 {
                     id: 'local-roads-south',
-                    name: 'Local Roads South',
+                    name: 'Local roads south',
                     path: [[130.77, 32.82], [130.79, 32.825], [130.81, 32.83]],
                     level: 'low',
                     color: '#fbbf24'
@@ -1407,7 +1407,7 @@ const AppData = {
             ]
         },
         railCommute: {
-            name: 'Rail Commute',
+            name: 'Rail commute',
             description: 'JR Kyushu rail network serving the semiconductor corridor workforce.',
             markers: [
                 { id: 'rail-1', coords: [32.79, 130.69], name: 'Kumamoto Station', type: 'Major Hub', toJasm: '28 min', frequency: '10 min' },
@@ -1444,7 +1444,7 @@ const AppData = {
             ]
         },
         electricity: {
-            name: 'Electricity Usage',
+            name: 'Electricity usage',
             description: 'Regional power consumption and capacity for industrial operations.',
             markers: [
                 { id: 'elec-1', coords: [32.87, 130.78], name: 'Science Park Grid', consumption: '1.8 GW', capacity: '2.4 GW', utilization: '75%' },
@@ -1473,12 +1473,12 @@ const AppData = {
             ]
         },
         infrastructure: {
-            name: 'Infrastructure Plan',
+            name: 'Infrastructure plan',
             description: 'Planned and in-progress infrastructure development projects.',
             markers: [
-                { id: 'infra-1', coords: [32.88, 130.78], name: 'New Water Treatment', status: 'Under Construction', completion: '2025', budget: '¥28B' },
-                { id: 'infra-2', coords: [32.86, 130.84], name: 'Logistics Hub', status: 'Planned', completion: '2027', budget: '¥45B' },
-                { id: 'infra-3', coords: [32.84, 130.72], name: 'Data Center Complex', status: 'Under Construction', completion: '2026', budget: '¥120B' }
+                { id: 'infra-1', coords: [32.88, 130.78], name: 'New water treatment', status: 'Under Construction', completion: '2025', budget: '¥28B' },
+                { id: 'infra-2', coords: [32.86, 130.84], name: 'Logistics hub', status: 'Planned', completion: '2027', budget: '¥45B' },
+                { id: 'infra-3', coords: [32.84, 130.72], name: 'Data center complex', status: 'Under Construction', completion: '2026', budget: '¥120B' }
             ],
             stats: [
                 { value: '¥4.8T', label: 'Total investment' },
@@ -1487,7 +1487,7 @@ const AppData = {
             ]
         },
         realEstate: {
-            name: 'Real Estate',
+            name: 'Real estate',
             description: 'Property market trends and investment activity in the corridor.',
             markers: [
                 { id: 're-1', coords: [32.88, 130.82], name: 'Kikuyo Residential Zone', trend: '+12% YoY', avgPrice: '¥48M', inventory: 'Low' },
@@ -1501,7 +1501,7 @@ const AppData = {
             ]
         },
         riskyArea: {
-            name: 'Risky Area',
+            name: 'Risky area',
             description: 'Flood zones, seismic risk areas, and natural hazard information.',
             markers: [
                 { id: 'risk-1', coords: [32.78, 130.72], name: 'Shirakawa Flood Zone', risk: 'Moderate', type: 'Flood', mitigation: 'Levee upgrade 2025' },
@@ -1515,7 +1515,7 @@ const AppData = {
             ]
         },
         baseMap: {
-            name: 'Base Map',
+            name: 'Base map',
             description: 'Standard geographic reference markers and points of interest.',
             markers: [
                 { id: 'base-1', coords: [32.79, 130.69], name: 'Kumamoto City Center', type: 'City', population: '740,000' },

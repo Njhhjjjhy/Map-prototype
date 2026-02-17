@@ -142,29 +142,23 @@ All font sizes use `rem` units with `1rem = 16px` base. Scale follows macOS typo
 
 #### Case Rules
 
-**Title Case is used ONLY for:**
-1. Primary CTAs with brand-amber fill that are action buttons
-2. Modal overlay headings (h2/h3 inside modals)
-3. Dashboard headings
+**Strict rule: always use sentence case.** The only two exceptions are:
 
-**Sentence case is used for:**
-- All secondary buttons and links
-- All labels and menu items
-- Panel headings and subtitles (right panel)
-- Body copy
-- Placeholder text
-- All other UI text
+1. **Primary CTAs** with brand-amber fill (action buttons)
+2. **Modal overlay headings** (h2/h3 inside modal dialogs)
+
+Everything else uses sentence case, no exceptions. This includes panel headings, dashboard headings, secondary buttons, labels, data labels, evidence titles, section headings, body copy, and placeholder text.
 
 | Element Type | Case | Example |
 |--------------|------|---------|
 | Primary CTAs (amber fill) | Title Case | "Start the Journey", "Continue", "Schedule a Consultation" |
-| Secondary buttons | Sentence case | "View evidence", "View master plan", "Corporate investment chart" |
-| Labels and options | Sentence case | "Water resources", "Power infrastructure" |
-| Modal headings | Title Case | "Ask Me Anything About Kumamoto" |
-| Panel headings | Sentence case | "Supporting evidence", "Infrastructure plan" |
-| Dashboard headings | Title Case | "Investment Overview", "Market Statistics" |
+| Modal headings (h2/h3 inside modals) | Title Case | "Ask Me Anything About Kumamoto" |
+| Secondary buttons | Sentence case | "View evidence", "Download summary" |
+| Panel headings | Sentence case | "Supporting evidence", "Investment comparison" |
+| Dashboard headings | Sentence case | "Investment overview", "Area statistics" |
+| Labels, options, data labels | Sentence case | "Water resources", "Acquisition cost" |
+| Evidence and document titles | Sentence case | "Kumamoto water resources report" |
 | Body copy | Sentence case | "Click the marker to view property details." |
-| Placeholder text | Sentence case | "Enter your search query..." |
 
 See **Strict Rules > Visual Rules > Typography prohibitions** for case and alignment constraints.
 
