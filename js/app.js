@@ -33,6 +33,7 @@ const App = {
         a3Phase: null, // 'infrastructure', 'location', or 'talent'
         companiesExplored: [], // Track which companies have been viewed
         evidenceGroupsViewed: [], // Track which evidence groups have been viewed
+        institutionsVisited: [], // Track which universities have been viewed
     },
 
     /**
@@ -115,36 +116,19 @@ const App = {
      * A0: Show supporting evidence for the opening question
      */
     showOpeningEvidence() {
-        const docs = AppData.openingQuestion.supportingDocs;
-        const docsHtml = docs.map(doc => {
-            const iconName = doc.type === 'government' ? 'landmark' : doc.type === 'news' ? 'newspaper' : 'bar-chart-3';
-            return `
-                <div class="evidence-item" onclick="UI.showGallery('${doc.title}')">
-                    <div class="evidence-item-icon">
-                        <i data-lucide="${iconName}"></i>
-                    </div>
-                    <div class="evidence-item-content">
-                        <div class="evidence-item-title">${doc.title}</div>
-                        <div class="evidence-item-source">${doc.source}</div>
-                    </div>
-                    <div class="evidence-item-chevron">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        UI.renderInspectorPanel(1, { title: '\u00A510 trillion commitment' });
 
-        UI.showPanel(`
-            <div class="subtitle">Supporting evidence</div>
-            <h2>¥10 trillion commitment</h2>
-            <p>Japan designated semiconductors as critical infrastructure, committing unprecedented public funds.</p>
-            <div class="evidence-library" style="margin-top: var(--space-6);">
-                ${docsHtml}
-            </div>
-        `);
-
-        // Re-init lucide icons in the panel
-        if (window.lucide) lucide.createIcons();
+        // Gently zoom toward the science park area (JASM commitment location)
+        const sp = AppData.sciencePark;
+        if (sp && sp.center) {
+            MapController.flyToStep({
+                center: MapController._toMapbox(sp.center),
+                zoom: 12,
+                pitch: 50,
+                bearing: 15,
+                duration: 1500
+            });
+        }
 
         // Update chatbox to continue
         const q = AppData.openingQuestion;
@@ -287,7 +271,6 @@ const App = {
     stepA3() {
         this.state.step = 'A3';
         this.state.a3Phase = 'infrastructure';
-        UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 3: Semiconductor ecosystem');
 
         // Cinematic flight to semiconductor ecosystem area
@@ -310,6 +293,9 @@ const App = {
 
         // Show airline routes with animation
         await MapController.showAirlineRoutes();
+
+        // Sync panel to show airline routes overview
+        UI.showAllAirlineRoutes();
 
         UI.updateChatbox(`
             <h3>Strategic location</h3>
@@ -337,20 +323,44 @@ const App = {
         // Show talent pipeline markers across Kyushu
         MapController.showTalentPipeline();
 
+        // Sync panel to talent pipeline overview
+        UI.renderInspectorPanel(3, { title: 'Talent pipeline' });
+
         // Beat: let markers land
         await new Promise(r => setTimeout(r, TIMING.breathMedium));
 
+        this.updateTalentChatbox();
+    },
+
+    visitInstitution(instId) {
+        if (!this.state.institutionsVisited.includes(instId)) {
+            this.state.institutionsVisited.push(instId);
+        }
+        UI.showTalentInspector(instId);
+        this.updateTalentChatbox();
+    },
+
+    updateTalentChatbox() {
         const pipeline = AppData.talentPipeline;
-        const instList = pipeline.institutions.map(inst =>
-            `<button class="chatbox-option" onclick="UI.showTalentInspector('${inst.id}')">
-                ${inst.name} — ${inst.city}
-            </button>`
-        ).join('');
+        const chevronSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+        const checkSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+        const instList = pipeline.institutions.map(inst => {
+            const visited = this.state.institutionsVisited.includes(inst.id);
+            return `<button class="talent-row ${visited ? 'visited' : ''}" onclick="App.visitInstitution('${inst.id}')">
+                <span class="talent-row-dot" style="background: ${inst.color}"></span>
+                <span class="talent-row-text">
+                    <span class="talent-row-name">${inst.name}</span>
+                    <span class="talent-row-city">${inst.city}</span>
+                </span>
+                ${visited ? `<span class="talent-row-trailing">${checkSvg}</span>` : ''}
+            </button>`;
+        }).join('');
 
         UI.updateChatbox(`
             <h3>Talent pipeline</h3>
             <p>METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region. From mandatory semiconductor courses to JASM-partnered research centers, the talent pipeline is purpose-built.</p>
-            <div class="chatbox-options">
+            <div class="talent-list">
                 ${instList}
             </div>
             <button class="chatbox-continue primary" onclick="App.transitionToJourneyB()">
@@ -489,7 +499,21 @@ const App = {
         // Show the Present/Future toggle in top-left corner
         UI.showTimeToggle();
 
-        // Update chatbox to instruct user about the toggle
+        // Update chatbox with evidence group options
+        this.updateB6Chatbox();
+    },
+
+    updateB6Chatbox() {
+        const groups = ['government-zones', 'transportation-network', 'education-pipeline'];
+        const labels = ['View government zone plans', 'View transportation network', 'View education pipeline'];
+
+        const options = groups.map((id, i) => {
+            const viewed = this.state.evidenceGroupsViewed.includes(id);
+            return `<button class="chatbox-option ${viewed ? 'completed' : ''}" onclick="App.showEvidenceGroupPanel('${id}')">
+                ${labels[i]}${viewed ? '<span class="sr-only"> (viewed)</span>' : ''}
+            </button>`;
+        }).join('');
+
         UI.updateChatbox(`
             <h3>The vision</h3>
             <p>Toggle to <strong>Future View</strong> in the top-left corner to see the planned development zones.</p>
@@ -497,15 +521,7 @@ const App = {
                 Explore the evidence for this transformation:
             </p>
             <div class="chatbox-options">
-                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
-                    View government zone plans
-                </button>
-                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
-                    View transportation network
-                </button>
-                <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
-                    View education pipeline
-                </button>
+                ${options}
             </div>
             <button class="chatbox-continue primary" onclick="App.stepB7()">
                 See What's Changing
@@ -693,17 +709,19 @@ const App = {
                     <div class="journey-recap-headline-value">${formatYen(totalNetProfit)}</div>
                     <div class="journey-recap-headline-detail">across the portfolio</div>
                 </div>
-                <button class="chatbox-continue primary" onclick="UI.hideChatbox(); UI.showAIChat();">
-                    Ask Me Anything
-                </button>
-                <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); UI.showAIChat(); UI.downloadSummary();">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" x2="12" y1="15" y2="3"/>
-                    </svg>
-                    Download summary
-                </button>
+                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <button class="chatbox-continue primary" onclick="UI.hideChatbox(); UI.showAIChat();">
+                        Ask Me Anything
+                    </button>
+                    <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); UI.showAIChat(); UI.downloadSummary();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                        Download summary
+                    </button>
+                </div>
             </div>
         `, { skipHistory: true });
     },
@@ -768,6 +786,8 @@ const App = {
                 // Update chatbox to show completed state
                 if (this.state.journey === 'A') {
                     this.updateResourceChatbox();
+                } else if (this.state.step === 'B6') {
+                    this.updateB6Chatbox();
                 }
             }
 
@@ -777,8 +797,9 @@ const App = {
             // Show the panel with just this group
             this.showSingleEvidenceGroup(group);
 
-            // Show markers for this group's items
+            // Show markers for this group's items and fly camera to them
             MapController.showEvidenceGroupMarkers(group);
+            MapController.fitToEvidenceGroup(group);
         }
     },
 
@@ -916,24 +937,7 @@ const App = {
                     </button>
                 `);
             } else if (step === 'B6') {
-                UI.showChatbox(`
-                    <h3>Development timeline</h3>
-                    <p>Use the <strong>Future / Present</strong> toggle above. Watch how the corridor transforms — new zones, new transport links, new talent pipelines.</p>
-                    <div class="chatbox-options">
-                        <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('government-zones')">
-                            View government zone plans
-                        </button>
-                        <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('transportation-network')">
-                            View transportation network
-                        </button>
-                        <button class="chatbox-option" onclick="App.showEvidenceGroupPanel('education-pipeline')">
-                            View education pipeline
-                        </button>
-                    </div>
-                    <button class="chatbox-continue primary" onclick="App.stepB7()">
-                        See What's Changing
-                    </button>
-                `);
+                this.updateB6Chatbox();
             } else if (step === 'B7') {
                 UI.showChatbox(`
                     <h3>Changes in area</h3>

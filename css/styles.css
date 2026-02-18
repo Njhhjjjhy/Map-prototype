@@ -64,8 +64,9 @@
 
     /* Map-Specific */
     --color-map-route: #007aff;
-    --color-map-zone-future: rgba(251, 185, 49, 0.2);
-    --color-map-radius: rgba(255, 59, 48, 0.15);
+    --color-map-zone-kikuyo: rgba(88, 86, 214, 0.20);   /* Indigo — Kikuyo dev zone */
+    --color-map-zone-ozu: rgba(48, 176, 199, 0.20);     /* Teal — Ozu industrial zone */
+    --color-map-radius: rgba(255, 59, 48, 0.18);         /* Red — Science park radius */
     --color-map-infrastructure: #5ac8fa;  /* Teal - infrastructure roads */
 
     /* Shadows */
@@ -225,7 +226,7 @@ a:focus-visible {
     justify-content: center;
     gap: var(--space-4);
     padding-left: 15%;
-    background: linear-gradient(180deg, #f5f5f7 0%, #e8e8ed 100%);
+    background: var(--color-bg-primary);
     z-index: 1000;
     transition: opacity var(--duration-slow) var(--easing-accelerate);
 }
@@ -747,9 +748,11 @@ a:focus-visible {
     flex-direction: column;
 
     /* Figma spec sizing */
+    width: min(424px, calc(100vw - var(--space-12)));
     max-width: 424px;
-    max-height: calc(100vh - 80px);
+    max-height: calc(100vh - 200px);
     padding: var(--space-8) var(--space-4) var(--space-8) var(--space-4);  /* 32px top for buttons, 16px sides, 32px bottom */
+    overflow: hidden;
 
     /* Visual */
     background: var(--color-bg-primary);
@@ -843,6 +846,9 @@ a:focus-visible {
     flex-direction: column;
     gap: var(--space-4);  /* 16px between title and content */
     margin-top: var(--space-4);  /* 16px gap below buttons */
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 #chatbox-title {
@@ -998,8 +1004,112 @@ a:focus-visible {
     background-position: center;
 }
 
+/* ================================
+   Talent Pipeline - macOS source list
+   Compact grouped list with refined indicators.
+   ================================ */
+
+.talent-list {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+    margin-top: var(--space-4);
+}
+
+/* CTA spacing after talent list */
+.talent-list + .chatbox-continue.primary {
+    margin-top: var(--space-4);
+}
+
+.talent-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-primary);
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+    text-align: left;
+    font-family: var(--font-display);
+}
+
+.talent-row:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.talent-row:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.talent-row:active {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.talent-row-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.talent-row-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.talent-row-name {
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+}
+
+.talent-row-city {
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-tertiary);
+    line-height: var(--line-height-tight);
+}
+
+.talent-row-trailing {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--duration-fast) var(--easing-standard);
+}
+
+.talent-row:hover .talent-row-trailing {
+    color: var(--color-text-tertiary);
+}
+
+/* Visited state */
+.talent-row.visited {
+    background: var(--color-bg-secondary);
+}
+
+.talent-row.visited .talent-row-name {
+    color: var(--color-text-secondary);
+}
+
+.talent-row.visited .talent-row-trailing {
+    color: var(--color-success);
+}
+
 /* Primary CTA - macOS filled button with brand color */
 .chatbox-continue.primary {
+    width: 100%;
     padding: var(--space-3) var(--space-5);
     background: var(--color-primary);
     color: var(--color-text-primary);
@@ -1009,6 +1119,8 @@ a:focus-visible {
     font-size: var(--text-base);
     font-weight: var(--font-weight-semibold);
     letter-spacing: var(--tracking-body);
+    text-align: center;
+    justify-content: center;
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-standard);
     margin-top: var(--space-6);  /* 24px section gap between last item and CTA */
@@ -1042,6 +1154,7 @@ a:focus-visible {
 
 /* Secondary CTA - macOS outlined button style */
 .chatbox-continue.secondary {
+    width: 100%;
     padding: var(--space-3) var(--space-5);
     background: transparent;
     color: var(--color-text-primary);
@@ -1051,6 +1164,7 @@ a:focus-visible {
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--tracking-body);
+    text-align: center;
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-standard);
     margin-top: var(--space-3);
@@ -1295,21 +1409,23 @@ a:focus-visible {
    ================================ */
 #right-panel {
     position: fixed;
-    top: 0;
-    right: 0;
+    top: var(--space-4);
+    right: var(--space-4);
     width: var(--panel-width, 380px);
     min-width: 320px;
     max-width: 60vw;
-    height: 100%;
+    height: calc(100vh - var(--space-8));
     display: flex;
     flex-direction: column;
     background: var(--color-bg-primary);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    box-shadow: -1px 0 0 var(--color-border), var(--shadow-large);
+    border-radius: var(--radius-xlarge);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-xlarge);
     overflow: hidden;
     z-index: 1000;
-    transform: translateX(100%);
+    transform: translateX(calc(100% + var(--space-4)));
     transition: transform var(--duration-normal) var(--easing-decelerate);
 
     /* macOS overlay scrollbar styling */
@@ -3455,6 +3571,19 @@ button.layer-item {
     padding-left: calc(var(--space-4) + 16px + var(--space-3) - 3px);
 }
 
+/* Energy facility items in disclosure groups - clickable with map focus */
+.energy-facility-item {
+    cursor: pointer;
+}
+
+.energy-facility-item:hover {
+    background: var(--color-bg-secondary) !important;
+}
+
+.energy-facility-item.selected {
+    background: rgba(251, 185, 49, 0.15) !important;
+}
+
 .disclosure-item-icon {
     width: 16px;
     height: 16px;
@@ -3730,6 +3859,39 @@ button.layer-item {
     height: 18px;
 }
 
+/* Quick Look: Document preview */
+.quick-look-doc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-12) var(--space-8);
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-xlarge);
+    box-shadow: var(--shadow-xlarge);
+    max-width: 400px;
+    text-align: center;
+}
+
+.quick-look-doc svg {
+    color: var(--color-text-tertiary);
+}
+
+.quick-look-doc h3 {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.quick-look-doc p {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
 /* ================================
    DRAGGABLE MODALS
    ================================ */
@@ -3980,8 +4142,8 @@ button.layer-item {
    ================================ */
 /* GKTK Fund Banner */
 .gktk-banner {
-    background: var(--color-text-primary);
-    color: var(--color-bg-primary);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-medium);
     padding: var(--space-3) var(--space-4);
     margin-bottom: var(--space-3);
@@ -3992,7 +4154,7 @@ button.layer-item {
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-disabled);
+    color: var(--color-text-secondary);
     margin-bottom: var(--space-1);
 }
 
@@ -4000,43 +4162,31 @@ button.layer-item {
     font-family: var(--font-display);
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-bold);
-    color: var(--color-primary);
+    color: var(--color-text-primary);
     letter-spacing: var(--tracking-display);
 }
 
 .gktk-note {
     font-size: var(--text-xs);
-    color: var(--color-text-disabled);
+    color: var(--color-text-tertiary);
     margin-top: var(--space-1);
 }
 
 .portfolio-summary {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #e5a82c 100%);
-    border-radius: var(--radius-large);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
     padding: var(--space-4);
     margin: var(--space-3) 0;
     color: var(--color-text-primary);
-    position: relative;
-    overflow: hidden;
-}
-
-.portfolio-summary::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-    pointer-events: none;
+    text-align: center;
 }
 
 .portfolio-summary-label {
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.08em;
-    opacity: 0.8;
+    color: var(--color-text-tertiary);
     margin-bottom: var(--space-2);
 }
 
@@ -4044,6 +4194,7 @@ button.layer-item {
     font-family: var(--font-display);
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
     letter-spacing: var(--tracking-display);
     line-height: 1;
     margin-bottom: var(--space-2);
@@ -4051,17 +4202,18 @@ button.layer-item {
 
 .portfolio-summary-detail {
     font-family: var(--font-body);
-    font-size: var(--text-base);
-    opacity: 0.9;
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
 }
 
 .portfolio-summary-properties {
     margin-top: var(--space-3);
     padding-top: var(--space-3);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid var(--color-border);
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
 }
 
 /* ================================
@@ -4337,6 +4489,7 @@ button.layer-item {
 .ai-chat-cta {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     background: var(--color-bg-secondary);
@@ -4348,6 +4501,7 @@ button.layer-item {
     color: var(--color-text-primary);
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-standard);
+    text-align: center;
     text-decoration: none;
 }
 
@@ -4676,17 +4830,6 @@ button.layer-item {
    INSPECTOR PANEL (contextual bento dashboard)
    ================================ */
 
-/* Floating panel treatment for dashboard mode */
-#right-panel.dashboard-floating {
-    top: var(--space-4);
-    right: var(--space-4);
-    height: calc(100vh - var(--space-8));
-    border-radius: var(--radius-xlarge);
-    box-shadow: var(--shadow-xlarge);
-    border: 1px solid var(--color-border);
-    overflow: hidden;
-}
-
 /* Resize handle - left edge, width-only */
 .inspector-resize-handle {
     position: absolute;
@@ -4792,13 +4935,13 @@ button.layer-item {
     gap: var(--space-4);
 }
 
-/* Base card */
+/* Base card - macOS HIG: white background, subtle border, clean presentation */
 .icard {
     position: relative;
-    background: var(--color-bg-secondary);
-    border-radius: var(--radius-medium);
-    box-shadow: var(--shadow-subtle);
-    padding: var(--space-4);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    padding: var(--space-6);
     width: 100%;
     box-sizing: border-box;
 }
@@ -4824,29 +4967,23 @@ button.layer-item {
     }
 }
 
-/* Card anatomy: source badge */
+/* Card anatomy: eyebrow label (category/type above title) */
 .icard-source {
-    position: absolute;
-    top: var(--space-3);
-    right: var(--space-3);
     font-family: var(--font-body);
     font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
-    max-width: 50%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-1);
+    line-height: var(--line-height-tight);
 }
 
 /* Card anatomy: title */
 .icard-title {
     font-family: var(--font-display);
-    font-size: var(--text-base);
+    font-size: var(--text-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
-    margin: 0 0 var(--space-3);
+    margin: 0 0 var(--space-4);
     line-height: var(--line-height-tight);
-    padding-right: var(--space-8);
 }
 
 /* ================================
@@ -4916,7 +5053,7 @@ button.layer-item {
 
 .icard-financial-table th {
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
     text-align: right;
 }
 
@@ -5125,7 +5262,7 @@ button.layer-item {
 .icard-yield-range {
     font-family: var(--font-body);
     font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
     margin-top: var(--space-1);
 }
 
@@ -5169,7 +5306,7 @@ button.layer-item {
 .icard-evidence-meta {
     font-family: var(--font-body);
     font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
     margin-top: var(--space-1);
 }
 
@@ -5208,22 +5345,22 @@ button.layer-item {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
 }
 
 .icard-corporate-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-small);
-    background: var(--color-bg-tertiary);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-medium);
+    background: var(--color-bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     font-family: var(--font-display);
-    font-size: var(--text-xs);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-info);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
 }
 
 .icard-corporate-name {
@@ -5235,25 +5372,26 @@ button.layer-item {
 
 .icard-corporate-subtitle {
     font-family: var(--font-body);
-    font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
 }
 
 .icard-stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
+    gap: var(--space-4) var(--space-3);
 }
 
 .icard-stat {
     display: flex;
     flex-direction: column;
+    gap: var(--space-1);
 }
 
 .icard-stat-value {
     font-family: var(--font-display);
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-bold);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
     line-height: var(--line-height-tight);
 }
@@ -5261,7 +5399,7 @@ button.layer-item {
 .icard-stat-label {
     font-family: var(--font-body);
     font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
 }
 
 /* ================================
@@ -5341,7 +5479,7 @@ button.layer-item {
 
 .icard-commute-table th {
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
     font-size: var(--text-xs);
 }
 
@@ -5393,7 +5531,7 @@ button.layer-item {
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
 }
 
 .icard-risk-description {
@@ -5401,6 +5539,60 @@ button.layer-item {
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     line-height: var(--line-height-normal);
+}
+
+/* ================================
+   CARD TYPE: Institution detail (macOS key-value list)
+   ================================ */
+.icard-institution .icard-inst-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+}
+
+.icard-inst-city {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+}
+
+.icard-inst-description {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-normal);
+    margin: 0 0 var(--space-4);
+}
+
+.icard-detail-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--color-border);
+}
+
+.icard-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+    gap: var(--space-4);
+}
+
+.icard-detail-label {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+}
+
+.icard-detail-value {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    text-align: right;
 }
 
 /* ================================

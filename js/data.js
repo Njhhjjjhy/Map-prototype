@@ -25,10 +25,11 @@ const STAGE_MAP = {
 
 /**
  * Tab sets and labels per inspector stage.
- * Stages 1-2 have no panel (map + chatbox only).
+ * Stages 1-2 use map + chatbox. Stage 1 also has an evidence panel.
  */
 const STAGE_TABS = {
-    3: { label: 'Talent pipeline', tabs: ['Workforce', 'Universities', 'Sources'] },
+    1: { label: 'The core question', tabs: ['Evidence'] },
+    3: { label: 'Talent pipeline', tabs: ['Overview'] },
     4: { label: 'Infrastructure', tabs: ['Plans', 'Timeline', 'Sources'] },
     5: { label: 'Corporate investment', tabs: ['Investment', 'Timeline', 'Press'] },
     6: { label: 'Silicon triangle', tabs: ['Profile', 'Metrics', 'Sources'] },
@@ -186,11 +187,10 @@ const AppData = {
                 coords: [33.88, 130.84],
                 color: '#e74c3c',
                 role: 'Established cross-departmental semiconductor human resources center',
-                stats: [
-                    { value: 'Cross-dept', label: 'Program scope' },
-                    { value: 'HR center', label: 'Semiconductor focus' },
-                    { value: '300+', label: 'Annual graduates' },
-                    { value: 'Research', label: 'Core strength' }
+                details: [
+                    { label: 'Annual graduates', value: '300+' },
+                    { label: 'Program scope', value: 'Cross-departmental' },
+                    { label: 'Core strength', value: 'Research' }
                 ]
             },
             {
@@ -201,11 +201,10 @@ const AppData = {
                 coords: [33.60, 130.42],
                 color: '#8e44ad',
                 role: 'Established adult semiconductor retraining center',
-                stats: [
-                    { value: 'Retraining', label: 'Program type' },
-                    { value: 'Adults', label: 'Target audience' },
-                    { value: '500+', label: 'Annual intake' },
-                    { value: 'Top 5', label: 'Japan university rank' }
+                details: [
+                    { label: 'Annual intake', value: '500+' },
+                    { label: 'Target audience', value: 'Working adults' },
+                    { label: 'University rank', value: 'Top 5 in Japan' }
                 ]
             },
             {
@@ -216,11 +215,10 @@ const AppData = {
                 coords: [33.23, 131.60],
                 color: '#2980b9',
                 role: 'Established semiconductor core talent retraining center for working professionals',
-                stats: [
-                    { value: 'Professionals', label: 'Target audience' },
-                    { value: 'Core talent', label: 'Program focus' },
-                    { value: 'Retraining', label: 'Program type' },
-                    { value: 'Industry', label: 'Partnership model' }
+                details: [
+                    { label: 'Program focus', value: 'Core talent development' },
+                    { label: 'Target audience', value: 'Working professionals' },
+                    { label: 'Partnership model', value: 'Industry-led' }
                 ]
             },
             {
@@ -231,11 +229,10 @@ const AppData = {
                 coords: [32.81, 130.73],
                 color: '#27ae60',
                 role: 'Partnered with JASM (TSMC) on semiconductor research center as industry-academia collaboration',
-                stats: [
-                    { value: 'JASM', label: 'Industry partner' },
-                    { value: 'Research', label: 'Center type' },
-                    { value: 'Academia', label: 'Collaboration model' },
-                    { value: '400+', label: 'Researchers' }
+                details: [
+                    { label: 'Industry partner', value: 'JASM (TSMC)' },
+                    { label: 'Researchers', value: '400+' },
+                    { label: 'Model', value: 'Industry-academia' }
                 ]
             },
             {
@@ -246,11 +243,10 @@ const AppData = {
                 coords: [32.83, 130.76],
                 color: '#f39c12',
                 role: 'Since 2023, all first-year science and engineering students required to take semiconductor introductory courses taught by industry experts',
-                stats: [
-                    { value: '2023', label: 'Mandate start' },
-                    { value: 'All 1st-year', label: 'Requirement scope' },
-                    { value: 'Industry', label: 'Instructor source' },
-                    { value: 'Mandatory', label: 'Course status' }
+                details: [
+                    { label: 'Mandate start', value: '2023' },
+                    { label: 'Scope', value: 'All first-year students' },
+                    { label: 'Instructors', value: 'Industry experts' }
                 ]
             }
         ]
@@ -589,6 +585,8 @@ const AppData = {
             name: 'Kikuyo Development Zone',
             coords: [32.88, 130.83],
             radius: 5000,
+            color: '#5856D6',
+            strokeColor: '#5856D6',
             subtitle: 'Residential & commercial',
             description: 'Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, and support services for semiconductor workers.',
             stats: [
@@ -608,6 +606,8 @@ const AppData = {
             name: 'Ozu Industrial Expansion',
             coords: [32.86, 130.87],
             radius: 4000,
+            color: '#30B0C7',
+            strokeColor: '#30B0C7',
             subtitle: 'Industrial & logistics',
             description: 'Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain.',
             stats: [

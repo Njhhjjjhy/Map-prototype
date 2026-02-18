@@ -603,7 +603,7 @@ const MapController = {
     /**
      * Create marker icon HTML for different types
      */
-    _markerIconHtml(type, subtype = null) {
+    _markerIconHtml(type, subtype = null, customColor = null) {
         const colors = {
             resource: MAP_COLORS.resource,
             company: MAP_COLORS.company,
@@ -627,7 +627,7 @@ const MapController = {
         };
 
         const icon = icons[subtype] || icons[type] || '';
-        const color = colors[type] || MAP_COLORS.primary;
+        const color = customColor || colors[type] || MAP_COLORS.primary;
         const shape = shapes[type] || 'circle';
 
         return this._elevatedMarkerHtml(icon, color, 36, {}, shape);
@@ -825,6 +825,71 @@ const MapController = {
     },
 
     /**
+     * Focus map on a specific energy station marker.
+     * Flies camera to the station and pulses the marker.
+     * @param {string} stationId - e.g. 'solar-kagoshima'
+     * @param {string} type - 'solar', 'wind', or 'nuclear'
+     */
+    focusEnergyStation(stationId, type) {
+        const markerId = `energy-${stationId}`;
+        const marker = this.markers[markerId];
+
+        if (!marker) return;
+
+        // Clear previous highlight
+        this.clearEnergyStationHighlight();
+
+        this._highlightedEnergyStation = { markerId, type };
+
+        // Fly to the marker location - slow, gentle drift
+        const lngLat = marker.getLngLat();
+        this.map.flyTo({
+            center: [lngLat.lng, lngLat.lat],
+            zoom: Math.max(this.map.getZoom(), 10.5),
+            speed: 0.4,
+            curve: 1,
+            essential: true,
+            easing: t => t * (2 - t)
+        });
+
+        // Delay marker highlight so the eye settles on the destination first
+        setTimeout(() => {
+            const element = marker.getElement();
+            if (element) {
+                const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+                const color = colorMap[type] || '#ff9500';
+                const markerDiv = element.querySelector('div');
+                if (markerDiv) {
+                    markerDiv.style.transition = 'transform 600ms cubic-bezier(0, 0, 0.2, 1), box-shadow 600ms cubic-bezier(0, 0, 0.2, 1)';
+                    markerDiv.style.transform = 'scale(1.15)';
+                    markerDiv.style.boxShadow = `0 0 0 3px ${color}30, 0 1px 4px rgba(0,0,0,0.15)`;
+                }
+            }
+        }, 800);
+    },
+
+    /**
+     * Clear energy station marker highlight.
+     */
+    clearEnergyStationHighlight() {
+        if (this._highlightedEnergyStation) {
+            const { markerId } = this._highlightedEnergyStation;
+            const marker = this.markers[markerId];
+            if (marker) {
+                const element = marker.getElement();
+                if (element) {
+                    const markerDiv = element.querySelector('div');
+                    if (markerDiv) {
+                        markerDiv.style.transform = '';
+                        markerDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+                    }
+                }
+            }
+            this._highlightedEnergyStation = null;
+        }
+    },
+
+    /**
      * Show talent pipeline — Kyushu-wide university/institution markers
      * Similar scope to showKyushuEnergy (extends beyond Kumamoto)
      */
@@ -952,7 +1017,7 @@ const MapController = {
             source: sourceId,
             paint: {
                 'fill-color': MAP_COLORS.error,
-                'fill-opacity': 0.1
+                'fill-opacity': 0.18
             }
         });
 
@@ -963,8 +1028,8 @@ const MapController = {
             source: sourceId,
             paint: {
                 'line-color': MAP_COLORS.error,
-                'line-width': 3,
-                'line-opacity': 0.7
+                'line-width': 2.5,
+                'line-opacity': 0.85
             }
         });
 
@@ -1123,6 +1188,9 @@ const MapController = {
             const centerLngLat = this._toMapbox(zone.coords);
             const circleGeoJson = this._generateCirclePolygon(centerLngLat, zone.radius);
 
+            const zoneColor = zone.color || MAP_COLORS.zone;
+            const zoneStroke = zone.strokeColor || zoneColor;
+
             const sourceId = `future-zone-${zone.id}`;
             this._safeAddSource(sourceId, { type: 'geojson', data: circleGeoJson });
 
@@ -1131,8 +1199,8 @@ const MapController = {
                 type: 'fill',
                 source: sourceId,
                 paint: {
-                    'fill-color': MAP_COLORS.zone,
-                    'fill-opacity': 0.12
+                    'fill-color': zoneColor,
+                    'fill-opacity': 0.20
                 }
             });
 
@@ -1141,16 +1209,16 @@ const MapController = {
                 type: 'line',
                 source: sourceId,
                 paint: {
-                    'line-color': MAP_COLORS.zone,
-                    'line-width': 2,
+                    'line-color': zoneStroke,
+                    'line-width': 2.5,
                     'line-dasharray': [5, 10]
                 }
             });
 
             this._layerGroups.futureZones.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
 
-            // Zone marker at center
-            const markerHtml = this._markerIconHtml('zone');
+            // Zone marker at center — use per-zone color
+            const markerHtml = this._markerIconHtml('zone', null, zoneColor);
             const { marker, element } = this._createMarker(zone.coords, markerHtml, { ariaLabel: zone.name + ' development zone' });
 
             this._addTooltip(marker, element, zone.name);
@@ -1655,6 +1723,40 @@ const MapController = {
                 this._layerGroups.evidenceMarkers.push(id);
             }
         });
+    },
+
+    /**
+     * Fly camera to fit all evidence items with coordinates in a group
+     * @param {Object} group - Evidence group data with items[]
+     */
+    fitToEvidenceGroup(group) {
+        const coordItems = group.items.filter(item => item.coords);
+        if (coordItems.length === 0) return;
+
+        if (coordItems.length === 1) {
+            // Single item: fly directly to it
+            this.flyToStep({
+                center: this._toMapbox(coordItems[0].coords),
+                zoom: 12,
+                pitch: 50,
+                bearing: 15,
+                duration: 1500
+            });
+        } else {
+            // Multiple items: fit bounds around all of them
+            const lngLats = coordItems.map(item => this._toMapbox(item.coords));
+            const bounds = lngLats.reduce(
+                (b, c) => b.extend(c),
+                new mapboxgl.LngLatBounds(lngLats[0], lngLats[0])
+            );
+            this.map.fitBounds(bounds, {
+                padding: 100,
+                duration: 1500,
+                maxZoom: 13,
+                pitch: 45,
+                bearing: 10
+            });
+        }
     },
 
     clearEvidenceMarkers() {

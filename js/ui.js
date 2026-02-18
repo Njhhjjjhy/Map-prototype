@@ -960,8 +960,7 @@ const UI = {
             // Also reset dashboard state if in dashboard mode
             if (this.dashboardPanelOpen || this.dashboardMode) {
                 this.dashboardPanelOpen = false;
-                // Remove floating style
-                panel.classList.remove('dashboard-floating');
+                // Reset dashboard state
                 if (this.elements.dashboardToggle) {
                     this.elements.dashboardToggle.classList.remove('active');
                     this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
@@ -995,12 +994,21 @@ const UI = {
             this.hidePanel();
         } else {
             // If there's existing content, just show the panel
-            // Otherwise, this is a no-op (panel needs content to show)
             if (this.elements.panelContent.innerHTML.trim()) {
                 this.elements.rightPanel.classList.remove('hidden');
                 this.elements.rightPanel.classList.add('visible');
                 this.panelOpen = true;
                 this.updatePanelToggleState();
+            } else {
+                // Render inspector panel for current journey step
+                const currentStep = App.state.step;
+                if (currentStep) {
+                    const stage = STAGE_MAP[currentStep];
+                    if (stage && stage >= 3) {
+                        const tabDef = STAGE_TABS[stage] || {};
+                        this.renderInspectorPanel(stage, { title: tabDef.label || '' });
+                    }
+                }
             }
         }
     },
@@ -1043,25 +1051,52 @@ const UI = {
             </div>
         `).join('');
 
-        // Generate energy mix section for power resource
+        // Generate energy mix section for power resource (disclosure groups)
         let energyMixHtml = '';
         if (resource.id === 'power' && resource.energyMix) {
-            const sourcesHtml = resource.energyMix.sources.map(source => `
-                <div class="energy-source" style="padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border);">
-                    <strong>${source.type}:</strong> ${source.examples}
-                </div>
-            `).join('');
+            const iconMap = {
+                Solar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+                Wind: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
+                Nuclear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>'
+            };
+            const colorMap = { Solar: '#ff9500', Wind: '#5ac8fa', Nuclear: '#ff3b30' };
+
+            const renderEnergyDisclosure = (type, facilities) => {
+                const groupId = `energy-${type.toLowerCase()}`;
+                return `
+                    <div class="disclosure-group" data-group-id="${groupId}">
+                        <button class="disclosure-header" aria-expanded="false" onclick="UI.toggleDisclosureGroup('${groupId}')">
+                            <span class="disclosure-triangle" aria-hidden="true">
+                                <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
+                                <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
+                            </span>
+                            <span class="disclosure-icon" style="color: ${colorMap[type]}">${iconMap[type]}</span>
+                            <span class="disclosure-title">${type}</span>
+                            <span class="disclosure-badge">${facilities.length}</span>
+                        </button>
+                        <div class="disclosure-content">
+                            ${facilities.map(f => `
+                                <div class="disclosure-item energy-facility-item" data-station-id="${f.id || ''}" data-station-type="${type.toLowerCase()}" style="display: flex; justify-content: space-between; padding: var(--space-2) var(--space-4); font-size: var(--text-sm); cursor: pointer; border-radius: var(--radius-small); transition: background-color var(--duration-fast) var(--easing-standard);"${f.id ? ` onclick="UI.focusEnergyStation('${f.id}', '${type.toLowerCase()}')"` : ''}>
+                                    <span style="color: var(--color-text-secondary);">${f.name || f.examples || f}</span>
+                                    <span style="font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">${f.capacity || ''}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            };
 
             energyMixHtml = `
-                <div class="panel-bento-card">
-                    <div class="panel-bento-header">
-                        <span class="panel-bento-label">Energy mix</span>
-                    </div>
-                    <div class="panel-bento-body">
-                        <p>${resource.energyMix.description}</p>
-                    </div>
-                    <div style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-secondary);">
-                        ${sourcesHtml}
+                <div style="margin-top: var(--space-4);">
+                    <div class="panel-bento-label" style="margin-bottom: var(--space-2);">Energy mix</div>
+                    <p>${resource.energyMix.description}</p>
+                    <div style="margin-top: var(--space-4);">
+                        ${resource.energyMix.sources.map(source => {
+                            const key = source.type;
+                            const energyData = AppData.kyushuEnergy;
+                            const facilities = energyData ? energyData[key.toLowerCase()] || [] : [];
+                            return renderEnergyDisclosure(key, facilities);
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -1070,32 +1105,15 @@ const UI = {
         const content = `
             <div class="subtitle">${resource.subtitle}</div>
             <h2>${resource.name}</h2>
-
-            <div class="panel-bento-layout">
-                <!-- Description Card -->
-                <div class="panel-bento-card primary">
-                    <div class="panel-bento-body">
-                        <p>${resource.description}</p>
-                    </div>
-                </div>
-
-                <!-- Stats Card -->
-                <div class="panel-bento-card">
-                    <div class="panel-bento-stats">
-                        ${statsHtml}
-                    </div>
-                </div>
-
-                ${energyMixHtml}
-
-                <!-- Actions Card -->
-                <div class="panel-bento-card primary">
-                    <div class="panel-bento-actions">
-                        <button class="panel-bento-btn primary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                            View evidence
-                        </button>
-                    </div>
-                </div>
+            <p>${resource.description}</p>
+            <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+                ${statsHtml}
+            </div>
+            ${energyMixHtml}
+            <div style="margin-top: var(--space-6);">
+                <button class="panel-bento-btn primary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
+                    View Evidence
+                </button>
             </div>
         `;
 
@@ -1140,7 +1158,6 @@ const UI = {
         const typeColors = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
 
         const content = `
-            <div class="subtitle">Kyushu energy infrastructure</div>
             <h2>${station.name}</h2>
             <div style="
                 display: inline-flex;
@@ -1174,6 +1191,27 @@ const UI = {
     },
 
     /**
+     * Focus map on an energy station when clicked in disclosure list.
+     * Flies camera to the station and highlights its marker.
+     * @param {string} stationId - e.g. 'solar-kagoshima'
+     * @param {string} type - 'solar', 'wind', or 'nuclear'
+     */
+    focusEnergyStation(stationId, type) {
+        MapController.focusEnergyStation(stationId, type);
+
+        // Highlight the selected row in the panel
+        document.querySelectorAll('.energy-facility-item.selected').forEach(el => {
+            el.classList.remove('selected');
+            el.style.background = '';
+        });
+        const selectedItem = document.querySelector(`.energy-facility-item[data-station-id="${stationId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+            selectedItem.style.background = 'var(--color-bg-secondary)';
+        }
+    },
+
+    /**
      * Show inspector stage 3 focused on a single institution (Journey A talent pipeline).
      * Accepts an institution ID string or institution object.
      */
@@ -1195,7 +1233,7 @@ const UI = {
         this.renderInspectorPanel(3, {
             title: inst.name,
             institution: inst,
-            startTab: 1,
+            startTab: 0,
             flyTo
         });
     },
@@ -1317,52 +1355,63 @@ const UI = {
         const activeRoutes = routes.filter(r => r.status === 'active');
         const suspendedRoutes = routes.filter(r => r.status === 'suspended');
 
-        const activeHtml = activeRoutes.map(r => `
-            <div class="route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
-                padding: 12px;
-                margin-bottom: 8px;
-                background: var(--color-bg-secondary);
-                border-radius: var(--radius-medium);
-                cursor: pointer;
-                transition: background 0.15s ease;
-            ">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">${r.name} (${r.code})</span>
-                    <span style="color: var(--color-text-secondary);">${r.flightTime}</span>
-                </div>
-                <div style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-top: 4px;">
-                    ${r.region} · ${r.frequency}
-                </div>
-            </div>
-        `).join('');
+        // Initialize disclosure state: active routes start expanded
+        this.disclosureState['active-routes'] = true;
+        this.disclosureState['suspended-routes'] = false;
 
-        const suspendedHtml = suspendedRoutes.map(r => `
-            <div class="route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
-                padding: 12px;
-                margin-bottom: 8px;
-                background: var(--color-bg-secondary);
-                border-radius: var(--radius-medium);
+        const renderRouteItem = (r, isSuspended) => `
+            <div class="disclosure-item route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
+                padding: var(--space-3) var(--space-4);
                 cursor: pointer;
-                opacity: 0.6;
+                transition: background var(--duration-fast) var(--easing-standard);
+                ${isSuspended ? 'opacity: 0.6;' : ''}
             ">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">${r.name} (${r.code})</span>
-                    <span style="color: var(--color-text-tertiary);">Suspended</span>
+                    <span style="font-weight: var(--font-weight-medium);">${r.name} (${r.code})</span>
+                    <span style="color: var(--color-text-${isSuspended ? 'tertiary' : 'secondary'});">${isSuspended ? 'Suspended' : r.flightTime}</span>
                 </div>
+                ${!isSuspended ? `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-top: 2px;">${r.region} · ${r.frequency}</div>` : ''}
             </div>
-        `).join('');
+        `;
 
         const content = `
             <div class="subtitle">Aso Kumamoto Airport</div>
             <h2>All international routes</h2>
+            <p style="margin-bottom: var(--space-4);">${routes.length} destinations across 4 regions connecting Kumamoto to key Asian markets.</p>
 
-            <p style="margin-bottom: 16px;">7 destinations across 4 regions connecting Kumamoto to key Asian markets.</p>
+            <div class="disclosure-group expanded" data-group-id="active-routes">
+                <button class="disclosure-header" aria-expanded="true" onclick="UI.toggleDisclosureGroup('active-routes')">
+                    <span class="disclosure-triangle" aria-hidden="true">
+                        <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
+                        <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
+                    </span>
+                    <span class="disclosure-icon" style="color: var(--color-success);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1l5.2 3L6 14.3 3.7 14c-.4 0-.7.2-.9.5l-.1.3c-.1.3 0 .7.3.9l2.4 1.4 1.4 2.4c.2.3.6.4.9.3l.3-.1c.3-.2.5-.5.5-.9L8.3 16l3 2.9c.5.4 1 .5 1.4.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+                    </span>
+                    <span class="disclosure-title">Active routes</span>
+                    <span class="disclosure-badge">${activeRoutes.length}</span>
+                </button>
+                <div class="disclosure-content">
+                    ${activeRoutes.map(r => renderRouteItem(r, false)).join('')}
+                </div>
+            </div>
 
-            <h4 style="margin-bottom: 12px; color: var(--color-text-secondary);">Active routes (${activeRoutes.length})</h4>
-            ${activeHtml}
-
-            <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--color-text-tertiary);">Suspended routes (${suspendedRoutes.length})</h4>
-            ${suspendedHtml}
+            <div class="disclosure-group" data-group-id="suspended-routes">
+                <button class="disclosure-header" aria-expanded="false" onclick="UI.toggleDisclosureGroup('suspended-routes')">
+                    <span class="disclosure-triangle" aria-hidden="true">
+                        <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
+                        <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
+                    </span>
+                    <span class="disclosure-icon" style="color: var(--color-text-tertiary);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+                    </span>
+                    <span class="disclosure-title">Suspended routes</span>
+                    <span class="disclosure-badge">${suspendedRoutes.length}</span>
+                </button>
+                <div class="disclosure-content">
+                    ${suspendedRoutes.map(r => renderRouteItem(r, true)).join('')}
+                </div>
+            </div>
         `;
 
         this.showPanel(content);
@@ -2139,7 +2188,6 @@ const UI = {
                     ${group.title}
                 </button>
             </div>
-            <div class="subtitle">${group.title}</div>
             <h2>${item.title}</h2>
             <p>${item.description}</p>
             ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
@@ -2741,31 +2789,49 @@ const UI = {
             </div>
         ` : '';
 
-        // Kyushu energy facilities section for electricity layer
+        // Kyushu energy facilities section for electricity layer (disclosure groups)
         let kyushuEnergyHtml = '';
         if (layerName === 'electricity' && AppData.kyushuEnergy) {
             const energy = AppData.kyushuEnergy;
-            const sectionStyle = 'margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-bg-tertiary);';
-            const typeHeaderStyle = 'font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-semibold); margin-top: var(--space-4); margin-bottom: var(--space-2);';
-            const itemStyle = 'display: flex; justify-content: space-between; padding: var(--space-2) var(--space-3); font-size: var(--text-sm);';
-            const capacityStyle = 'font-weight: var(--font-weight-semibold); color: var(--color-text-primary);';
+            const iconMap = {
+                solar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+                wind: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
+                nuclear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>'
+            };
+            const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+            const labelMap = { solar: 'Solar', wind: 'Wind', nuclear: 'Nuclear' };
 
-            const renderFacilities = (facilities) => facilities.map(f => `
-                <div style="${itemStyle}">
-                    <span style="color: var(--color-text-secondary);">${f.name}</span>
-                    <span style="${capacityStyle}">${f.capacity}</span>
-                </div>
-            `).join('');
+            const renderEnergyGroup = (type, facilities) => {
+                const groupId = `datalayer-energy-${type}`;
+                return `
+                    <div class="disclosure-group" data-group-id="${groupId}">
+                        <button class="disclosure-header" aria-expanded="false" onclick="UI.toggleDisclosureGroup('${groupId}')">
+                            <span class="disclosure-triangle" aria-hidden="true">
+                                <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
+                                <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
+                            </span>
+                            <span class="disclosure-icon" style="color: ${colorMap[type]}">${iconMap[type]}</span>
+                            <span class="disclosure-title">${labelMap[type]}</span>
+                            <span class="disclosure-badge">${facilities.length}</span>
+                        </button>
+                        <div class="disclosure-content">
+                            ${facilities.map(f => `
+                                <div class="disclosure-item energy-facility-item" data-station-id="${f.id}" data-station-type="${type}" style="display: flex; justify-content: space-between; padding: var(--space-2) var(--space-4); font-size: var(--text-sm);" onclick="UI.focusEnergyStation('${f.id}', '${type}')">
+                                    <span style="color: var(--color-text-secondary);">${f.name}</span>
+                                    <span style="font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">${f.capacity}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            };
 
             kyushuEnergyHtml = `
-                <div style="${sectionStyle}">
-                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold);">Kyushu energy facilities</h4>
-                    <div style="${typeHeaderStyle} color: #ff9500;">Solar (${energy.solar.length})</div>
-                    ${renderFacilities(energy.solar)}
-                    <div style="${typeHeaderStyle} color: #5ac8fa;">Wind (${energy.wind.length})</div>
-                    ${renderFacilities(energy.wind)}
-                    <div style="${typeHeaderStyle} color: #ff3b30;">Nuclear (${energy.nuclear.length})</div>
-                    ${renderFacilities(energy.nuclear)}
+                <div style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-bg-tertiary);">
+                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Kyushu energy facilities</h4>
+                    ${renderEnergyGroup('solar', energy.solar)}
+                    ${renderEnergyGroup('wind', energy.wind)}
+                    ${renderEnergyGroup('nuclear', energy.nuclear)}
                 </div>
             `;
         }
@@ -3529,19 +3595,6 @@ const UI = {
         }, 800);
     },
 
-    /**
-     * Handle schedule consultation CTA
-     */
-    scheduleConsultation() {
-        this.addChatMessage("I'd like to schedule a consultation.", 'user');
-        this.showTypingIndicator();
-
-        setTimeout(() => {
-            this.hideTypingIndicator();
-            this.addChatMessage("I'll connect you with one of our Kumamoto investment specialists. They can answer detailed questions about specific properties, financing, and the purchasing process.<br><br><strong>What's the best way to reach you?</strong>", 'assistant');
-        }, 800);
-    },
-
     // ================================
     // DASHBOARD MODE
     // ================================
@@ -3567,8 +3620,8 @@ const UI = {
         this.showDashboardToggle();
         this.hidePanelToggle();
 
-        const timeToggle = document.getElementById('time-toggle');
-        if (timeToggle) timeToggle.classList.add('hidden');
+        this.showTimeToggle();
+        this.setTimeView('present');
 
         try {
             this.createDashboardMarkers();
@@ -3582,9 +3635,6 @@ const UI = {
         setTimeout(() => {
             this.renderInspectorPanel(8, { title: 'Kumamoto corridor' });
             this.dashboardPanelOpen = true;
-            if (this.elements.rightPanel) {
-                this.elements.rightPanel.classList.add('dashboard-floating');
-            }
         }, 300);
 
         setTimeout(() => {
@@ -3638,9 +3688,6 @@ const UI = {
         const stage = this.inspectorStage || 8;
         this.renderInspectorPanel(stage, { title: this.inspectorTitle || 'Kumamoto corridor' });
 
-        if (this.dashboardMode && this.elements.rightPanel) {
-            this.elements.rightPanel.classList.add('dashboard-floating');
-        }
     },
 
     /**
@@ -3654,9 +3701,6 @@ const UI = {
             this.elements.dashboardToggle.classList.remove('active');
             this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
         }
-
-        // Remove floating panel style
-        this.elements.rightPanel.classList.remove('dashboard-floating');
 
         // Hide panel
         this.elements.rightPanel.classList.remove('visible');
@@ -3796,10 +3840,13 @@ const UI = {
 
         const bodyContent = this.renderStageTab(stage, startTab, options);
 
+        // Don't render subtitle when it matches the title (prevents duplicate labels)
+        const showSubtitle = subtitle && subtitle !== this.inspectorTitle;
+
         const html = `
             <div class="inspector-resize-handle"></div>
             <div class="inspector-title-bar">
-                <div class="inspector-subtitle">${subtitle}</div>
+                ${showSubtitle ? `<div class="inspector-subtitle">${subtitle}</div>` : ''}
                 <h2 class="inspector-title">${this.inspectorTitle}</h2>
             </div>
             ${tabsHtml}
@@ -3813,10 +3860,6 @@ const UI = {
         setTimeout(() => {
             const panel = this.elements.rightPanel;
             if (!panel) return;
-
-            if (this.dashboardMode) {
-                panel.classList.add('dashboard-floating');
-            }
 
             panel.querySelectorAll('.inspector-tab').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -3906,6 +3949,7 @@ const UI = {
      */
     renderStageTab(stage, tabIndex, options = {}) {
         switch (stage) {
+            case 1: return this._renderStage1(tabIndex);
             case 3: return this._renderStage3(tabIndex, options);
             case 4: return this._renderStage4(tabIndex);
             case 5: return this._renderStage5(tabIndex);
@@ -3917,19 +3961,33 @@ const UI = {
         }
     },
 
+    _renderStage1(tabIndex) {
+        const q = AppData.openingQuestion;
+        let html = `<div class="icard icard-standard">
+            <div class="icard-title">${q.question}</div>
+            <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-top: var(--space-2);">Japan designated semiconductors as critical infrastructure, committing unprecedented public funds.</p>
+        </div>`;
+        const docs = q.supportingDocs || [];
+        html += docs.map(doc => this.renderEvidenceDocCard({
+            id: doc.id,
+            title: doc.title,
+            type: doc.type,
+            date: doc.source,
+            viewed: false
+        })).join('');
+        return html;
+    },
+
     _renderStage3(tabIndex, options = {}) {
-        switch (tabIndex) {
-            case 0: return this.renderWorkforceCard();
-            case 1:
-                // Entity-focused view: single institution card
-                if (options.institution) {
-                    return this.renderInstitutionCard(options.institution);
-                }
-                return (AppData.talentPipeline?.institutions || [])
-                    .map(inst => this.renderInstitutionCard(inst)).join('');
-            case 2: return this._renderEvidenceForGroup('education-pipeline');
-            default: return '';
+        // Entity-focused view: single institution card
+        if (options.institution) {
+            return this.renderInstitutionCard(options.institution);
         }
+        // Combined workforce + universities in a single scrollable view
+        let html = this.renderWorkforceCard();
+        html += (AppData.talentPipeline?.institutions || [])
+            .map(inst => this.renderInstitutionCard(inst)).join('');
+        return html;
     },
 
     _renderStage4(tabIndex) {
@@ -3939,6 +3997,7 @@ const UI = {
                 const tiers = AppData.governmentTiers || [];
                 tiers.forEach(t => {
                     html += `<div class="icard icard-standard">
+                        ${t.tierLabel ? `<div class="icard-source">${t.tierLabel}</div>` : ''}
                         <div class="icard-title">${t.name}</div>
                         <div class="icard-stats-grid">
                             ${(t.stats || []).map(s => `<div class="icard-stat">
@@ -4362,7 +4421,6 @@ const UI = {
         const initial = (company.name || 'C').charAt(0);
         const stats = company.stats || [];
         return `<div class="icard icard-standard" data-company-id="${company.id || ''}">
-            <div class="icard-source">${company.evidence?.title || ''}</div>
             <div class="icard-corporate-header">
                 <div class="icard-corporate-logo">${initial}</div>
                 <div>
@@ -4441,8 +4499,8 @@ const UI = {
         if (!zone) return '';
         const stats = zone.stats || [];
         return `<div class="icard icard-hero">
-            <div class="icard-title">${zone.name || 'Zone profile'}</div>
             ${zone.subtitle ? `<div class="icard-source">${zone.subtitle}</div>` : ''}
+            <div class="icard-title">${zone.name || 'Zone profile'}</div>
             <div class="icard-stats-grid">
                 ${stats.map(s => `<div class="icard-stat">
                     <div class="icard-stat-value">${s.value}</div>
@@ -4473,16 +4531,19 @@ const UI = {
 
     renderInstitutionCard(inst) {
         if (!inst) return '';
-        return `<div class="icard icard-standard">
-            <div class="icard-title">${inst.fullName || inst.name}</div>
-            <div class="icard-source">${inst.city || ''}</div>
-            <div class="icard-stats-grid">
-                ${(inst.stats || []).map(s => `<div class="icard-stat">
-                    <div class="icard-stat-value">${s.value}</div>
-                    <div class="icard-stat-label">${s.label}</div>
-                </div>`).join('')}
+        const details = inst.details || inst.stats || [];
+        return `<div class="icard icard-standard icard-institution">
+            <div class="icard-inst-header">
+                <div class="icard-title" style="margin: 0; padding-right: 0;">${inst.fullName || inst.name}</div>
+                ${inst.city ? `<div class="icard-inst-city">${inst.city}</div>` : ''}
             </div>
-            ${inst.role ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3); line-height: var(--line-height-normal);">${inst.role}</p>` : ''}
+            ${inst.role ? `<p class="icard-inst-description">${inst.role}</p>` : ''}
+            ${details.length ? `<div class="icard-detail-list">
+                ${details.map(d => `<div class="icard-detail-row">
+                    <span class="icard-detail-label">${d.label}</span>
+                    <span class="icard-detail-value">${d.value}</span>
+                </div>`).join('')}
+            </div>` : ''}
         </div>`;
     },
 
@@ -4606,6 +4667,22 @@ const UI = {
                 }
             });
         });
+
+        // Evidence doc cards (click to open Quick Look document preview)
+        panel.querySelectorAll('[data-evidence-id]').forEach(card => {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                const evidenceId = card.dataset.evidenceId;
+                if (!evidenceId) return;
+                const titleEl = card.querySelector('.icard-evidence-title');
+                const metaEl = card.querySelector('.icard-evidence-meta');
+                this.showQuickLook({
+                    type: 'doc',
+                    title: titleEl?.textContent || 'Document',
+                    source: metaEl?.textContent || ''
+                });
+            });
+        });
     },
 
     _refreshCalculator(options = {}) {
@@ -4710,6 +4787,23 @@ const UI = {
                 else if (e.key === 'Escape') this.hideQuickLook();
             };
             document.addEventListener('keydown', this._quickLookKeyHandler);
+        } else if (type === 'doc') {
+            content.innerHTML = `
+                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
+                </button>
+                <div class="quick-look-doc">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <h3>${options.title || 'Document'}</h3>
+                    ${options.source ? `<p>${options.source}</p>` : ''}
+                </div>
+            `;
         }
 
         quickLook.classList.remove('hidden');
