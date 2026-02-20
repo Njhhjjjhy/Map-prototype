@@ -2516,84 +2516,60 @@ const UI = {
         // Populate Data Layers section (includes both map layers and data layers)
         const dataLayerItems = document.getElementById('data-layer-items');
 
-        // Build map layers based on journey (these are active by default)
+        // Store current step for reference
+        this._currentStepForLayers = question;
+
+        // Close panel when step changes (button stays visible)
+        if (this.layersPanelOpen) {
+            this.toggleLayersPanel();
+        }
+
+        // Helper to build a layer button
+        const layerBtn = (layer, icon, label, toggleFn) => `
+            <button type="button" class="layer-item" data-layer="${layer}"
+                    role="switch" aria-checked="false" onclick="UI.${toggleFn || 'toggleLayer'}('${layer}')"
+                    title="Toggle ${label.toLowerCase()} on the map">
+                <span class="layer-checkbox" aria-hidden="true"></span>
+                <span class="layer-icon" aria-hidden="true">${icon}</span>
+                <span class="layer-label">${label}</span>
+            </button>
+        `;
+
+        // Build map layers based on step index (1-12) or 'dashboard'
         let mapLayersHtml = '';
-        if (question === 1) {
-            mapLayersHtml = `
-                <button type="button" class="layer-item" data-layer="resources"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('resources')"
-                        title="Toggle resource markers on the map">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
-                    <span class="layer-label">Resources</span>
-                </button>
-            `;
-        } else if (question === 2 || question === 3) {
-            mapLayersHtml = `
-                <button type="button" class="layer-item" data-layer="sciencePark"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
-                        title="Toggle Kumamoto Science Park boundary">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
-                    <span class="layer-label">Science park</span>
-                </button>
-                <button type="button" class="layer-item" data-layer="companies"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
-                        title="Toggle corporate headquarters markers">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
-                    <span class="layer-label">Corporate sites</span>
-                </button>
-            `;
-        } else if (question === 4 || question === 5) {
-            mapLayersHtml = `
-                <button type="button" class="layer-item" data-layer="properties"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('properties')"
-                        title="Toggle investment property markers">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
-                    <span class="layer-label">Properties</span>
-                </button>
-                <button type="button" class="layer-item" data-layer="companies"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
-                        title="Toggle corporate headquarters markers">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
-                    <span class="layer-label">Corporate sites</span>
-                </button>
-                <button type="button" class="layer-item" data-layer="sciencePark"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
-                        title="Toggle Kumamoto Science Park boundary">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
-                    <span class="layer-label">Science park</span>
-                </button>
-            `;
-        } else if (question === 'dashboard') {
-            // Dashboard mode - show all core layer controls (inactive by default)
-            mapLayersHtml = `
-                <button type="button" class="layer-item" data-layer="properties"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('properties')"
-                        title="Toggle investment property markers">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.properties}</span>
-                    <span class="layer-label">Properties</span>
-                </button>
-                <button type="button" class="layer-item" data-layer="companies"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('companies')"
-                        title="Toggle corporate headquarters markers">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.companies}</span>
-                    <span class="layer-label">Corporate sites</span>
-                </button>
-                <button type="button" class="layer-item" data-layer="sciencePark"
-                        role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
-                        title="Toggle Kumamoto Science Park boundary">
-                    <span class="layer-checkbox" aria-hidden="true"></span>
-                    <span class="layer-icon" aria-hidden="true">${icons.sciencePark}</span>
-                    <span class="layer-label">Science park</span>
-                </button>
-            `;
+        if (question === 'dashboard') {
+            mapLayersHtml =
+                layerBtn('properties', icons.properties, 'Properties') +
+                layerBtn('companies', icons.companies, 'Corporate sites') +
+                layerBtn('sciencePark', icons.sciencePark, 'Science park');
+        } else if (question >= 1 && question <= 2) {
+            // Steps 1-2: Resources and energy
+            mapLayersHtml =
+                layerBtn('resources', icons.riskyArea, 'Resources');
+        } else if (question >= 3 && question <= 4) {
+            // Steps 3-4: Government and corporate
+            mapLayersHtml =
+                layerBtn('sciencePark', icons.sciencePark, 'Science park') +
+                layerBtn('companies', icons.companies, 'Corporate sites');
+        } else if (question >= 5 && question <= 8) {
+            // Steps 5-8: Development zones, transport, education, future
+            mapLayersHtml =
+                layerBtn('sciencePark', icons.sciencePark, 'Science park') +
+                layerBtn('companies', icons.companies, 'Corporate sites') +
+                layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
+        } else if (question >= 9 && question <= 10) {
+            // Steps 9-10: Investment zones, properties
+            mapLayersHtml =
+                layerBtn('properties', icons.properties, 'Properties') +
+                layerBtn('companies', icons.companies, 'Corporate sites') +
+                layerBtn('sciencePark', icons.sciencePark, 'Science park');
+        } else if (question >= 11 && question <= 12) {
+            // Steps 11-12: Area changes, final
+            mapLayersHtml =
+                layerBtn('properties', icons.properties, 'Properties') +
+                layerBtn('companies', icons.companies, 'Corporate sites') +
+                layerBtn('sciencePark', icons.sciencePark, 'Science park') +
+                layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
         }
 
         // Data layers (these are inactive by default) - sentence case labels
