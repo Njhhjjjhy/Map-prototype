@@ -1121,6 +1121,48 @@ const UI = {
     },
 
     /**
+     * Show government tier detail panel with commitment dashboard.
+     * @param {Object} tier - Government tier data from AppData.governmentTiers
+     */
+    showGovernmentTierPanel(tier) {
+        let subItemsHtml = '';
+        if (tier.subItems && tier.subItems.length > 0) {
+            subItemsHtml = `
+                <div style="margin-top: var(--space-4);">
+                    <div style="font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin-bottom: var(--space-3);">Key initiatives</div>
+                    ${tier.subItems.map(sub => `
+                        <div style="display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-medium); margin-bottom: var(--space-2);">
+                            <div style="flex: 1;">
+                                <div style="font-weight: var(--font-weight-medium);">${sub.name}</div>
+                                <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">${sub.subtitle}</div>
+                            </div>
+                            <div style="font-weight: var(--font-weight-semibold); color: var(--color-primary);">${sub.commitment}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        const content = `
+            <div class="subtitle">${tier.tierLabel || 'Government tier'}</div>
+            <h2>${tier.name}</h2>
+            <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
+                <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: ${tier.color || 'var(--color-primary)'};">${tier.commitment}</span>
+                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${tier.commitmentLabel || ''}</span>
+            </div>
+            <p>${tier.description}</p>
+            ${tier.stats ? `
+                <div class="stat-grid" style="margin-top: var(--space-4);">
+                    ${tier.stats.map(s => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
+                </div>
+            ` : ''}
+            ${subItemsHtml}
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show panel for water evidence marker (Coca-Cola, Suntory)
      * @param {Object} evidence - Evidence marker data
      */
