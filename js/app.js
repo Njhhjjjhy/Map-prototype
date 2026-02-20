@@ -108,9 +108,8 @@ const App = {
         this._renderStepChatbox(step);
         this._renderStepPanel(step);
 
-        // --- Data layers and legend ---
+        // --- Data layers ---
         UI.showDataLayers(stepIndex);
-        UI.updateLegend(stepIndex);
 
         // --- Heartbeat ---
         MapController.startHeartbeat();
@@ -192,6 +191,7 @@ const App = {
 
         if (layers.includes('resources')) {
             MapController.showResourceMarker('water');
+            MapController.showAllResourceArcs();
         }
         if (layers.includes('kyushuEnergy')) {
             MapController.showKyushuEnergy();
@@ -241,6 +241,7 @@ const App = {
         if (layers.includes('infrastructureRoads')) MapController.hideInfrastructureRoads();
         if (layers.includes('investmentZones')) MapController.hideInvestmentZones();
         if (layers.includes('semiconductorNetwork')) MapController.hideSemiconductorNetwork();
+        if (layers.includes('resources')) MapController.hideResourceArcs();
         // Resources, sciencePark, companies, properties - cleaned up via marker fade
     },
 
@@ -443,12 +444,14 @@ const App = {
             MapController.showResourceMarker('water');
             const resource = AppData.resources.water;
             if (resource) UI.showResourcePanel(resource);
+            MapController.showResourceArcs('water');
         } else if (itemId === 'power-solar' || itemId === 'power-wind' || itemId === 'power-nuclear') {
             MapController.showKyushuEnergy();
             const resource = AppData.resources.power;
             if (resource) UI.showResourcePanel(resource);
             // Fly to Kyushu-wide view for energy
             MapController.flyToStep(CAMERA_STEPS.A2_overview);
+            MapController.showResourceArcs(itemId);
         }
     },
 

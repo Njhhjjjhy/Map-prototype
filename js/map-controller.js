@@ -107,7 +107,8 @@ const MapController = {
         governmentChain: [],
         investmentZones: [],
         semiconductorNetwork: [],
-        talentPipeline: []
+        talentPipeline: [],
+        resourceArcs: []
     },
 
     // Infrastructure road tracking
@@ -770,6 +771,132 @@ const MapController = {
             this.markers[`water-evidence-${evidence.id}`] = marker;
             this._layerGroups.resources.push(`water-evidence-${evidence.id}`);
         });
+    },
+
+    // ================================
+    // RESOURCE ARCS (step 1: resource → JASM)
+    // ================================
+
+    /**
+     * Draw curved arc lines from resource sources to JASM.
+     * For water: arcs from water source + evidence markers to JASM.
+     * For power: arcs from all energy stations of that type to JASM.
+     */
+    async showResourceArcs(resourceId) {
+        this.hideResourceArcs();
+
+        const jasm = AppData.jasmLocation; // [lat, lng]
+        const sources = [];
+
+        if (resourceId === 'water') {
+            const water = AppData.resources.water;
+            if (water.coords) {
+                sources.push({ coords: water.coords, color: '#007aff', weight: 2 });
+            }
+            if (water.evidenceMarkers) {
+                water.evidenceMarkers.forEach(ev => {
+                    sources.push({ coords: ev.coords, color: '#007aff', weight: 1.5 });
+                });
+            }
+        } else {
+            // Power sub-types: power-solar, power-wind, power-nuclear
+            const typeKey = resourceId.replace('power-', '');
+            const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+            const stations = AppData.kyushuEnergy[typeKey] || [];
+            stations.forEach(station => {
+                sources.push({ coords: station.coords, color: colorMap[typeKey] || '#007aff', weight: 1.5 });
+            });
+        }
+
+        // Draw arcs with stagger
+        for (let i = 0; i < sources.length; i++) {
+            await this._delay(120);
+            this._addResourceArcLine(sources[i].coords, jasm, sources[i].color, sources[i].weight, i);
+        }
+    },
+
+    _addResourceArcLine(origin, destination, color, weight, index) {
+        const midLat = (origin[0] + destination[0]) / 2;
+        const midLng = (origin[1] + destination[1]) / 2;
+
+        const dLat = destination[0] - origin[0];
+        const dLng = destination[1] - origin[1];
+        const distance = Math.sqrt(dLat * dLat + dLng * dLng);
+        const arcHeight = Math.max(0.08, Math.min(0.6, distance * 0.2));
+
+        const arcMid = [midLat + arcHeight, midLng];
+        const points = this.generateBezierPoints(origin, arcMid, destination, 50);
+
+        const sourceId = `resource-arc-${index}`;
+        this._safeAddSource(sourceId, {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: points }
+            }
+        });
+
+        this.map.addLayer({
+            id: `${sourceId}-line`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': color,
+                'line-width': weight,
+                'line-opacity': 0.7,
+                'line-dasharray': [4, 3]
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        this._layerGroups.resourceArcs.push(`${sourceId}-line`, sourceId);
+    },
+
+    hideResourceArcs() {
+        this._layerGroups.resourceArcs.forEach(id => {
+            this._safeRemoveLayer(id);
+            this._safeRemoveSource(id);
+        });
+        this._layerGroups.resourceArcs = [];
+    },
+
+    /**
+     * Show ALL resource arcs (water + energy) at once.
+     * Used on step entry so arcs are visible immediately.
+     */
+    async showAllResourceArcs() {
+        this.hideResourceArcs();
+
+        const jasm = AppData.jasmLocation;
+        const sources = [];
+
+        // Water arcs
+        const water = AppData.resources.water;
+        if (water && water.coords) {
+            sources.push({ coords: water.coords, color: '#007aff', weight: 2 });
+        }
+        if (water && water.evidenceMarkers) {
+            water.evidenceMarkers.forEach(ev => {
+                sources.push({ coords: ev.coords, color: '#007aff', weight: 1.5 });
+            });
+        }
+
+        // Energy arcs (solar, wind, nuclear)
+        const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+        ['solar', 'wind', 'nuclear'].forEach(type => {
+            const stations = (AppData.kyushuEnergy && AppData.kyushuEnergy[type]) || [];
+            stations.forEach(station => {
+                sources.push({ coords: station.coords, color: colorMap[type], weight: 1.5 });
+            });
+        });
+
+        for (let i = 0; i < sources.length; i++) {
+            await this._delay(120);
+            this._addResourceArcLine(sources[i].coords, jasm, sources[i].color, sources[i].weight, i);
+        }
     },
 
     /**

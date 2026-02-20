@@ -496,8 +496,7 @@ a:focus-visible {
 #map-container.immersive-active #chat-fab,
 #map-container.immersive-active #data-layers,
 #map-container.immersive-active #panel-toggle,
-#map-container.immersive-active #dashboard-toggle,
-#map-container.immersive-active #map-legend {
+#map-container.immersive-active #dashboard-toggle {
     opacity: 0 !important;
     pointer-events: none !important;
     transition: opacity var(--duration-fast) var(--easing-accelerate);
@@ -2973,73 +2972,6 @@ button.layer-item {
 
 .layer-item.active .layer-label {
     color: var(--color-text-primary);
-}
-
-/* ================================
-   MAP LEGEND
-   ================================ */
-#map-legend {
-    position: absolute;
-    bottom: var(--space-6);
-    right: var(--space-6);
-    z-index: 500;
-    min-width: 140px;
-    background: var(--color-bg-primary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-radius: var(--radius-medium);
-    box-shadow: var(--shadow-medium);
-    border: 1px solid var(--color-border);
-    padding: var(--space-3) var(--space-4);
-    animation: slideDown var(--duration-fast) var(--easing-decelerate);
-}
-
-#map-legend.hidden {
-    display: none;
-}
-
-.legend-title {
-    font-family: var(--font-display);
-    font-size: var(--text-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
-    letter-spacing: 0.04em;
-    margin-bottom: var(--space-2);
-}
-
-.legend-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.legend-marker {
-    width: 20px;
-    height: 20px;
-    border-radius: var(--radius-full);
-    border: 2px solid white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.legend-marker svg {
-    width: 12px;
-    height: 12px;
-}
-
-.legend-label {
-    font-family: var(--font-display);
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
 }
 
 /* ================================
