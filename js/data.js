@@ -805,30 +805,34 @@ const AppData = {
     ],
 
     // Journey B: Investment Zones (spatial framework for property evaluation)
+    // Silicon Triangle Investment Zones (step 9)
     investmentZones: [
         {
-            id: 'central-city',
-            name: 'Central city',
-            coords: [32.80, 130.71],
-            radius: 4000,
+            id: 'kikuyo-zone',
+            name: 'Kikuyo zone',
+            role: 'Factory core / new urban core',
+            coords: [32.88, 130.83],
+            radius: 4500,
             color: 'rgba(251, 185, 49, 0.15)',
             strokeColor: 'rgba(251, 185, 49, 0.4)'
         },
         {
-            id: 'middle-zone',
-            name: 'Middle zone',
-            coords: [32.83, 130.77],
+            id: 'koshi-zone',
+            name: 'Koshi zone',
+            role: 'R&D / tools and process innovation',
+            coords: [32.85, 130.78],
             radius: 3500,
-            color: 'rgba(255, 149, 0, 0.15)',
-            strokeColor: 'rgba(255, 149, 0, 0.4)'
-        },
-        {
-            id: 'tsmc-area',
-            name: 'TSMC area',
-            coords: [32.87, 130.82],
-            radius: 4500,
             color: 'rgba(0, 122, 255, 0.15)',
             strokeColor: 'rgba(0, 122, 255, 0.4)'
+        },
+        {
+            id: 'ozu-zone',
+            name: 'Ozu zone',
+            role: 'Gateway / office and logistics support',
+            coords: [32.86, 130.87],
+            radius: 4000,
+            color: 'rgba(52, 199, 89, 0.15)',
+            strokeColor: 'rgba(52, 199, 89, 0.4)'
         }
     ],
 
