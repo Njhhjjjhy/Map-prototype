@@ -168,26 +168,6 @@ const STEPS = [
 ];
 
 /**
- * Step-to-index lookup for quick access.
- */
-const STEP_MAP = {};
-STEPS.forEach(s => { STEP_MAP[s.id] = s.index; });
-
-/**
- * Legacy STAGE_MAP compatibility shim.
- * Maps old step string IDs to new step indices for any code still referencing them.
- * Remove once all references are migrated.
- */
-const STAGE_MAP = {
-    'Q1_intro': 1, 'Q1_water': 1, 'Q1_power': 1, 'Q1_sewage': 1,
-    'Q1_silicon': 1, 'Q1_strategic': 2,
-    'Q2_gov': 3, 'Q2_corporate': 4,
-    'Q3_timeline': 5, 'Q3_education': 7, 'Q3_future': 8,
-    'Q4_zones': 9,
-    'Q5_prop1': 10, 'Q5_prop2': 10, 'Q5_prop3': 10, 'Q5_final': 12
-};
-
-/**
  * Tab sets per step index (replaces old STAGE_TABS).
  */
 const STAGE_TABS = {};

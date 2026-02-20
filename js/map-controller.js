@@ -9,7 +9,7 @@
  *   MapController.init()                          — Create Mapbox instance + 3D buildings
  *   MapController.cinematicEntry()                — Sky-to-Kumamoto arrival
  *   MapController.flyToStep(config)               — Cinematic camera flight to any position
- *   MapController.elevateToCorridorView()         — Tilt into 3D corridor for Journey C
+ *   MapController.elevateToCorridorView()         — Tilt into 3D corridor (steps 9-10)
  *   MapController.forwardReveal(property)         — Bird's-eye drill-down to property
  *   MapController.reverseReveal()                 — Fly back to corridor
  *   MapController.addPropertyMarkers(properties)  — Amber markers on Mapbox
@@ -368,7 +368,7 @@ const MapController = {
     },
 
     /**
-     * Elevate to 3D corridor view for Journey C
+     * Elevate to 3D corridor view (steps 9-10: investment zones, properties)
      */
     async elevateToCorridorView() {
         if (!this.initialized && this._readyPromise) {
@@ -696,11 +696,11 @@ const MapController = {
     },
 
     // ================================
-    // JOURNEY A — Resources
+    // STEPS 1-2 — Resources, Strategic Location
     // ================================
 
     /**
-     * Show resource markers (Journey A)
+     * Show resource markers (step 1: resources)
      */
     showResourceMarker(resourceId) {
         const resource = AppData.resources[resourceId];
@@ -1047,11 +1047,11 @@ const MapController = {
     },
 
     // ================================
-    // JOURNEY B — Government, Companies, Zones, Roads
+    // STEPS 3-8 — Government, Companies, Zones, Roads, Education, Future
     // ================================
 
     /**
-     * Show Science Park circle (Journey B)
+     * Show Science Park circle (steps 3, 5: government support, science park)
      */
     showSciencePark() {
         const sp = AppData.sciencePark;
@@ -1159,7 +1159,7 @@ const MapController = {
     },
 
     /**
-     * Show company markers (Journey B)
+     * Show company markers (step 4: corporate investment)
      */
     showCompanyMarkers() {
         AppData.companies.forEach((company, index) => {
@@ -1233,7 +1233,7 @@ const MapController = {
     },
 
     /**
-     * Show future development zones (Journey B - Future view)
+     * Show future development zones (steps 5, 8: science park, future outlook)
      */
     showFutureZones() {
         AppData.futureZones.forEach(zone => {
@@ -1287,7 +1287,7 @@ const MapController = {
     },
 
     /**
-     * Show investment zone overlays with persistent labels (Journey B)
+     * Show investment zone overlays with persistent labels (step 9: investment zones)
      */
     showInvestmentZones() {
         AppData.investmentZones.forEach(zone => {
@@ -1363,7 +1363,7 @@ const MapController = {
     },
 
     // ================================
-    // INFRASTRUCTURE ROADS (Journey B)
+    // INFRASTRUCTURE ROADS (step 6: transport access)
     // ================================
 
     showInfrastructureRoads() {
@@ -1631,7 +1631,7 @@ const MapController = {
     },
 
     // ================================
-    // JOURNEY C — Properties & Routes
+    // STEPS 9-11 — Investment Zones, Properties, Area Changes
     // ================================
 
     /**
@@ -2262,7 +2262,7 @@ const MapController = {
     },
 
     // ================================
-    // AIRLINE ROUTES (Journey A - Strategic Location)
+    // AIRLINE ROUTES (step 2: strategic location)
     // ================================
 
     generateBezierPoints(p0, p1, p2, numPoints) {
