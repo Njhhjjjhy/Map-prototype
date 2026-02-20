@@ -1000,13 +1000,12 @@ const UI = {
                 this.panelOpen = true;
                 this.updatePanelToggleState();
             } else {
-                // Render inspector panel for current journey step
-                const currentStep = App.state.step;
-                if (currentStep) {
-                    const stage = STAGE_MAP[currentStep];
-                    if (stage && stage >= 3) {
-                        const tabDef = STAGE_TABS[stage] || {};
-                        this.renderInspectorPanel(stage, { title: tabDef.label || '' });
+                // Render panel for current step
+                const stepIndex = App.state.currentStep;
+                if (stepIndex > 0) {
+                    const stepDef = STEPS[stepIndex - 1];
+                    if (stepDef) {
+                        App._renderStepPanel(stepDef);
                     }
                 }
             }
@@ -1041,7 +1040,7 @@ const UI = {
     },
 
     /**
-     * Show resource panel (Journey A)
+     * Show resource panel (step 1)
      */
     showResourcePanel(resource) {
         const statsHtml = resource.stats.map(stat => `
@@ -1254,7 +1253,7 @@ const UI = {
     },
 
     /**
-     * Show inspector stage 3 focused on a single institution (Journey A talent pipeline).
+     * Show inspector stage 3 focused on a single institution (step 7 education pipeline).
      * Accepts an institution ID string or institution object.
      */
     showTalentInspector(instOrId) {
@@ -1698,7 +1697,7 @@ const UI = {
     },
 
     /**
-     * Show Truth Engine (Journey C - growth drivers)
+     * Show Truth Engine (step 10 - growth drivers)
      */
     showTruthEngine() {
         const property = this.currentProperty;
@@ -1726,7 +1725,7 @@ const UI = {
     },
 
     /**
-     * Show Performance Calculator (Journey C - financials)
+     * Show Performance Calculator (step 10 - financials)
      */
     showPerformanceCalculator() {
         const property = this.currentProperty;
@@ -1887,7 +1886,7 @@ const UI = {
     },
 
     /**
-     * Show area statistics (Journey C conclusion)
+     * Show area statistics (step 12 conclusion)
      */
     showAreaStats() {
         const stats = AppData.areaStats;
@@ -2744,8 +2743,8 @@ const UI = {
 
             // Electricity layer: hide Kyushu energy facilities and restore view
             if (layerName === 'electricity') {
-                // Don't hide if Journey A step A2 is active (it also shows Kyushu energy)
-                if (!App || !App.state || App.state.step !== 'Q1_water') {
+                // Don't hide if step 1 (resources) is active (it also shows Kyushu energy)
+                if (!App || !App.state || App.state.currentStep !== 1) {
                     MapController.hideKyushuEnergy();
                 }
                 MapController.restorePreDataLayerView();
@@ -3049,7 +3048,7 @@ const UI = {
     },
 
     showAIChat() {
-        // Hide the journey chatbox (without showing FAB)
+        // Hide the step chatbox (without showing FAB)
         this.elements.chatbox.classList.add('hidden');
 
         // Hide FAB since we're showing AI chat
@@ -3209,7 +3208,7 @@ const UI = {
 
     /**
      * Show MoreHarvest grand entry — branded full-screen overlay
-     * Appears between Journey B → C transition and property markers
+     * Appears before step 10 (properties) transition
      */
     showMoreHarvestEntry() {
         return new Promise(resolve => {
@@ -3931,13 +3930,16 @@ const UI = {
     /**
      * Update inspector panel based on current step
      */
-    updateInspectorForStep(stepId) {
-        const stage = STAGE_MAP[stepId];
-        if (!stage || stage <= 2) return;
+    /**
+     * Update inspector panel for the current step index.
+     * @param {number} stepIndex - Step index (1-12)
+     */
+    updateInspectorForStep(stepIndex) {
+        if (!stepIndex || stepIndex <= 2) return;
 
-        if (stage !== this.inspectorStage) {
-            const tabDef = STAGE_TABS[stage] || {};
-            this.renderInspectorPanel(stage, { title: tabDef.label || '' });
+        if (stepIndex !== this.inspectorStage) {
+            const tabDef = STAGE_TABS[stepIndex] || {};
+            this.renderInspectorPanel(stepIndex, { title: tabDef.label || '' });
         }
     },
 
