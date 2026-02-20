@@ -4,39 +4,196 @@
  */
 
 /**
- * Step-to-stage lookup: flat, one-directional mapping.
- * Each fine-grained step ID maps to a stage number that determines
- * the inspector panel tab set and card manifest.
+ * Linear 12-step journey definition.
+ * Each step is a self-contained map scene.
+ * `id` is the canonical identifier used by App.state.currentStep.
+ * `cameraKey` references a CAMERA_STEPS entry in map-controller.js.
+ * `layers` lists which marker/layer groups to show (all others hidden on step entry).
+ * `subItems` defines clickable items within the step (shown in chatbox).
+ * `panelTabs` defines the right panel tab set for the step.
+ */
+const STEPS = [
+    {
+        id: 'resources',
+        index: 1,
+        title: 'Resources',
+        subtitle: 'Water and power infrastructure',
+        cameraKey: 'A0',
+        layers: ['resources', 'kyushuEnergy'],
+        panelTabs: ['Evidence'],
+        subItems: [
+            { id: 'water', label: 'Water resources', icon: 'droplet' },
+            { id: 'power-solar', label: 'Solar power', icon: 'sun' },
+            { id: 'power-wind', label: 'Wind power', icon: 'wind' },
+            { id: 'power-nuclear', label: 'Nuclear power', icon: 'atom' }
+        ]
+    },
+    {
+        id: 'strategic-location',
+        index: 2,
+        title: 'Strategic location',
+        subtitle: 'Kyushu position in Asia',
+        cameraKey: 'A3_location',
+        layers: ['airlineRoutes'],
+        panelTabs: ['Evidence'],
+        subItems: []
+    },
+    {
+        id: 'government-support',
+        index: 3,
+        title: 'Government support',
+        subtitle: 'National to local commitment',
+        cameraKey: 'B1',
+        layers: ['governmentChain', 'sciencePark', 'investmentZones'],
+        panelTabs: ['Support', 'Dashboard'],
+        subItems: [
+            { id: 'central', label: 'Central government', icon: 'landmark' },
+            { id: 'prefectural', label: 'Prefectural government', icon: 'building' },
+            { id: 'local', label: 'Local municipalities', icon: 'home' }
+        ]
+    },
+    {
+        id: 'corporate-investment',
+        index: 4,
+        title: 'Corporate investment',
+        subtitle: 'Seven major players',
+        cameraKey: 'B4',
+        layers: ['companies', 'semiconductorNetwork'],
+        panelTabs: ['Investment', 'Companies'],
+        subItems: []
+    },
+    {
+        id: 'science-park-zones',
+        index: 5,
+        title: 'Science park and zones',
+        subtitle: 'Development clusters and long-term plans',
+        cameraKey: 'B1_sciencePark',
+        layers: ['sciencePark', 'futureZones', 'governmentChain'],
+        panelTabs: ['Plans', 'Zones'],
+        subItems: [
+            { id: 'science-park', label: 'Kumamoto Science Park', icon: 'flask-conical' },
+            { id: 'gov-zones', label: 'Government zone clusters', icon: 'target' },
+            { id: 'kikuyo-plan', label: 'Kikuyo long-term plan', icon: 'map-pin' },
+            { id: 'ozu-plan', label: 'Ozu long-term plan', icon: 'map-pin' }
+        ]
+    },
+    {
+        id: 'transport-access',
+        index: 6,
+        title: 'Airport, railway, and roads',
+        subtitle: 'Transport infrastructure',
+        cameraKey: 'B7',
+        layers: ['infrastructureRoads'],
+        panelTabs: ['Overview', 'Timeline'],
+        subItems: [
+            { id: 'airport', label: 'Airport access', icon: 'plane' },
+            { id: 'railway', label: 'New railway', icon: 'train-front' },
+            { id: 'roads', label: 'Future road extensions', icon: 'route' }
+        ]
+    },
+    {
+        id: 'education-pipeline',
+        index: 7,
+        title: 'Education pipeline',
+        subtitle: 'Universities, training, and employment',
+        cameraKey: 'A3_talent',
+        layers: ['talentPipeline'],
+        panelTabs: ['Education', 'Employment'],
+        subItems: [
+            { id: 'universities', label: 'Universities', icon: 'graduation-cap' },
+            { id: 'training', label: 'Training centers', icon: 'school' },
+            { id: 'employment', label: 'Employment data', icon: 'briefcase' }
+        ]
+    },
+    {
+        id: 'future-outlook',
+        index: 8,
+        title: 'Future outlook',
+        subtitle: 'Composite 2030+ vision',
+        cameraKey: 'B6',
+        layers: ['sciencePark', 'futureZones', 'infrastructureRoads', 'investmentZones'],
+        panelTabs: ['Plans', 'Timeline'],
+        showTimeToggle: true,
+        subItems: []
+    },
+    {
+        id: 'investment-zones',
+        index: 9,
+        title: 'Investment opportunity zones',
+        subtitle: 'Three zones in the silicon triangle',
+        cameraKey: 'corridor',
+        layers: ['investmentZones'],
+        panelTabs: ['Zones', 'Metrics'],
+        subItems: [
+            { id: 'kikuyo-zone', label: 'Kikuyo zone', icon: 'target' },
+            { id: 'koshi-zone', label: 'Koshi zone', icon: 'target' },
+            { id: 'ozu-zone', label: 'Ozu zone', icon: 'target' }
+        ]
+    },
+    {
+        id: 'properties',
+        index: 10,
+        title: 'Properties',
+        subtitle: 'Investment opportunities',
+        cameraKey: 'corridor',
+        layers: ['properties', 'route'],
+        panelTabs: ['Images', 'Truth Engine', 'Future Outlook', 'Financial'],
+        subItems: [
+            { id: 'ozu-sugimizu', label: 'Ozu Sugimizu', icon: 'house' },
+            { id: 'kikuyo-kubota', label: 'Kikuyo Kubota', icon: 'house' },
+            { id: 'haramizu-land', label: 'Haramizu Land', icon: 'house' }
+        ]
+    },
+    {
+        id: 'area-changes',
+        index: 11,
+        title: 'Area changes',
+        subtitle: 'Present vs future comparison',
+        cameraKey: 'B6',
+        layers: ['infrastructureRoads', 'futureZones'],
+        panelTabs: ['Overview', 'Evidence'],
+        showTimeToggle: true,
+        subItems: []
+    },
+    {
+        id: 'final',
+        index: 12,
+        title: 'Journey complete',
+        subtitle: 'Summary and Q&A',
+        cameraKey: 'complete',
+        layers: ['companies', 'properties', 'investmentZones', 'infrastructureRoads', 'sciencePark'],
+        panelTabs: [],
+        subItems: []
+    }
+];
+
+/**
+ * Step-to-index lookup for quick access.
+ */
+const STEP_MAP = {};
+STEPS.forEach(s => { STEP_MAP[s.id] = s.index; });
+
+/**
+ * Legacy STAGE_MAP compatibility shim.
+ * Maps old step string IDs to new step indices for any code still referencing them.
+ * Remove once all references are migrated.
  */
 const STAGE_MAP = {
-    'A0': 1,           // Opening question
-    'A1': 2,           // Natural advantages
-    'A2': 2,           // Utility infrastructure
-    'A3': 3,           // Talent pipeline, universities
-    'B1': 4,           // Science park, government support
-    // Stage 5: card manifest order matches map pin-drop animation sequence.
-    // If pin-drop order changes in app.js stepB4(), update manifest order to match.
-    'B4': 5,           // Corporate investment markers
-    'B6': 6,           // Future zones, silicon triangle
-    'B7': 7,           // Risk areas, infrastructure roads
-    'C1': 8,           // Real estate thesis
-    'complete': 9      // Property detail, financials
+    'Q1_intro': 1, 'Q1_water': 1, 'Q1_power': 1, 'Q1_sewage': 1,
+    'Q1_silicon': 1, 'Q1_strategic': 2,
+    'Q2_gov': 3, 'Q2_corporate': 4,
+    'Q3_timeline': 5, 'Q3_education': 7, 'Q3_future': 8,
+    'Q4_zones': 9,
+    'Q5_prop1': 10, 'Q5_prop2': 10, 'Q5_prop3': 10, 'Q5_final': 12
 };
 
 /**
- * Tab sets and labels per inspector stage.
- * Stages 1-2 use map + chatbox. Stage 1 also has an evidence panel.
+ * Tab sets per step index (replaces old STAGE_TABS).
  */
-const STAGE_TABS = {
-    1: { label: 'The core question', tabs: ['Evidence'] },
-    3: { label: 'Talent pipeline', tabs: ['Overview'] },
-    4: { label: 'Infrastructure', tabs: ['Plans', 'Timeline', 'Sources'] },
-    5: { label: 'Corporate investment', tabs: ['Investment', 'Timeline', 'Press'] },
-    6: { label: 'Silicon triangle', tabs: ['Profile', 'Metrics', 'Sources'] },
-    7: { label: 'Risk assessment', tabs: ['Assessment', 'History', 'Mitigation'] },
-    8: { label: 'Real estate', tabs: ['Demand', 'Yields', 'Properties'] },
-    9: { label: 'Property detail', tabs: ['Overview', 'Financials', 'Evidence'] }
-};
+const STAGE_TABS = {};
+STEPS.forEach(s => {
+    STAGE_TABS[s.index] = { label: s.subtitle, tabs: s.panelTabs };
+});
 
 const AppData = {
     // Map center and zoom settings
@@ -47,33 +204,7 @@ const AppData = {
         propertyZoom: 14
     },
 
-    // Journey A: Opening Question (Step A0)
-    openingQuestion: {
-        title: 'The core question',
-        question: 'Why is Japan\'s government spending ¥10 trillion in Kumamoto?',
-        supportingDocs: [
-            {
-                id: 'meti-plan',
-                title: 'Certified semiconductor production facility plan',
-                source: 'meti.go.jp',
-                type: 'government'
-            },
-            {
-                id: 'reuters-tsmc',
-                title: 'Tokyo pledges $4.9B for TSMC Japan expansion',
-                source: 'reuters.com',
-                type: 'news'
-            },
-            {
-                id: 'nippon-data',
-                title: 'Japan making major investments in semiconductor industry',
-                source: 'nippon.com',
-                type: 'data'
-            }
-        ]
-    },
-
-    // Journey A: Why Kumamoto? - Resources
+    // Q1: Why Kumamoto? - Resources
     resources: {
         water: {
             id: 'water',
@@ -148,6 +279,55 @@ const AppData = {
                     { type: 'Nuclear', examples: 'Genkai (Saga), Sendai (Kagoshima)', icon: 'atom' }
                 ]
             }
+        }
+    },
+
+    // Q1: Sewage infrastructure
+    sewageInfrastructure: {
+        id: 'sewage',
+        name: 'Public sewage infrastructure',
+        coords: [32.87, 130.80],
+        subtitle: 'Semiconductor district utilities',
+        description: 'Rapid semiconductor industry and population influx impacts water, drainage, and sewage treatment demand. Specified public sewage infrastructure projects are critical for continued fab zone expansion.',
+        stats: [
+            { value: 'Active', label: 'Project status' },
+            { value: 'Kikuyo', label: 'Coverage area' },
+            { value: 'Haramizu', label: 'Expansion zone' },
+            { value: 'Koshi', label: 'Adjacent coverage' }
+        ],
+        evidence: {
+            title: 'Semiconductor district sewage plan',
+            type: 'pdf',
+            description: 'Kumamoto specified public sewage infrastructure for semiconductor district',
+            image: 'assets/use-case-images/evidence-sewers-utility-systems.webp'
+        }
+    },
+
+    // Q1: Silicon Island heritage
+    siliconIsland: {
+        id: 'silicon-island',
+        name: 'Silicon Island Kyushu',
+        coords: [33.0, 130.7],
+        subtitle: 'Semiconductor heritage',
+        description: 'Kyushu is historically called Silicon Island. IC production accounts for approximately 40% of domestic share. Semiconductor manufacturing equipment holds approximately 20% of domestic share. Japan leads globally in semiconductor materials and equipment.',
+        stats: [
+            { value: '~40%', label: 'Domestic IC production share' },
+            { value: '~20%', label: 'Equipment share' },
+            { value: '6', label: 'Major companies' },
+            { value: '1960s', label: 'Heritage start' }
+        ],
+        companies: [
+            { name: 'Mitsubishi Electric', coords: [32.82, 130.80] },
+            { name: 'Rohm', coords: [32.89, 130.76] },
+            { name: 'SUMCO', coords: [32.93, 130.70] },
+            { name: 'Toshiba', coords: [33.25, 130.42] },
+            { name: 'Sony', coords: [32.90, 130.82] }
+        ],
+        evidence: {
+            title: 'Bank of Japan Fukuoka branch semiconductor report',
+            type: 'pdf',
+            description: 'Historical analysis of Kyushu semiconductor industry presence and supply chain depth',
+            image: 'assets/use-case-images/evidence-silicon-island.webp'
         }
     },
 
@@ -668,224 +848,266 @@ const AppData = {
         ]
     },
 
-    // Journey C: Investment Properties
+    // Q5: Investment Properties (card-based structure)
     properties: [
         {
-            id: 'prop-1',
-            name: 'Kikuyo Residence A',
-            coords: [32.8755, 130.8195],
-            subtitle: 'New construction',
-            address: '969-1 Haramizu, Kikuyo-machi, Kikuchi-gun',
-            distanceToJasm: '8.2 km',
-            driveTime: '12 min',
-            type: 'Single Family Residence',
-            zone: 'Kikuyo Development Zone',
-            image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
-            exteriorImage: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80',
-            interiorImages: [
-                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
-                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
-            ],
-            description: 'Modern 3-bedroom residence in the heart of the development zone. Walking distance to new commercial center.',
-            basicStats: [
-                { value: '12 min', label: 'Drive to JASM' },
-                { value: '8.2 km', label: 'Distance' },
-                { value: '2024', label: 'Built' },
-                { value: '125 m²', label: 'Floor area' }
-            ],
-            truthEngine: [
+            id: 'ozu-sugimizu',
+            name: 'Ozu Sugimizu',
+            coords: [32.865, 130.870],
+            subtitle: 'New construction (BTR)',
+            type: 'Build to rent',
+            zone: 'Ozu Development Zone',
+            distanceToJasm: '5.2 km',
+            driveTime: '8 min',
+
+            cards: [
                 {
-                    title: 'Kikuyo Station expansion',
-                    description: 'New train station with direct line to Kumamoto City center. Completion 2026.',
-                    impact: '+15% projected value increase'
+                    type: 'images',
+                    data: {
+                        exterior: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80',
+                        interior: [
+                            'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
+                            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
+                        ],
+                        site: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80'
+                    }
                 },
                 {
-                    title: 'International school',
-                    description: 'English-language school announced for TSMC engineer families.',
-                    impact: '+8% rental premium for international tenants'
+                    type: 'truth-engine',
+                    data: {
+                        basicSettings: {
+                            area: 'Ozu Sugimizu station land (family type)',
+                            land: '180 sqm (corner lot, regular shape, road frontage 12m)',
+                            building: 'Wood construction (ZEH/long-life quality housing) 115 sqm',
+                            layout: '3LDK + study/flex room, dual bathrooms (expat family friendly)'
+                        },
+                        designStrategy: {
+                            description: 'Expat family standard spec',
+                            features: [
+                                'Large living/dining',
+                                'Dishwasher, floor heating, high insulation',
+                                'Ample storage, EV charging prep',
+                                'Standardized facade and modular floor plans',
+                                'Compressed construction period and cost volatility'
+                            ]
+                        },
+                        landStrategy: {
+                            description: 'Three-factor balance: school district + living amenities + commute',
+                            risks: [
+                                'Fragmented land',
+                                'Site preparation costs',
+                                'Drainage/foundation improvement costs uncertain'
+                            ]
+                        }
+                    }
                 },
                 {
-                    title: 'JASM Phase 2',
-                    description: 'Second fab under construction, adding 3,000 more employees.',
-                    impact: '+25% rental demand by 2027'
-                }
-            ],
-            financials: {
-                acquisitionCost: 48500000,
-                scenarios: {
-                    bear: {
-                        appreciation: 0.03,
-                        rentalYield: 0.045,
-                        sellingPrice: 52800000,
-                        annualRent: 2182500,
-                        taxes: 1200000,
-                        netProfit: 2882500
-                    },
-                    average: {
-                        appreciation: 0.08,
-                        rentalYield: 0.055,
-                        sellingPrice: 62200000,
-                        annualRent: 2667500,
-                        taxes: 2500000,
-                        netProfit: 11367500
-                    },
-                    bull: {
-                        appreciation: 0.15,
-                        rentalYield: 0.065,
-                        sellingPrice: 72500000,
-                        annualRent: 3152500,
-                        taxes: 4200000,
-                        netProfit: 19847500
+                    type: 'future-outlook',
+                    data: {
+                        description: 'Area development plans affecting Ozu Sugimizu',
+                        factors: [
+                            { title: 'Ozu industrial expansion', impact: '120ha new logistics and supply chain facilities by 2027' },
+                            { title: 'Route 57 bypass', impact: 'Under construction, -8 min commute to JASM by 2026' },
+                            { title: 'Science park expansion', impact: 'Government commitment extends development corridor southward' }
+                        ]
+                    }
+                },
+                {
+                    type: 'financial',
+                    data: {
+                        strategy: 'BTR (build to rent)',
+                        acquisitionCost: 45000000,
+                        scenarios: {
+                            bear:    { annualRent: 1920000, noi: 1680000, noiTicRatio: 0.037, exitPrice: 48000000, irr: 0.06 },
+                            average: { annualRent: 2280000, noi: 2040000, noiTicRatio: 0.045, exitPrice: 55000000, irr: 0.10 },
+                            bull:    { annualRent: 2640000, noi: 2400000, noiTicRatio: 0.053, exitPrice: 64000000, irr: 0.14 }
+                        },
+                        rentalEvidence: {
+                            title: 'Local agency rental market report',
+                            type: 'pdf',
+                            description: 'Rental market comparables showing 160,000-170,000 yen monthly rent',
+                            image: 'assets/use-case-images/evidence-property-rent-evaluation.webp'
+                        }
                     }
                 }
-            },
-            rentalReport: {
-                title: 'Property rental analysis',
-                type: 'pdf',
-                description: 'Detailed rental market analysis from property manager',
-                date: '2025-01',
-                viewed: false
-            },
-            // Inspector panel data gaps filled below
-            recommendation: 'pursue',
-            decisionMetrics: [
-                { label: 'Proximity to JASM', value: '8.2 km (top 10%)' },
-                { label: 'Projected yield', value: '5.5% net (avg scenario)' },
-                { label: 'Demand catalyst', value: 'JASM Phase 2 (+3,000 workers)' }
-            ],
-            thumbnail: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=60',
-            brokerMetrics: {
-                rentalHigh: 240000,
-                rentalAvg: 222000,
-                rentalLow: 182000,
-                projectedGrowth: 0.08,
-                areaAverage: 195000
-            },
-            costBreakdown: {
-                hardCosts: 42000000,
-                acquisitionFees: 2425000,
-                fitOut: 1800000,
-                stampDuty: 1455000,
-                legalFees: 820000
-            },
-            rentalProjections: {
-                bear: { monthlyRent: 182000, managementFee: 18200, vacancyRate: 0.08, annualNetIncome: 1810000 },
-                average: { monthlyRent: 222000, managementFee: 22200, vacancyRate: 0.05, annualNetIncome: 2280000 },
-                bull: { monthlyRent: 263000, managementFee: 26300, vacancyRate: 0.03, annualNetIncome: 2760000 }
-            },
-            commuteShifts: {
-                shift2am: '8 min',
-                shift8am: '18 min',
-                shiftMidnight: '10 min'
-            }
+            ]
         },
         {
-            id: 'prop-2',
-            name: 'Ozu Heights Unit B',
-            coords: [32.8735, 130.8225],
-            subtitle: 'Apartment investment',
-            address: '717 Haramizu, Kikuyo, Kikuchi District',
-            distanceToJasm: '10.5 km',
-            driveTime: '15 min',
-            type: 'Apartment',
-            zone: 'Ozu Industrial Expansion',
-            image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80',
-            exteriorImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80',
-            interiorImages: [
-                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
-                'https://images.unsplash.com/photo-1560185127-6a62b8a7d6c8?w=800&q=80'
-            ],
-            description: 'High-demand apartment in growing residential area. Strong rental history with semiconductor industry tenants.',
-            basicStats: [
-                { value: '15 min', label: 'Drive to JASM' },
-                { value: '10.5 km', label: 'Distance' },
-                { value: '2022', label: 'Built' },
-                { value: '78 m²', label: 'Floor area' }
-            ],
-            truthEngine: [
+            id: 'kikuyo-kubota',
+            name: 'Kikuyo Kubota',
+            coords: [32.880, 130.825],
+            subtitle: 'Renovation opportunity',
+            type: 'Buy-renovate-rent/sell',
+            zone: 'Kikuyo Development Zone',
+            distanceToJasm: '6.8 km',
+            driveTime: '10 min',
+
+            cards: [
                 {
-                    title: 'Highway extension',
-                    description: 'Route 57 bypass reduces commute to JASM by 5 minutes.',
-                    impact: '+12% value from improved access'
+                    type: 'images',
+                    data: {
+                        exterior: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80',
+                        interior: [
+                            'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
+                            'https://images.unsplash.com/photo-1560185127-6a62b8a7d6c8?w=800&q=80'
+                        ],
+                        site: 'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=800&q=80'
+                    }
                 },
                 {
-                    title: 'Commercial development',
-                    description: 'New shopping center approved 500m from property.',
-                    impact: '+6% neighborhood desirability'
+                    type: 'truth-engine',
+                    data: {
+                        basicSettings: {
+                            area: 'Kikuyo Kubota (single-family renovation)',
+                            property: '18 years old, 98 sqm',
+                            renovationBudget: '6.5M yen (including water/electrical, insulation, kitchen/bath)',
+                            renovationPeriod: '8 weeks target (control vacancy period)'
+                        },
+                        designStrategy: {
+                            description: 'Convert to expat standard',
+                            features: [
+                                'Insulation and window upgrades',
+                                'Traffic flow reorganization',
+                                'Kitchen and bath quality improvement',
+                                'Storage optimization',
+                                'Lighting and moisture control'
+                            ]
+                        },
+                        landStrategy: {
+                            description: 'Advantages: property tax and acquisition cost controllable, fast turnaround, can replicate across multiple small properties',
+                            risks: [
+                                'Hidden construction issues (leaks, termites, foundation)',
+                                'Resale market depth uncertainty',
+                                'Renovation cost overrun risk'
+                            ]
+                        }
+                    }
                 },
                 {
-                    title: 'Tokyo Electron opening',
-                    description: 'New facility 4km away, 1,200 new employees seeking housing.',
-                    impact: '+30% rental inquiry rate'
-                }
-            ],
-            financials: {
-                acquisitionCost: 32000000,
-                scenarios: {
-                    bear: {
-                        appreciation: 0.02,
-                        rentalYield: 0.05,
-                        sellingPrice: 34500000,
-                        annualRent: 1600000,
-                        taxes: 720000,
-                        netProfit: 2380000
-                    },
-                    average: {
-                        appreciation: 0.07,
-                        rentalYield: 0.06,
-                        sellingPrice: 41200000,
-                        annualRent: 1920000,
-                        taxes: 1650000,
-                        netProfit: 7550000
-                    },
-                    bull: {
-                        appreciation: 0.12,
-                        rentalYield: 0.07,
-                        sellingPrice: 48000000,
-                        annualRent: 2240000,
-                        taxes: 2880000,
-                        netProfit: 13120000
+                    type: 'future-outlook',
+                    data: {
+                        description: 'Area development plans affecting Kikuyo Kubota',
+                        factors: [
+                            { title: 'Kikuyo Station expansion', impact: 'New train station with direct Kumamoto City line, completion 2026' },
+                            { title: 'International school', impact: 'English-language school for TSMC engineer families, +8% rental premium' },
+                            { title: 'JASM Phase 2', impact: 'Second fab adding 3,000 employees, +25% rental demand by 2027' },
+                            { title: 'Haramizu 70ha development', impact: 'Adjacent new urban core drives area transformation' }
+                        ]
+                    }
+                },
+                {
+                    type: 'financial',
+                    data: {
+                        strategy: 'Renovation: two exit paths',
+                        acquisitionCost: 22000000,
+                        renovationCost: 6500000,
+                        totalInvestment: 28500000,
+                        paths: {
+                            rental: {
+                                label: 'Renovation + rental',
+                                monthlyRent: 155000,
+                                annualRent: 1860000,
+                                noi: 1620000,
+                                yield: 0.057
+                            },
+                            sale: {
+                                label: 'Renovation + sale',
+                                salePrice: 35000000,
+                                grossProfit: 6500000,
+                                grossMargin: 0.228,
+                                holdPeriod: '6 months'
+                            }
+                        },
+                        rentalEvidence: {
+                            title: 'Rental assessment report',
+                            type: 'pdf',
+                            description: 'Comparable rental properties in Kikuyo area',
+                            image: 'assets/use-case-images/evidence-rental-assessment-report.webp'
+                        }
                     }
                 }
-            },
-            rentalReport: {
-                title: 'Property rental analysis',
-                type: 'pdf',
-                description: 'Detailed rental market analysis from property manager',
-                date: '2025-02',
-                viewed: false
-            },
-            recommendation: 'pursue',
-            decisionMetrics: [
-                { label: 'Rental demand', value: 'High (Tokyo Electron + JASM)' },
-                { label: 'Projected yield', value: '6.0% net (avg scenario)' },
-                { label: 'Infrastructure', value: 'Route 57 bypass (-5 min commute)' }
-            ],
-            thumbnail: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=60',
-            brokerMetrics: {
-                rentalHigh: 187000,
-                rentalAvg: 160000,
-                rentalLow: 133000,
-                projectedGrowth: 0.07,
-                areaAverage: 148000
-            },
-            costBreakdown: {
-                hardCosts: 27500000,
-                acquisitionFees: 1600000,
-                fitOut: 1200000,
-                stampDuty: 960000,
-                legalFees: 740000
-            },
-            rentalProjections: {
-                bear: { monthlyRent: 133000, managementFee: 13300, vacancyRate: 0.10, annualNetIncome: 1294000 },
-                average: { monthlyRent: 160000, managementFee: 16000, vacancyRate: 0.06, annualNetIncome: 1625000 },
-                bull: { monthlyRent: 187000, managementFee: 18700, vacancyRate: 0.03, annualNetIncome: 1960000 }
-            },
-            commuteShifts: {
-                shift2am: '10 min',
-                shift8am: '25 min',
-                shiftMidnight: '12 min'
-            }
+            ]
+        },
+        {
+            id: 'haramizu-land',
+            name: 'Haramizu Land',
+            coords: [32.8698, 130.8230],
+            subtitle: 'Land development',
+            type: 'Land acquisition',
+            zone: 'Haramizu Station Development Zone',
+            distanceToJasm: '4.5 km',
+            driveTime: '7 min',
+
+            cards: [
+                {
+                    type: 'images',
+                    data: {
+                        exterior: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
+                        interior: [],
+                        site: 'https://images.unsplash.com/photo-1625722662220-1fbcfe2d7acb?w=800&q=80'
+                    }
+                },
+                {
+                    type: 'truth-engine',
+                    data: {
+                        basicSettings: {
+                            area: 'Haramizu Station vicinity (70ha land readjustment project)',
+                            land: '320 sqm within the readjustment zone',
+                            zoning: 'Residential/commercial mixed-use (post-readjustment)',
+                            partners: 'Mitsui Fudosan + JR Kyushu (selected as future vision implementation partners)'
+                        },
+                        designStrategy: {
+                            description: 'Three-zone development concept',
+                            features: [
+                                'Vibrancy zone: station-front retail, F&B, international-friendly services',
+                                'Knowledge cluster: R&D offices, co-working, university satellite campus',
+                                'Live-work zone: mid-high density condos, serviced apartments for engineers',
+                                'Facility introduction: residential, apartments, hotels, university campus'
+                            ]
+                        },
+                        landStrategy: {
+                            description: 'Long-term city-level project, not single housing development. JR Kyushu new station between Mitsuriki and Haramizu creates transport anchor.',
+                            risks: [
+                                'Land readjustment timeline uncertainty',
+                                'Zoning finalization dependent on municipal process',
+                                'Higher upfront capital requirement than renovation path'
+                            ]
+                        }
+                    }
+                },
+                {
+                    type: 'future-outlook',
+                    data: {
+                        description: '70-hectare new urban core with national development partners',
+                        factors: [
+                            { title: 'New JR station', impact: 'JR Kyushu confirmed new station between Mitsuriki and Haramizu, direct rail to Kumamoto City' },
+                            { title: 'Mitsui Fudosan partnership', impact: 'Japan largest developer selected for long-term vision implementation' },
+                            { title: 'Foreign consultation counter', impact: 'Kikuyo Town established bilingual support (Chinese/English) for international residents' },
+                            { title: 'Science park adjacency', impact: 'Direct proximity to semiconductor cluster drives sustained demand' }
+                        ]
+                    }
+                },
+                {
+                    type: 'financial',
+                    data: {
+                        strategy: 'Land acquisition and hold/develop',
+                        landAcquisitionCost: 38000000,
+                        developmentBudget: 52000000,
+                        totalInvestment: 90000000,
+                        scenarios: {
+                            bear:    { developedValue: 95000000, netProfit: 5000000, irr: 0.04, holdYears: 3 },
+                            average: { developedValue: 115000000, netProfit: 25000000, irr: 0.10, holdYears: 3 },
+                            bull:    { developedValue: 140000000, netProfit: 50000000, irr: 0.17, holdYears: 3 }
+                        },
+                        rentalEvidence: {
+                            title: 'Real estate investment analysis',
+                            type: 'pdf',
+                            description: 'Comprehensive land value and development ROI projections',
+                            image: 'assets/use-case-images/evidence-real-estate-investment-analysis.webp'
+                        }
+                    }
+                }
+            ]
         }
     ],
 
@@ -1127,6 +1349,7 @@ const AppData = {
                     viewed: false,
                     description: 'Kyushu leads Japan in solar energy adoption with extensive photovoltaic installations across the region, providing stable renewable power to the semiconductor corridor.',
                     coords: [32.95, 130.55],
+                    image: 'assets/use-case-images/evidence-renewable-energy.webp',
                     stats: [
                         { value: '2.4GW', label: 'Installed capacity' },
                         { value: '+18%', label: 'YoY growth' },
@@ -1142,6 +1365,7 @@ const AppData = {
                     viewed: false,
                     description: 'Offshore and onshore wind installations along the Kyushu coast provide complementary renewable energy, particularly during peak demand periods.',
                     coords: [32.68, 130.42],
+                    image: 'assets/use-case-images/evidence-renewable-energy.webp',
                     stats: [
                         { value: '890MW', label: 'Total capacity' },
                         { value: '34%', label: 'Capacity factor' },
@@ -1163,6 +1387,22 @@ const AppData = {
                         { value: '24/7', label: 'Baseload operation' },
                         { value: '¥11/kWh', label: 'Cost to grid' }
                     ]
+                },
+                {
+                    id: 'sewage-infrastructure',
+                    title: 'Sewage and utility systems',
+                    type: 'pdf',
+                    date: '2024-10',
+                    viewed: false,
+                    description: 'Specified public sewage infrastructure projects for the semiconductor district, covering Kikuyo, Haramizu, and Koshi areas.',
+                    coords: [32.87, 130.80],
+                    image: 'assets/use-case-images/evidence-sewers-utility-systems.webp',
+                    stats: [
+                        { value: 'Active', label: 'Project status' },
+                        { value: 'Kikuyo', label: 'Primary area' },
+                        { value: 'Haramizu', label: 'Expansion zone' },
+                        { value: 'Koshi', label: 'Adjacent area' }
+                    ]
                 }
             ]
         },
@@ -1179,6 +1419,7 @@ const AppData = {
                     viewed: false,
                     description: 'Route 57 bypass and new arterial roads will reduce commute times and improve logistics access to the semiconductor corridor.',
                     coords: [32.84, 130.76],
+                    image: 'assets/use-case-images/evidence-kumamoto-future-road-network.webp',
                     stats: [
                         { value: '42km', label: 'New road length' },
                         { value: '-25%', label: 'Commute reduction' },
@@ -1194,6 +1435,7 @@ const AppData = {
                     viewed: false,
                     description: 'New Kikuyo Station and expanded JR Hohi Line service will provide direct rail access for semiconductor workers commuting from Kumamoto City.',
                     coords: [32.88, 130.81],
+                    image: 'assets/use-case-images/evidence-new-railway-system.webp',
                     stats: [
                         { value: '2026', label: 'Station opening' },
                         { value: '18min', label: 'To Kumamoto City' },
@@ -1209,12 +1451,64 @@ const AppData = {
                     viewed: false,
                     description: 'Aso Kumamoto Airport provides international cargo and passenger connections, with new routes planned to support semiconductor industry logistics.',
                     coords: [32.84, 130.86],
+                    image: 'assets/use-case-images/evidence-airport-to-city-railway.webp',
                     stats: [
                         { value: '25min', label: 'To Science Park' },
                         { value: '12', label: 'International routes' },
                         { value: '+40%', label: 'Cargo capacity expansion' },
                         { value: '2025', label: 'Terminal upgrade' }
                     ]
+                },
+                {
+                    id: 'ring-road',
+                    title: '10-minute ring road concept',
+                    type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
+                    description: 'Airport-industrial-residential integrated urban corridor maintaining 10-minute drive intervals between key nodes.',
+                    coords: [32.85, 130.82],
+                    images: [
+                        'assets/use-case-images/evidence-10-minute-ring-road-2.webp',
+                        'assets/use-case-images/evidence-10-minute-ring-road-3.webp'
+                    ],
+                    stats: [
+                        { value: '10 min', label: 'Max interval' },
+                        { value: '3 nodes', label: 'Airport-Industry-Residential' },
+                        { value: '2030', label: 'Target' }
+                    ]
+                },
+                {
+                    id: 'transport-overview',
+                    title: 'Kumamoto transport overview',
+                    type: 'pdf',
+                    date: '2024-12',
+                    viewed: false,
+                    description: 'Comprehensive overview of Kumamoto transport infrastructure including road network, rail, and airport access.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-kumamoto-transport-overview.webp',
+                    stats: []
+                },
+                {
+                    id: 'traffic-flow',
+                    title: 'Regional traffic flow',
+                    type: 'pdf',
+                    date: '2024-11',
+                    viewed: false,
+                    description: 'Traffic flow analysis for the Kumamoto semiconductor corridor.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-kumamoto-regional-traffic-flow.webp',
+                    stats: []
+                },
+                {
+                    id: 'commuting-context',
+                    title: 'Commuting challenges',
+                    type: 'pdf',
+                    date: '2024-09',
+                    viewed: false,
+                    description: 'Current commuting challenges in the semiconductor corridor and planned infrastructure improvements.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-commuting-hell.webp',
+                    stats: []
                 }
             ]
         },
@@ -1231,6 +1525,7 @@ const AppData = {
                     viewed: false,
                     description: 'The flagship development zone designated by Kumamoto Prefecture for semiconductor and advanced technology industries.',
                     coords: [32.87, 130.78],
+                    image: 'assets/use-case-images/evidence-science-park.webp',
                     stats: [
                         { value: '¥4.8T', label: 'Total investment' },
                         { value: '2040', label: 'Master plan horizon' },
@@ -1246,6 +1541,7 @@ const AppData = {
                     viewed: false,
                     description: 'Kikuyo Town\'s comprehensive development plan integrating residential, commercial, and infrastructure growth to support the semiconductor workforce.',
                     coords: [32.88, 130.83],
+                    image: 'assets/use-case-images/evidence-semiconductor-clusters.webp',
                     stats: [
                         { value: '2,500', label: 'Housing units' },
                         { value: '¥180B', label: 'Infrastructure' },
@@ -1261,12 +1557,40 @@ const AppData = {
                     viewed: false,
                     description: 'Ozu Town\'s industrial expansion plan focused on logistics, supply chain support, and secondary manufacturing facilities.',
                     coords: [32.86, 130.87],
+                    image: 'assets/use-case-images/evidence-industrial-park-locations.webp',
                     stats: [
                         { value: '120ha', label: 'Industrial land' },
                         { value: '¥95B', label: 'Investment' },
                         { value: '2027', label: 'Phase 1' },
                         { value: '3,000', label: 'Jobs projected' }
                     ]
+                },
+                {
+                    id: 'grand-airport-plan',
+                    title: 'Grand airport concept',
+                    type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
+                    description: 'Long-term vision to expand Kumamoto Airport into a major cargo hub with new urban development zone.',
+                    coords: [32.84, 130.86],
+                    image: 'assets/use-case-images/evidence-new-grand-airport.webp',
+                    stats: [
+                        { value: '2035', label: 'Target completion' },
+                        { value: '+200%', label: 'Cargo capacity' },
+                        { value: '8', label: 'New Asia routes' },
+                        { value: '¥320B', label: 'Investment' }
+                    ]
+                },
+                {
+                    id: 'airport-master-plan',
+                    title: 'Airport master plan',
+                    type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
+                    description: 'Detailed master plan for Kumamoto Airport expansion including terminal upgrades and access infrastructure.',
+                    coords: [32.84, 130.86],
+                    image: 'assets/use-case-images/evidence-airport-master-plan.webp',
+                    stats: []
                 }
             ]
         },
@@ -1313,12 +1637,130 @@ const AppData = {
                     viewed: false,
                     description: 'Regional employment statistics showing semiconductor industry hiring trends and salary growth across Kumamoto Prefecture.',
                     coords: null,
+                    image: 'assets/use-case-images/vidence-wage-gap-college-graduates.webp',
                     stats: [
                         { value: '8,200', label: 'Industry hires 2024' },
                         { value: '+34%', label: 'YoY growth' },
                         { value: '¥6.2M', label: 'Avg. salary' },
                         { value: '#1', label: 'Regional employer' }
                     ]
+                }
+            ]
+        },
+        'semiconductor-ecosystem': {
+            id: 'semiconductor-ecosystem',
+            title: 'Semiconductor ecosystem',
+            icon: 'cpu',
+            items: [
+                {
+                    id: 'silicon-island',
+                    title: 'Silicon Island Kyushu heritage',
+                    type: 'pdf',
+                    date: '2023-03',
+                    viewed: false,
+                    description: 'Bank of Japan Fukuoka branch report showing Kyushu as Silicon Island with ~40% domestic IC production share.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-silicon-island.webp',
+                    stats: [
+                        { value: '~40%', label: 'IC production share' },
+                        { value: '~20%', label: 'Equipment share' },
+                        { value: '#1', label: 'Japan global rank in materials' }
+                    ]
+                },
+                {
+                    id: 'existing-semiconductors',
+                    title: 'Existing semiconductor presence',
+                    type: 'pdf',
+                    date: '2024-06',
+                    viewed: false,
+                    description: 'Map of existing semiconductor companies across Kyushu, including Mitsubishi Electric, Rohm, SUMCO, Toshiba, and Sony.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-existing-semiconductors.webp',
+                    stats: []
+                },
+                {
+                    id: 'tsmc-infrastructure',
+                    title: 'TSMC infrastructure overview',
+                    type: 'pdf',
+                    date: '2024-12',
+                    viewed: false,
+                    description: 'Overview of TSMC surrounding infrastructure including highway extensions, airport access, and rail connections.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-tsmc-infrastructure-overview.webp',
+                    stats: []
+                },
+                {
+                    id: 'strategic-location',
+                    title: 'Strategic geopolitical position',
+                    type: 'pdf',
+                    date: '2024-08',
+                    viewed: false,
+                    description: 'East Asia map highlighting Kyushu position relative to Taiwan, Korea, and Shanghai for semiconductor supply chain logistics.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-strategic-location.webp',
+                    stats: []
+                }
+            ]
+        },
+        'investment-analysis': {
+            id: 'investment-analysis',
+            title: 'Investment analysis',
+            icon: 'trending-up',
+            items: [
+                {
+                    id: 'demographic-trends',
+                    title: 'TSMC area demographic trends',
+                    type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
+                    description: 'Demographic growth trends in the TSMC corridor area, showing population and workforce projections.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-tsmc-area-demographic-trends.webp',
+                    stats: []
+                },
+                {
+                    id: 'rental-assessment',
+                    title: 'Rental assessment report',
+                    type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
+                    description: 'Detailed rental market assessment for properties in the semiconductor corridor.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-rental-assessment-report.webp',
+                    stats: []
+                },
+                {
+                    id: 'rent-evaluation',
+                    title: 'Property rent evaluation',
+                    type: 'pdf',
+                    date: '2025-02',
+                    viewed: false,
+                    description: 'Comparative rent evaluation showing market rates for corridor properties.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-property-rent-evaluation.webp',
+                    stats: []
+                },
+                {
+                    id: 'loan-analysis',
+                    title: 'Acquisition loan analysis',
+                    type: 'pdf',
+                    date: '2025-01',
+                    viewed: false,
+                    description: 'Financing structure and loan analysis for property acquisitions.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-acquisition-loan-analysis.webp',
+                    stats: []
+                },
+                {
+                    id: 'investment-analysis-report',
+                    title: 'Real estate investment analysis',
+                    type: 'pdf',
+                    date: '2025-02',
+                    viewed: false,
+                    description: 'Comprehensive investment analysis covering ROI projections and risk assessment.',
+                    coords: null,
+                    image: 'assets/use-case-images/evidence-real-estate-investment-analysis.webp',
+                    stats: []
                 }
             ]
         }
