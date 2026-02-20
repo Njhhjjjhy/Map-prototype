@@ -598,7 +598,7 @@ a:focus-visible {
 /* (Reduced-motion for transitions — consolidated into main block below) */
 
 /* ================================
-   JOURNEY PROGRESS BAR
+   JOURNEY PROGRESS BAR (12-segment)
    ================================ */
 #journey-progress {
     position: absolute;
@@ -607,68 +607,29 @@ a:focus-visible {
     transform: translateX(-50%);
     z-index: var(--z-control-bar);
     display: flex;
-    align-items: center;
-    gap: 0;
+    gap: 3px;
+    padding: var(--space-1) var(--space-3);
     background: var(--color-bg-primary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-medium);
-    box-shadow: var(--shadow-medium);
-    border: 1px solid var(--color-border);
-}
-
-.journey-progress-step {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
-}
-
-.journey-progress-dot {
-    width: 8px;
-    height: 8px;
     border-radius: var(--radius-full);
-    border: 2px solid var(--color-text-tertiary);
-    background: transparent;
-    flex-shrink: 0;
-    transition: all var(--duration-normal) var(--easing-standard);
+    box-shadow: var(--shadow-medium);
 }
 
-.journey-progress-label {
-    font-family: var(--font-display);
-    font-size: var(--text-sm);
-    font-weight: var(--font-weight-regular);
-    color: var(--color-text-tertiary);
-    transition: all var(--duration-normal) var(--easing-standard);
-}
-
-.journey-progress-connector {
-    width: 24px;
-    height: 1px;
+.progress-segment {
+    width: 20px;
+    height: 4px;
+    border-radius: var(--radius-full);
     background: var(--color-bg-tertiary);
-    flex-shrink: 0;
+    transition: background-color var(--duration-fast) var(--easing-standard),
+                width var(--duration-fast) var(--easing-standard);
 }
 
-/* Active step */
-.journey-progress-step.active .journey-progress-dot {
-    border-color: var(--color-primary);
+.progress-segment.completed {
     background: var(--color-primary);
 }
 
-.journey-progress-step.active .journey-progress-label {
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
-}
-
-/* Completed step */
-.journey-progress-step.completed .journey-progress-dot {
-    border-color: var(--color-success);
-    background: var(--color-success);
-}
-
-.journey-progress-step.completed .journey-progress-label {
-    color: var(--color-text-secondary);
+.progress-segment.active {
+    background: var(--color-primary);
+    width: 28px;
 }
 
 /* ================================
