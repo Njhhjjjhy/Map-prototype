@@ -39,23 +39,8 @@
             <!-- Screen reader announcements for map interactions -->
             <div id="map-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-            <!-- Journey Progress Bar -->
-            <nav id="journey-progress" class="hidden" aria-label="Journey progress">
-                <div class="journey-progress-step completed" data-step="A">
-                    <span class="journey-progress-dot"></span>
-                    <span class="journey-progress-label">Why Kumamoto</span>
-                </div>
-                <div class="journey-progress-connector"></div>
-                <div class="journey-progress-step" data-step="B">
-                    <span class="journey-progress-dot"></span>
-                    <span class="journey-progress-label">Infrastructure</span>
-                </div>
-                <div class="journey-progress-connector"></div>
-                <div class="journey-progress-step" data-step="C">
-                    <span class="journey-progress-dot"></span>
-                    <span class="journey-progress-label">Investment</span>
-                </div>
-            </nav>
+            <!-- Journey Progress Bar (populated dynamically by UI.updateJourneyProgress) -->
+            <nav id="journey-progress" class="hidden" role="progressbar" aria-valuemin="1" aria-label="Journey progress"></nav>
 
             <!-- Time Toggle -->
             <div id="time-toggle" class="hidden" role="radiogroup" aria-label="Map time view">

@@ -401,7 +401,7 @@ const UI = {
 
         this.destroyChart('scenario');
         const ctx = canvas.getContext('2d');
-        const fin = property.financials;
+        const fin = this._getFinancialData(property);
 
         // Colorblind-safe palette
         const colors = {
@@ -1455,11 +1455,12 @@ const UI = {
         if (drillDown.cancelled) return;
 
         // Now show the inspector panel (after the building has been appreciated)
-        this.renderInspectorPanel(9, { title: property.name, property });
+        this.renderInspectorPanel(5, { title: property.name, property });
 
         // Stage 3: Crossfade to exterior photo (800ms)
         const overlay = this._ensureTransitionOverlay();
-        const exteriorSrc = property.exteriorImage || property.image;
+        const imgs = this._getImagesData(property);
+        const exteriorSrc = imgs.exterior;
         this._setTransitionImage(overlay, exteriorSrc, `${property.name} exterior`);
         this._setTransitionLabel(overlay, property.name, property.subtitle);
 
@@ -1471,20 +1472,21 @@ const UI = {
         if (drillDown.cancelled) return;
 
         // Stage 4: Crossfade to interior (800ms) — if images exist
-        if (property.interiorImages && property.interiorImages.length > 0) {
-            this._drillDownImages = [exteriorSrc, ...property.interiorImages];
+        const interiorImages = imgs.interior || [];
+        if (interiorImages.length > 0) {
+            this._drillDownImages = [exteriorSrc, ...interiorImages];
             this._drillDownImageIndex = 1;
 
             this._crossfadeTransitionImage(
                 overlay,
-                property.interiorImages[0],
+                interiorImages[0],
                 `${property.name} interior`
             );
             await this._delay(800);
             if (drillDown.cancelled) return;
 
             // Show gallery nav if multiple interior images
-            if (property.interiorImages.length > 1) {
+            if (interiorImages.length > 1) {
                 this._showGalleryNav(overlay);
             }
         }
@@ -1744,8 +1746,8 @@ const UI = {
      */
     updateCalculator(property, scenario = 'average') {
         this.currentScenario = scenario;
-        const fin = property.financials;
-        const data = fin.scenarios[scenario];
+        const fin = this._getFinancialData(property);
+        const data = (fin.scenarios || {})[scenario] || {};
 
         const formatYen = (num) => '¥' + num.toLocaleString();
         const formatYenSigned = (num) => (num >= 0 ? '+' : '') + '¥' + num.toLocaleString();
@@ -1800,7 +1802,7 @@ const UI = {
                 </div>
                 <div class="calc-row">
                     <span class="calc-label">Rental yield</span>
-                    <span class="calc-value">${formatPercent(data.rentalYield)}</span>
+                    <span class="calc-value">${formatPercent(data.noiTicRatio || data.irr || 0)}</span>
                 </div>
                 <div class="calc-row">
                     <span class="calc-label">Annual rental income</span>
@@ -2373,30 +2375,25 @@ const UI = {
     // ================================
 
     /**
-     * Update the journey progress bar to reflect current journey
-     * @param {string} journey - 'A', 'B', 'C', or 'complete'
+     * Update the journey progress bar for 12-step linear flow.
+     * @param {number} currentStep - Current step (1-12)
+     * @param {number} totalSteps - Total steps (default 12)
      */
-    updateJourneyProgress(journey) {
-        const progressBar = document.getElementById('journey-progress');
+    updateJourneyProgress(currentStep, totalSteps = 12) {
+        let progressBar = document.getElementById('journey-progress');
         if (!progressBar) return;
 
-        // Show the progress bar
+        progressBar.setAttribute('aria-valuenow', currentStep);
+        progressBar.setAttribute('aria-valuemax', totalSteps);
+        progressBar.setAttribute('aria-label', `Step ${currentStep} of ${totalSteps}`);
+
+        let html = '';
+        for (let i = 1; i <= totalSteps; i++) {
+            const state = i < currentStep ? 'completed' : i === currentStep ? 'active' : '';
+            html += `<div class="progress-segment ${state}" data-step="${i}"></div>`;
+        }
+        progressBar.innerHTML = html;
         progressBar.classList.remove('hidden');
-
-        const steps = progressBar.querySelectorAll('.journey-progress-step');
-        const journeyOrder = ['A', 'B', 'C'];
-        const currentIndex = journeyOrder.indexOf(journey);
-
-        steps.forEach((step, i) => {
-            step.classList.remove('active', 'completed');
-            if (journey === 'complete') {
-                step.classList.add('completed');
-            } else if (i < currentIndex) {
-                step.classList.add('completed');
-            } else if (i === currentIndex) {
-                step.classList.add('active');
-            }
-        });
     },
 
     /**
@@ -2411,7 +2408,7 @@ const UI = {
     // DATA LAYERS PANEL
     // ================================
 
-    showDataLayers(journey) {
+    showDataLayers(question) {
         // Lucide-style SVG icons
         const icons = {
             // Home icon (Lucide: home)
@@ -2479,7 +2476,7 @@ const UI = {
 
         // Build map layers based on journey (these are active by default)
         let mapLayersHtml = '';
-        if (journey === 'A') {
+        if (question === 1) {
             mapLayersHtml = `
                 <button type="button" class="layer-item" data-layer="resources"
                         role="switch" aria-checked="false" onclick="UI.toggleLayer('resources')"
@@ -2489,7 +2486,7 @@ const UI = {
                     <span class="layer-label">Resources</span>
                 </button>
             `;
-        } else if (journey === 'B') {
+        } else if (question === 2 || question === 3) {
             mapLayersHtml = `
                 <button type="button" class="layer-item" data-layer="sciencePark"
                         role="switch" aria-checked="false" onclick="UI.toggleLayer('sciencePark')"
@@ -2506,7 +2503,7 @@ const UI = {
                     <span class="layer-label">Corporate sites</span>
                 </button>
             `;
-        } else if (journey === 'C') {
+        } else if (question === 4 || question === 5) {
             mapLayersHtml = `
                 <button type="button" class="layer-item" data-layer="properties"
                         role="switch" aria-checked="false" onclick="UI.toggleLayer('properties')"
@@ -2530,7 +2527,7 @@ const UI = {
                     <span class="layer-label">Science park</span>
                 </button>
             `;
-        } else if (journey === 'dashboard') {
+        } else if (question === 'dashboard') {
             // Dashboard mode - show all core layer controls (inactive by default)
             mapLayersHtml = `
                 <button type="button" class="layer-item" data-layer="properties"
@@ -2730,7 +2727,7 @@ const UI = {
             // Electricity layer: hide Kyushu energy facilities and restore view
             if (layerName === 'electricity') {
                 // Don't hide if Journey A step A2 is active (it also shows Kyushu energy)
-                if (!App || !App.state || App.state.step !== 'A2') {
+                if (!App || !App.state || App.state.step !== 'Q1_water') {
                     MapController.hideKyushuEnergy();
                 }
                 MapController.restorePreDataLayerView();
@@ -3116,69 +3113,6 @@ const UI = {
         }, 800);
     },
 
-    // ================================
-    // JOURNEY TRANSITIONS (Progress Indicator)
-    // ================================
-
-    /**
-     * Show journey transition with in-panel progress indicator
-     * @param {string} journeyId - The journey to transition to ('B' or 'C')
-     */
-    showJourneyTransition(journeyId) {
-        return new Promise((resolve) => {
-            const content = this.getJourneyTransitionContent(journeyId);
-
-            this.showChatbox(`
-                <div class="journey-progress-container">
-                    <div class="journey-progress-indicator">
-                        ${content.icon}
-                    </div>
-                    <h3>${content.title}</h3>
-                    <p class="journey-progress-subtitle">${content.subtitle}</p>
-                </div>
-            `, { skipHistory: true });
-
-            // Hold for scene duration, then resolve
-            setTimeout(() => {
-                resolve();
-            }, TIMING.scene);
-        });
-    },
-
-    /**
-     * Get content for journey transition based on journey ID
-     */
-    getJourneyTransitionContent(journeyId) {
-        const journeys = {
-            'B': {
-                title: 'Infrastructure plan',
-                subtitle: 'See how billions in corporate investment are transforming the region',
-                icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
-                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
-                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
-                </svg>`
-            },
-            'C': {
-                title: 'Investment opportunities',
-                subtitle: 'Explore properties positioned for growth in the semiconductor corridor',
-                icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
-                    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                </svg>`
-            },
-            'complete': {
-                title: 'Journey complete',
-                subtitle: 'You\'ve explored the Kumamoto investment opportunity',
-                icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>`
-            }
-        };
-        return journeys[journeyId] || journeys['complete'];
-    },
-
     /**
      * Show MoreHarvest grand entry — branded full-screen overlay
      * Appears between Journey B → C transition and property markers
@@ -3235,8 +3169,9 @@ const UI = {
         const propertyNames = [];
 
         properties.forEach(property => {
-            totalAcquisition += property.financials.acquisitionCost;
-            totalNetProfit += property.financials.scenarios.average.netProfit;
+            const fin = this._getFinancialData(property);
+            totalAcquisition += fin.totalInvestment || fin.acquisitionCost || 0;
+            totalNetProfit += fin.scenarios?.average?.netProfit || 0;
             propertyNames.push(property.name);
         });
 
@@ -3296,7 +3231,8 @@ const UI = {
         const propertyNames = [];
 
         properties.forEach(property => {
-            totalNetProfit += property.financials.scenarios.average.netProfit;
+            const fin = this._getFinancialData(property);
+            totalNetProfit += fin.scenarios?.average?.netProfit || 0;
             propertyNames.push(property.name);
         });
 
@@ -3325,8 +3261,8 @@ const UI = {
     showPerformanceCalculatorEnhanced(property, scenario = 'average') {
         this.currentProperty = property;
         this.currentScenario = scenario;
-        const fin = property.financials;
-        const data = fin.scenarios[scenario];
+        const fin = this._getFinancialData(property);
+        const data = (fin.scenarios || {})[scenario] || {};
 
         const formatYen = (num) => '¥' + num.toLocaleString();
         const formatYenCompact = (num) => {
@@ -3407,7 +3343,7 @@ const UI = {
                     </div>
                     <div class="calc-row">
                         <span class="calc-label">Rental yield</span>
-                        <span class="calc-value">${formatPercent(data.rentalYield)}</span>
+                        <span class="calc-value">${formatPercent(data.noiTicRatio || data.irr || 0)}</span>
                     </div>
                     <div class="calc-row">
                         <span class="calc-label">Annual rental income</span>
@@ -3741,7 +3677,7 @@ const UI = {
             const { marker, element } = MapController._createMarker(company.coords, html, { entrance: 'none', ariaLabel: company.name });
 
             MapController._addTooltip(marker, element, company.name);
-            element.addEventListener('click', () => UI.renderInspectorPanel(5, { title: company.name }));
+            element.addEventListener('click', () => UI.renderInspectorPanel(2, { title: company.name }));
 
             MapController.markers[company.id] = marker;
             if (!MapController._layerGroups.companies) MapController._layerGroups.companies = [];
@@ -3950,32 +3886,52 @@ const UI = {
     renderStageTab(stage, tabIndex, options = {}) {
         switch (stage) {
             case 1: return this._renderStage1(tabIndex);
+            case 2: return this._renderStage2(tabIndex);
             case 3: return this._renderStage3(tabIndex, options);
             case 4: return this._renderStage4(tabIndex);
-            case 5: return this._renderStage5(tabIndex);
+            case 5: return this._renderStage5(tabIndex, options);
             case 6: return this._renderStage6(tabIndex, options);
             case 7: return this._renderStage7(tabIndex);
             case 8: return this._renderStage8(tabIndex);
-            case 9: return this._renderStage9(tabIndex, options);
             default: return '';
         }
     },
 
     _renderStage1(tabIndex) {
-        const q = AppData.openingQuestion;
         let html = `<div class="icard icard-standard">
-            <div class="icard-title">${q.question}</div>
-            <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-top: var(--space-2);">Japan designated semiconductors as critical infrastructure, committing unprecedented public funds.</p>
+            <div class="icard-title">Resources and location</div>
+            <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-top: var(--space-2);">Kumamoto's natural advantages: water, power, and strategic position in the semiconductor supply chain.</p>
         </div>`;
-        const docs = q.supportingDocs || [];
-        html += docs.map(doc => this.renderEvidenceDocCard({
-            id: doc.id,
-            title: doc.title,
-            type: doc.type,
-            date: doc.source,
-            viewed: false
-        })).join('');
         return html;
+    },
+
+    _renderStage2(tabIndex) {
+        switch (tabIndex) {
+            case 0: {
+                // Support tab: government tiers
+                const tiers = AppData.governmentTiers || [];
+                let html = '';
+                tiers.forEach(t => {
+                    html += `<div class="icard icard-standard">
+                        ${t.tierLabel ? `<div class="icard-source">${t.tierLabel}</div>` : ''}
+                        <div class="icard-title">${t.name}</div>
+                        <div class="icard-stats-grid">
+                            ${(t.stats || []).map(s => `<div class="icard-stat">
+                                <div class="icard-stat-value">${s.value}</div>
+                                <div class="icard-stat-label">${s.label}</div>
+                            </div>`).join('')}
+                        </div>
+                    </div>`;
+                });
+                return html || '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No government data available.</p></div>';
+            }
+            case 1: {
+                // Investment tab: corporate companies
+                const companies = AppData.companies || [];
+                return companies.map(c => this.renderCorporateCard(c)).join('');
+            }
+            default: return '';
+        }
     },
 
     _renderStage3(tabIndex, options = {}) {
@@ -4015,35 +3971,100 @@ const UI = {
         }
     },
 
-    _renderStage5(tabIndex) {
-        const companies = AppData.companies || [];
+    _renderStage5(tabIndex, options) {
+        const property = options.property || this.currentProperty || (AppData.properties && AppData.properties[0]) || {};
         switch (tabIndex) {
-            case 0:
-                // Stage 5: card order matches pin-drop animation sequence
-                return companies.map(c => this.renderCorporateCard(c)).join('');
+            case 0: {
+                // Images tab
+                const imgs = this._getImagesData(property);
+                const allImages = [imgs.exterior, ...(imgs.interior || []), imgs.site].filter(Boolean);
+                return allImages.length
+                    ? this.renderEvidenceGalleryCard(allImages, property.name || 'Property gallery')
+                    : '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No images available.</p></div>';
+            }
             case 1: {
-                const items = companies.map(c => ({
-                    date: (c.stats?.find(s => s.label.includes('operational') || s.label.includes('Opening') || s.label.includes('Completion'))?.value) || '',
-                    title: c.name,
-                    meta: (c.stats?.find(s => s.label.includes('investment') || s.label === 'Investment')?.value) || '',
-                    status: 'Confirmed'
-                }));
-                return this.renderTimelineCard(items, 'Corporate commitment timeline');
+                // Truth Engine tab
+                const te = this._getTruthEngineData(property);
+                return this._renderTruthEngineCard(property, te);
             }
             case 2: {
-                return companies.map(c => {
-                    if (!c.evidence) return '';
-                    return this.renderEvidenceDocCard({
-                        id: c.id + '-evidence',
-                        title: c.evidence.title || c.name + ' announcement',
-                        type: c.evidence.type || 'pdf',
-                        date: '',
-                        viewed: false
-                    });
-                }).join('');
+                // Future Outlook tab
+                const fo = this._getFutureOutlookData(property);
+                return this._renderFutureOutlookCard(property, fo);
+            }
+            case 3: {
+                // Financial tab
+                return this.renderCalculatorCard(property) +
+                    this.renderYieldSummaryCard(property) +
+                    this.renderCommuteCard(property);
             }
             default: return '';
         }
+    },
+
+    _renderTruthEngineCard(property, te) {
+        if (!te || (!te.basicSettings && !te.designStrategy && !te.landStrategy)) {
+            return '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No truth engine data available.</p></div>';
+        }
+        let html = '';
+
+        // Basic settings
+        if (te.basicSettings) {
+            const entries = Object.entries(te.basicSettings);
+            html += `<div class="icard icard-standard">
+                <div class="icard-title">Basic settings</div>
+                <div class="icard-detail-list">
+                    ${entries.map(([key, val]) => `<div class="icard-detail-row">
+                        <span class="icard-detail-label">${key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</span>
+                        <span class="icard-detail-value">${val}</span>
+                    </div>`).join('')}
+                </div>
+            </div>`;
+        }
+
+        // Design strategy
+        if (te.designStrategy) {
+            html += `<div class="icard icard-standard">
+                <div class="icard-title">Design strategy</div>
+                ${te.designStrategy.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-3);">${te.designStrategy.description}</p>` : ''}
+                ${(te.designStrategy.features || []).length ? `<ul style="margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); color: var(--color-text-secondary);">
+                    ${te.designStrategy.features.map(f => `<li style="margin-bottom: var(--space-1);">${f}</li>`).join('')}
+                </ul>` : ''}
+            </div>`;
+        }
+
+        // Land strategy
+        if (te.landStrategy) {
+            html += `<div class="icard icard-standard">
+                <div class="icard-title">Land strategy</div>
+                ${te.landStrategy.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-3);">${te.landStrategy.description}</p>` : ''}
+                ${(te.landStrategy.risks || []).length ? `<div style="margin-top: var(--space-2);">
+                    <div style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-weight: var(--font-weight-medium); margin-bottom: var(--space-2);">Risks</div>
+                    <ul style="margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); color: var(--color-text-secondary);">
+                        ${te.landStrategy.risks.map(r => `<li style="margin-bottom: var(--space-1);">${r}</li>`).join('')}
+                    </ul>
+                </div>` : ''}
+            </div>`;
+        }
+
+        return html;
+    },
+
+    _renderFutureOutlookCard(property, fo) {
+        if (!fo || !fo.factors?.length) {
+            return '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No future outlook data available.</p></div>';
+        }
+        let html = '';
+        if (fo.description) {
+            html += `<div class="icard icard-compact">
+                <p style="font-size: var(--text-sm); color: var(--color-text-secondary);">${fo.description}</p>
+            </div>`;
+        }
+        html += fo.factors.map(f => `<div class="icard icard-standard">
+            <div class="icard-title">${f.title}</div>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-2);">${f.impact}</p>
+        </div>`).join('');
+        return html;
     },
 
     _renderStage6(tabIndex, options) {
@@ -4056,15 +4077,16 @@ const UI = {
                 const props = AppData.properties || [];
                 if (props.length) {
                     const avgYield = props.reduce((s, p) => {
-                        const avg = p.financials?.scenarios?.average;
-                        return s + (avg?.rentalYield || 0);
+                        const fin = this._getFinancialData(p);
+                        const avg = fin.scenarios?.average;
+                        return s + (avg?.noiTicRatio || avg?.irr || 0);
                     }, 0) / props.length;
                     html += this.renderYieldSummaryCard({
-                        financials: { scenarios: {
-                            bear: { rentalYield: avgYield * 0.8 },
-                            average: { rentalYield: avgYield },
-                            bull: { rentalYield: avgYield * 1.2 }
-                        }}
+                        cards: [{ type: 'financial', data: { scenarios: {
+                            bear: { noiTicRatio: avgYield * 0.8, irr: avgYield * 0.8 },
+                            average: { noiTicRatio: avgYield, irr: avgYield },
+                            bull: { noiTicRatio: avgYield * 1.2, irr: avgYield * 1.2 }
+                        }}}]
                     });
                 }
                 return html;
@@ -4151,36 +4173,6 @@ const UI = {
         }
     },
 
-    _renderStage9(tabIndex, options) {
-        const property = options.property || this.currentProperty || (AppData.properties && AppData.properties[0]) || {};
-        switch (tabIndex) {
-            case 0:
-                return this.renderDecisionBadgeCard(property) +
-                    this.renderCalculatorCard(property) +
-                    this.renderYieldSummaryCard(property) +
-                    this.renderCommuteCard(property);
-            case 1:
-                return this.renderStickySummaryRow(property) +
-                    this.renderFinancialTableCard(this._buildAcquisitionTable(property), 'Acquisition costs') +
-                    this.renderFinancialTableCard(this._buildRentalTable(property), 'Rental income projection');
-            case 2: {
-                let html = '';
-                const images = [property.exteriorImage, ...(property.interiorImages || [])].filter(Boolean);
-                if (images.length) {
-                    html += this.renderEvidenceGalleryCard(images, property.name || 'Property gallery');
-                }
-                if (property.rentalReport) {
-                    html += this.renderEvidenceDocCard({
-                        ...property.rentalReport,
-                        id: property.id + '-rental-report'
-                    });
-                }
-                return html;
-            }
-            default: return '';
-        }
-    },
-
     // ---- Evidence / timeline helpers ----
 
     _renderEvidenceForGroup(groupId) {
@@ -4225,49 +4217,108 @@ const UI = {
     },
 
     _buildAcquisitionTable(property) {
-        const cost = property.financials?.acquisitionCost || 0;
-        const breakdown = property.costBreakdown || {};
+        const fin = this._getFinancialData(property);
+        const cost = fin.totalInvestment || fin.acquisitionCost || 0;
+        const rows = [];
+        if (fin.renovationCost) {
+            rows.push({ label: 'Acquisition cost', values: [this.formatYen(fin.acquisitionCost || 0)] });
+            rows.push({ label: 'Renovation cost', values: [this.formatYen(fin.renovationCost)] });
+        } else if (fin.developmentBudget) {
+            rows.push({ label: 'Land acquisition', values: [this.formatYen(fin.landAcquisitionCost || 0)] });
+            rows.push({ label: 'Development budget', values: [this.formatYen(fin.developmentBudget)] });
+        } else {
+            rows.push({ label: 'Hard costs', values: [this.formatYen(Math.round(cost * 0.87))] });
+            rows.push({ label: 'Acquisition fees', values: [this.formatYen(Math.round(cost * 0.05))], isDisclosure: true, subRows: [
+                { label: 'Agent commission', values: [this.formatYen(Math.round(cost * 0.03))] },
+                { label: 'Legal and admin', values: [this.formatYen(Math.round(cost * 0.02))] }
+            ]});
+            rows.push({ label: 'Fit-out', values: [this.formatYen(Math.round(cost * 0.04))] });
+            rows.push({ label: 'Stamp duty', values: [this.formatYen(Math.round(cost * 0.03))] });
+        }
+        rows.push({ label: 'Total investment', values: [this.formatYen(cost)], isTotal: true });
+        return { headers: ['Item', 'Amount'], rows };
+    },
+
+    _buildRentalTable(property) {
+        const fin = this._getFinancialData(property);
+
+        // Renovation properties: single-column rental path
+        if (fin.paths) {
+            const rental = fin.paths.rental || {};
+            return {
+                headers: ['', 'Value'],
+                rows: [
+                    { label: 'Monthly rent', values: [this.formatYen(rental.monthlyRent || 0)] },
+                    { label: 'Annual rent', values: [this.formatYen(rental.annualRent || 0)] },
+                    { label: 'NOI', values: [this.formatYen(rental.noi || 0)] },
+                    { label: 'Yield', values: [((rental.yield || 0) * 100).toFixed(1) + '%'], isTotal: true }
+                ]
+            };
+        }
+
+        // Scenario-based properties: bear / average / bull columns
+        const scenarios = fin.scenarios || {};
+        const bear = scenarios.bear || {};
+        const avg = scenarios.average || {};
+        const bull = scenarios.bull || {};
         return {
-            headers: ['Item', 'Amount'],
+            headers: ['', 'Bear', 'Average', 'Bull'],
             rows: [
-                { label: 'Hard costs', values: [this.formatYen(breakdown.hardCosts || Math.round(cost * 0.87))] },
-                { label: 'Acquisition fees', values: [this.formatYen(breakdown.acquisitionFees || Math.round(cost * 0.05))], isDisclosure: true, subRows: [
-                    { label: 'Agent commission', values: [this.formatYen(Math.round(cost * 0.03))] },
-                    { label: 'Legal and admin', values: [this.formatYen(breakdown.legalFees || Math.round(cost * 0.02))] }
-                ]},
-                { label: 'Fit-out', values: [this.formatYen(breakdown.fitOut || Math.round(cost * 0.04))] },
-                { label: 'Stamp duty', values: [this.formatYen(breakdown.stampDuty || Math.round(cost * 0.03))] },
-                { label: 'Total investment', values: [this.formatYen(cost)], isTotal: true }
+                { label: 'Annual rent', values: [this.formatYen(bear.annualRent || 0), this.formatYen(avg.annualRent || 0), this.formatYen(bull.annualRent || 0)] },
+                { label: 'NOI', values: [this.formatYen(bear.noi || 0), this.formatYen(avg.noi || 0), this.formatYen(bull.noi || 0)] },
+                { label: 'Exit price', values: [this.formatYen(bear.exitPrice || bear.developedValue || 0), this.formatYen(avg.exitPrice || avg.developedValue || 0), this.formatYen(bull.exitPrice || bull.developedValue || 0)] },
+                { label: 'IRR', values: [((bear.irr || 0) * 100).toFixed(1) + '%', ((avg.irr || 0) * 100).toFixed(1) + '%', ((bull.irr || 0) * 100).toFixed(1) + '%'], isTotal: true }
             ]
         };
     },
 
-    _buildRentalTable(property) {
-        const rp = property.rentalProjections || {};
-        const bear = rp.bear || {};
-        const avg = rp.average || {};
-        const bull = rp.bull || {};
+    // ---- Card data accessors ----
+
+    _getFinancialData(property) {
+        if (property.cards) {
+            const card = property.cards.find(c => c.type === 'financial');
+            return card?.data || {};
+        }
+        // Fallback for legacy flat structure
+        return property.financials || {};
+    },
+
+    _getImagesData(property) {
+        if (property.cards) {
+            const card = property.cards.find(c => c.type === 'images');
+            return card?.data || {};
+        }
+        // Fallback for legacy flat structure
         return {
-            headers: ['', 'Bear', 'Average', 'Bull'],
-            rows: [
-                { label: 'Monthly rent', values: [this.formatYen(bear.monthlyRent || 0), this.formatYen(avg.monthlyRent || 0), this.formatYen(bull.monthlyRent || 0)] },
-                { label: 'Management fee', values: [this.formatYen(bear.managementFee || 0), this.formatYen(avg.managementFee || 0), this.formatYen(bull.managementFee || 0)] },
-                { label: 'Vacancy rate', values: [(bear.vacancyRate * 100 || 0).toFixed(0) + '%', (avg.vacancyRate * 100 || 0).toFixed(0) + '%', (bull.vacancyRate * 100 || 0).toFixed(0) + '%'] },
-                { label: 'Net annual income', values: [this.formatYen(bear.annualNetIncome || 0), this.formatYen(avg.annualNetIncome || 0), this.formatYen(bull.annualNetIncome || 0)], isTotal: true }
-            ]
+            exterior: property.exteriorImage || property.image || '',
+            interior: property.interiorImages || [],
+            site: ''
         };
+    },
+
+    _getTruthEngineData(property) {
+        if (property.cards) {
+            const card = property.cards.find(c => c.type === 'truth-engine');
+            return card?.data || {};
+        }
+        return {};
+    },
+
+    _getFutureOutlookData(property) {
+        if (property.cards) {
+            const card = property.cards.find(c => c.type === 'future-outlook');
+            return card?.data || {};
+        }
+        return {};
     },
 
     // ---- Card renderers ----
 
     renderDecisionBadgeCard(property) {
-        const rec = property.recommendation || 'hold';
-        const metrics = property.decisionMetrics || [];
-        return `<div class="icard icard-compact icard-decision ${rec}">
-            <div class="icard-decision-label">${rec}</div>
-            <div class="icard-decision-metrics">
-                ${metrics.map(m => `<div class="icard-decision-metric"><strong>${m.label}:</strong> ${m.value}</div>`).join('')}
-            </div>
+        const fin = this._getFinancialData(property);
+        const strategy = fin.strategy || 'hold';
+        return `<div class="icard icard-compact icard-decision">
+            <div class="icard-decision-label">${strategy}</div>
         </div>`;
     },
 
@@ -4303,71 +4354,93 @@ const UI = {
     },
 
     renderCalculatorCard(property) {
-        const fin = property.financials || {};
+        const fin = this._getFinancialData(property);
         const scenarios = fin.scenarios || {};
         const scenario = this.currentScenario || 'average';
         const sc = scenarios[scenario] || {};
-        const view = this.inspectorView || 'fund';
-        const broker = property.brokerMetrics || {};
-        const thumb = property.thumbnail || '';
+        const imgs = this._getImagesData(property);
+        const thumb = imgs.exterior || '';
 
-        let statsHtml = '';
-        if (view === 'fund') {
-            const rows = [
-                { label: 'Total cost', value: this.formatYen(fin.acquisitionCost || 0) },
-                { label: 'Selling price', value: this.formatYen(sc.sellingPrice || 0) },
-                { label: 'Tax', value: this.formatYen(sc.taxes || 0) },
-                { label: 'Annual rent', value: this.formatYen(sc.annualRent || 0) },
-                { label: 'Net profit', value: this.formatYen(sc.netProfit || 0), highlight: true }
+        // Determine total investment cost
+        const totalCost = fin.totalInvestment || fin.acquisitionCost || 0;
+
+        let rows = [];
+        if (fin.paths) {
+            // Renovation property: show both paths
+            const rental = fin.paths.rental || {};
+            const sale = fin.paths.sale || {};
+            rows = [
+                { label: 'Total investment', value: this.formatYen(totalCost) },
+                { label: 'Monthly rent', value: this.formatYen(rental.monthlyRent || 0) + '/mo' },
+                { label: 'Annual rent', value: this.formatYen(rental.annualRent || 0) },
+                { label: 'Rental yield', value: ((rental.yield || 0) * 100).toFixed(1) + '%' },
+                { label: 'Sale price', value: this.formatYen(sale.salePrice || 0) },
+                { label: 'Gross profit', value: this.formatYen(sale.grossProfit || 0), highlight: true }
             ];
-            statsHtml = rows.map(r => `<div class="icard-calc-row">
-                <span class="icard-calc-label">${r.label}</span>
-                <span class="icard-calc-value${r.highlight ? ' highlight' : ''}">${r.value}</span>
-            </div>`).join('');
         } else {
-            const rows = [
-                { label: 'Rental high', value: this.formatYen(broker.rentalHigh || 0) + '/mo' },
-                { label: 'Rental average', value: this.formatYen(broker.rentalAvg || 0) + '/mo' },
-                { label: 'Rental low', value: this.formatYen(broker.rentalLow || 0) + '/mo' },
-                { label: 'Projected growth', value: ((broker.projectedGrowth || 0) * 100).toFixed(1) + '%' },
-                { label: 'Area average', value: this.formatYen(broker.areaAverage || 0) + '/mo' }
+            rows = [
+                { label: 'Total cost', value: this.formatYen(totalCost) },
+                { label: 'Annual rent', value: this.formatYen(sc.annualRent || 0) },
+                { label: 'NOI', value: this.formatYen(sc.noi || 0) },
+                { label: 'Exit price', value: this.formatYen(sc.exitPrice || sc.developedValue || 0) },
+                { label: 'IRR', value: ((sc.irr || 0) * 100).toFixed(1) + '%', highlight: true }
             ];
-            statsHtml = rows.map(r => `<div class="icard-calc-row">
-                <span class="icard-calc-label">${r.label}</span>
-                <span class="icard-calc-value">${r.value}</span>
-            </div>`).join('');
         }
+
+        const statsHtml = rows.map(r => `<div class="icard-calc-row">
+            <span class="icard-calc-label">${r.label}</span>
+            <span class="icard-calc-value${r.highlight ? ' highlight' : ''}">${r.value}</span>
+        </div>`).join('');
+
+        // Only show scenario toggle for properties with scenarios
+        const hasScenarios = scenarios.bear || scenarios.bull;
 
         return `<div class="icard icard-hero icard-calculator">
             <div class="icard-calculator-header">
                 <div class="icard-title">Return calculator</div>
                 ${thumb ? `<img class="icard-calculator-thumbnail" src="${thumb}" alt="${property.name || ''}" />` : ''}
             </div>
-            <div class="icard-calculator-controls">
+            ${hasScenarios ? `<div class="icard-calculator-controls">
                 <div class="icard-scenario-toggle">
                     <button class="icard-scenario-btn${scenario === 'bear' ? ' active' : ''}" data-scenario="bear">Bear</button>
                     <button class="icard-scenario-btn${scenario === 'average' ? ' active' : ''}" data-scenario="average">Avg</button>
                     <button class="icard-scenario-btn${scenario === 'bull' ? ' active' : ''}" data-scenario="bull">Bull</button>
                 </div>
-                <div class="icard-view-toggle">
-                    <button class="icard-view-btn${view === 'fund' ? ' active' : ''}" data-view="fund">Fund manager</button>
-                    <button class="icard-view-btn${view === 'broker' ? ' active' : ''}" data-view="broker">Broker</button>
-                </div>
-            </div>
+            </div>` : ''}
             <div class="icard-calc-stats">${statsHtml}</div>
         </div>`;
     },
 
     renderYieldSummaryCard(property) {
-        const fin = property.financials || {};
+        const fin = this._getFinancialData(property);
+
+        // Renovation properties use paths instead of scenarios
+        if (fin.paths) {
+            const rental = fin.paths.rental || {};
+            const sale = fin.paths.sale || {};
+            return `<div class="icard icard-standard">
+                <div class="icard-title">Yield summary</div>
+                <div class="icard-yield-row">
+                    <div class="icard-yield-item">
+                        <div class="icard-yield-value">${((rental.yield || 0) * 100).toFixed(1)}%</div>
+                        <div class="icard-yield-label">Rental yield</div>
+                    </div>
+                    <div class="icard-yield-item">
+                        <div class="icard-yield-value">${((sale.grossMargin || 0) * 100).toFixed(1)}%</div>
+                        <div class="icard-yield-label">Sale margin</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
         const scenarios = fin.scenarios || {};
         const bear = scenarios.bear || {};
         const avg = scenarios.average || {};
         const bull = scenarios.bull || {};
 
-        const grossYield = (v) => ((v.rentalYield || 0) * 100).toFixed(1);
-        const netYield = (v) => ((v.rentalYield || 0) * 100 * 0.85).toFixed(1);
-        const cashOnCash = (v) => ((v.netProfit || 0) / (fin.acquisitionCost || 1) * 100).toFixed(1);
+        const grossYield = (v) => ((v.noiTicRatio || v.irr || 0) * 100).toFixed(1);
+        const netYield = (v) => ((v.noiTicRatio || v.irr || 0) * 100 * 0.85).toFixed(1);
+        const irr = (v) => ((v.irr || 0) * 100).toFixed(1);
 
         return `<div class="icard icard-standard">
             <div class="icard-title">Yield summary</div>
@@ -4383,9 +4456,9 @@ const UI = {
                     <div class="icard-yield-range">${netYield(bear)}% - ${netYield(bull)}%</div>
                 </div>
                 <div class="icard-yield-item">
-                    <div class="icard-yield-value">${cashOnCash(avg)}%</div>
-                    <div class="icard-yield-label">Cash-on-cash</div>
-                    <div class="icard-yield-range">${cashOnCash(bear)}% - ${cashOnCash(bull)}%</div>
+                    <div class="icard-yield-value">${irr(avg)}%</div>
+                    <div class="icard-yield-label">IRR</div>
+                    <div class="icard-yield-range">${irr(bear)}% - ${irr(bull)}%</div>
                 </div>
             </div>
         </div>`;
@@ -4459,7 +4532,6 @@ const UI = {
     },
 
     renderCommuteCard(property) {
-        const shifts = property.commuteShifts || {};
         return `<div class="icard icard-standard">
             <div class="icard-title">Commute to JASM</div>
             <div class="icard-stats-grid">
@@ -4472,14 +4544,6 @@ const UI = {
                     <div class="icard-stat-label">Drive time</div>
                 </div>
             </div>
-            <table class="icard-commute-table">
-                <thead><tr><th>Shift</th><th>Drive time</th></tr></thead>
-                <tbody>
-                    <tr><td>2:00 am</td><td>${shifts.shift2am || 'n/a'}</td></tr>
-                    <tr><td>8:00 am</td><td>${shifts.shift8am || 'n/a'}</td></tr>
-                    <tr><td>Midnight</td><td>${shifts.shiftMidnight || 'n/a'}</td></tr>
-                </tbody>
-            </table>
         </div>`;
     },
 
@@ -4571,8 +4635,11 @@ const UI = {
     },
 
     renderStickySummaryRow(property) {
-        const cost = property.financials?.acquisitionCost || 0;
-        const avg = property.financials?.scenarios?.average || {};
+        const fin = this._getFinancialData(property);
+        const cost = fin.totalInvestment || fin.acquisitionCost || 0;
+        const avg = fin.scenarios?.average || {};
+        const rental = fin.paths?.rental || {};
+        const annualIncome = avg.annualRent || rental.annualRent || 0;
         return `<div class="icard-sticky-summary">
             <div>
                 <div class="icard-sticky-label">Total investment</div>
@@ -4580,13 +4647,14 @@ const UI = {
             </div>
             <div style="text-align: right;">
                 <div class="icard-sticky-label">Projected annual income</div>
-                <div class="icard-sticky-value">${this.formatYen(avg.annualRent || 0)}</div>
+                <div class="icard-sticky-value">${this.formatYen(annualIncome)}</div>
             </div>
         </div>`;
     },
 
     renderPropertySummaryCard(property) {
-        const thumb = property.thumbnail || property.image || '';
+        const imgs = this._getImagesData(property);
+        const thumb = imgs.exterior || '';
         return `<div class="icard icard-standard" data-property-id="${property.id || ''}" style="cursor: pointer;">
             <div style="display: flex; gap: var(--space-3);">
                 ${thumb ? `<img style="width: 64px; height: 48px; border-radius: var(--radius-small); object-fit: cover; flex-shrink: 0;" src="${thumb}" alt="${property.name || ''}" loading="lazy" />` : ''}
@@ -4663,7 +4731,7 @@ const UI = {
                 const property = (AppData.properties || []).find(p => p.id === propId);
                 if (property) {
                     this.currentProperty = property;
-                    this.renderInspectorPanel(9, { title: property.name, property });
+                    this.renderInspectorPanel(5, { title: property.name, property });
                 }
             });
         });
@@ -4703,34 +4771,39 @@ const UI = {
         });
 
         // Build new stats HTML
-        const fin = property.financials || {};
-        const scenarios = fin.scenarios || {};
-        const sc = scenarios[scenario] || {};
-        const broker = property.brokerMetrics || {};
+        const fin = this._getFinancialData(property);
+        const totalCost = fin.totalInvestment || fin.acquisitionCost || 0;
         let statsHtml = '';
-        if (view === 'fund') {
+
+        if (fin.paths) {
+            // Renovation property: show rental + sale paths
+            const rental = fin.paths.rental || {};
+            const sale = fin.paths.sale || {};
             const rows = [
-                { label: 'Total cost', value: this.formatYen(fin.acquisitionCost || 0) },
-                { label: 'Selling price', value: this.formatYen(sc.sellingPrice || 0) },
-                { label: 'Tax', value: this.formatYen(sc.taxes || 0) },
-                { label: 'Annual rent', value: this.formatYen(sc.annualRent || 0) },
-                { label: 'Net profit', value: this.formatYen(sc.netProfit || 0), highlight: true }
+                { label: 'Total investment', value: this.formatYen(totalCost) },
+                { label: 'Monthly rent', value: this.formatYen(rental.monthlyRent || 0) + '/mo' },
+                { label: 'Annual rent', value: this.formatYen(rental.annualRent || 0) },
+                { label: 'Rental yield', value: ((rental.yield || 0) * 100).toFixed(1) + '%' },
+                { label: 'Sale price', value: this.formatYen(sale.salePrice || 0) },
+                { label: 'Gross profit', value: this.formatYen(sale.grossProfit || 0), highlight: true }
             ];
             statsHtml = rows.map(r => `<div class="icard-calc-row">
                 <span class="icard-calc-label">${r.label}</span>
                 <span class="icard-calc-value${r.highlight ? ' highlight' : ''}">${r.value}</span>
             </div>`).join('');
         } else {
+            const scenarios = fin.scenarios || {};
+            const sc = scenarios[scenario] || {};
             const rows = [
-                { label: 'Rental high', value: this.formatYen(broker.rentalHigh || 0) + '/mo' },
-                { label: 'Rental average', value: this.formatYen(broker.rentalAvg || 0) + '/mo' },
-                { label: 'Rental low', value: this.formatYen(broker.rentalLow || 0) + '/mo' },
-                { label: 'Projected growth', value: ((broker.projectedGrowth || 0) * 100).toFixed(1) + '%' },
-                { label: 'Area average', value: this.formatYen(broker.areaAverage || 0) + '/mo' }
+                { label: 'Total cost', value: this.formatYen(totalCost) },
+                { label: 'Annual rent', value: this.formatYen(sc.annualRent || 0) },
+                { label: 'NOI', value: this.formatYen(sc.noi || 0) },
+                { label: 'Exit price', value: this.formatYen(sc.exitPrice || sc.developedValue || 0) },
+                { label: 'IRR', value: ((sc.irr || 0) * 100).toFixed(1) + '%', highlight: true }
             ];
             statsHtml = rows.map(r => `<div class="icard-calc-row">
                 <span class="icard-calc-label">${r.label}</span>
-                <span class="icard-calc-value">${r.value}</span>
+                <span class="icard-calc-value${r.highlight ? ' highlight' : ''}">${r.value}</span>
             </div>`).join('');
         }
 
@@ -4854,7 +4927,7 @@ const UI = {
             const property = AppData.properties.find(p => p.id === propertyId);
             if (property) this.currentProperty = property;
         }
-        if (this.inspectorStage === 9) {
+        if (this.inspectorStage === 5) {
             this._refreshCalculator({ property: this.currentProperty });
         }
     }
