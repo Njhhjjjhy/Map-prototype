@@ -2449,7 +2449,7 @@ const UI = {
     // DATA LAYERS PANEL
     // ================================
 
-    showDataLayers(question) {
+    showDataLayers(stepIndex) {
         // Lucide-style SVG icons
         const icons = {
             // Home icon (Lucide: home)
@@ -2516,7 +2516,7 @@ const UI = {
         const dataLayerItems = document.getElementById('data-layer-items');
 
         // Store current step for reference
-        this._currentStepForLayers = question;
+        this._currentStepForLayers = stepIndex;
 
         // Close panel when step changes (button stays visible)
         if (this.layersPanelOpen) {
@@ -2536,33 +2536,33 @@ const UI = {
 
         // Build map layers based on step index (1-12) or 'dashboard'
         let mapLayersHtml = '';
-        if (question === 'dashboard') {
+        if (stepIndex === 'dashboard') {
             mapLayersHtml =
                 layerBtn('properties', icons.properties, 'Properties') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park');
-        } else if (question >= 1 && question <= 2) {
+        } else if (stepIndex >= 1 && stepIndex <= 2) {
             // Steps 1-2: Resources and energy
             mapLayersHtml =
                 layerBtn('resources', icons.riskyArea, 'Resources');
-        } else if (question >= 3 && question <= 4) {
+        } else if (stepIndex >= 3 && stepIndex <= 4) {
             // Steps 3-4: Government and corporate
             mapLayersHtml =
                 layerBtn('sciencePark', icons.sciencePark, 'Science park') +
                 layerBtn('companies', icons.companies, 'Corporate sites');
-        } else if (question >= 5 && question <= 8) {
+        } else if (stepIndex >= 5 && stepIndex <= 8) {
             // Steps 5-8: Development zones, transport, education, future
             mapLayersHtml =
                 layerBtn('sciencePark', icons.sciencePark, 'Science park') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
-        } else if (question >= 9 && question <= 10) {
+        } else if (stepIndex >= 9 && stepIndex <= 10) {
             // Steps 9-10: Investment zones, properties
             mapLayersHtml =
                 layerBtn('properties', icons.properties, 'Properties') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park');
-        } else if (question >= 11 && question <= 12) {
+        } else if (stepIndex >= 11 && stepIndex <= 12) {
             // Steps 11-12: Area changes, final
             mapLayersHtml =
                 layerBtn('properties', icons.properties, 'Properties') +
