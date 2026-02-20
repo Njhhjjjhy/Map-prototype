@@ -59,7 +59,19 @@ const CAMERA_STEPS = {
     B7: { center: [130.80, 32.86], zoom: 12, pitch: 55, bearing: 15, duration: 2500 },
     B_to_C: { center: [130.82, 32.82], zoom: 12.5, pitch: 50, bearing: -15, duration: 2000 },
     corridor: { center: [130.82, 32.82], zoom: 12.5, pitch: 50, bearing: -15, duration: 2000 },
-    complete: { center: [130.78, 32.84], zoom: 11, pitch: 40, bearing: 0, duration: 2000 }
+    complete: { center: [130.78, 32.84], zoom: 11, pitch: 40, bearing: 0, duration: 2000 },
+
+    // 12-step additions (some alias existing positions)
+    resources:          { center: [130.78, 32.83], zoom: 11.5, pitch: 45, bearing: -5, duration: 2000 },
+    strategic:          { center: [129.5, 31.5], zoom: 5, pitch: 20, bearing: 0, duration: 3000 },
+    government:         { center: [130.78, 32.84], zoom: 11.5, pitch: 48, bearing: -10, duration: 2000 },
+    corporate:          { center: [130.80, 32.86], zoom: 12, pitch: 52, bearing: 30, duration: 2500 },
+    scienceParkZones:   { center: [130.78, 32.87], zoom: 11, pitch: 45, bearing: 5, duration: 2000 },
+    transport:          { center: [130.80, 32.86], zoom: 12, pitch: 55, bearing: 15, duration: 2500 },
+    education:          { center: [130.7, 32.5], zoom: 7, pitch: 25, bearing: 0, duration: 2500 },
+    futureOutlook:      { center: [130.83, 32.87], zoom: 11.5, pitch: 50, bearing: -20, duration: 2000 },
+    zones:              { center: [130.82, 32.82], zoom: 12.5, pitch: 50, bearing: -15, duration: 2000 },
+    areaChanges:        { center: [130.83, 32.87], zoom: 11.5, pitch: 50, bearing: -20, duration: 2000 }
 };
 
 const MapController = {
@@ -942,6 +954,42 @@ const MapController = {
             this._layerGroups.talentPipeline.push(id);
         });
 
+        // Draw connection lines from each university to JASM
+        const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
+        const jasmLngLat = this._toMapbox(jasmCoords);
+
+        const lineFeatures = pipeline.institutions.map(inst => ({
+            type: 'Feature',
+            geometry: {
+                type: 'LineString',
+                coordinates: [this._toMapbox(inst.coords), jasmLngLat]
+            },
+            properties: { institutionId: inst.id, name: inst.name }
+        }));
+
+        const sourceId = 'talent-pipeline-lines';
+        this._safeAddSource(sourceId, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: lineFeatures }
+        });
+
+        this.map.addLayer({
+            id: `${sourceId}-line`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': 'rgba(0, 122, 255, 0.35)',
+                'line-width': 1.5,
+                'line-dasharray': [4, 4]
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        this._layerGroups.talentPipeline.push(`${sourceId}-line`, sourceId);
+
         // Fly to Kyushu overview to show all institutions
         this.flyToStep({
             center: [130.7, 32.5],
@@ -964,6 +1012,11 @@ const MapController = {
                 delete this.markers[id];
             }
         });
+
+        // Remove connection lines layer and source
+        this._safeRemoveLayer('talent-pipeline-lines-line');
+        this._safeRemoveSource('talent-pipeline-lines');
+
         this._layerGroups.talentPipeline = [];
     },
 
