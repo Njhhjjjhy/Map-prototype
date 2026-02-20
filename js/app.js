@@ -25,15 +25,12 @@ const TIMING = {
 };
 
 const App = {
-    // Current journey state
     state: {
-        journey: null, // 'A', 'B', 'C'
-        step: null,    // Current step within journey
-        resourcesExplored: [], // Track which resources have been viewed
-        a3Phase: null, // 'infrastructure', 'location', or 'talent'
-        companiesExplored: [], // Track which companies have been viewed
+        currentStep: 0,       // 1-12, 0 = not started
+        subItemsExplored: [], // Track which sub-items within current step have been viewed
+        activeProperty: null, // Currently selected property ID (step 10)
+        futureView: false,    // Whether future toggle is active (steps 8, 11)
         evidenceGroupsViewed: [], // Track which evidence groups have been viewed
-        institutionsVisited: [], // Track which universities have been viewed
     },
 
     /**
@@ -46,33 +43,204 @@ const App = {
 
     /**
      * Start the journey (called when Start button is clicked)
-     * Triggers cinematic 3D fly-in from Kyushu aerial to Kumamoto,
-     * then settles into 3D view and starts Journey A.
      */
     async start() {
         UI.showApp();
-
-        // Wait for start screen fade to complete
         await new Promise(r => setTimeout(r, 600));
-
-        // Wait for map to be ready before resizing
         await MapController.waitReady();
-
-        // Force map to recalculate size
         if (MapController.map) {
             MapController.map.resize();
         }
-
-        // Cinematic arrival — camera descends from sky to Kumamoto
         await MapController.cinematicEntry();
-
-        // Fly to Journey A starting position
-        await MapController.flyToStep(CAMERA_STEPS.A0);
-
-        // Beat: "The First Word" — let the landscape settle before the narrator speaks
         await new Promise(r => setTimeout(r, TIMING.breath));
+        this.goToStep(1);
+    },
 
-        this.startJourneyA();
+    /**
+     * Core step navigation. Handles exit from current step,
+     * camera flight, layer management, and content rendering.
+     */
+    async goToStep(stepIndex) {
+        const step = STEPS[stepIndex - 1];
+        if (!step) return;
+
+        const prevStep = this.state.currentStep;
+
+        // --- Exit choreography for previous step ---
+        if (prevStep > 0) {
+            await this._exitStep(prevStep);
+        }
+
+        // --- Update state ---
+        this.state.currentStep = stepIndex;
+        this.state.subItemsExplored = [];
+        this.state.activeProperty = null;
+
+        // --- Progress bar ---
+        UI.updateJourneyProgress(stepIndex, STEPS.length);
+
+        // --- Special pre-step cinematics ---
+        if (stepIndex === 10 && prevStep > 0 && prevStep !== 10) {
+            await UI.showMoreHarvestEntry();
+            await MapController.elevateToCorridorView();
+            await new Promise(r => setTimeout(r, TIMING.breath));
+        }
+
+        // --- Camera flight ---
+        const camKey = step.cameraKey;
+        const camPos = CAMERA_STEPS[camKey] || CAMERA_STEPS.A0;
+        await MapController.flyToStep(camPos);
+
+        // --- Breathing room ---
+        await new Promise(r => setTimeout(r, TIMING.breathShort));
+
+        // --- Layer management ---
+        this._showStepLayers(step);
+
+        // --- Time toggle visibility ---
+        if (step.showTimeToggle) {
+            UI.showTimeToggle();
+        } else {
+            UI.hideTimeToggle();
+        }
+
+        // --- Render chatbox and panel ---
+        this._renderStepChatbox(step);
+        this._renderStepPanel(step);
+
+        // --- Data layers ---
+        UI.showDataLayers(stepIndex);
+
+        // --- Heartbeat ---
+        MapController.startHeartbeat();
+
+        // --- Accessibility ---
+        UI.announceToScreenReader(`Step ${stepIndex}: ${step.title}`);
+    },
+
+    /**
+     * Advance to the next step. Called by "Continue" buttons.
+     */
+    nextStep() {
+        const next = this.state.currentStep + 1;
+        if (next <= STEPS.length) {
+            this.goToStep(next);
+        }
+    },
+
+    /**
+     * Go back to the previous step.
+     */
+    prevStep() {
+        const prev = this.state.currentStep - 1;
+        if (prev >= 1) {
+            this.goToStep(prev);
+        }
+    },
+
+    /**
+     * Exit choreography for a step.
+     * Fades markers, hides UI, cleans up layers.
+     */
+    async _exitStep(stepIndex) {
+        MapController.stopHeartbeat();
+        UI.saveChatboxToHistory();
+
+        const step = STEPS[stepIndex - 1];
+        if (!step) return;
+
+        // Fade out all visible markers from this step's layer groups
+        const markersToFade = [];
+        (step.layers || []).forEach(group => {
+            const ids = MapController._layerGroups[group] || [];
+            ids.forEach(id => {
+                if (MapController.markers[id]) markersToFade.push(MapController.markers[id]);
+            });
+        });
+
+        // Also collect airline markers, infrastructure markers, talent markers
+        if (MapController.airlineOriginMarker) markersToFade.push(MapController.airlineOriginMarker);
+        markersToFade.push(...MapController.airlineDestinationMarkers);
+        markersToFade.push(...MapController.infrastructureMarkers);
+
+        if (markersToFade.length > 0) {
+            await MapController.fadeOutMarkers(markersToFade);
+        }
+
+        // Hide UI
+        UI.hideChatbox();
+        UI.hidePanel();
+
+        // Clean up step-specific map elements
+        this._hideStepLayers(step);
+
+        // Reset future view if active
+        if (this.state.futureView) {
+            UI.setTimeView('present');
+            this.state.futureView = false;
+        }
+
+        await new Promise(r => setTimeout(r, TIMING.breathShort));
+    },
+
+    /**
+     * Show the map layers required for a step.
+     */
+    _showStepLayers(step) {
+        const layers = step.layers || [];
+
+        if (layers.includes('resources')) {
+            MapController.showResourceMarker('water');
+        }
+        if (layers.includes('kyushuEnergy')) {
+            MapController.showKyushuEnergy();
+        }
+        if (layers.includes('airlineRoutes')) {
+            MapController.showAirlineRoutes();
+        }
+        if (layers.includes('governmentChain')) {
+            MapController.showGovernmentChain();
+        }
+        if (layers.includes('sciencePark')) {
+            MapController.showSciencePark();
+        }
+        if (layers.includes('investmentZones')) {
+            MapController.showInvestmentZones();
+        }
+        if (layers.includes('companies')) {
+            MapController.showCompanyMarkers();
+        }
+        if (layers.includes('semiconductorNetwork')) {
+            setTimeout(() => {
+                MapController.showSemiconductorNetwork();
+            }, AppData.companies.length * 80 + 200);
+        }
+        if (layers.includes('infrastructureRoads')) {
+            MapController.showInfrastructureRoads();
+        }
+        if (layers.includes('talentPipeline')) {
+            MapController.showTalentPipeline();
+        }
+        if (layers.includes('properties')) {
+            MapController.addPropertyMarkers(AppData.properties);
+            const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
+            MapController.addRouteLines(AppData.properties, jasmCoords);
+        }
+    },
+
+    /**
+     * Hide the map layers from a step (during exit).
+     */
+    _hideStepLayers(step) {
+        const layers = step.layers || [];
+
+        if (layers.includes('airlineRoutes')) MapController.hideAirlineRoutes();
+        if (layers.includes('kyushuEnergy')) MapController.hideKyushuEnergy();
+        if (layers.includes('talentPipeline')) MapController.hideTalentPipeline();
+        if (layers.includes('infrastructureRoads')) MapController.hideInfrastructureRoads();
+        if (layers.includes('investmentZones')) MapController.hideInvestmentZones();
+        if (layers.includes('semiconductorNetwork')) MapController.hideSemiconductorNetwork();
+        // Resources, sciencePark, companies, properties - cleaned up via marker fade
     },
 
     // ================================
@@ -80,17 +248,17 @@ const App = {
     // ================================
 
     startJourneyA() {
-        this.state.journey = 'A';
-        this.state.step = 'A0';
+        this.state.question = 1;
+        this.state.step = 'Q1_intro';
         this.state.resourcesExplored = [];
         this.state.evidenceGroupsViewed = [];
         UI.updateInspectorForStep(this.state.step);
 
         // Show journey progress bar
-        UI.updateJourneyProgress('A');
+        UI.updateJourneyProgress(1);
 
-        // Show data layers toggle for Journey A
-        UI.showDataLayers('A');
+        // Show data layers toggle for Q1
+        UI.showDataLayers(1);
         UI.announceToScreenReader('Journey A: Why Kumamoto');
 
         // Ensure heartbeat is running (may already be from cinematicEntry,
@@ -116,7 +284,7 @@ const App = {
      * A0: Show supporting evidence for the opening question
      */
     showOpeningEvidence() {
-        UI.renderInspectorPanel(1, { title: '\u00A510 trillion commitment' });
+        UI.renderInspectorPanel(1, { title: 'Resources and location' });
 
         // Gently zoom toward the science park area (JASM commitment location)
         const sp = AppData.sciencePark;
@@ -131,10 +299,9 @@ const App = {
         }
 
         // Update chatbox to continue
-        const q = AppData.openingQuestion;
         UI.updateChatbox(`
             <h3>Why Kumamoto?</h3>
-            <p class="chatbox-question">${q.question}</p>
+            <p class="chatbox-question">Japan committed over 10 trillion yen to semiconductor infrastructure. Why did they choose Kumamoto?</p>
             <button class="chatbox-continue primary" onclick="App.stepA1()">
                 Explore the Region
             </button>
@@ -145,7 +312,7 @@ const App = {
      * A1: Why Kumamoto? intro
      */
     stepA1() {
-        this.state.step = 'A1';
+        this.state.step = 'Q1_intro';
         UI.updateInspectorForStep(this.state.step);
         UI.hidePanel();
         UI.announceToScreenReader('Step 1: Natural advantages');
@@ -163,7 +330,7 @@ const App = {
     },
 
     async stepA2() {
-        this.state.step = 'A2';
+        this.state.step = 'Q1_water';
         UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 2: Utility infrastructure');
 
@@ -190,7 +357,7 @@ const App = {
     },
 
     selectResource(resourceId) {
-        this.state.step = 'A3';
+        this.state.step = resourceId === 'power' ? 'Q1_power' : 'Q1_water';
 
         // Show marker and fly to location
         MapController.showResourceMarker(resourceId);
@@ -269,8 +436,8 @@ const App = {
      * A3 Phase 1: Existing Semiconductor Infrastructure — narrative only
      */
     stepA3() {
-        this.state.step = 'A3';
-        this.state.a3Phase = 'infrastructure';
+        this.state.step = 'Q1_silicon';
+        this.state.subPhase = 'ecosystem';
         UI.announceToScreenReader('Step 3: Semiconductor ecosystem');
 
         // Cinematic flight to semiconductor ecosystem area
@@ -289,7 +456,8 @@ const App = {
      * A3 Phase 2: Strategic Location — airline routes appear
      */
     async stepA3_location() {
-        this.state.a3Phase = 'location';
+        this.state.subPhase = 'location';
+        this.state.step = 'Q1_strategic';
 
         // Show airline routes with animation
         await MapController.showAirlineRoutes();
@@ -311,7 +479,8 @@ const App = {
      * A3 Phase 3: Talent Pipeline — Kyushu-wide university/institution layer
      */
     async stepA3_talent() {
-        this.state.a3Phase = 'talent';
+        this.state.subPhase = 'talent';
+        this.state.step = 'Q3_education';
         UI.announceToScreenReader('Talent pipeline: Kyushu universities and institutions');
 
         // Hide airline routes before showing talent pipeline
@@ -411,16 +580,16 @@ const App = {
     // ================================
 
     startJourneyB() {
-        this.state.journey = 'B';
-        this.state.step = 'B1';
+        this.state.question = 2;
+        this.state.step = 'Q2_gov';
         this.state.companiesExplored = [];
         UI.updateInspectorForStep(this.state.step);
 
         // Update journey progress bar
-        UI.updateJourneyProgress('B');
+        UI.updateJourneyProgress(2);
 
-        // Show data layers toggle for Journey B
-        UI.showDataLayers('B');
+        // Show data layers toggle for Q2
+        UI.showDataLayers(2);
         UI.announceToScreenReader('Journey B: Infrastructure plan');
 
         // B1: Show government commitment chain with chatbox intro
@@ -454,7 +623,7 @@ const App = {
     },
 
     async stepB4() {
-        this.state.step = 'B4';
+        this.state.step = 'Q2_corporate';
         UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 4: Corporate investment');
 
@@ -489,7 +658,9 @@ const App = {
     },
 
     stepB6() {
-        this.state.step = 'B6';
+        this.state.step = 'Q3_timeline';
+        this.state.question = 3;
+        UI.updateJourneyProgress(3);
         UI.updateInspectorForStep(this.state.step);
         UI.announceToScreenReader('Step 6: Development timeline');
 
@@ -530,7 +701,7 @@ const App = {
     },
 
     stepB7() {
-        this.state.step = 'B7';
+        this.state.step = 'Q3_future';
         UI.updateInspectorForStep(this.state.step);
 
         // Reset to present view (toggle remains visible)
@@ -577,7 +748,7 @@ const App = {
         UI.setTimeView('present');
 
         // 3. Clean up Mapbox layers (silent — markers already faded)
-        if (this.state.step === 'B7') {
+        if (this.state.step === 'Q3_future') {
             MapController.hideInfrastructureRoads();
         }
         MapController.hideInvestmentZones();
@@ -597,12 +768,12 @@ const App = {
     // ================================
 
     async startJourneyC() {
-        this.state.journey = 'C';
-        this.state.step = 'C1';
+        this.state.question = 5;
+        this.state.step = 'Q5_prop1';
         UI.updateInspectorForStep(this.state.step);
 
         // Update journey progress bar
-        UI.updateJourneyProgress('C');
+        UI.updateJourneyProgress(5);
 
         // Mapbox is already initialized from cinematic entry
         // Elevate to 3D corridor view — the map tilts and buildings rise
@@ -616,8 +787,8 @@ const App = {
         MapController.addPropertyMarkers(AppData.properties);
         MapController.addRouteLines(AppData.properties, jasmCoords);
 
-        // Update data layers toggle for Journey C
-        UI.showDataLayers('C');
+        // Update data layers toggle for Q5
+        UI.showDataLayers(5);
         UI.announceToScreenReader('Journey C: Investment opportunities');
 
         // Calculate portfolio stats for narrative
@@ -657,7 +828,7 @@ const App = {
      * Complete the presentation - show AI chat for follow-up questions
      */
     async complete() {
-        this.state.step = 'complete';
+        this.state.step = 'Q5_final';
         // Skip updateInspectorForStep -- hidePanel() follows immediately and recap takes over
         MapController.stopHeartbeat();
 
@@ -680,7 +851,18 @@ const App = {
         const propCount = AppData.properties.length;
         let totalNetProfit = 0;
         AppData.properties.forEach(p => {
-            totalNetProfit += p.financials.scenarios.average.netProfit;
+            const fc = p.cards.find(c => c.type === 'financial');
+            if (!fc) return;
+            const d = fc.data;
+            if (d.scenarios && d.scenarios.average) {
+                if (d.scenarios.average.netProfit != null) {
+                    totalNetProfit += d.scenarios.average.netProfit;
+                } else if (d.scenarios.average.exitPrice != null && d.acquisitionCost != null) {
+                    totalNetProfit += d.scenarios.average.exitPrice - d.acquisitionCost;
+                }
+            } else if (d.paths && d.paths.sale) {
+                totalNetProfit += d.paths.sale.grossProfit || 0;
+            }
         });
         const formatYen = (num) => {
             if (num >= 10000000) return '¥' + (num / 1000000).toFixed(1) + 'M';
@@ -784,9 +966,9 @@ const App = {
             if (!this.state.evidenceGroupsViewed.includes(groupId)) {
                 this.state.evidenceGroupsViewed.push(groupId);
                 // Update chatbox to show completed state
-                if (this.state.journey === 'A') {
+                if (this.state.question === 1) {
                     this.updateResourceChatbox();
-                } else if (this.state.step === 'B6') {
+                } else if (this.state.step === 'Q3_timeline') {
                     this.updateB6Chatbox();
                 }
             }
@@ -866,10 +1048,10 @@ const App = {
      * Called when user clicks the FAB to reopen chatbox
      */
     restoreChatbox() {
-        const { journey, step } = this.state;
+        const { question, step, subPhase } = this.state;
 
-        if (journey === 'A') {
-            if (step === 'A0') {
+        if (question === 1) {
+            if (step === 'Q1_intro') {
                 UI.showChatbox(`
                     <h3>Why Kumamoto?</h3>
                     <p>The answer starts with three natural advantages that no amount of money can buy.</p>
@@ -877,16 +1059,8 @@ const App = {
                         Discover Why
                     </button>
                 `);
-            } else if (step === 'A1') {
-                UI.showChatbox(`
-                    <h3>Natural advantages</h3>
-                    <p>Before the factories came, Kumamoto already had something most cities can't offer. Let me show you.</p>
-                    <button class="chatbox-continue primary" onclick="App.stepA2()">
-                        Start Exploring
-                    </button>
-                `);
-            } else if (step === 'A3') {
-                if (this.state.a3Phase === 'talent') {
+            } else if (step === 'Q1_silicon' || step === 'Q1_strategic' || step === 'Q3_education') {
+                if (subPhase === 'talent') {
                     UI.showChatbox(`
                         <h3>Talent pipeline</h3>
                         <p>METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.</p>
@@ -894,7 +1068,7 @@ const App = {
                             See Government Commitment
                         </button>
                     `);
-                } else if (this.state.a3Phase === 'location') {
+                } else if (subPhase === 'location') {
                     UI.showChatbox(`
                         <h3>Strategic location</h3>
                         <p>Seven direct international routes — Seoul, Shanghai, Taipei, Hong Kong. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong></p>
@@ -913,12 +1087,13 @@ const App = {
                     `);
                 }
             } else {
+                // Q1_water or Q1_power (resource explorer)
                 this.updateResourceChatbox();
                 UI.elements.chatbox.classList.remove('hidden');
                 UI.hideChatFab();
             }
-        } else if (journey === 'B') {
-            if (step === 'B1') {
+        } else if (question === 2) {
+            if (step === 'Q2_gov') {
                 UI.showChatbox(`
                     <h3>Government support</h3>
                     <p><strong>¥4 trillion</strong> from the national government. <strong>¥480 billion</strong> from Kumamoto Prefecture. Every level of government is aligned behind one bet: semiconductors.</p>
@@ -927,7 +1102,7 @@ const App = {
                         See Who's Building Here
                     </button>
                 `);
-            } else if (step === 'B4') {
+            } else if (step === 'Q2_corporate') {
                 UI.showChatbox(`
                     <h3>Corporate investment</h3>
                     <p>The signal landed. TSMC committed <strong>¥2.16 trillion</strong> for two fabs. Sony expanded its sensor line. SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron — each announced expansions within 18 months. <strong>Seven major players</strong>, all converging on Kumamoto.</p>
@@ -936,9 +1111,16 @@ const App = {
                         Show Development Timeline
                     </button>
                 `);
-            } else if (step === 'B6') {
+            } else {
+                UI.showChatbox(`
+                    <h3>Infrastructure plan</h3>
+                    <p>Explore the markers on the map to learn about developments.</p>
+                `);
+            }
+        } else if (question === 3) {
+            if (step === 'Q3_timeline') {
                 this.updateB6Chatbox();
-            } else if (step === 'B7') {
+            } else if (step === 'Q3_future') {
                 UI.showChatbox(`
                     <h3>Changes in area</h3>
                     <p>Commitment is promises. This is concrete. New expressway links shaving <strong>15 minutes</strong> off the JASM commute. <strong>¥340 billion</strong> in road infrastructure already under construction.</p>
@@ -949,11 +1131,11 @@ const App = {
                 `);
             } else {
                 UI.showChatbox(`
-                    <h3>Infrastructure plan</h3>
-                    <p>Explore the markers on the map to learn about developments.</p>
+                    <h3>Development timeline</h3>
+                    <p>Explore the evidence for this transformation.</p>
                 `);
             }
-        } else if (journey === 'C') {
+        } else if (question === 5) {
             const propCount = AppData.properties.length;
             const gktk = AppData.gktk;
             const irrValue = gktk ? gktk.stats[3].value : '12-18%';
