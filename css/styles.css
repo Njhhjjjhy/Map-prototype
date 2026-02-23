@@ -431,7 +431,7 @@ a:focus-visible {
 /* Skip button for cinematic entry */
 #cinematic-skip {
     position: absolute;
-    bottom: var(--space-6);
+    bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
     right: var(--space-6);
     z-index: 10;
     padding: var(--space-2) var(--space-5);
@@ -699,7 +699,7 @@ a:focus-visible {
    ================================ */
 #chatbox {
     position: absolute;
-    bottom: var(--space-8);
+    bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 500;
@@ -711,7 +711,7 @@ a:focus-visible {
     /* Figma spec sizing */
     width: min(424px, calc(100vw - var(--space-12)));
     max-width: 424px;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px - env(safe-area-inset-bottom, 0px));
     padding: var(--space-8) var(--space-4) var(--space-8) var(--space-4);  /* 32px top for buttons, 16px sides, 32px bottom */
     overflow: hidden;
 
@@ -2995,7 +2995,7 @@ button.layer-item {
    ================================ */
 #ai-chat {
     position: absolute;
-    bottom: var(--space-8);
+    bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 500;
@@ -3008,7 +3008,7 @@ button.layer-item {
     /* Sizing */
     width: 100%;
     max-width: 424px;
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - 100px - env(safe-area-inset-bottom, 0px));
     padding: var(--space-2) var(--space-4) var(--space-8) var(--space-4);  /* 8px 16px 32px 16px */
 
     /* Visual */
@@ -3336,7 +3336,7 @@ button.layer-item {
    ================================ */
 #chat-fab {
     position: absolute;
-    bottom: var(--space-8);
+    bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 500;
@@ -5984,23 +5984,130 @@ button.layer-item {
 }
 
 /* ================================
-   TABLET DISPLAYS (iPad 11"-13", narrow laptops)
+   TABLET DISPLAYS (iPad Pro 12.9" landscape = 1366px, narrow laptops)
    ================================ */
 @media (max-width: 1366px) {
+    /* Right panel — HIG sidebar width (320pt) */
     #right-panel {
-        width: min(340px, 38vw);
+        width: min(320px, 35vw);
         min-width: 280px;
+    }
+
+    /* AI Chat — proportional scale from 424px */
+    #ai-chat {
+        max-width: 380px;
+    }
+
+    /* Chatbox — proportional scale */
+    #chatbox {
+        max-width: 380px;
+    }
+
+    /* Start screen — tighter padding for narrower viewport */
+    #start-screen {
+        padding-left: 10%;
+    }
+
+    .start-screen-logo {
+        width: 260px;
+    }
+
+    .start-screen-headline {
+        max-width: 420px;
+        font-size: var(--text-2xl);
     }
 }
 
+/* ================================
+   SMALLER TABLETS (iPad 11" landscape = 1194px, iPad Air = 1180px)
+   ================================ */
+@media (max-width: 1194px) {
+    #right-panel {
+        width: min(300px, 34vw);
+        min-width: 260px;
+    }
+
+    #ai-chat {
+        max-width: 340px;
+    }
+
+    #chatbox {
+        max-width: 340px;
+    }
+}
+
+/* ================================
+   COMPACT TABLETS (iPad 10.2" landscape = 1080px, iPad Mini landscape)
+   ================================ */
 @media (max-width: 1024px) {
     #right-panel {
-        width: min(320px, 42vw);
-        min-width: 260px;
+        width: min(280px, 38vw);
+        min-width: 240px;
     }
 
     #chatbox {
         max-width: 300px;
+    }
+
+    #ai-chat {
+        max-width: 300px;
+    }
+
+    /* Start screen — compact layout */
+    #start-screen {
+        padding-left: 8%;
+    }
+
+    .start-screen-logo {
+        width: 220px;
+    }
+
+    .start-screen-headline {
+        max-width: 360px;
+        font-size: var(--text-xl);
+    }
+}
+
+/* ================================
+   SHORT VIEWPORTS (iPad landscape height = 1024px or less)
+   Targets iPad's shorter vertical space vs desktop monitors.
+   ================================ */
+@media (max-height: 1024px) {
+    /* Chatbox — tighter vertical budget */
+    #chatbox {
+        max-height: calc(100vh - 160px - env(safe-area-inset-bottom, 0px));
+    }
+
+    /* AI Chat — tighter vertical budget */
+    #ai-chat {
+        max-height: calc(100vh - 80px - env(safe-area-inset-bottom, 0px));
+    }
+
+    /* AI Chat messages — less scroll area */
+    .ai-chat-messages {
+        max-height: 220px;
+    }
+
+    /* Gallery — constrain to available height */
+    #gallery-content {
+        max-height: calc(100vh - 80px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ================================
+   VERY SHORT VIEWPORTS (iPad 11" landscape height = 834px or less)
+   ================================ */
+@media (max-height: 834px) {
+    #chatbox {
+        max-height: calc(100vh - 120px - env(safe-area-inset-bottom, 0px));
+    }
+
+    #ai-chat {
+        max-height: calc(100vh - 60px - env(safe-area-inset-bottom, 0px));
+    }
+
+    .ai-chat-messages {
+        max-height: 180px;
     }
 }
 
