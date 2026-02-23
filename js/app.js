@@ -483,8 +483,27 @@ const App = {
             `);
             MapController.flyToStep(CAMERA_STEPS.B1_sciencePark);
         } else if (itemId === 'gov-zones') {
-            const group = UI.findEvidenceGroup('government-zones');
-            if (group) App.showSingleEvidenceGroup(group);
+            MapController.showFutureZones();
+            const zones = AppData.futureZones || [];
+            const zoneCards = zones.map(z => `
+                <div style="padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-medium);">
+                    <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${z.color}; flex-shrink: 0;"></div>
+                        <span style="font-weight: var(--font-weight-semibold);">${z.name}</span>
+                    </div>
+                    <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">${z.subtitle}</p>
+                </div>
+            `).join('');
+            UI.showPanel(`
+                <div class="subtitle">Development zones</div>
+                <h2>Government zone clusters</h2>
+                <p>Designated development areas supporting the semiconductor corridor.</p>
+                <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">${zoneCards}</div>
+                <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <img src="assets/use-case-images/evidence-semiconductor-clusters.webp" alt="Government zone cluster plan" style="width: 100%; border-radius: var(--radius-medium);" />
+                </div>
+            `);
+            MapController.flyToStep({ center: [130.85, 32.87], zoom: 11, pitch: 45, bearing: 0, duration: 2000 });
         } else if (itemId === 'kikuyo-plan') {
             const zone = AppData.futureZones.find(z => z.id === 'kikuyo');
             if (zone) {
@@ -525,6 +544,11 @@ const App = {
         if (itemId === 'airport') {
             const airport = AppData.governmentChain.levels.find(l => l.id === 'grand-airport');
             if (airport) {
+                MapController.showAirportMarker(airport);
+                MapController.flyToStep({
+                    center: MapController._toMapbox(airport.coords),
+                    zoom: 13, pitch: 50, bearing: 10, duration: 2000
+                });
                 UI.showPanel(`
                     <div class="subtitle">Infrastructure plan</div>
                     <h2>Grand airport concept</h2>
@@ -565,13 +589,31 @@ const App = {
             const group = UI.findEvidenceGroup('education-pipeline');
             if (group) {
                 const item = group.items.find(i => i.id === 'training-centers');
-                if (item) UI.showEvidenceDetail(item, group);
+                if (item) {
+                    UI.showDisclosureItemDetail(group, item);
+                    if (item.coords) {
+                        MapController.showTrainingCenterMarker(item);
+                        MapController.flyToStep({
+                            center: MapController._toMapbox(item.coords),
+                            zoom: 12, pitch: 48, bearing: 0, duration: 2000
+                        });
+                    }
+                }
             }
         } else if (itemId === 'employment') {
             const group = UI.findEvidenceGroup('education-pipeline');
             if (group) {
                 const item = group.items.find(i => i.id === 'graduate-numbers');
-                if (item) UI.showEvidenceDetail(item, group);
+                if (item) {
+                    UI.showDisclosureItemDetail(group, item);
+                    if (item.coords) {
+                        MapController.showEmploymentMarker(item);
+                        MapController.flyToStep({
+                            center: MapController._toMapbox(item.coords),
+                            zoom: 12, pitch: 48, bearing: 0, duration: 2000
+                        });
+                    }
+                }
             }
         }
     },
@@ -618,8 +660,7 @@ const App = {
         const property = AppData.properties.find(p => p.id === itemId);
         if (property) {
             this.state.activeProperty = itemId;
-            UI.showPropertyPanel(property);
-            MapController.forwardReveal(property);
+            UI.showPropertyReveal(property);
         }
     },
 
@@ -701,11 +742,22 @@ const App = {
                 UI.showAllAirlineRoutes();
                 break;
 
+            case 'government-support':
+                UI.showGovernmentOverview();
+                break;
+
             case 'corporate-investment':
                 UI.showInvestmentOverview();
                 break;
 
-            case 'future-outlook':
+            case 'future-outlook': {
+                // Show airport marker on the map for the future outlook
+                const airport = AppData.governmentChain?.levels?.find(l => l.id === 'grand-airport');
+                if (airport) MapController.showAirportMarker(airport);
+
+                // Emphasize road extensions for the future vision
+                setTimeout(() => MapController.highlightRoadExtensions(), 500);
+
                 UI.showPanel(`
                     <div class="subtitle">Future outlook</div>
                     <h2>2030+ vision</h2>
@@ -721,6 +773,7 @@ const App = {
                     </div>
                 `);
                 break;
+            }
 
             case 'investment-zones':
                 UI.showPanel(`

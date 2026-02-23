@@ -753,15 +753,22 @@ const MapController = {
         if (!waterData.evidenceMarkers) return;
 
         waterData.evidenceMarkers.forEach(evidence => {
+            const shortName = evidence.id === 'coca-cola' ? 'Coca-Cola' : 'Suntory';
             const dotHtml = `<div style="
-                width: 24px; height: 24px;
-                display: flex; align-items: center; justify-content: center;
+                display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;
             "><div style="
                 width: 12px; height: 12px;
                 background: #007aff;
                 border-radius: 50%;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            "></div></div>`;
+                flex-shrink: 0;
+            "></div><span style="
+                font-family: var(--font-display);
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--color-text-primary);
+                text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+            ">${shortName}</span></div>`;
 
             const { marker, element } = this._createMarker(evidence.coords, dotHtml, {
                 className: 'water-evidence-marker'
@@ -843,8 +850,7 @@ const MapController = {
             paint: {
                 'line-color': color,
                 'line-width': weight,
-                'line-opacity': 0.7,
-                'line-dasharray': [4, 3]
+                'line-opacity': 0.7
             },
             layout: {
                 'line-cap': 'round',
@@ -1026,6 +1032,84 @@ const MapController = {
             }
             this._highlightedEnergyStation = null;
         }
+    },
+
+    /**
+     * Show training center marker on the map
+     * @param {Object} item - Evidence item with coords and title
+     */
+    showTrainingCenterMarker(item) {
+        if (!item || !item.coords) return;
+
+        // Remove existing training marker
+        if (this.markers['training-center']) {
+            this.markers['training-center'].remove();
+            delete this.markers['training-center'];
+        }
+
+        const markerHtml = `<div style="
+            display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;
+        "><div style="
+            width: 28px; height: 28px;
+            background: #34c759;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            color: white;
+        ">T</div><span style="
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+        ">${item.title}</span></div>`;
+
+        const { marker } = this._createMarker(item.coords, markerHtml, {
+            className: 'training-center-marker'
+        });
+        this.markers['training-center'] = marker;
+        this._layerGroups.talentPipeline.push('training-center');
+    },
+
+    /**
+     * Show employment data marker on the map
+     * @param {Object} item - Evidence item with coords and title
+     */
+    showEmploymentMarker(item) {
+        if (!item || !item.coords) return;
+
+        // Remove existing employment marker
+        if (this.markers['employment-data']) {
+            this.markers['employment-data'].remove();
+            delete this.markers['employment-data'];
+        }
+
+        const markerHtml = `<div style="
+            display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;
+        "><div style="
+            width: 28px; height: 28px;
+            background: #007aff;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        "><svg viewBox="0 0 24 24" fill="white" width="14" height="14"><rect x="2" y="7" width="6" height="14" rx="1"/><rect x="9" y="3" width="6" height="18" rx="1"/><rect x="16" y="10" width="6" height="11" rx="1"/></svg></div><span style="
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+        ">${item.title}</span></div>`;
+
+        const { marker } = this._createMarker(item.coords, markerHtml, {
+            className: 'employment-data-marker'
+        });
+        this.markers['employment-data'] = marker;
+        this._layerGroups.talentPipeline.push('employment-data');
     },
 
     /**
@@ -1221,6 +1305,45 @@ const MapController = {
     },
 
     /**
+     * Show airport marker on the map
+     * @param {Object} airport - Airport data with coords [lat, lng]
+     */
+    showAirportMarker(airport) {
+        if (!airport || !airport.coords) return;
+
+        // Remove existing airport marker
+        if (this.markers['airport']) {
+            this.markers['airport'].remove();
+            delete this.markers['airport'];
+        }
+
+        const markerHtml = `<div style="
+            display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;
+        "><div style="
+            width: 28px; height: 28px;
+            background: #ff9500;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        ">✈</div><span style="
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+        ">${airport.name}</span></div>`;
+
+        const { marker } = this._createMarker(airport.coords, markerHtml, {
+            className: 'airport-marker'
+        });
+        this.markers['airport'] = marker;
+        this._layerGroups.infrastructureRoads.push('airport');
+    },
+
+    /**
      * Show government commitment chain markers
      */
     showGovernmentChain() {
@@ -1406,6 +1529,35 @@ const MapController = {
 
             this.markers[zone.id] = marker;
             this._layerGroups.futureZones.push(zone.id);
+
+            // Cluster satellite markers for facilities within the zone
+            if (zone.facilities) {
+                zone.facilities.forEach((facility, i) => {
+                    const dotId = `${zone.id}-facility-${i}`;
+                    const dotHtml = `<div style="
+                        display: flex; align-items: center; gap: 4px; white-space: nowrap;
+                    "><div style="
+                        width: 10px; height: 10px;
+                        background: ${zoneColor};
+                        border: 1.5px solid white;
+                        border-radius: 50%;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                        flex-shrink: 0;
+                    "></div><span style="
+                        font-family: var(--font-display);
+                        font-size: 10px;
+                        font-weight: 500;
+                        color: var(--color-text-secondary);
+                        text-shadow: 0 0 3px white, 0 0 3px white;
+                    ">${facility.label}</span></div>`;
+
+                    const { marker: satMarker } = this._createMarker(facility.coords, dotHtml, {
+                        className: 'zone-facility-marker'
+                    });
+                    this.markers[dotId] = satMarker;
+                    this._layerGroups.futureZones.push(dotId);
+                });
+            }
         });
     },
 
@@ -1720,6 +1872,33 @@ const MapController = {
         this._layerGroups.infrastructureRoads = [];
 
         this.selectedInfrastructureRoad = null;
+    },
+
+    /**
+     * Emphasize infrastructure roads for future outlook view.
+     * Makes planned/approved roads more visually prominent with solid lines and glow.
+     */
+    highlightRoadExtensions() {
+        if (!this.map) return;
+        try {
+            if (this.map.getLayer('infrastructure-roads-line')) {
+                this.map.setPaintProperty('infrastructure-roads-line', 'line-width', 6);
+                this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity', 0.9);
+            }
+        } catch (e) { /* layer may not exist yet */ }
+    },
+
+    /**
+     * Reset road extension highlighting back to default styling.
+     */
+    resetRoadHighlight() {
+        if (!this.map) return;
+        try {
+            if (this.map.getLayer('infrastructure-roads-line')) {
+                this.map.setPaintProperty('infrastructure-roads-line', 'line-width', 4);
+                this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity', 0.7);
+            }
+        } catch (e) { /* layer may not exist */ }
     },
 
     selectInfrastructureRoad(roadId) {

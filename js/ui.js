@@ -55,7 +55,10 @@ const UI = {
             chatFab: document.getElementById('chat-fab'),
             panelToggle: document.getElementById('panel-toggle'),
             skipToDashboardBtn: document.getElementById('skip-to-dashboard-btn'),
-            dashboardToggle: document.getElementById('dashboard-toggle')
+            dashboardToggle: document.getElementById('dashboard-toggle'),
+            evidencePreview: document.getElementById('evidence-preview'),
+            evidencePreviewBody: document.getElementById('evidence-preview-body'),
+            evidencePreviewClose: document.getElementById('evidence-preview-close')
         };
 
         this.layersPanelOpen = false;
@@ -248,6 +251,13 @@ const UI = {
             const quickLook = document.getElementById('property-quick-look');
             if (e.key === 'Escape' && quickLook && !quickLook.classList.contains('hidden')) {
                 this.hidePropertyImageQuickLook();
+            }
+        });
+
+        // Keyboard handling for evidence preview (Escape to close)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.elements.evidencePreview && !this.elements.evidencePreview.classList.contains('hidden')) {
+                this.hideEvidencePreview();
             }
         });
 
@@ -563,8 +573,8 @@ const UI = {
             return parseFloat(val.replace('B', ''));
         });
 
-        // Colorblind-safe palette
-        const colors = ['#2563eb', '#ea580c', '#0d9488', '#7c3aed'];
+        // Colorblind-safe palette (covers all 7 companies)
+        const colors = ['#2563eb', '#ea580c', '#0d9488', '#7c3aed', '#d97706', '#059669', '#dc2626'];
 
         this.charts['investment'] = new Chart(ctx, {
             type: 'bar',
@@ -627,8 +637,8 @@ const UI = {
             <div class="subtitle">Corporate investment</div>
             <h2>Investment comparison</h2>
             <p>Total corporate investment in the Kumamoto semiconductor corridor.</p>
-            <div class="chart-container" style="height: 200px; margin: 24px 0;">
-                <canvas id="investment-chart" role="img" aria-label="Bar chart comparing corporate investments: JASM leads with ¥1.2T, followed by Sony ¥850B, Tokyo Electron ¥320B, Mitsubishi ¥260B"></canvas>
+            <div class="chart-container" style="height: 280px; margin: 24px 0;">
+                <canvas id="investment-chart" role="img" aria-label="Bar chart comparing corporate investments across seven companies in the Kumamoto corridor"></canvas>
             </div>
             <div id="investment-chart-table"></div>
             <div class="stat-grid">
@@ -1117,6 +1127,39 @@ const UI = {
         `;
 
         this.showPanel(content);
+    },
+
+    /**
+     * Show government overview panel with all three tiers in a dashboard view.
+     */
+    showGovernmentOverview() {
+        const tiers = AppData.governmentTiers || [];
+        const tierCards = tiers.map(tier => `
+            <div style="padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium); cursor: pointer;"
+                 onclick="App._handleGovernmentSubItem('${tier.id}')">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${tier.color}; flex-shrink: 0;"></div>
+                    <span style="font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary);">${tier.tierLabel}</span>
+                </div>
+                <div style="font-weight: var(--font-weight-semibold);">${tier.name}</div>
+                <div style="font-size: var(--text-2xl); font-weight: var(--font-weight-bold); color: ${tier.color}; margin-top: var(--space-2);">${tier.commitment}</div>
+                <div style="font-size: var(--text-sm); color: var(--color-text-tertiary);">${tier.commitmentLabel}</div>
+            </div>
+        `).join('');
+
+        const totalCommitment = '¥4T+';
+        this.showPanel(`
+            <div class="subtitle">Government commitment</div>
+            <h2>National to local alignment</h2>
+            <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
+                <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${totalCommitment}</span>
+                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">Combined commitment</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+                ${tierCards}
+            </div>
+            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">Click any tier for details.</p>
+        `);
     },
 
     /**
@@ -1982,6 +2025,57 @@ const UI = {
     },
 
     /**
+     * Show evidence preview overlay with image or placeholder
+     * @param {string} groupId - Evidence group ID
+     * @param {string} itemId - Evidence item ID
+     */
+    showEvidencePreview(groupId, itemId) {
+        const group = this.findEvidenceGroup(groupId);
+        const item = group?.items.find(i => i.id === itemId);
+        if (!item) return;
+
+        // Determine the image source (handle both `image` and `images` fields)
+        const imageSrc = item.image || (item.images && item.images[0]) || null;
+
+        let bodyHtml;
+        if (imageSrc) {
+            bodyHtml = `<img src="${imageSrc}" alt="${item.title}">`;
+        } else {
+            // Placeholder state for items without images
+            bodyHtml = `
+                <div class="evidence-preview-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <h3>${item.title}</h3>
+                    <p>No preview available</p>
+                </div>
+            `;
+        }
+
+        this.elements.evidencePreviewBody.innerHTML = bodyHtml;
+        this.elements.evidencePreview.classList.remove('hidden');
+
+        // Focus management
+        this.lastFocusedElement = document.activeElement;
+        this.elements.evidencePreviewClose.focus();
+    },
+
+    /**
+     * Hide the evidence preview overlay
+     */
+    hideEvidencePreview() {
+        this.elements.evidencePreview.classList.add('hidden');
+        this.elements.evidencePreviewBody.innerHTML = '';
+
+        // Return focus to trigger element
+        if (this.lastFocusedElement) {
+            this.lastFocusedElement.focus();
+        }
+    },
+
+    /**
      * Show property image in Quick Look modal (macOS pattern)
      * @param {string} imageUrl - URL of the image to display
      * @param {string} title - Title/alt text for the image
@@ -2205,8 +2299,8 @@ const UI = {
             MapController.highlightEvidenceMarker(groupId, itemId);
         }
 
-        // Show detail view
-        this.showDisclosureItemDetail(group, item);
+        // Open evidence preview overlay
+        this.showEvidencePreview(groupId, itemId);
     },
 
     /**

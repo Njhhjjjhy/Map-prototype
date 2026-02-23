@@ -759,7 +759,13 @@ const AppData = {
                 title: 'Kikuyo Town development plan',
                 type: 'pdf',
                 description: 'Official rezoning and infrastructure roadmap'
-            }
+            },
+            facilities: [
+                { label: 'Housing', coords: [32.885, 130.825] },
+                { label: 'Retail hub', coords: [32.876, 130.835] },
+                { label: 'School', coords: [32.882, 130.838] },
+                { label: 'Medical', coords: [32.878, 130.822] }
+            ]
         },
         {
             id: 'ozu',
@@ -780,7 +786,12 @@ const AppData = {
                 title: 'Ozu industrial zone plan',
                 type: 'pdf',
                 description: 'Industrial development documentation'
-            }
+            },
+            facilities: [
+                { label: 'Logistics', coords: [32.864, 130.875] },
+                { label: 'Warehouse', coords: [32.856, 130.866] },
+                { label: 'Supplier park', coords: [32.862, 130.878] }
+            ]
         }
     ],
 
@@ -1620,7 +1631,7 @@ const AppData = {
                     date: '2024-12',
                     viewed: false,
                     description: 'Regional employment statistics showing semiconductor industry hiring trends and salary growth across Kumamoto Prefecture.',
-                    coords: null,
+                    coords: [32.81, 130.73],
                     image: 'assets/use-case-images/vidence-wage-gap-college-graduates.webp',
                     stats: [
                         { value: '8,200', label: 'Industry hires 2024' },
