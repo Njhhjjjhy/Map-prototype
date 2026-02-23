@@ -26,10 +26,11 @@ const TIMING = {
 
 const App = {
     state: {
-        currentStep: 0,       // 1-12, 0 = not started
+        currentStep: 0,       // 1-11, 0 = not started
         subItemsExplored: [], // Track which sub-items within current step have been viewed
+        expandedGroups: [],   // Track which parent sub-items are expanded
         activeProperty: null, // Currently selected property ID (step 10)
-        futureView: false,    // Whether future toggle is active (steps 8, 11)
+        futureView: false,    // Whether future toggle is active (step 8)
         evidenceGroupsViewed: [], // Track which evidence groups have been viewed
     },
 
@@ -74,6 +75,7 @@ const App = {
         // --- Update state ---
         this.state.currentStep = stepIndex;
         this.state.subItemsExplored = [];
+        this.state.expandedGroups = [];
         this.state.activeProperty = null;
 
         // --- Progress bar ---
@@ -111,8 +113,9 @@ const App = {
         // --- Data layers ---
         UI.showDataLayers(stepIndex);
 
-        // --- Heartbeat ---
+        // --- Heartbeat + marker pulse ---
         MapController.startHeartbeat();
+        this._applyStepPulse(step);
 
         // --- Accessibility ---
         UI.announceToScreenReader(`Step ${stepIndex}: ${step.title}`);
@@ -129,14 +132,9 @@ const App = {
     },
 
     /**
-     * Go back to the previous step.
+     * Go back to the previous step (currently disabled).
      */
-    prevStep() {
-        const prev = this.state.currentStep - 1;
-        if (prev >= 1) {
-            this.goToStep(prev);
-        }
-    },
+    prevStep() {},
 
     /**
      * Exit choreography for a step.
@@ -167,8 +165,9 @@ const App = {
             await MapController.fadeOutMarkers(markersToFade);
         }
 
-        // Hide UI
+        // Hide UI sequentially for cleaner exit
         UI.hideChatbox();
+        await new Promise(r => setTimeout(r, 100));
         UI.hidePanel();
 
         // Clean up step-specific map elements
@@ -180,7 +179,7 @@ const App = {
             this.state.futureView = false;
         }
 
-        await new Promise(r => setTimeout(r, TIMING.breathShort));
+        await new Promise(r => setTimeout(r, 500));
     },
 
     /**
@@ -295,9 +294,9 @@ const App = {
                 afterItems: ''
             },
             'transport-access': {
-                title: 'Transport access',
-                body: 'New expressway links shaving <strong>15 minutes</strong> off the JASM commute. A new rail station. <strong>340 billion yen</strong> in road infrastructure under construction.',
-                afterItems: '<p style="margin-top: 8px;">Click any <strong>teal dashed road</strong> or station marker to see details.</p>'
+                title: 'Infrastructure',
+                body: 'Kumamoto Science Park anchors a semiconductor corridor backed by <strong>¥4.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia.',
+                afterItems: ''
             },
             'education-pipeline': {
                 title: 'Education pipeline',
@@ -317,11 +316,6 @@ const App = {
             'properties': {
                 title: 'Investment properties',
                 body: `${AppData.properties.length} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.`,
-                afterItems: ''
-            },
-            'area-changes': {
-                title: 'Area changes',
-                body: 'See what is changing on the ground. Toggle between present and future views. Click infrastructure icons to see evidence.',
                 afterItems: ''
             },
             'final': {
@@ -355,24 +349,59 @@ const App = {
             }
         }
 
+        const navRow = continueBtn
+            ? `<div class="chatbox-nav-row">${continueBtn}</div>`
+            : '';
+
         return `
             <h3>${n.title}</h3>
             <p>${n.body}</p>
             ${fundStats}
             ${subItemsHtml}
             ${n.afterItems}
-            ${continueBtn}
+            ${navRow}
         `;
     },
 
     /**
      * Render clickable sub-items for a step.
+     * Supports nested children via `children` array on parent items.
      */
     _renderSubItems(step) {
         if (!step.subItems || step.subItems.length === 0) return '';
 
+        // Collect all leaf items for counting (children count, not parents)
+        const leafItems = [];
+        step.subItems.forEach(item => {
+            if (item.children && item.children.length > 0) {
+                item.children.forEach(child => leafItems.push(child));
+            } else {
+                leafItems.push(item);
+            }
+        });
+
         const items = step.subItems.map(item => {
             const explored = this.state.subItemsExplored.includes(item.id);
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = this.state.expandedGroups.includes(item.id);
+
+            if (hasChildren) {
+                const childItems = isExpanded ? item.children.map(child => {
+                    const childExplored = this.state.subItemsExplored.includes(child.id);
+                    return `<button class="chatbox-option chatbox-option-child ${childExplored ? 'completed' : ''}"
+                                onclick="App.selectSubItem('${child.id}')"
+                                ${childExplored ? 'aria-disabled="true"' : ''}>
+                            ${child.label}${childExplored ? '<span class="sr-only"> (explored)</span>' : ''}
+                        </button>`;
+                }).join('') : '';
+
+                return `<button class="chatbox-option chatbox-option-parent ${explored ? 'completed' : ''} ${isExpanded ? 'expanded' : ''}"
+                            onclick="App.toggleSubItemGroup('${item.id}')">
+                        ${item.label}
+                        <svg class="chatbox-option-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>${childItems}`;
+            }
+
             return `<button class="chatbox-option ${explored ? 'completed' : ''}"
                         onclick="App.selectSubItem('${item.id}')"
                         ${explored ? 'aria-disabled="true"' : ''}>
@@ -380,8 +409,10 @@ const App = {
                 </button>`;
         }).join('');
 
-        const exploredCount = this.state.subItemsExplored.length;
-        const totalCount = step.subItems.length;
+        const exploredCount = this.state.subItemsExplored.filter(id =>
+            leafItems.some(leaf => leaf.id === id)
+        ).length;
+        const totalCount = leafItems.length;
         const progress = totalCount > 0
             ? `<div class="resource-progress" style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2);">${exploredCount} of ${totalCount} explored</div>`
             : '';
@@ -392,6 +423,21 @@ const App = {
                 ${items}
             </div>
         `;
+    },
+
+    /**
+     * Toggle expansion of a parent sub-item group.
+     */
+    toggleSubItemGroup(groupId) {
+        const idx = this.state.expandedGroups.indexOf(groupId);
+        if (idx >= 0) {
+            this.state.expandedGroups.splice(idx, 1);
+        } else {
+            this.state.expandedGroups.push(groupId);
+        }
+        // Re-render chatbox to reflect expanded state
+        const step = STEPS[this.state.currentStep - 1];
+        if (step) this._renderStepChatbox(step);
     },
 
     /**
@@ -539,9 +585,15 @@ const App = {
         }
     },
 
-    // --- Step 6: Transport ---
+    // --- Step 6: Infrastructure (Science Park + Grand Airport) ---
     _handleTransportSubItem(itemId) {
-        if (itemId === 'airport') {
+        // Science park children reuse step 5 zone handlers
+        if (itemId === 'gov-zones' || itemId === 'kikuyo-plan' || itemId === 'ozu-plan') {
+            this._handleZonePlanSubItem(itemId);
+            return;
+        }
+
+        if (itemId === 'grand-airport') {
             const airport = AppData.governmentChain.levels.find(l => l.id === 'grand-airport');
             if (airport) {
                 MapController.showAirportMarker(airport);
@@ -549,34 +601,29 @@ const App = {
                     center: MapController._toMapbox(airport.coords),
                     zoom: 13, pitch: 50, bearing: 10, duration: 2000
                 });
+
+                const pillarsHtml = airport.pillars
+                    ? `<div style="margin-top: var(--space-4);">
+                        <p style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Strategic pillars</p>
+                        <ol style="margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
+                            ${airport.pillars.map(p => `<li style="font-size: var(--text-sm); color: var(--color-text-secondary);">${p}</li>`).join('')}
+                        </ol>
+                    </div>`
+                    : '';
+
                 UI.showPanel(`
                     <div class="subtitle">Infrastructure plan</div>
-                    <h2>Grand airport concept</h2>
+                    <h2>Grand Airport Concept</h2>
                     <p>${airport.description}</p>
                     <div class="stat-grid">
                         ${airport.stats.map(s => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
                     </div>
+                    ${pillarsHtml}
                     <div class="evidence-image-container" style="margin-top: var(--space-4);">
-                        <img src="assets/use-case-images/evidence-new-grand-airport.webp" alt="Grand airport concept" style="width: 100%; border-radius: var(--radius-medium);" />
+                        <img src="assets/use-case-images/evidence-new-grand-airport.webp" alt="Grand Airport Concept" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
                 `);
             }
-        } else if (itemId === 'railway') {
-            const station = AppData.infrastructureStation;
-            UI.showPanel(`
-                <div class="subtitle">Infrastructure plan</div>
-                <h2>New railway</h2>
-                <p>${station.description}</p>
-                <div class="stat-grid">
-                    ${station.stats.map(s => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
-                </div>
-                <div class="evidence-image-container" style="margin-top: var(--space-4);">
-                    <img src="assets/use-case-images/evidence-new-railway-system.webp" alt="New railway plan" style="width: 100%; border-radius: var(--radius-medium);" />
-                </div>
-            `);
-        } else if (itemId === 'roads') {
-            const group = UI.findEvidenceGroup('transportation-network');
-            if (group) App.showSingleEvidenceGroup(group);
         }
     },
 
@@ -712,10 +759,10 @@ const App = {
                     <div class="journey-recap-headline-detail">across the portfolio</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                    <button class="chatbox-continue primary" onclick="UI.hideChatbox(); UI.showAIChat();">
+                    <button class="chatbox-continue primary" onclick="UI.hideChatbox(); setTimeout(() => UI.showAIChat(), 600);">
                         Ask Me Anything
                     </button>
-                    <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); UI.showAIChat(); UI.downloadSummary();">
+                    <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); setTimeout(() => { UI.showAIChat(); UI.downloadSummary(); }, 600);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="7 10 12 15 17 10"/>
@@ -786,10 +833,6 @@ const App = {
                 `);
                 break;
 
-            case 'area-changes':
-                UI.showEvidenceListPanel();
-                break;
-
             case 'properties':
                 // Panel shows on property marker click, not auto
                 break;
@@ -853,6 +896,34 @@ const App = {
     },
 
     // ================================
+    // Marker pulse per step
+    // ================================
+
+    /**
+     * Apply marker pulse to the primary marker group for a step.
+     * Highlights contextually relevant markers with subtle breathing.
+     */
+    _applyStepPulse(step) {
+        const pulseMap = {
+            'resources': 'resources',
+            'government-support': 'governmentChain',
+            'corporate-investment': 'companies',
+            'science-park-zones': 'sciencePark',
+            'transport-access': 'infrastructureRoads',
+            'education-pipeline': 'talentPipeline',
+            'investment-zones': 'investmentZones',
+            'properties': 'properties'
+        };
+        const group = pulseMap[step.id];
+        if (group) {
+            // Delay pulse until markers have had time to appear
+            setTimeout(() => {
+                MapController.setActiveMarkerPulse(group);
+            }, TIMING.breathMedium);
+        }
+    },
+
+    // ================================
     // Restore and restart
     // ================================
 
@@ -882,6 +953,7 @@ const App = {
         UI.hideChatbox();
         UI.hideAIChat();
         UI.hideLayersToggle();
+        UI.hideHomeBtn();
         UI.hidePanelToggle();
         UI.hideTimeToggle();
         MapController.resetView();
@@ -898,6 +970,7 @@ const App = {
         // Reset state
         this.state.currentStep = 0;
         this.state.subItemsExplored = [];
+        this.state.expandedGroups = [];
         this.state.activeProperty = null;
         this.state.futureView = false;
 

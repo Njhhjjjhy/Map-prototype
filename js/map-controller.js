@@ -245,10 +245,10 @@ const MapController = {
         this._currentAnimation = thisAnimation;
         const map = this.map;
 
-        // Position camera high over Kyushu
+        // Position camera over Kumamoto region
         map.jumpTo({
-            center: [131.0, 33.5],
-            zoom: 6,
+            center: [130.85, 32.95],
+            zoom: 9,
             pitch: 0,
             bearing: 0
         });
@@ -264,13 +264,13 @@ const MapController = {
             this.skipButton.classList.add('visible');
         }
 
-        // Stage 1: Descend — zoom 6→10, pitch 0→40
+        // Stage 1: Descend — zoom 9→10.5, pitch 0→40
         map.flyTo({
-            center: [130.75, 32.8],
-            zoom: 10,
+            center: [130.78, 32.84],
+            zoom: 10.5,
             pitch: 40,
-            bearing: 0,
-            duration: 2000,
+            bearing: 5,
+            duration: 1800,
             essential: true
         });
 
@@ -651,7 +651,7 @@ const MapController = {
      */
     _brandedMarkerHtml(companyId) {
         const brands = {
-            jasm: { text: 'JASM', bg: '#c4001a', textColor: '#ffffff', fontSize: '9px', fontWeight: '800', letterSpacing: '0.3px' },
+            jasm: { text: 'JASM', bg: '#c4001a', textColor: '#ffffff', fontSize: '13px', fontWeight: '800', letterSpacing: '0.5px', size: 56 },
             sony: { text: 'SONY', bg: '#000000', textColor: '#ffffff', fontSize: '9px', fontWeight: '700', letterSpacing: '0.8px' },
             'tokyo-electron': { text: 'TEL', bg: '#007aff', textColor: '#ffffff', fontSize: '10px', fontWeight: '700', letterSpacing: '0.5px' },
             mitsubishi: { text: 'ME', bg: '#cc0000', textColor: '#ffffff', fontSize: '11px', fontWeight: '800', letterSpacing: '0' },
@@ -672,7 +672,8 @@ const MapController = {
             line-height: 1;
         ">${brand.text}</span>`;
 
-        return this._elevatedMarkerHtml(innerHtml, brand.bg, 40, {}, 'square');
+        const size = brand.size || 40;
+        return this._elevatedMarkerHtml(innerHtml, brand.bg, size, {}, 'square');
     },
 
     /**
@@ -752,25 +753,52 @@ const MapController = {
         const waterData = AppData.resources.water;
         if (!waterData.evidenceMarkers) return;
 
-        waterData.evidenceMarkers.forEach(evidence => {
-            const shortName = evidence.id === 'coca-cola' ? 'Coca-Cola' : 'Suntory';
-            const dotHtml = `<div style="
-                display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;
-            "><div style="
-                width: 12px; height: 12px;
-                background: #007aff;
-                border-radius: 50%;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                flex-shrink: 0;
-            "></div><span style="
-                font-family: var(--font-display);
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--color-text-primary);
-                text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
-            ">${shortName}</span></div>`;
+        const brands = {
+            'suntory': { text: 'Suntory', bg: '#1a3668', textColor: '#ffffff', fontSize: '8px', fontWeight: '700' },
+            'coca-cola': { text: 'C-C', bg: '#d12421', textColor: '#ffffff', fontSize: '10px', fontWeight: '800' }
+        };
 
-            const { marker, element } = this._createMarker(evidence.coords, dotHtml, {
+        waterData.evidenceMarkers.forEach(evidence => {
+            const brand = brands[evidence.id];
+            const shortName = evidence.id === 'coca-cola' ? 'Coca-Cola' : 'Suntory';
+            let markerHtml;
+
+            if (brand) {
+                const innerHtml = `<span style="
+                    font-family: var(--font-display);
+                    font-size: ${brand.fontSize};
+                    font-weight: ${brand.fontWeight};
+                    color: ${brand.textColor};
+                    line-height: 1;
+                ">${brand.text}</span>`;
+                const iconHtml = this._elevatedMarkerHtml(innerHtml, brand.bg, 36, {}, 'square');
+                markerHtml = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;">
+                    ${iconHtml}<span style="
+                    font-family: var(--font-display);
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: var(--color-text-primary);
+                    text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+                ">${shortName}</span></div>`;
+            } else {
+                markerHtml = `<div style="
+                    display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;
+                "><div style="
+                    width: 12px; height: 12px;
+                    background: #007aff;
+                    border-radius: 50%;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    flex-shrink: 0;
+                "></div><span style="
+                    font-family: var(--font-display);
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: var(--color-text-primary);
+                    text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+                ">${shortName}</span></div>`;
+            }
+
+            const { marker, element } = this._createMarker(evidence.coords, markerHtml, {
                 className: 'water-evidence-marker'
             });
 
@@ -950,11 +978,62 @@ const MapController = {
             });
         });
 
+        // Draw airline-style connection lines from each energy source to JASM
+        const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
+        const jasmLngLat = this._toMapbox(jasmCoords);
+
+        const lineFeatures = [];
+        ['solar', 'wind', 'nuclear'].forEach(type => {
+            energyData[type].forEach(station => {
+                lineFeatures.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [this._toMapbox(station.coords), jasmLngLat]
+                    },
+                    properties: { type, name: station.name }
+                });
+            });
+        });
+
+        const lineSourceId = 'energy-lines';
+        this._safeAddSource(lineSourceId, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: lineFeatures }
+        });
+
+        this.map.addLayer({
+            id: `${lineSourceId}-line`,
+            type: 'line',
+            source: lineSourceId,
+            paint: {
+                'line-color': [
+                    'match', ['get', 'type'],
+                    'solar', 'rgba(255, 149, 0, 0.65)',
+                    'wind', 'rgba(90, 200, 250, 0.65)',
+                    'nuclear', 'rgba(255, 59, 48, 0.65)',
+                    'rgba(0, 122, 255, 0.65)'
+                ],
+                'line-width': 3,
+                'line-dasharray': [4, 4]
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        this._layerGroups.kyushuEnergy.push(`${lineSourceId}-line`, lineSourceId);
+
         // Fly to show all energy sources
         this.flyToStep(CAMERA_STEPS.A2_overview);
     },
 
     hideKyushuEnergy() {
+        // Remove line layers first
+        this._safeRemoveLayer('energy-lines-line');
+        this._safeRemoveSource('energy-lines');
+
         this._layerGroups.kyushuEnergy.forEach(id => {
             if (this.markers[id]) {
                 const marker = this.markers[id];
@@ -1366,10 +1445,11 @@ const MapController = {
             }, index * 200);
         });
 
-        // Announce after all markers have landed
+        // Announce markers after they have landed
+        const announceDelay = chain.levels.length * 200 + 100;
         setTimeout(() => {
             UI.announceToScreenReader(chain.levels.length + ' government commitment markers added');
-        }, chain.levels.length * 200 + 100);
+        }, announceDelay);
     },
 
     /**
@@ -1669,7 +1749,7 @@ const MapController = {
             data: { type: 'FeatureCollection', features }
         });
 
-        // Start fully transparent — we'll fade in below
+        // Start fully transparent — per-road stagger via feature-state
         this.map.addLayer({
             id: 'infrastructure-roads-line',
             type: 'line',
@@ -1682,7 +1762,12 @@ const MapController = {
                     ['boolean', ['feature-state', 'selected'], false], 7,
                     5
                 ],
-                'line-opacity': 0,
+                'line-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false], 1.0,
+                    ['boolean', ['feature-state', 'selected'], false], 1.0,
+                    ['number', ['feature-state', 'opacity'], 0]
+                ],
                 'line-dasharray': [10, 6]
             },
             layout: {
@@ -1710,27 +1795,19 @@ const MapController = {
                 'text-color': '#1e1f20',
                 'text-halo-color': '#ffffff',
                 'text-halo-width': 2,
-                'text-opacity': 0
+                'text-opacity': ['number', ['feature-state', 'textOpacity'], 0]
             }
         });
 
-        // Set 300ms transitions for the fade-in
-        this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity-transition', { duration: 300, delay: 0 });
-        this.map.setPaintProperty('infrastructure-roads-labels', 'text-opacity-transition', { duration: 300, delay: 0 });
-
-        // 300ms fade-in (CLAUDE.md spec) via Mapbox paint transition
-        requestAnimationFrame(() => {
-            if (this.map.getLayer('infrastructure-roads-line')) {
-                this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity', [
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false], 1.0,
-                    ['boolean', ['feature-state', 'selected'], false], 1.0,
-                    0.7
-                ]);
-            }
-            if (this.map.getLayer('infrastructure-roads-labels')) {
-                this.map.setPaintProperty('infrastructure-roads-labels', 'text-opacity', 0.9);
-            }
+        // Per-road stagger: reveal each road sequentially with TIMING.infraStagger delay
+        features.forEach((feature, index) => {
+            setTimeout(() => {
+                if (!this.map || !this.map.getSource(sourceId)) return;
+                this.map.setFeatureState(
+                    { source: sourceId, id: index },
+                    { opacity: 0.7, textOpacity: 0.9 }
+                );
+            }, index * TIMING.infraStagger);
         });
 
         this._layerGroups.infrastructureRoads.push('infrastructure-roads-line', 'infrastructure-roads-labels', sourceId);
@@ -1830,7 +1907,7 @@ const MapController = {
             this._addTooltip(marker, element, haramizu.name);
             element.addEventListener('click', () => {
                 this.clearInfrastructureRoadSelection();
-                UI.renderInspectorPanel(7, { title: haramizu.name });
+                UI.showHaramizuPanel();
             });
             this.infrastructureMarkers.push(marker);
             this._layerGroups.infrastructureRoads.push(`station-${haramizu.id}`);
@@ -1883,7 +1960,14 @@ const MapController = {
         try {
             if (this.map.getLayer('infrastructure-roads-line')) {
                 this.map.setPaintProperty('infrastructure-roads-line', 'line-width', 6);
-                this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity', 0.9);
+                // Update each feature's opacity state for emphasis
+                const roads = AppData.infrastructureRoads || [];
+                roads.forEach((road, index) => {
+                    this.map.setFeatureState(
+                        { source: 'infrastructure-roads', id: index },
+                        { opacity: 0.9, textOpacity: 1.0 }
+                    );
+                });
             }
         } catch (e) { /* layer may not exist yet */ }
     },
@@ -1895,8 +1979,19 @@ const MapController = {
         if (!this.map) return;
         try {
             if (this.map.getLayer('infrastructure-roads-line')) {
-                this.map.setPaintProperty('infrastructure-roads-line', 'line-width', 4);
-                this.map.setPaintProperty('infrastructure-roads-line', 'line-opacity', 0.7);
+                this.map.setPaintProperty('infrastructure-roads-line', 'line-width', [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false], 7,
+                    ['boolean', ['feature-state', 'selected'], false], 7,
+                    5
+                ]);
+                const roads = AppData.infrastructureRoads || [];
+                roads.forEach((road, index) => {
+                    this.map.setFeatureState(
+                        { source: 'infrastructure-roads', id: index },
+                        { opacity: 0.7, textOpacity: 0.9 }
+                    );
+                });
             }
         } catch (e) { /* layer may not exist */ }
     },
@@ -1997,6 +2092,7 @@ const MapController = {
         const map = this.map;
         const jasmLngLat = this._toMapbox(jasmCoords);
 
+        this._routeShimmerActive = false;
         this._safeRemoveLayer('property-routes-line');
         this._safeRemoveSource('property-routes');
 
@@ -2020,13 +2116,30 @@ const MapController = {
             paint: {
                 'line-color': '#007aff',
                 'line-width': 2,
-                'line-opacity': 0.5
+                'line-opacity': 0.5,
+                'line-dasharray': [4, 4]
             },
             layout: {
                 'line-cap': 'round',
                 'line-join': 'round'
             }
         });
+
+        // Route shimmer: subtle opacity breathing animation
+        if (!this.reducedMotion) {
+            this._routeShimmerActive = true;
+            let phase = 0;
+            const shimmer = () => {
+                if (!this._routeShimmerActive || !map.getLayer('property-routes-line')) return;
+                phase += 0.03;
+                const opacity = 0.35 + Math.sin(phase) * 0.15;
+                try {
+                    map.setPaintProperty('property-routes-line', 'line-opacity', opacity);
+                } catch (e) { /* layer removed */ }
+                requestAnimationFrame(shimmer);
+            };
+            requestAnimationFrame(shimmer);
+        }
     },
 
     /**
@@ -2604,7 +2717,7 @@ const MapController = {
 
         // 3. Draw routes with stagger
         for (let i = 0; i < routes.destinations.length; i++) {
-            await this._delay(150);
+            await this._delay(80);
             const dest = routes.destinations[i];
             this._addArcLine(origin, dest.coords, dest.status, dest.semiconductorLink, i);
         }
@@ -3052,6 +3165,7 @@ const MapController = {
         this._safeRemoveLayer('property-markers-circle');
         this._safeRemoveLayer('property-markers-stroke');
         this._safeRemoveSource('property-markers');
+        this._routeShimmerActive = false;
         this._safeRemoveLayer('property-routes-line');
         this._safeRemoveSource('property-routes');
 
@@ -3085,6 +3199,7 @@ const MapController = {
     },
 
     clearRoute() {
+        this._routeShimmerActive = false;
         this._safeRemoveLayer('property-routes-line');
         this._safeRemoveSource('property-routes');
     },

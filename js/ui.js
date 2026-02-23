@@ -58,7 +58,8 @@ const UI = {
             dashboardToggle: document.getElementById('dashboard-toggle'),
             evidencePreview: document.getElementById('evidence-preview'),
             evidencePreviewBody: document.getElementById('evidence-preview-body'),
-            evidencePreviewClose: document.getElementById('evidence-preview-close')
+            evidencePreviewClose: document.getElementById('evidence-preview-close'),
+            homeBtn: document.getElementById('home-btn')
         };
 
         this.layersPanelOpen = false;
@@ -311,6 +312,13 @@ const UI = {
                 this.toggleDashboardPanel();
             });
         }
+
+        // Home button - reset map to overview
+        if (this.elements.homeBtn) {
+            this.elements.homeBtn.addEventListener('click', () => {
+                this.resetToOverview();
+            });
+        }
     },
 
     /**
@@ -412,6 +420,8 @@ const UI = {
         this.destroyChart('scenario');
         const ctx = canvas.getContext('2d');
         const fin = this._getFinancialData(property);
+
+        if (!fin.scenarios || !fin.scenarios.bear || !fin.scenarios.average || !fin.scenarios.bull) return;
 
         // Colorblind-safe palette
         const colors = {
@@ -1130,6 +1140,45 @@ const UI = {
     },
 
     /**
+     * Show dedicated Haramizu station panel with 3 development zones.
+     */
+    showHaramizuPanel() {
+        const haramizu = AppData.haramizuStation;
+        if (!haramizu) return;
+
+        const statsHtml = haramizu.stats.map(stat => `
+            <div class="panel-bento-stat">
+                <div class="panel-bento-stat-value">${stat.value}</div>
+                <div class="panel-bento-stat-label">${stat.label}</div>
+            </div>
+        `).join('');
+
+        const zonesHtml = haramizu.zones.map(zone => `
+            <div style="padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium);">
+                <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">${zone.name}</div>
+                <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">${zone.description}</p>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="subtitle">${haramizu.subtitle}</div>
+            <h2>${haramizu.name}</h2>
+            <p>${haramizu.description}</p>
+            <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+                ${statsHtml}
+            </div>
+            <div style="margin-top: var(--space-6);">
+                <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Development zones</div>
+                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    ${zonesHtml}
+                </div>
+            </div>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show government overview panel with all three tiers in a dashboard view.
      */
     showGovernmentOverview() {
@@ -1539,7 +1588,7 @@ const UI = {
         if (drillDown.cancelled) return;
 
         // Now show the inspector panel (after the building has been appreciated)
-        this.renderInspectorPanel(5, { title: property.name, property });
+        this.renderInspectorPanel(10, { title: property.name, property });
 
         // Stage 3: Crossfade to exterior photo (800ms)
         const overlay = this._ensureTransitionOverlay();
@@ -1929,7 +1978,7 @@ const UI = {
     },
 
     /**
-     * Show area statistics (step 12 conclusion)
+     * Show area statistics (step 11 conclusion)
      */
     showAreaStats() {
         const stats = AppData.areaStats;
@@ -1978,28 +2027,43 @@ const UI = {
     // GALLERY
     // ================================
 
-    showGallery(title, type, description) {
-        // Icons with proper ARIA roles for screen readers
-        const icons = {
-            pdf: '<span role="img" aria-label="Document">📄</span>',
-            image: '<span role="img" aria-label="Image">🖼️</span>',
-            web: '<span role="img" aria-label="Web link">🌐</span>'
-        };
+    showGallery(title, type, description, imageSrc) {
+        let bodyHtml;
 
-        const content = `
-            <div class="gallery-header">
-                <h3>${title}</h3>
-            </div>
-            <div class="placeholder-doc">
-                <div class="icon">${icons[type] || icons.pdf}</div>
-                <p>${description}</p>
-                <p style="margin-top: var(--space-6); font-size: 14px; color: var(--color-text-secondary);">
-                    [Placeholder - actual document would appear here]
-                </p>
-            </div>
-        `;
+        if (imageSrc) {
+            // Render real image
+            bodyHtml = `
+                <div class="gallery-header">
+                    <h3>${title}</h3>
+                </div>
+                <div class="gallery-image-container">
+                    <img src="${imageSrc}" alt="${title}" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: var(--radius-medium);">
+                </div>
+                <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-secondary);">${description}</p>
+            `;
+        } else {
+            // Placeholder for items without images
+            const icons = {
+                pdf: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+                image: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`,
+                web: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`
+            };
 
-        this.elements.galleryBody.innerHTML = content;
+            bodyHtml = `
+                <div class="gallery-header">
+                    <h3>${title}</h3>
+                </div>
+                <div class="placeholder-doc">
+                    <div class="icon" style="color: var(--color-text-tertiary);">${icons[type] || icons.pdf}</div>
+                    <p>${description}</p>
+                    <p style="margin-top: var(--space-6); font-size: var(--text-sm); color: var(--color-text-tertiary);">
+                        Document preview not yet available.
+                    </p>
+                </div>
+            `;
+        }
+
+        this.elements.galleryBody.innerHTML = bodyHtml;
         this.elements.galleryModal.classList.remove('hidden');
         document.getElementById('map-container').classList.add('immersive-active');
 
@@ -2195,7 +2259,8 @@ const UI = {
         }
 
         if (evidence) {
-            this.showGallery(evidence.title, evidence.type, evidence.description);
+            const img = evidence.image || (evidence.images && evidence.images[0]) || null;
+            this.showGallery(evidence.title, evidence.type, evidence.description, img);
         }
     },
 
@@ -2328,7 +2393,7 @@ const UI = {
             <h2>${item.title}</h2>
             <p>${item.description}</p>
             ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
-            <button class="panel-btn primary" onclick="UI.showGallery('${item.title}', '${item.type}', '${item.description.replace(/'/g, "\\'")}')">
+            <button class="panel-btn primary" onclick="UI.showGallery('${item.title}', '${item.type}', '${item.description.replace(/'/g, "\\'")}', ${item.image ? "'" + item.image + "'" : 'null'})">
                 View ${this.getTypeLabel(item.type)}
             </button>
         `;
@@ -2510,11 +2575,11 @@ const UI = {
     // ================================
 
     /**
-     * Update the journey progress bar for 12-step linear flow.
-     * @param {number} currentStep - Current step (1-12)
-     * @param {number} totalSteps - Total steps (default 12)
+     * Update the journey progress bar for the linear step flow.
+     * @param {number} currentStep - Current step (1-11)
+     * @param {number} totalSteps - Total steps (default 11)
      */
-    updateJourneyProgress(currentStep, totalSteps = 12) {
+    updateJourneyProgress(currentStep, totalSteps = 11) {
         let progressBar = document.getElementById('journey-progress');
         if (!progressBar) return;
 
@@ -2628,7 +2693,7 @@ const UI = {
             </button>
         `;
 
-        // Build map layers based on step index (1-12) or 'dashboard'
+        // Build map layers based on step index (1-11) or 'dashboard'
         let mapLayersHtml = '';
         if (stepIndex === 'dashboard') {
             mapLayersHtml =
@@ -2656,8 +2721,8 @@ const UI = {
                 layerBtn('properties', icons.properties, 'Properties') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park');
-        } else if (stepIndex >= 11 && stepIndex <= 12) {
-            // Steps 11-12: Area changes, final
+        } else if (stepIndex === 11) {
+            // Step 11: Final
             mapLayersHtml =
                 layerBtn('properties', icons.properties, 'Properties') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
@@ -2762,6 +2827,41 @@ const UI = {
      */
     showLayersToggle() {
         this.elements.layersToggle.classList.remove('hidden');
+        this.showHomeBtn();
+    },
+
+    /**
+     * Show home button
+     */
+    showHomeBtn() {
+        if (this.elements.homeBtn) {
+            this.elements.homeBtn.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Hide home button
+     */
+    hideHomeBtn() {
+        if (this.elements.homeBtn) {
+            this.elements.homeBtn.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Reset map to overview position and clear drill-down layers
+     */
+    resetToOverview() {
+        if (typeof MapController !== 'undefined') {
+            MapController.resetView();
+        }
+        // Close panel and data layers if open
+        if (this.panelOpen) {
+            this.hidePanel();
+        }
+        if (this.layersPanelOpen) {
+            this.toggleLayersPanel();
+        }
     },
 
     /**
@@ -3944,7 +4044,7 @@ const UI = {
      */
     /**
      * Update inspector panel for the current step index.
-     * @param {number} stepIndex - Step index (1-12)
+     * @param {number} stepIndex - Step index (1-11)
      */
     updateInspectorForStep(stepIndex) {
         if (!stepIndex || stepIndex <= 2) return;
@@ -4001,6 +4101,7 @@ const UI = {
             case 6: return this._renderStage6(tabIndex, options);
             case 7: return this._renderStage7(tabIndex);
             case 8: return this._renderStage8(tabIndex);
+            case 10: return this._renderStage5(tabIndex, options);
             default: return '';
         }
     },
@@ -4186,6 +4287,7 @@ const UI = {
                 if (props.length) {
                     const avgYield = props.reduce((s, p) => {
                         const fin = this._getFinancialData(p);
+                        if (fin.paths?.rental?.yield) return s + fin.paths.rental.yield;
                         const avg = fin.scenarios?.average;
                         return s + (avg?.noiTicRatio || avg?.irr || 0);
                     }, 0) / props.length;
@@ -4839,12 +4941,12 @@ const UI = {
                 const property = (AppData.properties || []).find(p => p.id === propId);
                 if (property) {
                     this.currentProperty = property;
-                    this.renderInspectorPanel(5, { title: property.name, property });
+                    this.renderInspectorPanel(10, { title: property.name, property });
                 }
             });
         });
 
-        // Evidence doc cards (click to open Quick Look document preview)
+        // Evidence doc cards (click to open Quick Look with actual image)
         panel.querySelectorAll('[data-evidence-id]').forEach(card => {
             card.style.cursor = 'pointer';
             card.addEventListener('click', () => {
@@ -4852,11 +4954,22 @@ const UI = {
                 if (!evidenceId) return;
                 const titleEl = card.querySelector('.icard-evidence-title');
                 const metaEl = card.querySelector('.icard-evidence-meta');
-                this.showQuickLook({
-                    type: 'doc',
-                    title: titleEl?.textContent || 'Document',
-                    source: metaEl?.textContent || ''
-                });
+                const title = titleEl?.textContent || 'Document';
+                const source = metaEl?.textContent || '';
+
+                // Look up evidence item to get its image
+                let image = null;
+                const groups = AppData.evidenceGroups || {};
+                for (const group of Object.values(groups)) {
+                    const item = (group.items || []).find(i => i.id === evidenceId);
+                    if (item && item.image) { image = item.image; break; }
+                }
+
+                if (image) {
+                    this.showQuickLook({ type: 'image', src: image, title });
+                } else {
+                    this.showQuickLook({ type: 'doc', title, source });
+                }
             });
         });
     },

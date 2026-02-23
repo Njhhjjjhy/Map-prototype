@@ -254,7 +254,7 @@ a:focus-visible {
     line-height: var(--line-height-tight);
     letter-spacing: var(--tracking-display);
     opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.15s forwards;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.3s forwards;
 }
 
 .start-screen-subtitle {
@@ -265,7 +265,7 @@ a:focus-visible {
     text-align: left;
     margin-bottom: var(--space-4);
     opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.2s forwards;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.5s forwards;
 }
 
 #start-btn {
@@ -286,7 +286,7 @@ a:focus-visible {
     box-shadow: var(--shadow-medium), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     /* Entrance animation */
     opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.3s forwards;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.7s forwards;
 }
 
 #start-btn:hover {
@@ -344,9 +344,9 @@ a:focus-visible {
     border-radius: var(--radius-medium);
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-standard);
-    /* Entrance animation - slightly delayed */
+    /* Entrance animation - follows start button */
     opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.5s forwards;
+    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.9s forwards;
 }
 
 #skip-to-dashboard-btn:hover {
@@ -493,6 +493,7 @@ a:focus-visible {
 #map-container.immersive-active #time-toggle,
 #map-container.immersive-active #chatbox,
 #map-container.immersive-active #layers-toggle,
+#map-container.immersive-active #home-btn,
 #map-container.immersive-active #chat-fab,
 #map-container.immersive-active #data-layers,
 #map-container.immersive-active #panel-toggle,
@@ -964,6 +965,30 @@ a:focus-visible {
     background-position: center;
 }
 
+/* Parent sub-item with expandable children */
+.chatbox-option-parent {
+    justify-content: space-between;
+}
+
+.chatbox-option-chevron {
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform var(--duration-fast) var(--easing-standard);
+    color: var(--color-text-tertiary);
+}
+
+.chatbox-option-parent.expanded .chatbox-option-chevron {
+    transform: rotate(90deg);
+}
+
+/* Child sub-items - indented */
+.chatbox-option-child {
+    margin-left: var(--space-4);
+    width: calc(100% - var(--space-4));
+    font-size: var(--text-sm);
+    padding: var(--space-2) var(--space-4);
+}
+
 /* ================================
    Talent Pipeline - macOS source list
    Compact grouped list with refined indicators.
@@ -1067,6 +1092,12 @@ a:focus-visible {
     color: var(--color-success);
 }
 
+/* Navigation row - wraps Continue button */
+.chatbox-nav-row {
+    display: flex;
+    margin-top: var(--space-6);
+}
+
 /* Primary CTA - macOS filled button with brand color */
 .chatbox-continue.primary {
     width: 100%;
@@ -1110,57 +1141,6 @@ a:focus-visible {
     box-shadow: none;
     cursor: not-allowed;
     pointer-events: none;
-}
-
-/* Secondary CTA - macOS outlined button style */
-.chatbox-continue.secondary {
-    width: 100%;
-    padding: var(--space-3) var(--space-5);
-    background: transparent;
-    color: var(--color-text-primary);
-    border: 1.5px solid var(--color-text-tertiary);
-    border-radius: var(--radius-medium);
-    font-family: var(--font-display);
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    letter-spacing: var(--tracking-body);
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--duration-fast) var(--easing-standard);
-    margin-top: var(--space-3);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    opacity: 0;
-    animation: buttonEntrance var(--duration-normal) var(--easing-decelerate) calc(var(--duration-fast) * 2) forwards;
-}
-
-.chatbox-continue.secondary:hover {
-    background: var(--color-bg-secondary);
-    border-color: var(--color-text-secondary);
-}
-
-.chatbox-continue.secondary:active {
-    background: var(--color-bg-tertiary);
-}
-
-.chatbox-continue.secondary:focus-visible {
-    outline: 3px solid var(--color-info);
-    outline-offset: 2px;
-}
-
-.chatbox-continue.secondary:disabled {
-    border-color: var(--color-text-disabled);
-    color: var(--color-text-disabled);
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.chatbox-continue.secondary svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
 }
 
 /* Tertiary continue - macOS text button style */
@@ -1508,7 +1488,7 @@ a:focus-visible {
     flex: 1;
     overflow-y: auto;
     padding: var(--space-8) var(--space-6) var(--space-6);
-    animation: panelContentFadeIn var(--duration-normal) var(--easing-decelerate);
+    animation: panelContentFadeIn var(--duration-normal) var(--easing-decelerate) var(--duration-fast) both;
 
     /* macOS overlay scrollbar styling */
     scrollbar-width: thin;
@@ -2773,6 +2753,42 @@ a:focus-visible {
     height: 18px;
 }
 
+/* Home Button - below layers-toggle */
+#home-btn {
+    position: absolute;
+    top: 168px; /* Below layers-toggle: 124px + 36px button + 8px gap */
+    left: var(--space-3);
+    z-index: 500;
+    width: 36px;
+    height: 36px;
+    background: var(--color-bg-primary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+#home-btn:hover {
+    color: var(--color-text-primary);
+    background: var(--color-bg-secondary);
+}
+
+#home-btn:active {
+    background: var(--color-bg-tertiary);
+}
+
+#home-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
 /* ================================
    DATA LAYERS PANEL (macOS)
    ================================
@@ -2784,7 +2800,7 @@ a:focus-visible {
 */
 #data-layers {
     position: absolute;
-    top: 168px; /* Below layers-toggle: 124px + 36px button + 8px gap */
+    top: 212px; /* Below home-btn: 168px + 36px button + 8px gap */
     left: var(--space-3);
     z-index: 500;
     background: var(--color-bg-primary);
@@ -4636,6 +4652,7 @@ button.layer-item {
 
 /* 36px map toggles → 44px hit area */
 #layers-toggle::before,
+#home-btn::before,
 #panel-toggle::before,
 #dashboard-toggle::before,
 .panel-back-btn::before {
@@ -4645,6 +4662,7 @@ button.layer-item {
 }
 
 #layers-toggle,
+#home-btn,
 #panel-toggle,
 #dashboard-toggle {
     position: absolute; /* already set for toggles, reinforcing */
@@ -5963,6 +5981,27 @@ button.layer-item {
 #property-chart-container {
     height: 200px;
     margin-top: var(--space-4);
+}
+
+/* ================================
+   TABLET DISPLAYS (iPad 11"-13", narrow laptops)
+   ================================ */
+@media (max-width: 1366px) {
+    #right-panel {
+        width: min(340px, 38vw);
+        min-width: 280px;
+    }
+}
+
+@media (max-width: 1024px) {
+    #right-panel {
+        width: min(320px, 42vw);
+        min-width: 260px;
+    }
+
+    #chatbox {
+        max-width: 300px;
+    }
 }
 
 /* ================================
