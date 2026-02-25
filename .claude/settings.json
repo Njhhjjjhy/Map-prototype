@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs kill)",
+      "WebFetch(domain:www.funliday.com)",
+      "WebFetch(domain:wanderlog.com)",
+      "WebFetch(domain:kumamoto.guide)",
+      "WebFetch(domain:en.ccbji.co.jp)",
+      "WebFetch(domain:japantravel.navitime.com)",
+      "WebFetch(domain:www.jalan.net)",
+      "WebFetch(domain:localhost)",
+      "Bash(ps -p 33455 -o command=)",
+      "Read(//Users/riaan/Documents/Design Files/Code Projects/map-prototype/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/riaan/Documents/Design Files/Code Projects/map-prototype/node_modules"
+    ]
+  }
+}

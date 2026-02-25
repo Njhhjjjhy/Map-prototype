@@ -31,7 +31,6 @@ const UI = {
     init() {
         this.elements = {
             startScreen: document.getElementById('start-screen'),
-            startBtn: document.getElementById('start-btn'),
             appContainer: document.getElementById('app-container'),
             timeToggle: document.getElementById('time-toggle'),
             presentBtn: document.getElementById('present-btn'),
@@ -54,12 +53,9 @@ const UI = {
             aiChatClose: document.getElementById('ai-chat-close'),
             chatFab: document.getElementById('chat-fab'),
             panelToggle: document.getElementById('panel-toggle'),
-            skipToDashboardBtn: document.getElementById('skip-to-dashboard-btn'),
-            dashboardToggle: document.getElementById('dashboard-toggle'),
             evidencePreview: document.getElementById('evidence-preview'),
             evidencePreviewBody: document.getElementById('evidence-preview-body'),
             evidencePreviewClose: document.getElementById('evidence-preview-close'),
-            homeBtn: document.getElementById('home-btn')
         };
 
         this.layersPanelOpen = false;
@@ -204,11 +200,6 @@ const UI = {
      * Bind UI events
      */
     bindEvents() {
-        // Start button
-        this.elements.startBtn.addEventListener('click', () => {
-            App.start();
-        });
-
         // Panel close
         this.elements.panelClose.addEventListener('click', () => {
             this.hidePanel();
@@ -299,26 +290,6 @@ const UI = {
             this.togglePanel();
         });
 
-        // Skip to Dashboard button
-        if (this.elements.skipToDashboardBtn) {
-            this.elements.skipToDashboardBtn.addEventListener('click', () => {
-                this.startDashboardMode();
-            });
-        }
-
-        // Dashboard toggle button
-        if (this.elements.dashboardToggle) {
-            this.elements.dashboardToggle.addEventListener('click', () => {
-                this.toggleDashboardPanel();
-            });
-        }
-
-        // Home button - reset map to overview
-        if (this.elements.homeBtn) {
-            this.elements.homeBtn.addEventListener('click', () => {
-                this.resetToOverview();
-            });
-        }
     },
 
     /**
@@ -674,22 +645,24 @@ const UI = {
     },
 
     /**
-     * Transition from start screen to app
+     * Show app directly - no start screen, subtle fade-in
      */
-    showApp() {
-        this.elements.startScreen.classList.add('fade-out');
+    showAppDirect() {
+        // Remove start screen immediately
+        if (this.elements.startScreen && this.elements.startScreen.parentNode) {
+            this.elements.startScreen.remove();
+        }
+
+        // Show app container with fade-in
         this.elements.appContainer.classList.remove('hidden');
+        this.elements.appContainer.style.opacity = '0';
+        this.elements.appContainer.classList.add('visible');
 
-        setTimeout(() => {
-            this.elements.appContainer.classList.add('visible');
-        }, 50);
-
-        setTimeout(() => {
-            // Remove start-screen from DOM entirely to prevent logo accumulation
-            if (this.elements.startScreen && this.elements.startScreen.parentNode) {
-                this.elements.startScreen.remove();
-            }
-        }, 500);
+        // Subtle fade-in
+        requestAnimationFrame(() => {
+            this.elements.appContainer.style.transition = 'opacity 600ms ease';
+            this.elements.appContainer.style.opacity = '1';
+        });
     },
 
     // ================================
@@ -809,15 +782,12 @@ const UI = {
     },
 
     /**
-     * Enable/disable chatbox back button based on history
-     * Button is always visible, but disabled when no history
+     * Enable/disable chatbox back button based on current journey step.
+     * Enabled when on any step > 0, disabled at step 0 (welcome).
      */
     _updateChatboxBackButton() {
-        if (this.chatboxHistory.length > 0) {
-            this.elements.chatboxBack.disabled = false;
-        } else {
-            this.elements.chatboxBack.disabled = true;
-        }
+        const canGoBack = typeof App !== 'undefined' && App.state && App.state.currentStep > 0;
+        this.elements.chatboxBack.disabled = !canGoBack;
     },
 
     // Helper to extract h3 title and set content separately
@@ -980,13 +950,6 @@ const UI = {
             // Also reset dashboard state if in dashboard mode
             if (this.dashboardPanelOpen || this.dashboardMode) {
                 this.dashboardPanelOpen = false;
-                // Reset dashboard state
-                if (this.elements.dashboardToggle) {
-                    this.elements.dashboardToggle.classList.remove('active');
-                    this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
-                }
-                // Keep dashboard toggle visible so user can reopen
-                this.showDashboardToggle();
             }
 
             // Fire onPanelClose callback if set
@@ -1039,9 +1002,17 @@ const UI = {
         if (this.panelOpen) {
             this.elements.panelToggle.classList.add('active');
             this.elements.panelToggle.setAttribute('aria-expanded', 'true');
+            // Hide toggle when panel is open (it sits behind the panel at lower z-index)
+            this.elements.panelToggle.setAttribute('tabindex', '-1');
+            this.elements.panelToggle.style.pointerEvents = 'none';
+            this.elements.panelToggle.style.visibility = 'hidden';
         } else {
             this.elements.panelToggle.classList.remove('active');
             this.elements.panelToggle.setAttribute('aria-expanded', 'false');
+            // Restore toggle when panel is closed
+            this.elements.panelToggle.removeAttribute('tabindex');
+            this.elements.panelToggle.style.pointerEvents = '';
+            this.elements.panelToggle.style.visibility = '';
         }
     },
 
@@ -1130,7 +1101,7 @@ const UI = {
             </div>
             ${energyMixHtml}
             <div style="margin-top: var(--space-6);">
-                <button class="panel-bento-btn primary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
+                <button class="panel-bento-btn secondary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
                     View Evidence
                 </button>
             </div>
@@ -1254,12 +1225,42 @@ const UI = {
     },
 
     /**
+     * Show single infrastructure road detail panel.
+     * @param {Object} road - Road data from AppData.infrastructureRoads
+     */
+    showRoadDetailPanel(road) {
+        const content = `
+            <div class="subtitle">Infrastructure plan</div>
+            <h2>${road.name}</h2>
+            <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
+                <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${road.commuteImpact}</span>
+                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">commute saved</span>
+            </div>
+            <div class="stat-grid" style="margin-top: var(--space-4);">
+                <div class="stat-item"><div class="stat-value">${road.driveToJasm || '-'}</div><div class="stat-label">Drive to JASM</div></div>
+                <div class="stat-item"><div class="stat-value">${road.status}</div><div class="stat-label">Status</div></div>
+                <div class="stat-item"><div class="stat-value">${road.completionDate}</div><div class="stat-label">Completion</div></div>
+                <div class="stat-item"><div class="stat-value">${road.budget}</div><div class="stat-label">Budget</div></div>
+            </div>
+            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${road.description}</p>
+            ${road.documentLink ? `
+                <button class="button-secondary" style="margin-top: var(--space-6); width: 100%;" onclick="UI.openEvidenceDocument('${road.documentLink}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    View source document
+                </button>
+            ` : ''}
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
      * Show panel for water evidence marker (Coca-Cola, Suntory)
      * @param {Object} evidence - Evidence marker data
      */
     showWaterEvidencePanel(evidence) {
         const statsHtml = evidence.stats.map(stat => `
-            <div class="stat-card">
+            <div class="stat-item">
                 <div class="stat-value">${stat.value}</div>
                 <div class="stat-label">${stat.label}</div>
             </div>
@@ -1268,13 +1269,13 @@ const UI = {
         const content = `
             <div class="subtitle">Water quality evidence</div>
             <h2>${evidence.name}</h2>
-            <p class="panel-subtitle">${evidence.subtitle}</p>
-            <p>${evidence.description}</p>
-            <div class="stats-grid">
+            <p class="panel-subtitle" style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">${evidence.subtitle}</p>
+            <p style="margin-bottom: var(--space-4);">${evidence.description}</p>
+            <div class="stat-grid">
                 ${statsHtml}
             </div>
-            <p class="evidence-note" style="margin-top: 16px; font-size: 14px; color: var(--color-text-secondary);">
-                Major manufacturers chose Kumamoto for water quality — proof the resource meets industrial standards.
+            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
+                Major manufacturers chose Kumamoto for water quality - proof the resource meets industrial standards.
             </p>
         `;
 
@@ -1345,6 +1346,107 @@ const UI = {
     },
 
     /**
+     * Show the power sources panel with 3 toggleable energy types.
+     * Called when user clicks the "Power sources" subItem in step 1.
+     */
+    showPowerSourcesPanel(activeTypes) {
+        const content = this._buildPowerSourcesContent(activeTypes || []);
+        this.showPanel(content);
+    },
+
+    /**
+     * Re-render the power sources panel to reflect current toggle state.
+     * @param {string[]} activeTypes - e.g. ['solar', 'nuclear']
+     */
+    updatePowerSourcesPanel(activeTypes) {
+        const content = this._buildPowerSourcesContent(activeTypes);
+        // Direct innerHTML update (no history push) to avoid stacking
+        this.elements.panelContent.innerHTML = content;
+    },
+
+    /**
+     * Build the HTML for the power sources panel.
+     * @param {string[]} activeTypes - currently toggled-on types
+     * @returns {string} HTML string
+     */
+    _buildPowerSourcesContent(activeTypes) {
+        const types = [
+            { key: 'solar', label: 'Solar power', color: '#ff9500', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>' },
+            { key: 'wind', label: 'Wind energy', color: '#5ac8fa', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>' },
+            { key: 'nuclear', label: 'Nuclear baseload', color: '#ff3b30', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>' }
+        ];
+
+        const evidence = AppData.kyushuEnergy?.evidence || {};
+
+        const rowsHtml = types.map(t => {
+            const isActive = activeTypes.includes(t.key);
+            return `
+                <button class="energy-toggle-row${isActive ? ' active' : ''}"
+                        onclick="App.toggleEnergyType('${t.key}')"
+                        aria-pressed="${isActive}">
+                    <span class="energy-toggle-dot" style="background: ${t.color};"></span>
+                    <span class="energy-toggle-icon" style="color: ${t.color};">${t.icon}</span>
+                    <span class="energy-toggle-label">${t.label}</span>
+                    <span class="energy-toggle-switch ${isActive ? 'on' : ''}">
+                        <span class="energy-toggle-knob"></span>
+                    </span>
+                </button>
+            `;
+        }).join('');
+
+        // Build evidence cards for active types
+        let evidenceHtml = '';
+        if (activeTypes.length > 0) {
+            const cardsHtml = activeTypes.map(key => {
+                const ev = evidence[key];
+                if (!ev) return '';
+                const t = types.find(t => t.key === key);
+                const statsHtml = ev.stats ? ev.stats.map(s => `
+                    <div class="panel-bento-stat">
+                        <div class="panel-bento-stat-value">${s.value}</div>
+                        <div class="panel-bento-stat-label">${s.label}</div>
+                    </div>
+                `).join('') : '';
+
+                const imageHtml = ev.image ? `
+                    <div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('${ev.image}', '${ev.title.replace(/'/g, "\\'")}')">
+                        <img src="${ev.image}" alt="${ev.title}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                    </div>
+                ` : '';
+
+                return `
+                    <div class="energy-evidence-card" style="border-left: 3px solid ${t.color};">
+                        <div class="panel-bento-label" style="color: ${t.color};">${ev.subtitle}</div>
+                        <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${ev.title}</div>
+                        <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${ev.description}</p>
+                        ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ''}
+                        ${imageHtml}
+                    </div>
+                `;
+            }).join('');
+
+            evidenceHtml = `
+                <div style="margin-top: var(--space-6);">
+                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Evidence</div>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="subtitle">Sustainable energy</div>
+            <h2>Power sources</h2>
+            <p>Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require.</p>
+            <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+                ${rowsHtml}
+            </div>
+            ${evidenceHtml}
+        `;
+    },
+
+    /**
      * Show inspector stage 3 focused on a single institution (step 7 education pipeline).
      * Accepts an institution ID string or institution object.
      */
@@ -1372,20 +1474,20 @@ const UI = {
     },
 
     /**
-     * Show airline route panel for a destination
-     * @param {Object} destination - Destination data
+     * Show airline route panel for a single destination.
+     * Clean layout: headline flight time, airline, description.
      */
     showAirlineRoutePanel(destination) {
         const isSuspended = destination.status === 'suspended';
 
-        // Headline: flight time for active, status badge for suspended
+        // Headline metric
         const headlineHtml = isSuspended
             ? `
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
-                        <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-warning);">
-                            ⚠ Service suspended
-                        </div>
+                        <div class="stat-label" style="color: var(--color-text-tertiary); margin-bottom: var(--space-1);">Service suspended</div>
+                        <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-text-tertiary);">${destination.flightTime}</div>
+                        <div class="stat-label">Flight time when active</div>
                     </div>
                 </div>
             `
@@ -1393,53 +1495,22 @@ const UI = {
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
                         <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-info);">${destination.flightTime}</div>
-                        <div class="stat-label">Flight time</div>
+                        <div class="stat-label">Direct flight time</div>
                     </div>
                 </div>
             `;
 
-        // Stats grid - different for suspended vs active
-        const statsHtml = isSuspended
-            ? `
-                <div class="stat-item">
-                    <div class="stat-value">${destination.region}</div>
-                    <div class="stat-label">Region</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${destination.flightTime}</div>
-                    <div class="stat-label">Flight time (when active)</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${destination.airlines.join(', ')}</div>
-                    <div class="stat-label">Airlines</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${destination.significance}</div>
-                    <div class="stat-label">Significance</div>
-                </div>
-            `
-            : `
-                <div class="stat-item">
-                    <div class="stat-value">${destination.region}</div>
-                    <div class="stat-label">Region</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${destination.airlines.join(', ')}</div>
-                    <div class="stat-label">Airlines</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${destination.frequency}</div>
-                    <div class="stat-label">Frequency</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">Active</div>
-                    <div class="stat-label">Status</div>
-                </div>
-                <div class="stat-item" style="grid-column: 1 / -1;">
-                    <div class="stat-value">${destination.significance}</div>
-                    <div class="stat-label">Significance</div>
-                </div>
-            `;
+        // Compact stats: region + airlines only
+        const statsHtml = `
+            <div class="stat-item">
+                <div class="stat-value">${destination.airlines.join(', ')}</div>
+                <div class="stat-label">Airlines</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${destination.region}</div>
+                <div class="stat-label">Region</div>
+            </div>
+        `;
 
         // Semiconductor connection badge
         const semiBadge = destination.semiconductorLink
@@ -1456,7 +1527,7 @@ const UI = {
                 font-weight: var(--font-weight-semibold);
                 color: ${destination.semiconductorLink.color};
                 margin-bottom: var(--space-4);
-            ">${destination.semiconductorLink.company} — ${destination.semiconductorLink.role}</div>`
+            ">${destination.semiconductorLink.company} - ${destination.semiconductorLink.role}</div>`
             : '';
 
         const content = `
@@ -1473,7 +1544,7 @@ const UI = {
             <p>${destination.description}</p>
 
             <button class="panel-btn secondary" onclick="UI.showAllAirlineRoutes()">
-                View all routes →
+                View all routes
             </button>
         `;
 
@@ -1481,36 +1552,37 @@ const UI = {
     },
 
     /**
-     * Show all airline routes summary panel
+     * Show all airline routes summary panel.
+     * Clean table layout: destination name aligned left, flight time aligned right.
      */
     showAllAirlineRoutes() {
         const routes = AppData.airlineRoutes.destinations;
         const activeRoutes = routes.filter(r => r.status === 'active');
-        const suspendedRoutes = routes.filter(r => r.status === 'suspended');
 
-        // Initialize disclosure state: active routes start expanded
-        this.disclosureState['active-routes'] = true;
-        this.disclosureState['suspended-routes'] = false;
-
-        const renderRouteItem = (r, isSuspended) => `
+        const renderRouteRow = (r) => `
             <div class="disclosure-item route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 padding: var(--space-3) var(--space-4);
                 cursor: pointer;
                 transition: background var(--duration-fast) var(--easing-standard);
-                ${isSuspended ? 'opacity: 0.6;' : ''}
             ">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: var(--font-weight-medium);">${r.name} (${r.code})</span>
-                    <span style="color: var(--color-text-${isSuspended ? 'tertiary' : 'secondary'});">${isSuspended ? 'Suspended' : r.flightTime}</span>
+                <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                    <span style="font-weight: var(--font-weight-medium); white-space: nowrap;">${r.name}</span>
+                    <span style="font-size: var(--text-sm); color: var(--color-text-tertiary);">${r.airlines.join(', ')}</span>
                 </div>
-                ${!isSuspended ? `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-top: 2px;">${r.region} · ${r.frequency}</div>` : ''}
+                <span style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); color: var(--color-text-secondary); white-space: nowrap; margin-left: var(--space-4);">${r.flightTime}</span>
             </div>
         `;
 
+        // Initialize disclosure state
+        this.disclosureState['active-routes'] = true;
+
         const content = `
             <div class="subtitle">Aso Kumamoto Airport</div>
-            <h2>All international routes</h2>
-            <p style="margin-bottom: var(--space-4);">${routes.length} destinations across 4 regions connecting Kumamoto to key Asian markets.</p>
+            <h2>International routes</h2>
+            <p style="margin-bottom: var(--space-4);">Direct connections to ${activeRoutes.length} destinations across Korea, Taiwan, and greater Asia.</p>
 
             <div class="disclosure-group expanded" data-group-id="active-routes">
                 <button class="disclosure-header" aria-expanded="true" onclick="UI.toggleDisclosureGroup('active-routes')">
@@ -1525,24 +1597,7 @@ const UI = {
                     <span class="disclosure-badge">${activeRoutes.length}</span>
                 </button>
                 <div class="disclosure-content">
-                    ${activeRoutes.map(r => renderRouteItem(r, false)).join('')}
-                </div>
-            </div>
-
-            <div class="disclosure-group" data-group-id="suspended-routes">
-                <button class="disclosure-header" aria-expanded="false" onclick="UI.toggleDisclosureGroup('suspended-routes')">
-                    <span class="disclosure-triangle" aria-hidden="true">
-                        <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
-                        <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
-                    </span>
-                    <span class="disclosure-icon" style="color: var(--color-text-tertiary);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
-                    </span>
-                    <span class="disclosure-title">Suspended routes</span>
-                    <span class="disclosure-badge">${suspendedRoutes.length}</span>
-                </button>
-                <div class="disclosure-content">
-                    ${suspendedRoutes.map(r => renderRouteItem(r, true)).join('')}
+                    ${activeRoutes.map(r => renderRouteRow(r)).join('')}
                 </div>
             </div>
         `;
@@ -2668,6 +2723,10 @@ const UI = {
             // Droplet icon (Lucide: droplet)
             riskyArea: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+            </svg>`,
+            // Plane icon (Lucide: plane)
+            airlineRoutes: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
             </svg>`
         };
 
@@ -2693,17 +2752,20 @@ const UI = {
             </button>
         `;
 
-        // Build map layers based on step index (1-11) or 'dashboard'
+        // Build map layers based on step index (1-11), 'dashboard', or 'initial'
         let mapLayersHtml = '';
-        if (stepIndex === 'dashboard') {
+        if (stepIndex === 'initial') {
+            // Step 0: Clean map, only water resources toggle available
             mapLayersHtml =
-                layerBtn('properties', icons.properties, 'Properties') +
+                layerBtn('waterResources', icons.riskyArea, 'Water resources', 'toggleWaterResources');
+        } else if (stepIndex === 'dashboard') {
+            mapLayersHtml =
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park');
         } else if (stepIndex >= 1 && stepIndex <= 2) {
             // Steps 1-2: Resources and energy
             mapLayersHtml =
-                layerBtn('resources', icons.riskyArea, 'Resources');
+                layerBtn('resources', icons.riskyArea, 'Water resources');
         } else if (stepIndex >= 3 && stepIndex <= 4) {
             // Steps 3-4: Government and corporate
             mapLayersHtml =
@@ -2716,85 +2778,90 @@ const UI = {
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
         } else if (stepIndex >= 9 && stepIndex <= 10) {
-            // Steps 9-10: Investment zones, properties
+            // Steps 9-10: Investment zones
             mapLayersHtml =
-                layerBtn('properties', icons.properties, 'Properties') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park');
         } else if (stepIndex === 11) {
             // Step 11: Final
             mapLayersHtml =
-                layerBtn('properties', icons.properties, 'Properties') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park') +
                 layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
         }
 
-        // Data layers (these are inactive by default) - sentence case labels
+        // Data layers (inactive by default) - added per step as steps are defined
+        // Step 1: Water resources (map layer above)
+        // Step 2: Power
         const dataLayersHtml = `
-            <button type="button" class="layer-item" data-layer="baseMap"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('baseMap')"
-                    title="Show base map layer">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.baseMap}</span>
-                <span class="layer-label">Base map</span>
-            </button>
-            <button type="button" class="layer-item" data-layer="trafficFlow"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('trafficFlow')"
-                    title="Show traffic flow data overlay">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.trafficFlow}</span>
-                <span class="layer-label">Traffic flow</span>
-            </button>
-            <button type="button" class="layer-item" data-layer="railCommute"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('railCommute')"
-                    title="Show rail commute routes and times">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.railCommute}</span>
-                <span class="layer-label">Rail commute</span>
-            </button>
             <button type="button" class="layer-item" data-layer="electricity"
                     role="switch" aria-checked="false" onclick="UI.toggleDataLayer('electricity')"
-                    title="Show regional electricity usage data">
+                    title="Show power infrastructure data">
                 <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icons.electricity}</span>
-                <span class="layer-label">Electricity usage</span>
+                <span class="layer-label">Power</span>
             </button>
-            <button type="button" class="layer-item" data-layer="employment"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('employment')"
-                    title="Show employment statistics by area">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.employment}</span>
-                <span class="layer-label">Employment</span>
-            </button>
-            <button type="button" class="layer-item" data-layer="infrastructure"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('infrastructure')"
-                    title="Show planned infrastructure projects">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.infrastructure}</span>
-                <span class="layer-label">Infrastructure plan</span>
-            </button>
-            <button type="button" class="layer-item" data-layer="realEstate"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('realEstate')"
-                    title="Show real estate market data">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.realEstate}</span>
-                <span class="layer-label">Real estate</span>
-            </button>
-            <button type="button" class="layer-item" data-layer="riskyArea"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('riskyArea')"
-                    title="Show flood and hazard risk zones">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.riskyArea}</span>
-                <span class="layer-label">Risky area</span>
-            </button>
-        `;
+        ` + layerBtn('airlineRoutes', icons.airlineRoutes, 'Strategic location', 'toggleAirlineRoutes');
 
         // Combine map layers and data layers
         dataLayerItems.innerHTML = mapLayersHtml + dataLayersHtml;
 
         // Show the toggle button but keep panel hidden until user clicks
         this.showLayersToggle();
+    },
+
+    /**
+     * Auto-activate data layer checkboxes that match the step's active map layers.
+     * Maps step.layers entries to their corresponding data-layer attribute values.
+     * @param {Object} step - The current step object from STEPS array
+     */
+    syncDataLayersToStep(step) {
+        if (!step || !step.layers) return;
+
+        // Map from step layer names to data-layer attribute values
+        const layerToDataAttr = {
+            resources: 'resources',
+            companies: 'companies',
+            sciencePark: 'sciencePark',
+            infrastructureRoads: 'infrastructure',
+            airlineRoutes: 'airlineRoutes'
+        };
+
+        const activeLayers = step.layers;
+        const allItems = document.querySelectorAll('#data-layer-items .layer-item');
+
+        allItems.forEach(item => {
+            const layerKey = item.getAttribute('data-layer');
+            // Check if any step layer maps to this data-layer item
+            const shouldBeActive = activeLayers.some(l => layerToDataAttr[l] === layerKey);
+
+            if (shouldBeActive) {
+                item.classList.add('active');
+                item.setAttribute('aria-checked', 'true');
+            }
+        });
+    },
+
+    /**
+     * Activate a single data layer checkbox by its data-layer attribute.
+     */
+    activateDataLayer(layerKey) {
+        const item = document.querySelector(`#data-layer-items [data-layer="${layerKey}"]`);
+        if (item && !item.classList.contains('active')) {
+            item.classList.add('active');
+            item.setAttribute('aria-checked', 'true');
+        }
+    },
+
+    /**
+     * Deactivate a single data layer checkbox by its data-layer attribute.
+     */
+    deactivateDataLayer(layerKey) {
+        const item = document.querySelector(`#data-layer-items [data-layer="${layerKey}"]`);
+        if (item) {
+            item.classList.remove('active');
+            item.setAttribute('aria-checked', 'false');
+        }
     },
 
     hideDataLayers() {
@@ -2827,42 +2894,11 @@ const UI = {
      */
     showLayersToggle() {
         this.elements.layersToggle.classList.remove('hidden');
-        this.showHomeBtn();
-    },
-
-    /**
-     * Show home button
-     */
-    showHomeBtn() {
-        if (this.elements.homeBtn) {
-            this.elements.homeBtn.classList.remove('hidden');
-        }
-    },
-
-    /**
-     * Hide home button
-     */
-    hideHomeBtn() {
-        if (this.elements.homeBtn) {
-            this.elements.homeBtn.classList.add('hidden');
-        }
     },
 
     /**
      * Reset map to overview position and clear drill-down layers
      */
-    resetToOverview() {
-        if (typeof MapController !== 'undefined') {
-            MapController.resetView();
-        }
-        // Close panel and data layers if open
-        if (this.panelOpen) {
-            this.hidePanel();
-        }
-        if (this.layersPanelOpen) {
-            this.toggleLayersPanel();
-        }
-    },
 
     /**
      * Reset layers toggle to unselected state (button stays visible, panel closes)
@@ -2900,6 +2936,97 @@ const UI = {
     },
 
     /**
+     * Toggle water resources layer - shows water areas, brand markers, and evidence panel
+     */
+    toggleWaterResources(layerName) {
+        const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
+        if (!layerItem) return;
+
+        const isActive = layerItem.classList.contains('active');
+
+        if (isActive) {
+            // Deactivate: hide water markers and panel
+            layerItem.classList.remove('active');
+            layerItem.setAttribute('aria-checked', 'false');
+            MapController.hideWaterResourceLayer();
+            this.hidePanel();
+            this.announceToScreenReader('Water resources layer hidden');
+        } else {
+            // Activate: show water areas, brand markers, and evidence
+            layerItem.classList.add('active');
+            layerItem.setAttribute('aria-checked', 'true');
+            MapController.showWaterResourceLayer();
+            MapController.flyToStep(CAMERA_STEPS.A2_water);
+            this.showWaterResourcesEvidence();
+            this.announceToScreenReader('Water resources layer shown');
+        }
+    },
+
+    /**
+     * Show JASM ESG report evidence in the right panel for water resources
+     */
+    showWaterResourcesEvidence() {
+        const water = AppData.resources.water;
+        const content = `
+            <div class="subtitle">JASM ESG report</div>
+            <h2>Water resources</h2>
+            <p>${water.description}</p>
+            <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', 'JASM ESG report - green power and sustainability section')">
+                <img src="assets/use-case-images/evidence-renewable-energy.webp"
+                     alt="JASM ESG report - green power and sustainability section"
+                     style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
+            </div>
+            <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+                ${water.stats.map(stat => `
+                    <div class="panel-bento-stat">
+                        <div class="panel-bento-stat-value">${stat.value}</div>
+                        <div class="panel-bento-stat-label">${stat.label}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
+     * Show full-view of JASM ESG evidence document
+     */
+    showWaterEvidenceFullView() {
+        this.showGallery(
+            'JASM ESG report',
+            'image',
+            'Green power and sustainability section',
+            'assets/use-case-images/evidence-renewable-energy.webp'
+        );
+    },
+
+    /**
+     * Toggle airline routes layer - shows/hides flight arcs and destination markers
+     */
+    toggleAirlineRoutes(layerName) {
+        const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
+        if (!layerItem) return;
+
+        const isActive = layerItem.classList.contains('active');
+
+        if (isActive) {
+            layerItem.classList.remove('active');
+            layerItem.setAttribute('aria-checked', 'false');
+            MapController.hideAirlineRoutes();
+            this.hidePanel();
+            this.announceToScreenReader('Strategic location layer hidden');
+        } else {
+            layerItem.classList.add('active');
+            layerItem.setAttribute('aria-checked', 'true');
+            MapController.showAirlineRoutes();
+            MapController.flyToStep(CAMERA_STEPS.A3_location);
+            this.showAllAirlineRoutes();
+            this.announceToScreenReader('Strategic location layer shown');
+        }
+    },
+
+    /**
      * Get display name for layer (for screen reader announcements)
      */
     getLayerDisplayName(layerName) {
@@ -2914,7 +3041,8 @@ const UI = {
             employment: 'Employment',
             infrastructure: 'Infrastructure plan',
             realEstate: 'Real estate',
-            riskyArea: 'Risky area'
+            riskyArea: 'Risky area',
+            airlineRoutes: 'Strategic location'
         };
         return names[layerName] || layerName;
     },
@@ -3239,6 +3367,14 @@ const UI = {
 
         // Scroll to bottom
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Reveal CTAs after first assistant response (not in dashboard mode)
+        if (role === 'assistant') {
+            const ctas = document.getElementById('ai-chat-ctas');
+            if (ctas && !ctas.classList.contains('visible') && !App?.state?.dashboardMode) {
+                setTimeout(() => ctas.classList.add('visible'), 500);
+            }
+        }
     },
 
     showTypingIndicator() {
@@ -3745,9 +3881,6 @@ const UI = {
      */
     async startDashboardMode() {
         this.dashboardMode = true;
-
-        this.showApp();
-        await new Promise(r => setTimeout(r, 600));
         await MapController.waitReady();
         if (MapController.map) MapController.map.resize();
 
@@ -3758,7 +3891,6 @@ const UI = {
             console.warn('Dashboard: Error resetting map:', e);
         }
 
-        this.showDashboardToggle();
         this.hidePanelToggle();
 
         this.showTimeToggle();
@@ -3785,24 +3917,6 @@ const UI = {
     },
 
     /**
-     * Show the dashboard toggle button
-     */
-    showDashboardToggle() {
-        if (this.elements.dashboardToggle) {
-            this.elements.dashboardToggle.classList.remove('hidden');
-        }
-    },
-
-    /**
-     * Hide the dashboard toggle button
-     */
-    hideDashboardToggle() {
-        if (this.elements.dashboardToggle) {
-            this.elements.dashboardToggle.classList.add('hidden');
-        }
-    },
-
-    /**
      * Toggle dashboard panel open/closed
      */
     toggleDashboardPanel() {
@@ -3818,17 +3932,10 @@ const UI = {
      */
     showDashboardPanel() {
         this.dashboardPanelOpen = true;
-
-        if (this.elements.dashboardToggle) {
-            this.elements.dashboardToggle.classList.add('active');
-            this.elements.dashboardToggle.setAttribute('aria-expanded', 'true');
-        }
-
         this.hidePanelToggle();
 
         const stage = this.inspectorStage || 8;
         this.renderInspectorPanel(stage, { title: this.inspectorTitle || 'Kumamoto corridor' });
-
     },
 
     /**
@@ -3836,14 +3943,6 @@ const UI = {
      */
     hideDashboardPanel() {
         this.dashboardPanelOpen = false;
-
-        // Update toggle button state
-        if (this.elements.dashboardToggle) {
-            this.elements.dashboardToggle.classList.remove('active');
-            this.elements.dashboardToggle.setAttribute('aria-expanded', 'false');
-        }
-
-        // Hide panel
         this.elements.rightPanel.classList.remove('visible');
         this.elements.rightPanel.classList.add('hidden');
         this.panelOpen = false;
@@ -3860,21 +3959,7 @@ const UI = {
             return;
         }
 
-        // Create property markers (for 'properties' layer)
-        AppData.properties.forEach((property) => {
-            const html = MapController._markerIconHtml('property');
-            const { marker, element } = MapController._createMarker(property.coords, html, { entrance: 'none', ariaLabel: property.name });
-
-            MapController._addTooltip(marker, element, property.name);
-            element.addEventListener('click', () => UI.showPropertyReveal(property));
-
-            MapController.markers[property.id] = marker;
-            if (!MapController._layerGroups.properties) MapController._layerGroups.properties = [];
-            MapController._layerGroups.properties.push(property.id);
-
-            // Start hidden by default (user toggles visibility)
-            marker.remove();
-        });
+        // Property markers removed per design decision
 
         // Create company markers (for 'companies' layer)
         AppData.companies.forEach((company) => {
@@ -5083,10 +5168,10 @@ const UI = {
             document.addEventListener('keydown', this._quickLookKeyHandler);
         } else if (type === 'doc') {
             content.innerHTML = `
-                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
-                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
-                </button>
                 <div class="quick-look-doc">
+                    <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                        <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
+                    </button>
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -5122,11 +5207,24 @@ const UI = {
 
     hideQuickLook() {
         const quickLook = document.getElementById('property-quick-look');
-        if (quickLook) quickLook.classList.add('hidden');
+        if (quickLook) {
+            quickLook.classList.add('hidden');
+            quickLook.classList.remove('evidence-lightbox');
+        }
         if (this._quickLookKeyHandler) {
             document.removeEventListener('keydown', this._quickLookKeyHandler);
             this._quickLookKeyHandler = null;
         }
+    },
+
+    /**
+     * Show evidence image in a lightweight lightbox (20% black overlay)
+     */
+    showEvidenceLightbox(src, alt) {
+        const quickLook = document.getElementById('property-quick-look');
+        if (!quickLook) return;
+        quickLook.classList.add('evidence-lightbox');
+        this.showQuickLook({ type: 'image', src, title: alt || '' });
     },
 
     /**

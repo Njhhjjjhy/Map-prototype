@@ -7,13 +7,10 @@
  *
  * API:
  *   MapController.init()                          — Create Mapbox instance + 3D buildings
- *   MapController.cinematicEntry()                — Sky-to-Kumamoto arrival
  *   MapController.flyToStep(config)               — Cinematic camera flight to any position
  *   MapController.elevateToCorridorView()         — Tilt into 3D corridor (steps 9-10)
  *   MapController.forwardReveal(property)         — Bird's-eye drill-down to property
  *   MapController.reverseReveal()                 — Fly back to corridor
- *   MapController.addPropertyMarkers(properties)  — Amber markers on Mapbox
- *   MapController.addRouteLines(properties, jasm) — Route lines to JASM
  *   MapController.preloadImages(property)         — Preload images on hover
  *   MapController.destroy()                       — Reset state (app restart)
  */
@@ -46,7 +43,7 @@ const CAMERA_STEPS = {
     A0: { center: [130.78, 32.82], zoom: 11.5, pitch: 45, bearing: 10, duration: 2000 },
     A1: { center: [130.78, 32.83], zoom: 11.5, pitch: 45, bearing: -5, duration: 1500 },
     A2_overview: { center: [130.75, 32.80], zoom: 8.5, pitch: 35, bearing: 0, duration: 2500 },
-    A2_water: { center: [130.90, 32.88], zoom: 13, pitch: 50, bearing: 25, duration: 2000 },
+    A2_water: { center: [130.75, 32.80], zoom: 10, pitch: 45, bearing: 10, duration: 2000 },
     A2_power: { center: [130.65, 32.75], zoom: 12, pitch: 45, bearing: -15, duration: 2000 },
     A3_ecosystem: { center: [130.78, 32.84], zoom: 11.5, pitch: 50, bearing: 20, duration: 2000 },
     A3_location: { center: [129.5, 31.5], zoom: 5, pitch: 20, bearing: 0, duration: 3000 },
@@ -85,8 +82,6 @@ const MapController = {
     corridorMode: false,
     _corridorView: null,
     _previousView: null,
-    skipButton: null,
-
     // Marker tracking
     markers: {},              // mapboxgl.Marker instances by ID
     _markerElements: {},      // DOM elements for cleanup
@@ -104,6 +99,9 @@ const MapController = {
         infrastructureRoads: [],
         airlineRoutes: [],
         kyushuEnergy: [],
+        energySolar: [],
+        energyWind: [],
+        energyNuclear: [],
         governmentChain: [],
         investmentZones: [],
         semiconductorNetwork: [],
@@ -132,6 +130,9 @@ const MapController = {
     },
     _animationFrame: null,
     _animationOffset: 0,
+
+    // Energy type line animation tracking
+    _energyLineAnimations: {},
 
     // Evidence marker tracking
     highlightedEvidenceMarker: null,
@@ -175,25 +176,17 @@ const MapController = {
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v12',
             center: [130.75, 32.8],
-            zoom: 10,
+            zoom: 7.5,
             pitch: 0,
             bearing: 0,
             antialias: true,
-            interactive: false,  // Disabled during cinematic entry
+            interactive: true,
             attributionControl: false
         });
 
         this.map.on('style.load', () => {
             this._addBuildingLayer();
         });
-
-        // Skip button for cinematic entry
-        this.skipButton = document.getElementById('cinematic-skip');
-        if (this.skipButton) {
-            this.skipButton.addEventListener('click', () => {
-                this.skipCinematicEntry();
-            });
-        }
 
         this._readyPromise = new Promise((resolve) => {
             this.map.on('error', (e) => {
@@ -227,107 +220,6 @@ const MapController = {
     // ================================
     // CAMERA
     // ================================
-
-    /**
-     * Cinematic arrival — camera descends from Kyushu aerial to Kumamoto
-     */
-    async cinematicEntry() {
-        if (!this.initialized && this._readyPromise) {
-            const ready = await this._readyPromise;
-            if (!ready) return;
-        } else if (!this.initialized) {
-            return;
-        }
-
-        if (this.reducedMotion) return;
-
-        const thisAnimation = { cancelled: false };
-        this._currentAnimation = thisAnimation;
-        const map = this.map;
-
-        // Position camera over Kumamoto region
-        map.jumpTo({
-            center: [130.85, 32.95],
-            zoom: 9,
-            pitch: 0,
-            bearing: 0
-        });
-
-        await this._frame();
-        map.resize();
-        await this._frame();
-
-        // Show skip button after a moment
-        if (this.skipButton) {
-            await this._delay(500);
-            if (thisAnimation.cancelled) return;
-            this.skipButton.classList.add('visible');
-        }
-
-        // Stage 1: Descend — zoom 9→10.5, pitch 0→40
-        map.flyTo({
-            center: [130.78, 32.84],
-            zoom: 10.5,
-            pitch: 40,
-            bearing: 5,
-            duration: 1800,
-            essential: true
-        });
-
-        await this._waitForMoveEnd(3000);
-        if (thisAnimation.cancelled) return;
-
-        // Stage 2: Settle — zoom 10→12.5, pitch 40→50
-        map.flyTo({
-            center: [130.78, 32.82],
-            zoom: 12.5,
-            pitch: 50,
-            bearing: 15,
-            duration: 1500,
-            essential: true
-        });
-
-        await this._waitForMoveEnd(2500);
-        if (thisAnimation.cancelled) return;
-
-        // Hold for a breath — let the audience absorb where they are
-        await this._delay(600);
-        if (thisAnimation.cancelled) return;
-
-        // Hide skip button
-        if (this.skipButton) this.skipButton.classList.remove('visible');
-
-        // Enable user interaction after cinematic entry
-        this._enableInteraction();
-
-        // Start ambient heartbeat
-        this.startHeartbeat();
-
-        this._currentAnimation = null;
-    },
-
-    /**
-     * Skip the cinematic entry
-     */
-    skipCinematicEntry() {
-        if (this._currentAnimation) {
-            this._currentAnimation.cancelled = true;
-            this.map.stop();
-            this._currentAnimation = null;
-        }
-        if (this.skipButton) this.skipButton.classList.remove('visible');
-
-        // Jump to the end position
-        this.map.jumpTo({
-            center: [130.78, 32.82],
-            zoom: 12.5,
-            pitch: 50,
-            bearing: 15
-        });
-
-        this._enableInteraction();
-        this.startHeartbeat();
-    },
 
     /**
      * Fly camera to a step position with cinematic easing
@@ -698,6 +590,167 @@ const MapController = {
     },
 
     // ================================
+    // WATER RESOURCE LAYER (v2 - layer toggle driven)
+    // ================================
+
+    /**
+     * Show water resource layer: water area highlights + Coca-Cola and Suntory logo markers
+     * Camera stays in place - no fly.
+     */
+    showWaterResourceLayer() {
+        const waterData = AppData.resources.water;
+        if (!waterData) return;
+
+        // Add water area highlight polygon on map
+        this._showWaterAreaOverlay();
+
+        // Add Coca-Cola and Suntory logo markers
+        this._showBrandLogoMarkers();
+    },
+
+    /**
+     * Hide water resource layer: remove overlays and brand markers
+     */
+    hideWaterResourceLayer() {
+        // Remove water area overlay
+        this._safeRemoveLayer('water-area-fill');
+        this._safeRemoveLayer('water-area-outline');
+        this._safeRemoveSource('water-area');
+
+        // Remove brand logo markers
+        ['brand-coca-cola', 'brand-suntory'].forEach(id => {
+            if (this.markers[id]) {
+                const el = this.markers[id].getElement();
+                this.markers[id].remove();
+                if (el && el.parentNode) el.remove();
+                delete this.markers[id];
+            }
+        });
+    },
+
+    /**
+     * Show water area highlight overlay on the map (Aso groundwater basin area)
+     */
+    _showWaterAreaOverlay() {
+        if (!this.initialized) return;
+
+        // Remove existing if present
+        this._safeRemoveLayer('water-area-fill');
+        this._safeRemoveLayer('water-area-outline');
+        this._safeRemoveSource('water-area');
+
+        // Approximate Aso groundwater basin extent
+        const waterArea = {
+            type: 'Feature',
+            geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                    [130.70, 32.75],
+                    [130.95, 32.75],
+                    [131.00, 32.85],
+                    [130.95, 32.95],
+                    [130.75, 32.95],
+                    [130.65, 32.88],
+                    [130.70, 32.75]
+                ]]
+            }
+        };
+
+        this._safeAddSource('water-area', {
+            type: 'geojson',
+            data: waterArea
+        });
+
+        this.map.addLayer({
+            id: 'water-area-fill',
+            type: 'fill',
+            source: 'water-area',
+            paint: {
+                'fill-color': '#007aff',
+                'fill-opacity': 0.08
+            }
+        });
+
+        this.map.addLayer({
+            id: 'water-area-outline',
+            type: 'line',
+            source: 'water-area',
+            paint: {
+                'line-color': '#007aff',
+                'line-width': 2,
+                'line-opacity': 0.4,
+                'line-dasharray': [4, 3]
+            }
+        });
+    },
+
+    /**
+     * Show Coca-Cola and Suntory brand logo markers on the map
+     */
+    _showBrandLogoMarkers() {
+        const waterData = AppData.resources.water;
+        if (!waterData || !waterData.evidenceMarkers) return;
+
+        const brands = {
+            'coca-cola': {
+                text: 'Coca-Cola',
+                bg: '#d12421',
+                textColor: '#ffffff',
+                shortText: 'C-C'
+            },
+            'suntory': {
+                text: 'Suntory',
+                bg: '#1a3668',
+                textColor: '#ffffff',
+                shortText: 'S'
+            }
+        };
+
+        waterData.evidenceMarkers.forEach(evidence => {
+            const markerId = `brand-${evidence.id}`;
+            const brand = brands[evidence.id];
+            if (!brand) return;
+
+            // Remove existing marker if present
+            if (this.markers[markerId]) {
+                const oldEl = this.markers[markerId].getElement();
+                this.markers[markerId].remove();
+                if (oldEl && oldEl.parentNode) oldEl.remove();
+                delete this.markers[markerId];
+            }
+
+            const innerHtml = `<span style="
+                font-family: var(--font-display);
+                font-size: 8px;
+                font-weight: 800;
+                color: ${brand.textColor};
+                line-height: 1;
+            ">${brand.shortText}</span>`;
+
+            const iconHtml = this._elevatedMarkerHtml(innerHtml, brand.bg, 36, {}, 'square');
+
+            const markerHtml = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;">
+                ${iconHtml}<span style="
+                font-family: var(--font-display);
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--color-text-primary);
+                text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;
+            ">${brand.text}</span></div>`;
+
+            const { marker, element } = this._createMarker(evidence.coords, markerHtml, {
+                className: 'water-brand-marker',
+                entrance: 'ripple'
+            });
+
+            if (!marker || !element) return;
+
+            element.addEventListener('click', () => UI.showWaterEvidencePanel(evidence));
+            this.markers[markerId] = marker;
+        });
+    },
+
+    // ================================
     // STEPS 1-2 — Resources, Strategic Location
     // ================================
 
@@ -752,6 +805,21 @@ const MapController = {
     _showWaterEvidenceMarkers() {
         const waterData = AppData.resources.water;
         if (!waterData.evidenceMarkers) return;
+
+        // Remove existing evidence markers before creating new ones (prevent accumulation)
+        waterData.evidenceMarkers.forEach(evidence => {
+            const markerId = `water-evidence-${evidence.id}`;
+            if (this.markers[markerId]) {
+                const oldEl = this.markers[markerId].getElement();
+                this.markers[markerId].remove();
+                if (oldEl && oldEl.parentNode) oldEl.remove();
+                delete this.markers[markerId];
+            }
+        });
+        // Remove stale entries from layer group
+        this._layerGroups.resources = this._layerGroups.resources.filter(
+            id => !id.startsWith('water-evidence-')
+        );
 
         const brands = {
             'suntory': { text: 'Suntory', bg: '#1a3668', textColor: '#ffffff', fontSize: '8px', fontWeight: '700' },
@@ -1046,6 +1114,324 @@ const MapController = {
             }
         });
         this._layerGroups.kyushuEnergy = [];
+    },
+
+    // ================================
+    // Per-type energy display (multi-select)
+    // ================================
+
+    /**
+     * Show markers and animated arc lines for a single energy type.
+     * Additive - multiple types can be active simultaneously.
+     * @param {string} type - 'solar', 'wind', or 'nuclear'
+     */
+    showEnergyType(type) {
+        // Hide this type first to prevent duplicates
+        this.hideEnergyType(type);
+
+        const energyData = AppData.kyushuEnergy;
+        const stations = energyData[type] || [];
+        if (stations.length === 0) return;
+
+        const colorMap = { solar: '#ff9500', wind: '#5ac8fa', nuclear: '#ff3b30' };
+        const svgIconMap = {
+            solar: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+            wind: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
+            nuclear: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>'
+        };
+        const groupKey = `energy${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        const color = colorMap[type];
+
+        // Create markers with staggered entrance
+        stations.forEach((station, index) => {
+            const delay = index * 120;
+
+            const html = `<div class="energy-type-pin" style="
+                width: 32px; height: 32px;
+                background: ${color};
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                border: 2.5px solid white;
+                animation: energyPinDrop 0.5s var(--easing-decelerate) ${delay}ms both;
+            ">${svgIconMap[type]}</div>`;
+
+            const { marker, element } = this._createMarker(station.coords, html, {
+                className: `energy-${type}-marker-wrapper`
+            });
+
+            if (!marker || !element) return;
+
+            // After pin drop completes, clear inline animation so CSS
+            // .energy-type-pin idle pulse can take over
+            const inner = element.firstElementChild;
+            if (inner) {
+                inner.addEventListener('animationend', () => {
+                    inner.style.animation = '';
+                }, { once: true });
+            }
+
+            this._addTooltip(marker, element, `${station.name} - ${station.capacity}`);
+            element.addEventListener('click', () => {
+                if (typeof UI !== 'undefined') {
+                    UI.showEnergyStationPanel(station, type);
+                }
+            });
+
+            const id = `energy-${type}-${station.id}`;
+            this.markers[id] = marker;
+            this._layerGroups[groupKey].push(id);
+        });
+
+        // Draw animated arc lines from each station to JASM
+        const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
+
+        stations.forEach((station, index) => {
+            const origin = station.coords;
+            const midLat = (origin[0] + jasmCoords[0]) / 2;
+            const midLng = (origin[1] + jasmCoords[1]) / 2;
+            const dLat = jasmCoords[0] - origin[0];
+            const dLng = jasmCoords[1] - origin[1];
+            const distance = Math.sqrt(dLat * dLat + dLng * dLng);
+            const arcHeight = Math.max(0.08, Math.min(0.6, distance * 0.2));
+            const arcMid = [midLat + arcHeight, midLng];
+            const points = this.generateBezierPoints(origin, arcMid, jasmCoords, 60);
+
+            const sourceId = `energy-arc-${type}-${index}`;
+            this._safeAddSource(sourceId, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: points }
+                }
+            });
+
+            // Glow layer (rendered behind main line for visibility)
+            const glowLayerId = `${sourceId}-glow`;
+            this.map.addLayer({
+                id: glowLayerId,
+                type: 'line',
+                source: sourceId,
+                paint: {
+                    'line-color': color,
+                    'line-width': 10,
+                    'line-opacity': 0,
+                    'line-blur': 3
+                },
+                layout: { 'line-cap': 'round', 'line-join': 'round' }
+            });
+
+            // Main arc line
+            const layerId = `${sourceId}-line`;
+            this.map.addLayer({
+                id: layerId,
+                type: 'line',
+                source: sourceId,
+                paint: {
+                    'line-color': color,
+                    'line-width': 4,
+                    'line-opacity': 0.9
+                },
+                layout: { 'line-cap': 'round', 'line-join': 'round' }
+            });
+
+            this._layerGroups[groupKey].push(glowLayerId, layerId, sourceId);
+
+            // Staggered reveal from source to JASM, then ambient flow pulse
+            this._animateEnergyLine(layerId, glowLayerId, index * 400, 2500, index);
+        });
+    },
+
+    /**
+     * Animate a single energy arc line using line-trim-offset.
+     * Phase 1: Draw line from source to JASM (directional reveal).
+     * Phase 2: Staggered opacity pulsing (ambient energy flow).
+     *
+     * line-trim-offset: [a, b] trims (hides) the section from a to b.
+     * To reveal source-to-JASM: [eased, 1] shrinks the trim from the end.
+     *
+     * @param {string} layerId - Main line Mapbox layer ID
+     * @param {string} glowLayerId - Glow line Mapbox layer ID
+     * @param {number} delay - Stagger delay before animation starts (ms)
+     * @param {number} duration - Reveal phase duration (ms)
+     * @param {number} staggerIndex - Index for phase offset in flow animation
+     */
+    _animateEnergyLine(layerId, glowLayerId, delay, duration, staggerIndex) {
+        // Start fully trimmed (invisible)
+        try {
+            this.map.setPaintProperty(layerId, 'line-trim-offset', [0, 1]);
+        } catch (e) {
+            // line-trim-offset not supported; fall back to opacity fade
+            this.map.setPaintProperty(layerId, 'line-opacity', 0);
+            if (glowLayerId) {
+                try { this.map.setPaintProperty(glowLayerId, 'line-opacity', 0); } catch (e2) { /* */ }
+            }
+            setTimeout(() => {
+                try {
+                    this.map.setPaintProperty(layerId, 'line-opacity', 0.9);
+                    if (glowLayerId && this.map.getLayer(glowLayerId)) {
+                        this.map.setPaintProperty(glowLayerId, 'line-opacity', 0.15);
+                    }
+                } catch (e2) { /* layer may be gone */ }
+            }, delay);
+            return;
+        }
+
+        const startTime = performance.now() + delay;
+        const self = this;
+
+        const animate = (now) => {
+            if (!self.map || !self.map.getLayer(layerId)) return;
+
+            const elapsed = now - startTime;
+            if (elapsed < 0) {
+                self._energyLineAnimations[layerId] = requestAnimationFrame(animate);
+                return;
+            }
+
+            const progress = Math.min(1, elapsed / duration);
+            // Ease-out for natural deceleration
+            const eased = 1 - Math.pow(1 - progress, 3);
+
+            try {
+                // [eased, 1] trims the unrevealed portion at the JASM end,
+                // making the line draw from source (position 0) toward JASM (position 1)
+                self.map.setPaintProperty(layerId, 'line-trim-offset', [eased, 1]);
+                // Fade glow in sync with reveal
+                if (glowLayerId && self.map.getLayer(glowLayerId)) {
+                    self.map.setPaintProperty(glowLayerId, 'line-opacity', eased * 0.15);
+                }
+            } catch (e) { return; }
+
+            if (progress < 1) {
+                self._energyLineAnimations[layerId] = requestAnimationFrame(animate);
+            } else {
+                // Reset trim so full line is visible for flow phase
+                try {
+                    self.map.setPaintProperty(layerId, 'line-trim-offset', [0, 0]);
+                } catch (e) { /* */ }
+                delete self._energyLineAnimations[layerId];
+                // Phase 2: ambient flow pulse
+                self._startEnergyLineFlow(layerId, glowLayerId, staggerIndex);
+            }
+        };
+
+        this._energyLineAnimations[layerId] = requestAnimationFrame(animate);
+    },
+
+    /**
+     * Repeating draw-and-fade cycle on the glow layer that creates the
+     * visual impression of energy pulses traveling from source to JASM.
+     * Main line dims to a permanent arc; glow repeatedly reveals and fades.
+     *
+     * @param {string} layerId - Main line layer (dimmed to permanent arc)
+     * @param {string} glowLayerId - Glow line layer (animated flow)
+     * @param {number} staggerIndex - Phase offset index
+     */
+    _startEnergyLineFlow(layerId, glowLayerId, staggerIndex) {
+        const self = this;
+        const drawMs = 1800;
+        const fadeMs = 500;
+        const pauseMs = 400;
+        const totalMs = drawMs + fadeMs + pauseMs;
+        const phaseOffset = (staggerIndex || 0) * 650;
+
+        // Dim main line so the flowing glow stands out
+        try {
+            self.map.setPaintProperty(layerId, 'line-opacity', 0.35);
+            // Widen glow for more visible flow
+            if (glowLayerId && self.map.getLayer(glowLayerId)) {
+                self.map.setPaintProperty(glowLayerId, 'line-width', 14);
+                self.map.setPaintProperty(glowLayerId, 'line-blur', 6);
+            }
+        } catch (e) { /* */ }
+
+        const startTime = performance.now();
+
+        const flow = (now) => {
+            if (!self.map || !self.map.getLayer(layerId)) return;
+            if (!glowLayerId || !self.map.getLayer(glowLayerId)) return;
+
+            const elapsed = now - startTime + phaseOffset;
+            const cycleProgress = (elapsed % totalMs) / totalMs;
+            const drawEnd = drawMs / totalMs;
+            const fadeEnd = (drawMs + fadeMs) / totalMs;
+
+            try {
+                if (cycleProgress < drawEnd) {
+                    // Draw phase: glow reveals from source toward JASM
+                    const t = cycleProgress / drawEnd;
+                    const eased = 1 - Math.pow(1 - t, 2.5);
+                    self.map.setPaintProperty(glowLayerId, 'line-trim-offset', [eased, 1]);
+                    self.map.setPaintProperty(glowLayerId, 'line-opacity', 0.35);
+                } else if (cycleProgress < fadeEnd) {
+                    // Fade phase: fully drawn, fade out
+                    const t = (cycleProgress - drawEnd) / (fadeEnd - drawEnd);
+                    self.map.setPaintProperty(glowLayerId, 'line-trim-offset', [1, 1]);
+                    self.map.setPaintProperty(glowLayerId, 'line-opacity', 0.35 * (1 - t));
+                } else {
+                    // Pause: invisible, reset trim for next cycle
+                    self.map.setPaintProperty(glowLayerId, 'line-trim-offset', [0, 1]);
+                    self.map.setPaintProperty(glowLayerId, 'line-opacity', 0);
+                }
+            } catch (e) { return; }
+
+            self._energyLineAnimations[layerId] = requestAnimationFrame(flow);
+        };
+
+        this._energyLineAnimations[layerId] = requestAnimationFrame(flow);
+    },
+
+    /**
+     * Hide markers and lines for a single energy type.
+     * @param {string} type - 'solar', 'wind', or 'nuclear'
+     */
+    hideEnergyType(type) {
+        const groupKey = `energy${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        const group = this._layerGroups[groupKey] || [];
+
+        // Cancel any running animations for this type
+        group.forEach(id => {
+            if (this._energyLineAnimations[id]) {
+                cancelAnimationFrame(this._energyLineAnimations[id]);
+                delete this._energyLineAnimations[id];
+            }
+        });
+
+        // Remove markers
+        group.forEach(id => {
+            if (this.markers[id]) {
+                const marker = this.markers[id];
+                const element = marker.getElement();
+                marker.remove();
+                if (element && element.parentNode) {
+                    element.remove();
+                }
+                delete this.markers[id];
+            }
+        });
+
+        // Remove line and glow layers, then sources
+        group.forEach(id => {
+            if (id.endsWith('-line') || id.endsWith('-glow')) {
+                this._safeRemoveLayer(id);
+            }
+        });
+        group.forEach(id => {
+            if (id.startsWith('energy-arc-') && !id.endsWith('-line') && !id.endsWith('-glow')) {
+                this._safeRemoveSource(id);
+            }
+        });
+
+        this._layerGroups[groupKey] = [];
+    },
+
+    /**
+     * Hide all per-type energy displays.
+     * Called on step exit to clean up.
+     */
+    hideAllEnergyTypes() {
+        ['solar', 'wind', 'nuclear'].forEach(type => this.hideEnergyType(type));
     },
 
     /**
@@ -1437,7 +1823,17 @@ const MapController = {
 
                 const entrance = index === 0 ? 'anchor' : 'ripple';
                 const { marker, element } = this._createMarker(level.coords, html, { entrance, ariaLabel: level.name });
-                element.addEventListener('click', () => UI.renderInspectorPanel(4, { title: level.name }));
+                // Build a tier-compatible object from the chain level data
+                const tierData = {
+                    tierLabel: level.subtitle || 'Government commitment',
+                    name: level.name,
+                    commitment: level.stats?.[0]?.value || '',
+                    commitmentLabel: level.stats?.[0]?.label || '',
+                    color: color,
+                    description: level.description || '',
+                    stats: level.stats || []
+                };
+                element.addEventListener('click', () => UI.showGovernmentTierPanel(tierData));
 
                 const id = `govt-${level.id}`;
                 this.markers[id] = marker;
@@ -1492,6 +1888,17 @@ const MapController = {
      * Show company markers (step 4: corporate investment)
      */
     showCompanyMarkers() {
+        // Clear existing company markers to prevent accumulation across steps
+        this._layerGroups.companies.forEach(id => {
+            if (this.markers[id]) {
+                const el = this.markers[id].getElement();
+                this.markers[id].remove();
+                if (el && el.parentNode) el.remove();
+                delete this.markers[id];
+            }
+        });
+        this._layerGroups.companies = [];
+
         AppData.companies.forEach((company, index) => {
             setTimeout(() => {
                 const html = this._brandedMarkerHtml(company.id);
@@ -1749,7 +2156,28 @@ const MapController = {
             data: { type: 'FeatureCollection', features }
         });
 
-        // Start fully transparent — per-road stagger via feature-state
+        // Glow layer — wide translucent halo behind selected road
+        this.map.addLayer({
+            id: 'infrastructure-roads-glow',
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': MAP_COLORS.infrastructure,
+                'line-width': 16,
+                'line-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false], 0.25,
+                    0
+                ],
+                'line-blur': 6
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        // Main dashed line — all roads
         this.map.addLayer({
             id: 'infrastructure-roads-line',
             type: 'line',
@@ -1759,16 +2187,35 @@ const MapController = {
                 'line-width': [
                     'case',
                     ['boolean', ['feature-state', 'hover'], false], 7,
-                    ['boolean', ['feature-state', 'selected'], false], 7,
                     5
                 ],
                 'line-opacity': [
                     'case',
                     ['boolean', ['feature-state', 'hover'], false], 1.0,
-                    ['boolean', ['feature-state', 'selected'], false], 1.0,
+                    ['boolean', ['feature-state', 'selected'], false], 0,
                     ['number', ['feature-state', 'opacity'], 0]
                 ],
                 'line-dasharray': [10, 6]
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        // Solid selected overlay — replaces dashed line for selected road
+        this.map.addLayer({
+            id: 'infrastructure-roads-selected',
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': MAP_COLORS.infrastructure,
+                'line-width': 7,
+                'line-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false], 1.0,
+                    0
+                ]
             },
             layout: {
                 'line-cap': 'round',
@@ -1810,7 +2257,7 @@ const MapController = {
             }, index * TIMING.infraStagger);
         });
 
-        this._layerGroups.infrastructureRoads.push('infrastructure-roads-line', 'infrastructure-roads-labels', sourceId);
+        this._layerGroups.infrastructureRoads.push('infrastructure-roads-glow', 'infrastructure-roads-line', 'infrastructure-roads-selected', 'infrastructure-roads-labels', sourceId);
 
         // Announce roads added
         setTimeout(() => {
@@ -1860,7 +2307,7 @@ const MapController = {
                 const road = AppData.infrastructureRoads.find(r => r.id === roadId);
                 if (road) {
                     this.selectInfrastructureRoad(roadId);
-                    UI.renderInspectorPanel(7, { title: road.name });
+                    UI.showRoadDetailPanel(road);
                 }
             }
         });
@@ -1919,9 +2366,11 @@ const MapController = {
     },
 
     hideInfrastructureRoads() {
-        // Remove line and label layers
+        // Remove line, glow, selected, and label layers
         this._safeRemoveLayer('infrastructure-roads-labels');
+        this._safeRemoveLayer('infrastructure-roads-selected');
         this._safeRemoveLayer('infrastructure-roads-line');
+        this._safeRemoveLayer('infrastructure-roads-glow');
         this._safeRemoveSource('infrastructure-roads');
 
         // Remove station markers
@@ -2035,112 +2484,6 @@ const MapController = {
     // STEPS 9-11 — Investment Zones, Properties, Area Changes
     // ================================
 
-    /**
-     * Add property markers to the Mapbox map for corridor view
-     */
-    addPropertyMarkers(properties) {
-        if (!this.initialized || !this.map) return;
-
-        // Remove any legacy circle layers (safe no-op if absent)
-        this._safeRemoveLayer('property-markers-circle');
-        this._safeRemoveLayer('property-markers-stroke');
-        this._safeRemoveSource('property-markers');
-
-        // Remove existing DOM property markers
-        this._layerGroups.properties.forEach(id => {
-            if (this.markers[id]) {
-                const el = this.markers[id].getElement();
-                this.markers[id].remove();
-                if (el && el.parentNode) el.remove();
-                delete this.markers[id];
-            }
-        });
-        this._layerGroups.properties = [];
-
-        // Create DOM-based icon markers (consistent with dashboard)
-        properties.forEach((property, index) => {
-            setTimeout(() => {
-                const html = this._markerIconHtml('property');
-                const { marker, element } = this._createMarker(property.coords, html, {
-                    entrance: 'emerge',
-                    ariaLabel: property.name
-                });
-
-                if (!marker) return;
-
-                this._addTooltip(marker, element, property.name);
-
-                element.addEventListener('mouseover', () => this.preloadImages(property));
-                element.addEventListener('click', () => {
-                    if (typeof UI !== 'undefined') {
-                        UI.showPropertyReveal(property);
-                    }
-                });
-
-                this.markers[property.id] = marker;
-                this._layerGroups.properties.push(property.id);
-            }, index * 100);
-        });
-    },
-
-    /**
-     * Add route lines from properties to JASM
-     */
-    addRouteLines(properties, jasmCoords) {
-        if (!this.initialized || !this.map) return;
-
-        const map = this.map;
-        const jasmLngLat = this._toMapbox(jasmCoords);
-
-        this._routeShimmerActive = false;
-        this._safeRemoveLayer('property-routes-line');
-        this._safeRemoveSource('property-routes');
-
-        const geojson = {
-            type: 'FeatureCollection',
-            features: properties.map(p => ({
-                type: 'Feature',
-                geometry: {
-                    type: 'LineString',
-                    coordinates: [this._toMapbox(p.coords), jasmLngLat]
-                }
-            }))
-        };
-
-        map.addSource('property-routes', { type: 'geojson', data: geojson });
-
-        map.addLayer({
-            id: 'property-routes-line',
-            type: 'line',
-            source: 'property-routes',
-            paint: {
-                'line-color': '#007aff',
-                'line-width': 2,
-                'line-opacity': 0.5,
-                'line-dasharray': [4, 4]
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        });
-
-        // Route shimmer: subtle opacity breathing animation
-        if (!this.reducedMotion) {
-            this._routeShimmerActive = true;
-            let phase = 0;
-            const shimmer = () => {
-                if (!this._routeShimmerActive || !map.getLayer('property-routes-line')) return;
-                phase += 0.03;
-                const opacity = 0.35 + Math.sin(phase) * 0.15;
-                try {
-                    map.setPaintProperty('property-routes-line', 'line-opacity', opacity);
-                } catch (e) { /* layer removed */ }
-                requestAnimationFrame(shimmer);
-            };
-            requestAnimationFrame(shimmer);
-        }
-    },
 
     /**
      * Show property markers (Leaflet-compatible API for dashboard)
@@ -2698,10 +3041,12 @@ const MapController = {
     async showAirlineRoutes() {
         const routes = AppData.airlineRoutes;
         const origin = routes.origin.coords;
+        const activeRoutes = routes.destinations.filter(d => d.status === 'active');
+        const suspendedRoutes = routes.destinations.filter(d => d.status === 'suspended');
 
         this.hideAirlineRoutes();
 
-        // 1. Origin marker
+        // 1. Origin marker (placed immediately, visible as camera arrives)
         const originHtml = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;">
             <div style="width: 10px; height: 10px; background: ${MAP_COLORS.primary}; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;"></div>
             <span style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--color-text-primary); text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;">Kumamoto</span>
@@ -2712,24 +3057,36 @@ const MapController = {
         });
         this.airlineOriginMarker = originMarker;
 
-        // 2. Zoom out to show Japan
-        await this.flyToStep(CAMERA_STEPS.A3_location);
+        // Camera fly is handled by goToStep() - no redundant flyToStep here.
+        // Routes draw immediately as camera is arriving.
 
-        // 3. Draw routes with stagger
-        for (let i = 0; i < routes.destinations.length; i++) {
-            await this._delay(80);
-            const dest = routes.destinations[i];
-            this._addArcLine(origin, dest.coords, dest.status, dest.semiconductorLink, i);
+        // 2. Draw active routes sequentially with staggered reveal
+        for (let i = 0; i < activeRoutes.length; i++) {
+            await this._delay(150);
+            const dest = activeRoutes[i];
+            this._addAnimatedArcLine(origin, dest.coords, dest.status, dest.semiconductorLink, i);
         }
 
-        // 4. Destination markers
-        await this._delay(200);
-        routes.destinations.forEach(dest => {
+        // 3. Destination markers for active routes
+        await this._delay(100);
+        activeRoutes.forEach(dest => {
             const marker = dest.semiconductorLink
                 ? this._createBrandedDestinationMarker(dest)
                 : this._createDestinationMarker(dest);
             this.airlineDestinationMarkers.push(marker);
         });
+
+        // 4. Suspended routes last, dimmer
+        if (suspendedRoutes.length > 0) {
+            await this._delay(200);
+            for (let i = 0; i < suspendedRoutes.length; i++) {
+                const dest = suspendedRoutes[i];
+                const idx = activeRoutes.length + i;
+                this._addArcLine(origin, dest.coords, dest.status, dest.semiconductorLink, idx);
+                const marker = this._createDestinationMarker(dest);
+                this.airlineDestinationMarkers.push(marker);
+            }
+        }
     },
 
     _addArcLine(origin, destination, status, semiLink, index) {
@@ -2779,6 +3136,84 @@ const MapController = {
         });
 
         this._layerGroups.airlineRoutes.push(`${sourceId}-line`, sourceId);
+    },
+
+    /**
+     * Add an arc line with animated progressive reveal.
+     * Draws the line from origin outward to destination over ~600ms.
+     */
+    _addAnimatedArcLine(origin, destination, status, semiLink, index) {
+        const midLat = (origin[0] + destination[0]) / 2;
+        const midLng = (origin[1] + destination[1]) / 2;
+
+        const dLat = destination[0] - origin[0];
+        const dLng = destination[1] - origin[1];
+        const distance = Math.sqrt(dLat * dLat + dLng * dLng);
+        const arcHeight = Math.max(0.3, Math.min(2.0, distance * 0.15));
+
+        const arcMid = [midLat + arcHeight, midLng];
+        const allPoints = this.generateBezierPoints(origin, arcMid, destination, 50);
+
+        let routeColor = '#c0766e';
+        let weight = 1.5;
+        if (semiLink) {
+            const brandColors = { 'TSMC': '#c4001a', 'Samsung': '#1428a0' };
+            routeColor = brandColors[semiLink.company] || routeColor;
+            weight = 2.5;
+        }
+        const opacity = status === 'suspended' ? 0.4 : 0.7;
+
+        const sourceId = `airline-route-${index}`;
+
+        // Start with just the first two points (origin)
+        this._safeAddSource(sourceId, {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: allPoints.slice(0, 2) }
+            }
+        });
+
+        this.map.addLayer({
+            id: `${sourceId}-line`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': routeColor,
+                'line-width': weight,
+                'line-opacity': opacity
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        });
+
+        this._layerGroups.airlineRoutes.push(`${sourceId}-line`, sourceId);
+
+        // Progressively extend the line to simulate drawing outward
+        const totalSteps = 12;
+        const stepInterval = 50; // ~600ms total
+        let currentStep = 0;
+
+        const drawNext = () => {
+            currentStep++;
+            if (currentStep > totalSteps) return;
+            const src = this.map.getSource(sourceId);
+            if (!src) return;
+
+            const pointCount = Math.round((currentStep / totalSteps) * allPoints.length);
+            const pts = allPoints.slice(0, Math.max(2, pointCount));
+            src.setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: pts }
+            });
+
+            if (currentStep < totalSteps) {
+                setTimeout(drawNext, stepInterval);
+            }
+        };
+        setTimeout(drawNext, stepInterval);
     },
 
     _createDestinationMarker(destination) {
@@ -3241,7 +3676,6 @@ const MapController = {
 
         this.clearAll();
 
-        if (this.skipButton) this.skipButton.classList.remove('visible');
         this.revealing = false;
         this.corridorMode = false;
         this._corridorView = null;

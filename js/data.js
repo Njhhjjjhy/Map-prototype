@@ -19,13 +19,11 @@ const STEPS = [
         title: 'Resources',
         subtitle: 'Water and power infrastructure',
         cameraKey: 'A0',
-        layers: ['resources', 'kyushuEnergy'],
+        layers: ['resources'],
         panelTabs: ['Evidence'],
         subItems: [
             { id: 'water', label: 'Water resources', icon: 'droplet' },
-            { id: 'power-solar', label: 'Solar power', icon: 'sun' },
-            { id: 'power-wind', label: 'Wind power', icon: 'wind' },
-            { id: 'power-nuclear', label: 'Nuclear power', icon: 'atom' }
+            { id: 'power', label: 'Power sources', icon: 'zap' }
         ]
     },
     {
@@ -68,7 +66,7 @@ const STEPS = [
         title: 'Science park and zones',
         subtitle: 'Development clusters and long-term plans',
         cameraKey: 'B1_sciencePark',
-        layers: ['sciencePark', 'futureZones', 'governmentChain'],
+        layers: ['sciencePark', 'futureZones', 'governmentChain', 'companies'],
         panelTabs: ['Plans', 'Zones'],
         subItems: [
             { id: 'science-park', label: 'Kumamoto Science Park', icon: 'flask-conical' },
@@ -141,7 +139,7 @@ const STEPS = [
         title: 'Properties',
         subtitle: 'Investment opportunities',
         cameraKey: 'corridor',
-        layers: ['properties', 'route'],
+        layers: [],
         panelTabs: ['Images', 'Truth Engine', 'Future Outlook', 'Financial'],
         subItems: [
             { id: 'ozu-sugimizu', label: 'Ozu Sugimizu', icon: 'house' },
@@ -155,7 +153,7 @@ const STEPS = [
         title: 'Journey complete',
         subtitle: 'Summary and Q&A',
         cameraKey: 'complete',
-        layers: ['companies', 'properties', 'investmentZones', 'infrastructureRoads', 'sciencePark'],
+        layers: ['companies', 'investmentZones', 'infrastructureRoads', 'sciencePark'],
         panelTabs: [],
         subItems: []
     }
@@ -202,7 +200,7 @@ const AppData = {
                 {
                     id: 'coca-cola',
                     name: 'Coca-Cola Bottlers Japan',
-                    coords: [32.74, 130.72],
+                    coords: [32.802677, 130.712800],
                     subtitle: 'Kumamoto plant',
                     description: 'Major beverage manufacturer chose Kumamoto for exceptional water quality and abundance. The plant produces beverages for the entire Kyushu region.',
                     stats: [
@@ -215,7 +213,7 @@ const AppData = {
                 {
                     id: 'suntory',
                     name: 'Suntory Kyushu Kumamoto Factory',
-                    coords: [32.82, 130.85],
+                    coords: [32.746801, 130.791987],
                     subtitle: 'Premium beverage production',
                     description: 'Suntory selected Kashima, Kamimashiki for its pristine groundwater. The facility produces premium beverages requiring the highest water purity standards.',
                     stats: [
@@ -320,7 +318,45 @@ const AppData = {
         nuclear: [
             { id: 'nuclear-genkai', name: 'Genkai Nuclear Power Station', coords: [33.515, 129.836], capacity: '3.47 GW', prefecture: 'Saga' },
             { id: 'nuclear-sendai', name: 'Sendai Nuclear Power Station', coords: [31.8336, 130.1894], capacity: '1.78 GW', prefecture: 'Kagoshima' }
-        ]
+        ],
+        // Per-type evidence summaries for the power sources panel
+        evidence: {
+            solar: {
+                title: 'Kyushu solar power capacity',
+                subtitle: 'Renewable energy base',
+                description: 'Kyushu solar generation capacity has grown steadily since the FIT system launched in 2012. As of September 2024, installed solar capacity across the region reached 12.24 GW, providing the bulk of renewable generation supporting the semiconductor corridor.',
+                stats: [
+                    { value: '12.24GW', label: 'Solar capacity (2024)' },
+                    { value: '57.7 MW', label: 'Combined Kyushu sites' },
+                    { value: '+140MW', label: 'Annual growth' },
+                    { value: '2012', label: 'FIT system start' }
+                ],
+                image: 'assets/use-case-images/evidence-renewable-energy.webp'
+            },
+            wind: {
+                title: 'Kyushu wind power capacity',
+                subtitle: 'Renewable energy complement',
+                description: 'Kyushu wind generation complements solar as part of the region\'s renewable energy base. As of September 2024, installed wind capacity reached 640 MW. The Goto offshore wind project brings deep-water floating turbine technology to the region.',
+                stats: [
+                    { value: '640MW', label: 'Wind capacity (2024)' },
+                    { value: '92.75 MW', label: 'Combined Kyushu sites' },
+                    { value: 'Offshore', label: 'Goto floating turbines' },
+                    { value: '12.88GW', label: 'Total renewable (solar+wind)' }
+                ],
+                image: 'assets/use-case-images/evidence-renewable-energy.webp'
+            },
+            nuclear: {
+                title: 'Kyushu nuclear baseload',
+                subtitle: 'Grid stability backbone',
+                description: 'Genkai and Sendai nuclear power stations provide 5.25 GW of baseload electricity, ensuring the stable 24/7 power supply that semiconductor fabs require. Kyushu Electric\'s nuclear fleet delivers 99.97% reliability.',
+                stats: [
+                    { value: '5.25GW', label: 'Combined capacity' },
+                    { value: '99.97%', label: 'Reliability rate' },
+                    { value: '24/7', label: 'Baseload operation' },
+                    { value: '¥11/kWh', label: 'Cost to grid' }
+                ]
+            }
+        }
     },
 
     // Journey A: Talent Pipeline (Kyushu-wide scope)
@@ -1152,11 +1188,10 @@ const AppData = {
                 country: 'South Korea',
                 region: 'Korea',
                 status: 'active',
-                flightTime: '1h 30m',
-                airlines: ['Asiana Airlines', 'Jin Air'],
-                frequency: '7 flights/week',
+                flightTime: '1h 40m',
+                airlines: ['Korean Air', 'T\'way Air'],
                 significance: 'Samsung memory division HQ link',
-                description: 'Direct service to Seoul\'s primary international airport.',
+                description: 'Direct service to Seoul\'s primary international airport. Year-round daily flights.',
                 semiconductorLink: { company: 'Samsung', role: 'Memory Division HQ', color: '#34c759' }
             },
             {
@@ -1167,25 +1202,10 @@ const AppData = {
                 country: 'South Korea',
                 region: 'Korea',
                 status: 'active',
-                flightTime: '1h 15m',
-                airlines: ['Jin Air'],
-                frequency: '3 flights/week',
-                significance: 'TBD',
-                description: 'Direct service to South Korea\'s second-largest city.'
-            },
-            {
-                id: 'shanghai-pudong',
-                name: 'Shanghai Pudong',
-                coords: [31.1443, 121.8083],
-                code: 'PVG',
-                country: 'China',
-                region: 'China',
-                status: 'suspended',
-                flightTime: '2h 00m',
-                airlines: ['TBD'],
-                frequency: 'Suspended',
-                significance: 'Manufacturing partner access',
-                description: 'Service currently suspended.'
+                flightTime: '1h 25m',
+                airlines: ['Eastar Jet'],
+                significance: 'Korea\'s second-largest city',
+                description: 'Daily direct service on Boeing 737.'
             },
             {
                 id: 'taiwan-taoyuan',
@@ -1195,54 +1215,24 @@ const AppData = {
                 country: 'Taiwan',
                 region: 'Taiwan',
                 status: 'active',
-                flightTime: '2h 30m',
-                airlines: ['TBD'],
-                frequency: 'TBD',
+                flightTime: '1h 40m',
+                airlines: ['Starlux Airlines', 'China Airlines'],
                 significance: 'TSMC headquarters connection',
                 description: 'Direct service to Taiwan\'s main international gateway.',
                 semiconductorLink: { company: 'TSMC', role: 'Global Headquarters', color: '#007aff' }
             },
             {
-                id: 'tainan',
-                name: 'Tainan Airport',
-                coords: [22.9504, 120.2057],
-                code: 'TNN',
-                country: 'Taiwan',
-                region: 'Taiwan',
-                status: 'active',
-                flightTime: 'TBD',
-                airlines: ['TBD'],
-                frequency: 'TBD',
-                significance: 'TSMC Fab 18 access',
-                description: 'Direct service to southern Taiwan semiconductor hub.'
-            },
-            {
                 id: 'kaohsiung',
-                name: 'Kaohsiung International',
+                name: 'Kaohsiung',
                 coords: [22.5771, 120.3500],
                 code: 'KHH',
                 country: 'Taiwan',
                 region: 'Taiwan',
                 status: 'active',
-                flightTime: '2h 15m',
-                airlines: ['TBD'],
-                frequency: 'TBD',
+                flightTime: '2h 45m',
+                airlines: ['China Airlines'],
                 significance: 'Southern Taiwan industrial access',
-                description: 'Direct service to Taiwan\'s second-largest city.'
-            },
-            {
-                id: 'hong-kong',
-                name: 'Hong Kong International',
-                coords: [22.3080, 113.9185],
-                code: 'HKG',
-                country: 'Hong Kong',
-                region: 'Hong Kong',
-                status: 'suspended',
-                flightTime: '3h 00m',
-                airlines: ['TBD'],
-                frequency: 'Suspended',
-                significance: 'Financial hub connection',
-                description: 'Service currently suspended.'
+                description: 'Direct service to Taiwan\'s second-largest city and southern semiconductor hub.'
             }
         ]
     },

@@ -1,20 +1,14 @@
 {
   "name": "map-prototype",
   "version": "1.0.0",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "description": "Interactive presentation app for real estate sales in Kumamoto, Japan",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite"
+    "dev": "npx vite"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Njhhjjjhy/Map-prototype.git"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Njhhjjjhy/Map-prototype/issues"
@@ -22,19 +16,5 @@
   "homepage": "https://github.com/Njhhjjjhy/Map-prototype#readme",
   "devDependencies": {
     "vite": "^7.3.1"
-  },
-  "dependencies": {
-    "@coinbase/cds-web": "^8.46.1",
-    "esbuild": "^0.27.2",
-    "fdir": "^6.5.0",
-    "framer-motion": "^10.18.0",
-    "nanoid": "^3.3.11",
-    "picocolors": "^1.1.1",
-    "picomatch": "^4.0.3",
-    "postcss": "^8.5.6",
-    "rollup": "^4.57.1",
-    "source-map-js": "^1.2.1",
-    "tinyglobby": "^0.2.15"
-  },
-  "description": ""
+  }
 }

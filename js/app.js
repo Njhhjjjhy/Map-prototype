@@ -32,29 +32,42 @@ const App = {
         activeProperty: null, // Currently selected property ID (step 10)
         futureView: false,    // Whether future toggle is active (step 8)
         evidenceGroupsViewed: [], // Track which evidence groups have been viewed
+        activeEnergyTypes: [], // Track which energy types are toggled on (solar, wind, nuclear)
     },
 
     /**
-     * Initialize the app
+     * Initialize the app - loads map directly, no start screen
      */
-    init() {
+    async init() {
         UI.init();
         MapController.init();
-    },
 
-    /**
-     * Start the journey (called when Start button is clicked)
-     */
-    async start() {
-        UI.showApp();
-        await new Promise(r => setTimeout(r, 600));
+        // Skip start screen entirely - show app container immediately
+        UI.showAppDirect();
+
+        // Wait for map to be ready
         await MapController.waitReady();
         if (MapController.map) {
             MapController.map.resize();
         }
-        await MapController.cinematicEntry();
-        await new Promise(r => setTimeout(r, TIMING.breath));
-        this.goToStep(1);
+
+        // Enable interaction and show initial UI
+        MapController._enableInteraction();
+        MapController.startHeartbeat();
+
+        // Show the three persistent UI elements
+        UI.showLayersToggle();
+        UI.showPanelToggle();
+
+        // Populate data layers for the initial state
+        UI.showDataLayers('initial');
+
+        // Show chatbox with initial content
+        UI.showChatbox(`
+            <h3>Kumamoto investment guide</h3>
+            <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
+            <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        `);
     },
 
     /**
@@ -77,6 +90,7 @@ const App = {
         this.state.subItemsExplored = [];
         this.state.expandedGroups = [];
         this.state.activeProperty = null;
+        this.state.activeEnergyTypes = [];
 
         // --- Progress bar ---
         UI.updateJourneyProgress(stepIndex, STEPS.length);
@@ -112,6 +126,7 @@ const App = {
 
         // --- Data layers ---
         UI.showDataLayers(stepIndex);
+        UI.syncDataLayersToStep(step);
 
         // --- Heartbeat + marker pulse ---
         MapController.startHeartbeat();
@@ -132,9 +147,34 @@ const App = {
     },
 
     /**
-     * Go back to the previous step (currently disabled).
+     * Go back to the previous step. Step 1 returns to the welcome state (step 0).
      */
-    prevStep() {},
+    async prevStep() {
+        const current = this.state.currentStep;
+        if (current <= 0) return;
+
+        if (current === 1) {
+            // Return to welcome state (step 0)
+            await this._exitStep(1);
+            this.state.currentStep = 0;
+            this.state.subItemsExplored = [];
+            this.state.expandedGroups = [];
+            this.state.activeProperty = null;
+
+            UI.updateJourneyProgress(0, STEPS.length);
+
+            // Restore initial welcome chatbox with Start Journey CTA
+            UI.showChatbox(`
+                <h3>Kumamoto investment guide</h3>
+                <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
+                <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            `);
+
+            MapController.startHeartbeat();
+        } else {
+            this.goToStep(current - 1);
+        }
+    },
 
     /**
      * Exit choreography for a step.
@@ -165,6 +205,11 @@ const App = {
             await MapController.fadeOutMarkers(markersToFade);
         }
 
+        // Reset drag positions before hiding UI
+        document.getElementById('chatbox')?.resetDragPosition?.();
+        document.getElementById('right-panel')?.resetDragPosition?.();
+        document.getElementById('ai-chat')?.resetDragPosition?.();
+
         // Hide UI sequentially for cleaner exit
         UI.hideChatbox();
         await new Promise(r => setTimeout(r, 100));
@@ -190,10 +235,6 @@ const App = {
 
         if (layers.includes('resources')) {
             MapController.showResourceMarker('water');
-            MapController.showAllResourceArcs();
-        }
-        if (layers.includes('kyushuEnergy')) {
-            MapController.showKyushuEnergy();
         }
         if (layers.includes('airlineRoutes')) {
             MapController.showAirlineRoutes();
@@ -221,11 +262,7 @@ const App = {
         if (layers.includes('talentPipeline')) {
             MapController.showTalentPipeline();
         }
-        if (layers.includes('properties')) {
-            MapController.addPropertyMarkers(AppData.properties);
-            const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
-            MapController.addRouteLines(AppData.properties, jasmCoords);
-        }
+        // Property markers removed per design decision
     },
 
     /**
@@ -235,12 +272,17 @@ const App = {
         const layers = step.layers || [];
 
         if (layers.includes('airlineRoutes')) MapController.hideAirlineRoutes();
-        if (layers.includes('kyushuEnergy')) MapController.hideKyushuEnergy();
         if (layers.includes('talentPipeline')) MapController.hideTalentPipeline();
         if (layers.includes('infrastructureRoads')) MapController.hideInfrastructureRoads();
         if (layers.includes('investmentZones')) MapController.hideInvestmentZones();
         if (layers.includes('semiconductorNetwork')) MapController.hideSemiconductorNetwork();
-        if (layers.includes('resources')) MapController.hideResourceArcs();
+        if (layers.includes('resources')) {
+            MapController.hideResourceArcs();
+            MapController.hideKyushuEnergy();
+            MapController.hideAllEnergyTypes();
+            UI.deactivateDataLayer('electricity');
+            UI.deactivateDataLayer('resources');
+        }
         // Resources, sciencePark, companies, properties - cleaned up via marker fade
     },
 
@@ -275,18 +317,18 @@ const App = {
             },
             'strategic-location': {
                 title: 'Strategic location',
-                body: 'Kyushu sits closer to Taiwan, Korea, and Shanghai than Tokyo or Osaka. A semiconductor executive can reach any major Asian foundry partner in <strong>under 4 hours.</strong>',
-                afterItems: '<p style="color: var(--color-text-secondary); margin-top: 8px;">Click destinations on the map to see route details.</p>'
+                body: 'Seoul and Taipei are both just <strong>1 hour 40 minutes</strong> by direct flight from Kumamoto. Busan is 1h 25m. Every major semiconductor hub in Asia is under 3 hours away.',
+                afterItems: '<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">Click destinations on the map to see route details.</p>'
             },
             'government-support': {
                 title: 'Government support',
                 body: '<strong>4+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors.',
-                afterItems: '<p style="margin-top: 8px;">Click tier markers to see commitment details.</p>'
+                afterItems: '<p style="margin-top: var(--space-2);">Click tier markers to see commitment details.</p>'
             },
             'corporate-investment': {
                 title: 'Corporate investment',
                 body: 'TSMC committed <strong>2.16 trillion yen</strong> for two fabs. Sony, SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron all announced expansions. <strong>Seven major players</strong>, all converging on Kumamoto.',
-                afterItems: '<p style="margin-top: 8px;">Click company markers to see investment scale.</p>'
+                afterItems: '<p style="margin-top: var(--space-2);">Click company markers to see investment scale.</p>'
             },
             'science-park-zones': {
                 title: 'Science park and zones',
@@ -409,16 +451,7 @@ const App = {
                 </button>`;
         }).join('');
 
-        const exploredCount = this.state.subItemsExplored.filter(id =>
-            leafItems.some(leaf => leaf.id === id)
-        ).length;
-        const totalCount = leafItems.length;
-        const progress = totalCount > 0
-            ? `<div class="resource-progress" style="font-size: var(--text-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2);">${exploredCount} of ${totalCount} explored</div>`
-            : '';
-
         return `
-            ${progress}
             <div class="chatbox-options" role="group" aria-label="Step options">
                 ${items}
             </div>
@@ -487,18 +520,86 @@ const App = {
     // --- Step 1: Resources ---
     _handleResourceSubItem(itemId) {
         if (itemId === 'water') {
+            // Clean up power/energy layers if switching from power
+            MapController.hideAllEnergyTypes();
+            MapController.hideKyushuEnergy();
+            UI.deactivateDataLayer('electricity');
+
             MapController.showResourceMarker('water');
             const resource = AppData.resources.water;
             if (resource) UI.showResourcePanel(resource);
-            MapController.showResourceArcs('water');
-        } else if (itemId === 'power-solar' || itemId === 'power-wind' || itemId === 'power-nuclear') {
-            MapController.showKyushuEnergy();
-            const resource = AppData.resources.power;
-            if (resource) UI.showResourcePanel(resource);
-            // Fly to Kyushu-wide view for energy
+            MapController.flyToStep(CAMERA_STEPS.A2_water);
+
+            // Auto-activate the Water resources data layer checkbox
+            UI.activateDataLayer('resources');
+        } else if (itemId === 'power') {
+            // Hide water markers and overlays before showing power
+            this._hideWaterLayers();
+            UI.deactivateDataLayer('resources');
+            // Reset active energy types for fresh entry
+            this.state.activeEnergyTypes = [];
+            // Fly to Kyushu-wide overview
             MapController.flyToStep(CAMERA_STEPS.A2_overview);
-            MapController.showResourceArcs(itemId);
+            // Auto-activate solar: show markers + arc lines on the map
+            this.state.activeEnergyTypes.push('solar');
+            MapController.showEnergyType('solar');
+            // Show power sources panel with solar already toggled on
+            UI.showPowerSourcesPanel(this.state.activeEnergyTypes);
+
+            // Auto-activate the Power data layer checkbox
+            UI.activateDataLayer('electricity');
         }
+    },
+
+    /**
+     * Hide water-specific markers, overlays, arcs, and uncheck the data layer.
+     */
+    _hideWaterLayers() {
+        // Remove water marker and evidence markers from the map
+        const resourceIds = [...(MapController._layerGroups.resources || [])];
+        resourceIds.forEach(id => {
+            if (MapController.markers[id]) {
+                const el = MapController.markers[id].getElement();
+                MapController.markers[id].remove();
+                if (el && el.parentNode) el.remove();
+                delete MapController.markers[id];
+            }
+        });
+        MapController._layerGroups.resources = [];
+
+        // Safety net: remove any orphaned water evidence markers from the DOM
+        document.querySelectorAll('.water-evidence-marker, .water-brand-marker').forEach(el => {
+            if (el.parentNode) el.remove();
+        });
+
+        // Remove water area overlay and brand logos
+        MapController.hideWaterResourceLayer();
+
+        // Remove resource arc lines (water to JASM)
+        MapController.hideResourceArcs();
+
+        // Uncheck the Water resources data layer checkbox
+        UI.deactivateDataLayer('waterResources');
+        UI.deactivateDataLayer('resources');
+    },
+
+    /**
+     * Toggle an energy type on/off (multi-select).
+     * Called from the power sources panel toggles.
+     */
+    toggleEnergyType(type) {
+        const idx = this.state.activeEnergyTypes.indexOf(type);
+        if (idx >= 0) {
+            // Turn off
+            this.state.activeEnergyTypes.splice(idx, 1);
+            MapController.hideEnergyType(type);
+        } else {
+            // Turn on
+            this.state.activeEnergyTypes.push(type);
+            MapController.showEnergyType(type);
+        }
+        // Re-render the panel to reflect toggle state
+        UI.updatePowerSourcesPanel(this.state.activeEnergyTypes);
     },
 
     // --- Step 3: Government ---
@@ -545,7 +646,7 @@ const App = {
                 <h2>Government zone clusters</h2>
                 <p>Designated development areas supporting the semiconductor corridor.</p>
                 <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">${zoneCards}</div>
-                <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-semiconductor-clusters.webp', 'Government zone cluster plan')">
                     <img src="assets/use-case-images/evidence-semiconductor-clusters.webp" alt="Government zone cluster plan" style="width: 100%; border-radius: var(--radius-medium);" />
                 </div>
             `);
@@ -560,7 +661,7 @@ const App = {
                     <div class="stat-grid">
                         ${zone.stats.map(s => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
                     </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-semiconductor-clusters.webp', 'Kikuyo development cluster plan')">
                         <img src="assets/use-case-images/evidence-semiconductor-clusters.webp" alt="Kikuyo development cluster plan" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
                 `);
@@ -576,7 +677,7 @@ const App = {
                     <div class="stat-grid">
                         ${zone.stats.map(s => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
                     </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-industrial-park-locations.webp', 'Ozu development plan')">
                         <img src="assets/use-case-images/evidence-industrial-park-locations.webp" alt="Ozu development plan" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
                 `);
@@ -619,7 +720,7 @@ const App = {
                         ${airport.stats.map(s => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
                     </div>
                     ${pillarsHtml}
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-new-grand-airport.webp', 'Grand Airport Concept')">
                         <img src="assets/use-case-images/evidence-new-grand-airport.webp" alt="Grand Airport Concept" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
                 `);
@@ -809,13 +910,13 @@ const App = {
                     <div class="subtitle">Future outlook</div>
                     <h2>2030+ vision</h2>
                     <p>Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.</p>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', 'Science park plan')">
                         <img src="assets/use-case-images/evidence-science-park.webp" alt="Science park plan" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-new-grand-airport.webp', 'Grand airport concept')">
                         <img src="assets/use-case-images/evidence-new-grand-airport.webp" alt="Grand airport concept" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-kumamoto-future-road-network.webp', 'Future road network')">
                         <img src="assets/use-case-images/evidence-kumamoto-future-road-network.webp" alt="Future road network" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
                 `);
@@ -827,7 +928,7 @@ const App = {
                     <div class="subtitle">Silicon triangle</div>
                     <h2>Investment opportunity zones</h2>
                     <p>Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details.</p>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4);">
+                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-tsmc-infrastructure-overview.webp', 'TSMC infrastructure overview')">
                         <img src="assets/use-case-images/evidence-tsmc-infrastructure-overview.webp" alt="TSMC infrastructure overview" style="width: 100%; border-radius: var(--radius-medium);" />
                     </div>
                 `);
@@ -939,7 +1040,8 @@ const App = {
         } else {
             UI.showChatbox(`
                 <h3>Kumamoto investment guide</h3>
-                <p>Explore the map to learn about investment opportunities.</p>
+                <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
+                <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
             `);
         }
     },
@@ -953,7 +1055,6 @@ const App = {
         UI.hideChatbox();
         UI.hideAIChat();
         UI.hideLayersToggle();
-        UI.hideHomeBtn();
         UI.hidePanelToggle();
         UI.hideTimeToggle();
         MapController.resetView();

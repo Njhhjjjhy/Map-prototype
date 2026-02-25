@@ -214,150 +214,6 @@ a:focus-visible {
 /* ================================
    START SCREEN
    ================================ */
-#start-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: var(--space-4);
-    padding-left: 15%;
-    background: var(--color-bg-primary);
-    z-index: 1000;
-    transition: opacity var(--duration-slow) var(--easing-accelerate);
-}
-
-#start-screen.fade-out {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.start-screen-logo {
-    width: 300px;
-    height: auto;
-    margin-bottom: var(--space-6);
-    opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.1s forwards;
-}
-
-.start-screen-headline {
-    font-family: var(--font-display);
-    font-size: var(--text-3xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
-    text-align: left;
-    max-width: 480px;
-    line-height: var(--line-height-tight);
-    letter-spacing: var(--tracking-display);
-    opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.3s forwards;
-}
-
-.start-screen-subtitle {
-    font-family: var(--font-body);
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-regular);
-    color: var(--color-text-secondary);
-    text-align: left;
-    margin-bottom: var(--space-4);
-    opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.5s forwards;
-}
-
-#start-btn {
-    padding: var(--space-3) var(--space-6);
-    font-family: var(--font-display);
-    font-size: var(--text-lg);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: var(--tracking-body);
-    background: var(--color-primary);
-    color: var(--color-text-primary);
-    border: none;
-    border-radius: var(--radius-medium);
-    cursor: pointer;
-    transition: all var(--duration-fast) var(--easing-standard);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    box-shadow: var(--shadow-medium), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    /* Entrance animation */
-    opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.7s forwards;
-}
-
-#start-btn:hover {
-    background: var(--color-primary-hover);
-    box-shadow: var(--shadow-large), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
-}
-
-#start-btn:hover .btn-arrow {
-    animation-play-state: paused;
-    transform: translateX(3px);
-}
-
-#start-btn:active {
-    background: var(--color-primary-pressed);
-    transform: translateY(0);
-    box-shadow: var(--shadow-subtle), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.btn-arrow {
-    display: inline-block;
-    animation: arrowBounce 1.5s var(--easing-standard) infinite;
-}
-
-@keyframes btnEntrance {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes arrowBounce {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    50% {
-        transform: translateX(6px);
-    }
-}
-
-/* Skip to Dashboard - Ghost Button */
-#skip-to-dashboard-btn {
-    padding: var(--space-2) var(--space-4);
-    font-family: var(--font-display);
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    letter-spacing: var(--tracking-body);
-    background: transparent;
-    color: var(--color-text-secondary);
-    border: none;
-    border-radius: var(--radius-medium);
-    cursor: pointer;
-    transition: all var(--duration-fast) var(--easing-standard);
-    /* Entrance animation - follows start button */
-    opacity: 0;
-    animation: btnEntrance var(--duration-slower) var(--easing-spring) 0.9s forwards;
-}
-
-#skip-to-dashboard-btn:hover {
-    color: var(--color-text-primary);
-    background: rgba(0, 0, 0, 0.05);
-}
-
-#skip-to-dashboard-btn:active {
-    background: rgba(0, 0, 0, 0.08);
-}
-
 /* ================================
    APP CONTAINER
    ================================ */
@@ -428,40 +284,6 @@ a:focus-visible {
     display: none;
 }
 
-/* Skip button for cinematic entry */
-#cinematic-skip {
-    position: absolute;
-    bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
-    right: var(--space-6);
-    z-index: 10;
-    padding: var(--space-2) var(--space-5);
-    font-family: var(--font-display);
-    font-size: var(--text-sm);
-    font-weight: var(--font-weight-medium);
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-medium);
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--duration-normal) var(--easing-standard),
-                background var(--duration-fast) var(--easing-standard);
-}
-
-#cinematic-skip.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-#cinematic-skip:hover {
-    background: rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-}
-
-/* (Mapbox-3d reduced motion rule removed — single map container) */
-
 /* ================================
    TRANSITION OVERLAY (Property Drill-Down Stages 2-3)
    Crossfade between 3D map → exterior photo → interior gallery.
@@ -493,11 +315,9 @@ a:focus-visible {
 #map-container.immersive-active #time-toggle,
 #map-container.immersive-active #chatbox,
 #map-container.immersive-active #layers-toggle,
-#map-container.immersive-active #home-btn,
 #map-container.immersive-active #chat-fab,
 #map-container.immersive-active #data-layers,
-#map-container.immersive-active #panel-toggle,
-#map-container.immersive-active #dashboard-toggle {
+#map-container.immersive-active #panel-toggle {
     opacity: 0 !important;
     pointer-events: none !important;
     transition: opacity var(--duration-fast) var(--easing-accelerate);
@@ -607,7 +427,7 @@ a:focus-visible {
     transform: translateX(-50%);
     z-index: var(--z-control-bar);
     display: flex;
-    gap: 3px;
+    gap: var(--space-1);
     padding: var(--space-1) var(--space-3);
     background: var(--color-bg-primary);
     border-radius: var(--radius-full);
@@ -1303,43 +1123,6 @@ a:focus-visible {
 }
 
 #panel-toggle svg {
-    width: 18px;
-    height: 18px;
-}
-
-/* Dashboard Toggle Button (mirrored from layers toggle, right side) */
-#dashboard-toggle {
-    position: absolute;
-    top: 124px; /* Aligns below panel-toggle: 80px + 36px button + 8px gap */
-    right: var(--space-3);
-    z-index: 500;
-    width: 36px;
-    height: 36px;
-    background: var(--color-bg-primary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-medium);
-    box-shadow: var(--shadow-medium);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-text-secondary);
-    transition: all var(--duration-fast) var(--easing-standard);
-}
-
-#dashboard-toggle:hover {
-    color: var(--color-text-primary);
-}
-
-#dashboard-toggle.active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-text-primary);
-}
-
-#dashboard-toggle svg {
     width: 18px;
     height: 18px;
 }
@@ -2319,6 +2102,11 @@ a:focus-visible {
     color: #ffffff;
 }
 
+#gallery-close:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
 #gallery-close svg {
     width: var(--icon-sm);
     height: var(--icon-sm);
@@ -2511,6 +2299,137 @@ a:focus-visible {
 
 .marker-emerge {
     animation: markerEmerge var(--duration-normal) var(--easing-decelerate) both;
+}
+
+/* Energy pin drop — heavier drop with bounce for energy source markers */
+@keyframes energyPinDrop {
+    0% {
+        scale: 0.2;
+        translate: 0 -24px;
+        opacity: 0;
+    }
+    50% {
+        scale: 1.1;
+        translate: 0 2px;
+        opacity: 1;
+    }
+    70% {
+        scale: 0.95;
+        translate: 0 -1px;
+    }
+    100% {
+        scale: 1;
+        translate: 0 0;
+        opacity: 1;
+    }
+}
+
+/* Energy pin idle pulse — subtle breathing after landing */
+@keyframes energyPinPulse {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(255, 255, 255, 0.15);
+    }
+}
+
+.energy-type-pin {
+    animation: energyPinPulse 3s ease-in-out infinite 1s;
+}
+
+/* ================================
+   ENERGY TOGGLE ROWS (Power Sources Panel)
+   ================================ */
+
+.energy-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    transition: background-color var(--duration-fast) var(--easing-standard),
+                border-color var(--duration-fast) var(--easing-standard);
+}
+
+.energy-toggle-row:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.energy-toggle-row.active {
+    background: var(--color-bg-primary);
+    border-color: var(--color-border-strong);
+}
+
+.energy-toggle-row:focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+}
+
+.energy-toggle-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+}
+
+.energy-toggle-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.energy-toggle-label {
+    flex: 1;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+/* macOS-style toggle switch */
+.energy-toggle-switch {
+    width: 36px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    position: relative;
+    flex-shrink: 0;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.energy-toggle-switch.on {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.energy-toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-full);
+    background: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.energy-toggle-switch.on .energy-toggle-knob {
+    transform: translateX(16px);
+}
+
+/* Evidence card for active energy types */
+.energy-evidence-card {
+    padding: var(--space-4);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-medium);
 }
 
 /* ================================
@@ -2719,7 +2638,7 @@ a:focus-visible {
    ================================ */
 #layers-toggle {
     position: absolute;
-    top: 124px; /* Aligns with dashboard-toggle on same horizontal line */
+    top: var(--space-20); /* Aligned with panel-toggle */
     left: var(--space-3);
     z-index: 500;
     width: 36px;
@@ -2753,41 +2672,6 @@ a:focus-visible {
     height: 18px;
 }
 
-/* Home Button - below layers-toggle */
-#home-btn {
-    position: absolute;
-    top: 168px; /* Below layers-toggle: 124px + 36px button + 8px gap */
-    left: var(--space-3);
-    z-index: 500;
-    width: 36px;
-    height: 36px;
-    background: var(--color-bg-primary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-medium);
-    box-shadow: var(--shadow-medium);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-text-secondary);
-    transition: all var(--duration-fast) var(--easing-standard);
-}
-
-#home-btn:hover {
-    color: var(--color-text-primary);
-    background: var(--color-bg-secondary);
-}
-
-#home-btn:active {
-    background: var(--color-bg-tertiary);
-}
-
-#home-btn svg {
-    width: 18px;
-    height: 18px;
-}
 
 /* ================================
    DATA LAYERS PANEL (macOS)
@@ -2800,7 +2684,7 @@ a:focus-visible {
 */
 #data-layers {
     position: absolute;
-    top: 212px; /* Below home-btn: 168px + 36px button + 8px gap */
+    top: 124px; /* Below layers-toggle: 80px + 36px button + 8px gap */
     left: var(--space-3);
     z-index: 500;
     background: var(--color-bg-primary);
@@ -3837,6 +3721,7 @@ button.layer-item {
 
 /* Quick Look: Document preview */
 .quick-look-doc {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -3848,6 +3733,20 @@ button.layer-item {
     box-shadow: var(--shadow-xlarge);
     max-width: 400px;
     text-align: center;
+}
+
+.quick-look-doc #quick-look-close {
+    top: var(--space-3);
+    right: var(--space-3);
+    color: var(--color-text-secondary);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.quick-look-doc #quick-look-close:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
 }
 
 .quick-look-doc svg {
@@ -3866,6 +3765,13 @@ button.layer-item {
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     margin: 0;
+}
+
+/* Quick Look: Evidence lightbox variant (lighter overlay) */
+#property-quick-look.evidence-lightbox #quick-look-overlay {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 /* ================================
@@ -4562,12 +4468,16 @@ button.layer-item {
    ================================ */
 .ai-chat-ctas {
     align-self: stretch;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: var(--space-3);
     margin-top: var(--space-4);
     padding-top: var(--space-4);
     border-top: 1px solid var(--color-border);
+}
+
+.ai-chat-ctas.visible {
+    display: flex;
 }
 
 .ai-chat-cta {
@@ -4633,12 +4543,12 @@ button.layer-item {
 
 /* 24px close buttons → 44px hit area */
 #panel-close,
-#gallery-close,
 #chatbox-close,
 #chatbox-back,
 #ai-chat-close {
     position: relative; /* positioning context for ::before hit area expansion */
 }
+/* #gallery-close excluded: already position: absolute, which also serves as positioning context */
 
 #panel-close::before,
 #gallery-close::before,
@@ -4652,9 +4562,7 @@ button.layer-item {
 
 /* 36px map toggles → 44px hit area */
 #layers-toggle::before,
-#home-btn::before,
 #panel-toggle::before,
-#dashboard-toggle::before,
 .panel-back-btn::before {
     content: '';
     position: absolute;
@@ -4662,9 +4570,7 @@ button.layer-item {
 }
 
 #layers-toggle,
-#home-btn,
-#panel-toggle,
-#dashboard-toggle {
+#panel-toggle {
     position: absolute; /* already set for toggles, reinforcing */
 }
 
@@ -4697,7 +4603,6 @@ button.layer-item {
 
 /* Map toggle buttons */
 #panel-toggle:active,
-#dashboard-toggle:active,
 #layers-toggle:active {
     transform: scale(0.92);
 }
@@ -4744,12 +4649,6 @@ button.layer-item {
     transform: scale(0.92);
 }
 
-/* Cinematic skip */
-#cinematic-skip:active {
-    background: rgba(0, 0, 0, 0.6);
-    transform: scale(0.97);
-}
-
 /* Disclosure back button */
 .disclosure-back-btn:active {
     background: var(--color-bg-tertiary);
@@ -4769,8 +4668,6 @@ button.layer-item {
      * DECORATIVE ANIMATIONS: Disable completely
      * These animations serve aesthetic purposes only
      */
-    #start-btn,
-    .btn-arrow,
     .attention-pulse,
     #time-toggle.coachmark {
         animation: none !important;
@@ -6003,19 +5900,6 @@ button.layer-item {
         max-width: 380px;
     }
 
-    /* Start screen — tighter padding for narrower viewport */
-    #start-screen {
-        padding-left: 10%;
-    }
-
-    .start-screen-logo {
-        width: 260px;
-    }
-
-    .start-screen-headline {
-        max-width: 420px;
-        font-size: var(--text-2xl);
-    }
 }
 
 /* ================================
@@ -6053,19 +5937,6 @@ button.layer-item {
         max-width: 300px;
     }
 
-    /* Start screen — compact layout */
-    #start-screen {
-        padding-left: 8%;
-    }
-
-    .start-screen-logo {
-        width: 220px;
-    }
-
-    .start-screen-headline {
-        max-width: 360px;
-        font-size: var(--text-xl);
-    }
 }
 
 /* ================================
