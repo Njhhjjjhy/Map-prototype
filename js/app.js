@@ -54,6 +54,7 @@ const App = {
         // Enable interaction and show initial UI
         MapController._enableInteraction();
         MapController.startHeartbeat();
+        MapController.initCameraDebug();
 
         // Show the three persistent UI elements
         UI.showLayersToggle();
@@ -102,16 +103,25 @@ const App = {
             await new Promise(r => setTimeout(r, TIMING.breath));
         }
 
-        // --- Camera flight ---
-        const camKey = step.cameraKey;
-        const camPos = CAMERA_STEPS[camKey] || CAMERA_STEPS.A0;
-        await MapController.flyToStep(camPos);
+        // --- Intro sequence: two-part camera move before Step 1 ---
+        const isIntro = stepIndex === 1 && prevStep === 0;
+        if (isIntro) {
+            await MapController.flyToStep(CAMERA_STEPS.intro_close, { feeling: 'dramatic' });
+            await new Promise(r => setTimeout(r, TIMING.breath));
+            await MapController.flyToStep(CAMERA_STEPS.intro_wide, { feeling: 'smooth' });
+            await new Promise(r => setTimeout(r, TIMING.breathShort));
+        } else {
+            // --- Standard camera flight ---
+            const camKey = step.cameraKey;
+            const camPos = CAMERA_STEPS[camKey] || CAMERA_STEPS.A0;
+            await MapController.flyToStep(camPos);
+        }
 
         // --- Breathing room ---
         await new Promise(r => setTimeout(r, TIMING.breathShort));
 
-        // --- Layer management ---
-        this._showStepLayers(step);
+        // --- Layer management (skip camera flights if intro just played) ---
+        this._showStepLayers(step, { skipFly: isIntro });
 
         // --- Time toggle visibility ---
         if (step.showTimeToggle) {
@@ -230,11 +240,11 @@ const App = {
     /**
      * Show the map layers required for a step.
      */
-    _showStepLayers(step) {
+    _showStepLayers(step, opts = {}) {
         const layers = step.layers || [];
 
         if (layers.includes('resources')) {
-            MapController.showResourceMarker('water');
+            MapController.showResourceMarker('water', { skipFly: opts.skipFly });
         }
         if (layers.includes('airlineRoutes')) {
             MapController.showAirlineRoutes();

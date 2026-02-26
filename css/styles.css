@@ -6016,3 +6016,120 @@ button.layer-item {
         max-width: 1100px;
     }
 }
+
+/* ================================
+   Camera Debug Tool (dev only)
+   ================================ */
+
+#camera-debug-toggle {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 500;
+    width: 36px;
+    height: 36px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+#camera-debug-toggle:hover {
+    color: var(--color-text-primary);
+}
+
+#camera-debug-toggle.active {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+#camera-debug {
+    position: absolute;
+    top: var(--space-3);
+    left: 48px;
+    z-index: 500;
+    min-width: 180px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+    padding: var(--space-3);
+    font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.camera-debug-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.camera-debug-title {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+#camera-debug-copy {
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+#camera-debug-copy:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+#camera-debug-copy.copied {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: white;
+}
+
+.camera-debug-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.camera-debug-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 2px 0;
+}
+
+.camera-debug-label {
+    color: var(--color-text-tertiary);
+    font-size: 10px;
+    text-transform: lowercase;
+    min-width: 44px;
+}
+
+.camera-debug-value {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    text-align: right;
+    user-select: all;
+}

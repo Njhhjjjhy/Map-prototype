@@ -36,10 +36,64 @@ const MAP_COLORS = {
 };
 
 /**
+ * Transition feelings — easing presets for camera moves.
+ * Each feeling defines an easing function and a duration multiplier.
+ *
+ * Usage: MapController.flyToStep(config, { feeling: 'dramatic', cinematicLevel: 7 })
+ */
+const CAMERA_FEELINGS = {
+    smooth: {
+        label: 'Smooth',
+        easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // ease-in-out
+        durationMultiplier: 1.0
+    },
+    snappy: {
+        label: 'Snappy',
+        easing: (t) => 1 - Math.pow(1 - t, 3), // fast deceleration
+        durationMultiplier: 0.6
+    },
+    dramatic: {
+        label: 'Dramatic',
+        easing: (t) => t * t * (3 - 2 * t), // smoothstep — slow build, slow settle
+        durationMultiplier: 1.8
+    },
+    gentle: {
+        label: 'Gentle',
+        easing: (t) => t * (2 - t), // ease-out — soft deceleration
+        durationMultiplier: 1.4
+    }
+};
+
+/**
+ * Cinematic level — scales the drama of camera transitions.
+ * Level 1 = near-instant cut, Level 10 = full cinematic production.
+ *
+ * Affects: duration, bearing sweep amplitude, pitch smoothing.
+ */
+const CINEMATIC_SCALE = {
+    // Duration multiplier: level 1 = 0.3x, level 5 = 1.0x, level 10 = 2.0x
+    durationMultiplier(level) {
+        return 0.3 + (level - 1) * (1.7 / 9);
+    },
+    // Bearing sweep: how much extra bearing rotation during flight
+    bearingSweep(level) {
+        return (level - 1) * 2; // 0° at level 1, 18° at level 10
+    },
+    // Pitch offset: slight extra tilt for drama
+    pitchBoost(level) {
+        return (level - 1) * 0.5; // 0° at level 1, 4.5° at level 10
+    }
+};
+
+/**
  * Camera positions for each journey step — cinematic choreography
  * All centers are [lng, lat] (Mapbox format)
  */
 const CAMERA_STEPS = {
+    // Intro sequence: close-in on investment area, then smooth zoom-out to reveal region
+    intro_close: { center: [130.8063, 32.7361], zoom: 12.0, pitch: 52, bearing: 29, duration: 2000 },
+    intro_wide:  { center: [131.6580, 32.3559], zoom: 8.2,  pitch: 54, bearing: 42, duration: 2500 },
+
     A0: { center: [130.78, 32.82], zoom: 11.5, pitch: 45, bearing: 10, duration: 2000 },
     A1: { center: [130.78, 32.83], zoom: 11.5, pitch: 45, bearing: -5, duration: 1500 },
     A2_overview: { center: [130.75, 32.80], zoom: 8.5, pitch: 35, bearing: 0, duration: 2500 },
@@ -222,37 +276,61 @@ const MapController = {
     // ================================
 
     /**
-     * Fly camera to a step position with cinematic easing
+     * Fly camera to a step position with cinematic easing.
+     *
      * @param {Object} config — { center, zoom, pitch, bearing, duration }
+     * @param {Object} [opts] — Optional transition overrides
+     * @param {string} [opts.feeling] — 'smooth' | 'snappy' | 'dramatic' | 'gentle'
+     * @param {number} [opts.cinematicLevel] — 1-10 drama scale (default 5)
      */
-    async flyToStep(config) {
+    async flyToStep(config, opts = {}) {
         if (!this.initialized) return;
 
         // Pause heartbeat drift during programmatic camera moves
         this.pauseHeartbeat();
 
         const map = this.map;
-        const duration = config.duration || 2000;
+        const feeling = CAMERA_FEELINGS[opts.feeling] || null;
+        const level = Math.max(1, Math.min(10, opts.cinematicLevel || 5));
+
+        // Calculate final duration: base * feeling multiplier * cinematic multiplier
+        let baseDuration = config.duration || 2000;
+        if (feeling) baseDuration *= feeling.durationMultiplier;
+        baseDuration *= CINEMATIC_SCALE.durationMultiplier(level);
+        const duration = Math.round(baseDuration);
+
+        // Calculate bearing with cinematic sweep
+        const bearingSweep = CINEMATIC_SCALE.bearingSweep(level);
+        const finalBearing = (config.bearing || 0) + (bearingSweep > 0 ? bearingSweep * 0.5 : 0);
+
+        // Calculate pitch with cinematic boost (capped at 65)
+        const pitchBoost = CINEMATIC_SCALE.pitchBoost(level);
+        const finalPitch = Math.min(65, (config.pitch || 0) + pitchBoost);
 
         if (this.reducedMotion) {
             map.jumpTo({
                 center: config.center,
                 zoom: config.zoom,
-                pitch: config.pitch,
-                bearing: config.bearing
+                pitch: finalPitch,
+                bearing: finalBearing
             });
             this._resetIdleTimer();
             return;
         }
 
-        map.flyTo({
+        const flyOptions = {
             center: config.center,
             zoom: config.zoom,
-            pitch: config.pitch,
-            bearing: config.bearing,
+            pitch: finalPitch,
+            bearing: finalBearing,
             duration: duration,
             essential: true
-        });
+        };
+
+        // Apply feeling easing if specified
+        if (feeling) flyOptions.easing = feeling.easing;
+
+        map.flyTo(flyOptions);
 
         await this._waitForMoveEnd(duration + 1500);
 
@@ -694,15 +772,13 @@ const MapController = {
         const brands = {
             'coca-cola': {
                 text: 'Coca-Cola',
-                bg: '#d12421',
-                textColor: '#ffffff',
-                shortText: 'C-C'
+                bg: '#ffffff',
+                logo: 'assets/Coca-Cola-logo.svg'
             },
             'suntory': {
                 text: 'Suntory',
-                bg: '#1a3668',
-                textColor: '#ffffff',
-                shortText: 'S'
+                bg: '#ffffff',
+                logo: 'assets/SUNTORY-logo.svg'
             }
         };
 
@@ -719,15 +795,13 @@ const MapController = {
                 delete this.markers[markerId];
             }
 
-            const innerHtml = `<span style="
-                font-family: var(--font-display);
-                font-size: 8px;
-                font-weight: 800;
-                color: ${brand.textColor};
-                line-height: 1;
-            ">${brand.shortText}</span>`;
+            const innerHtml = `<img src="${brand.logo}" alt="${brand.text}" style="
+                width: 42px;
+                height: 42px;
+                object-fit: contain;
+            ">`;
 
-            const iconHtml = this._elevatedMarkerHtml(innerHtml, brand.bg, 36, {}, 'square');
+            const iconHtml = this._elevatedMarkerHtml(innerHtml, brand.bg, 52, {}, 'square');
 
             const markerHtml = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;">
                 ${iconHtml}<span style="
@@ -757,7 +831,7 @@ const MapController = {
     /**
      * Show resource markers (step 1: resources)
      */
-    showResourceMarker(resourceId) {
+    showResourceMarker(resourceId, opts = {}) {
         const resource = AppData.resources[resourceId];
         if (!resource) return;
 
@@ -787,14 +861,16 @@ const MapController = {
             this._layerGroups.resources.push(resourceId);
         }
 
-        // Fly to location
-        this.flyToStep({
-            center: this._toMapbox(resource.coords),
-            zoom: AppData.mapConfig.resourceZoom || 13,
-            pitch: 50,
-            bearing: resourceId === 'water' ? 25 : -15,
-            duration: 2000
-        });
+        // Fly to location (skip if caller handled camera separately)
+        if (!opts.skipFly) {
+            this.flyToStep({
+                center: this._toMapbox(resource.coords),
+                zoom: AppData.mapConfig.resourceZoom || 13,
+                pitch: 50,
+                bearing: resourceId === 'water' ? 25 : -15,
+                duration: 2000
+            });
+        }
 
         // Show evidence markers for water
         if (resourceId === 'water') {
@@ -822,8 +898,8 @@ const MapController = {
         );
 
         const brands = {
-            'suntory': { text: 'Suntory', bg: '#1a3668', textColor: '#ffffff', fontSize: '8px', fontWeight: '700' },
-            'coca-cola': { text: 'C-C', bg: '#d12421', textColor: '#ffffff', fontSize: '10px', fontWeight: '800' }
+            'suntory': { text: 'Suntory', bg: '#ffffff', logo: 'assets/SUNTORY-logo.svg' },
+            'coca-cola': { text: 'Coca-Cola', bg: '#ffffff', logo: 'assets/Coca-Cola-logo.svg' }
         };
 
         waterData.evidenceMarkers.forEach(evidence => {
@@ -832,14 +908,12 @@ const MapController = {
             let markerHtml;
 
             if (brand) {
-                const innerHtml = `<span style="
-                    font-family: var(--font-display);
-                    font-size: ${brand.fontSize};
-                    font-weight: ${brand.fontWeight};
-                    color: ${brand.textColor};
-                    line-height: 1;
-                ">${brand.text}</span>`;
-                const iconHtml = this._elevatedMarkerHtml(innerHtml, brand.bg, 36, {}, 'square');
+                const innerHtml = `<img src="${brand.logo}" alt="${brand.text}" style="
+                    width: 42px;
+                    height: 42px;
+                    object-fit: contain;
+                ">`;
+                const iconHtml = this._elevatedMarkerHtml(innerHtml, brand.bg, 52, {}, 'square');
                 markerHtml = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap;">
                     ${iconHtml}<span style="
                     font-family: var(--font-display);
@@ -3893,5 +3967,94 @@ const MapController = {
 
     _frame() {
         return new Promise(resolve => requestAnimationFrame(resolve));
+    },
+
+    // ================================
+    // CAMERA DEBUG TOOL (dev only)
+    // ================================
+
+    _cameraDebug: {
+        active: false,
+        rafId: null
+    },
+
+    /**
+     * Initialize the camera debug tool. Call once after map init.
+     */
+    initCameraDebug() {
+        const toggle = document.getElementById('camera-debug-toggle');
+        const panel = document.getElementById('camera-debug');
+        const copyBtn = document.getElementById('camera-debug-copy');
+
+        if (!toggle || !panel) return;
+
+        toggle.addEventListener('click', () => {
+            this._cameraDebug.active = !this._cameraDebug.active;
+            panel.classList.toggle('hidden', !this._cameraDebug.active);
+            toggle.classList.toggle('active', this._cameraDebug.active);
+
+            if (this._cameraDebug.active) {
+                this._startCameraDebugLoop();
+            } else {
+                this._stopCameraDebugLoop();
+            }
+        });
+
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                this._copyCameraValues(copyBtn);
+            });
+        }
+    },
+
+    _startCameraDebugLoop() {
+        const update = () => {
+            if (!this._cameraDebug.active || !this.map) return;
+            this._updateCameraDebugValues();
+            this._cameraDebug.rafId = requestAnimationFrame(update);
+        };
+        update();
+    },
+
+    _stopCameraDebugLoop() {
+        if (this._cameraDebug.rafId) {
+            cancelAnimationFrame(this._cameraDebug.rafId);
+            this._cameraDebug.rafId = null;
+        }
+    },
+
+    _updateCameraDebugValues() {
+        const map = this.map;
+        if (!map) return;
+
+        const center = map.getCenter();
+        const el = (id, val) => {
+            const node = document.getElementById(id);
+            if (node) node.textContent = val;
+        };
+
+        el('cam-lat', center.lat.toFixed(4));
+        el('cam-lng', center.lng.toFixed(4));
+        el('cam-zoom', map.getZoom().toFixed(1));
+        el('cam-pitch', map.getPitch().toFixed(0) + '\u00B0');
+        el('cam-bearing', map.getBearing().toFixed(0) + '\u00B0');
+    },
+
+    _copyCameraValues(btn) {
+        const map = this.map;
+        if (!map) return;
+
+        const center = map.getCenter();
+        const text = [
+            'center: [' + center.lng.toFixed(4) + ', ' + center.lat.toFixed(4) + ']',
+            'zoom: ' + map.getZoom().toFixed(1),
+            'pitch: ' + map.getPitch().toFixed(0),
+            'bearing: ' + map.getBearing().toFixed(0)
+        ].join('\n');
+
+        navigator.clipboard.writeText(text).then(() => {
+            btn.classList.add('copied');
+            setTimeout(() => btn.classList.remove('copied'), 1200);
+        });
     }
 };
