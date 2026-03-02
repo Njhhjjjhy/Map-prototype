@@ -149,10 +149,10 @@ const CAMERA_STEPS = {
     duration: 2000,
   },
   A3_location: {
-    center: [129.5, 31.5],
-    zoom: 5,
-    pitch: 20,
-    bearing: 0,
+    center: [131.3969, 29.4475],
+    zoom: 5.0,
+    pitch: 22,
+    bearing: 4,
     duration: 3000,
   },
   A3_talent: {
@@ -817,77 +817,71 @@ const MapController = {
     const brands = {
       jasm: {
         text: "JASM",
-        bg: "#c4001a",
-        textColor: "#ffffff",
-        fontSize: "13px",
-        fontWeight: "800",
-        letterSpacing: "0.5px",
+        logo: "assets/Jasm-logo.svg",
+        bg: "#ffffff",
         size: 56,
+        imgSize: 44,
       },
       sony: {
-        text: "SONY",
-        bg: "#000000",
-        textColor: "#ffffff",
-        fontSize: "9px",
-        fontWeight: "700",
-        letterSpacing: "0.8px",
+        text: "Sony",
+        logo: "assets/Sony-logo.svg",
+        bg: "#ffffff",
+        size: 44,
+        imgSize: 34,
       },
       "tokyo-electron": {
-        text: "TEL",
-        bg: "#007aff",
-        textColor: "#ffffff",
-        fontSize: "10px",
-        fontWeight: "700",
-        letterSpacing: "0.5px",
+        text: "Tokyo Electron",
+        logo: "assets/Tokyo-electron-logo.svg",
+        bg: "#ffffff",
+        size: 44,
+        imgSize: 34,
       },
       mitsubishi: {
-        text: "ME",
-        bg: "#cc0000",
-        textColor: "#ffffff",
-        fontSize: "11px",
-        fontWeight: "800",
-        letterSpacing: "0",
+        text: "Mitsubishi Electric",
+        logo: "assets/Mitsubishi-electric-logo.svg",
+        bg: "#ffffff",
+        size: 44,
+        imgSize: 34,
       },
       sumco: {
-        text: "S",
-        bg: "#1a5276",
-        textColor: "#ffffff",
-        fontSize: "13px",
-        fontWeight: "800",
-        letterSpacing: "0",
+        text: "SUMCO",
+        logo: "assets/Sumco-logo.svg",
+        bg: "#ffffff",
+        size: 44,
+        imgSize: 34,
       },
       kyocera: {
-        text: "KC",
-        bg: "#e74c3c",
-        textColor: "#ffffff",
-        fontSize: "10px",
-        fontWeight: "700",
-        letterSpacing: "0.3px",
+        text: "Kyocera",
+        logo: "assets/Kyocera-logo.svg",
+        bg: "#ffffff",
+        size: 44,
+        imgSize: 34,
       },
       "rohm-apollo": {
-        text: "RA",
-        bg: "#6c3483",
-        textColor: "#ffffff",
-        fontSize: "10px",
-        fontWeight: "700",
-        letterSpacing: "0.3px",
+        text: "Rohm",
+        logo: "assets/Rohm-logo.svg",
+        bg: "#ffffff",
+        size: 44,
+        imgSize: 34,
       },
     };
 
     const brand = brands[companyId];
     if (!brand) return this._markerIconHtml("company");
 
-    const innerHtml = `<span style="
-            font-family: var(--font-display);
-            font-size: ${brand.fontSize};
-            font-weight: ${brand.fontWeight};
-            color: ${brand.textColor};
-            letter-spacing: ${brand.letterSpacing};
-            line-height: 1;
-        ">${brand.text}</span>`;
+    const innerHtml = `<img src="${brand.logo}" alt="${brand.text}" style="
+            width: ${brand.imgSize}px;
+            height: ${brand.imgSize}px;
+            object-fit: contain;
+        ">`;
 
-    const size = brand.size || 40;
-    return this._elevatedMarkerHtml(innerHtml, brand.bg, size, {}, "square");
+    return this._elevatedMarkerHtml(
+      innerHtml,
+      brand.bg,
+      brand.size,
+      {},
+      "square",
+    );
   },
 
   /**
@@ -3679,6 +3673,24 @@ const MapController = {
     });
     this.airlineOriginMarker = originMarker;
 
+    // 1b. TSMC HQ marker at Hsinchu, Taiwan (appears immediately with origin)
+    const tsmcHqCoords = [24.8, 120.97];
+    const tsmcHqHtml = `<div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+            <div style="width: 48px; height: 48px; background: #ffffff; border: 2px solid white; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <img src="assets/tsmc-logo.svg" alt="TSMC" style="width: 36px; height: 36px; object-fit: contain;" />
+            </div>
+            <span style="font-family: var(--font-display); font-size: 11px; font-weight: 600; color: var(--color-text-primary); text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white; white-space: nowrap;">Hsinchu</span>
+        </div>`;
+    const { marker: tsmcHqMarker } = this._createMarker(
+      tsmcHqCoords,
+      tsmcHqHtml,
+      {
+        className: "tsmc-hq-marker",
+        ariaLabel: "TSMC headquarters, Hsinchu, Taiwan",
+      },
+    );
+    this.tsmcHqMarker = tsmcHqMarker;
+
     // Camera fly is handled by goToStep() - no redundant flyToStep here.
     // Routes draw immediately as camera is arriving.
 
@@ -3696,8 +3708,10 @@ const MapController = {
     }
 
     // 3. Destination markers for active routes
+    //    Skip TSMC destinations - the TSMC HQ logo marker already covers them.
     await this._delay(100);
     activeRoutes.forEach((dest) => {
+      if (dest.semiconductorLink?.company === "TSMC") return;
       const marker = dest.semiconductorLink
         ? this._createBrandedDestinationMarker(dest)
         : this._createDestinationMarker(dest);
@@ -3882,6 +3896,7 @@ const MapController = {
   _createBrandedDestinationMarker(destination) {
     const link = destination.semiconductorLink;
     const brandColors = { TSMC: "#c4001a", Samsung: "#1428a0" };
+    const brandLogos = { TSMC: "assets/tsmc-logo.svg" };
     const color = brandColors[link.company] || "#c0766e";
     const abbrev = link.company === "Samsung" ? "SS" : link.company;
     const cityName = destination.name.replace(
@@ -3889,10 +3904,17 @@ const MapController = {
       "",
     );
 
-    const html = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; cursor: pointer;">
-            <div style="width: 28px; height: 28px; background: ${color}; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+    const logoSrc = brandLogos[link.company];
+    const iconHtml = logoSrc
+      ? `<div style="width: 36px; height: 36px; background: #ffffff; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                <img src="${logoSrc}" alt="${link.company}" style="width: 26px; height: 26px; object-fit: contain;" />
+            </div>`
+      : `<div style="width: 28px; height: 28px; background: ${color}; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <span style="font-family: var(--font-display); font-size: 8px; font-weight: 800; color: white; letter-spacing: 0.3px;">${abbrev}</span>
-            </div>
+            </div>`;
+
+    const html = `<div style="display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; cursor: pointer;">
+            ${iconHtml}
             <div style="display: flex; flex-direction: column;">
                 <span style="font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--color-text-primary); text-shadow: 0 0 4px white, 0 0 4px white, 0 0 4px white;">${cityName}</span>
                 <span style="font-family: var(--font-display); font-size: 10px; font-weight: 500; color: ${color}; text-shadow: 0 0 3px white, 0 0 3px white;">${link.company} ${link.role}</span>
@@ -3916,6 +3938,16 @@ const MapController = {
       this._safeRemoveSource(id);
     });
     this._layerGroups.airlineRoutes = [];
+
+    // Remove TSMC HQ marker
+    if (this.tsmcHqMarker) {
+      const tsmcEl = this.tsmcHqMarker.getElement();
+      this.tsmcHqMarker.remove();
+      if (tsmcEl && tsmcEl.parentNode) {
+        tsmcEl.remove();
+      }
+      this.tsmcHqMarker = null;
+    }
 
     // Remove markers
     if (this.airlineOriginMarker) {
