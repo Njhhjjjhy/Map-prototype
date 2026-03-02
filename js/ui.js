@@ -18,8 +18,9 @@ const UI = {
     currentPanelView: null, // Current panel view identifier
     chatboxHistory: [], // Stack of chatbox content for back navigation
 
-    // Data layer state - track which layers are active with their data
-    activeDataLayers: {}, // { layerName: { markers: [], panel: null } }
+    // Data layer state - track which layers are active
+    activeDataLayers: {}, // { layerName: true }
+    _dataLayerDashboardActive: false, // Whether dashboard is showing data layer content
 
     // Dashboard state
     dashboardMode: false, // Whether we're in dashboard mode vs journey mode
@@ -304,6 +305,13 @@ const UI = {
             // Restore appropriate chatbox content based on current journey state
             if (typeof App !== 'undefined' && App.state) {
                 App.restoreChatbox();
+
+                // If data layer dashboard was showing, restore journey panel content
+                // Data layer markers stay on map
+                if (this._dataLayerDashboardActive && App.state.currentStep > 0) {
+                    this._dataLayerDashboardActive = false;
+                    App._renderStepPanel(STEPS[App.state.currentStep - 1]);
+                }
             } else {
                 this.elements.chatbox.classList.remove('hidden');
                 this._retriggerAnimation(this.elements.chatbox);
@@ -855,10 +863,10 @@ const UI = {
         }
         this.updatePanelToggleState();
 
-        // Announce panel opening to screen readers
+        // Announce dashboard opening to screen readers
         const titleEl = this.elements.panelContent.querySelector('h2');
         if (titleEl) {
-            this.announceToScreenReader('Details panel opened: ' + titleEl.textContent);
+            this.announceToScreenReader('Dashboard opened: ' + titleEl.textContent);
         }
     },
 
@@ -926,7 +934,7 @@ const UI = {
         const panel = this.elements.rightPanel;
         // Add closing class for exit animation (uses accelerate easing)
         panel.classList.add('closing');
-        this.announceToScreenReader('Details panel closed');
+        this.announceToScreenReader('Dashboard closed');
 
         // If drill-down is active, cancel and reverse (to corridor or 2D map)
         // In corridor mode, only reverse if an actual drill-down is in progress
@@ -1102,7 +1110,7 @@ const UI = {
             ${energyMixHtml}
             <div style="margin-top: var(--space-6);">
                 <button class="panel-bento-btn secondary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                    View Evidence
+                    View evidence
                 </button>
             </div>
         `;
@@ -1437,7 +1445,7 @@ const UI = {
 
         return `
             <div class="subtitle">Sustainable energy</div>
-            <h2>Power sources</h2>
+            <h2>Power resources</h2>
             <p>Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require.</p>
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
@@ -2741,10 +2749,10 @@ const UI = {
             this.toggleLayersPanel();
         }
 
-        // Helper to build a layer button
-        const layerBtn = (layer, icon, label, toggleFn) => `
+        // Helper to build a layer button (all use unified toggleLayer)
+        const layerBtn = (layer, icon, label) => `
             <button type="button" class="layer-item" data-layer="${layer}"
-                    role="switch" aria-checked="false" onclick="UI.${toggleFn || 'toggleLayer'}('${layer}')"
+                    role="switch" aria-checked="false" onclick="UI.toggleLayer('${layer}')"
                     title="Toggle ${label.toLowerCase()} on the map">
                 <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icon}</span>
@@ -2757,7 +2765,7 @@ const UI = {
         if (stepIndex === 'initial') {
             // Step 0: Clean map, only water resources toggle available
             mapLayersHtml =
-                layerBtn('waterResources', icons.riskyArea, 'Water resources', 'toggleWaterResources');
+                layerBtn('waterResources', icons.riskyArea, 'Water resources');
         } else if (stepIndex === 'dashboard') {
             mapLayersHtml =
                 layerBtn('companies', icons.companies, 'Corporate sites') +
@@ -2776,7 +2784,7 @@ const UI = {
             mapLayersHtml =
                 layerBtn('sciencePark', icons.sciencePark, 'Science park') +
                 layerBtn('companies', icons.companies, 'Corporate sites') +
-                layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
+                layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan');
         } else if (stepIndex >= 9 && stepIndex <= 10) {
             // Steps 9-10: Investment zones
             mapLayersHtml =
@@ -2787,24 +2795,25 @@ const UI = {
             mapLayersHtml =
                 layerBtn('companies', icons.companies, 'Corporate sites') +
                 layerBtn('sciencePark', icons.sciencePark, 'Science park') +
-                layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan', 'toggleDataLayer');
+                layerBtn('infrastructure', icons.infrastructure, 'Infrastructure plan');
         }
 
-        // Data layers (inactive by default) - added per step as steps are defined
-        // Step 1: Water resources (map layer above)
-        // Step 2: Power
-        const dataLayersHtml = `
-            <button type="button" class="layer-item" data-layer="electricity"
-                    role="switch" aria-checked="false" onclick="UI.toggleDataLayer('electricity')"
-                    title="Show power infrastructure data">
-                <span class="layer-checkbox" aria-hidden="true"></span>
-                <span class="layer-icon" aria-hidden="true">${icons.electricity}</span>
-                <span class="layer-label">Power</span>
-            </button>
-        ` + layerBtn('airlineRoutes', icons.airlineRoutes, 'Strategic location', 'toggleAirlineRoutes');
+        // Data layers (inactive by default)
+        const dataLayersHtml =
+            layerBtn('electricity', icons.electricity, 'Power resources') +
+            layerBtn('airlineRoutes', icons.airlineRoutes, 'Strategic location');
 
         // Combine map layers and data layers
         dataLayerItems.innerHTML = mapLayersHtml + dataLayersHtml;
+
+        // Re-apply active state for layers that are still toggled on
+        Object.keys(this.activeDataLayers).forEach(layerName => {
+            const item = dataLayerItems.querySelector(`[data-layer="${layerName}"]`);
+            if (item) {
+                item.classList.add('active');
+                item.setAttribute('aria-checked', 'true');
+            }
+        });
 
         // Show the toggle button but keep panel hidden until user clicks
         this.showLayersToggle();
@@ -2913,52 +2922,74 @@ const UI = {
         if (!layerItem) return;
 
         const isActive = layerItem.classList.contains('active');
+        const displayName = this.getLayerDisplayName(layerName);
+
+        // Categorize layer type
+        const mapLayers = ['sciencePark', 'companies', 'properties', 'resources', 'baseMap'];
+        const isMapLayer = mapLayers.includes(layerName);
 
         if (isActive) {
+            // Deactivate
             layerItem.classList.remove('active');
             layerItem.setAttribute('aria-checked', 'false');
-            MapController.hideLayer(layerName);
-            this.announceToScreenReader(`${this.getLayerDisplayName(layerName)} layer hidden`);
+            delete this.activeDataLayers[layerName];
+
+            if (layerName === 'waterResources') {
+                MapController.hideWaterResourceLayer();
+                this.hidePanel();
+            } else if (layerName === 'airlineRoutes') {
+                MapController.hideAirlineRoutes();
+                this.hidePanel();
+            } else if (layerName === 'electricity') {
+                MapController.fadeOutDataLayerMarkersAnimated(layerName);
+                if (!App || !App.state || App.state.currentStep !== 1) {
+                    MapController.hideKyushuEnergy();
+                }
+                MapController.restorePreDataLayerView();
+            } else if (isMapLayer) {
+                MapController.hideLayer(layerName);
+            } else {
+                // Data layer with animated exit
+                MapController.fadeOutDataLayerMarkersAnimated(layerName);
+            }
+
+            this.announceToScreenReader(`${displayName} layer hidden`);
+            this._handleDataLayerDashboard(layerName);
         } else {
+            // Activate
             layerItem.classList.add('active');
             layerItem.setAttribute('aria-checked', 'true');
-            MapController.showLayer(layerName);
-            this.announceToScreenReader(`${this.getLayerDisplayName(layerName)} layer shown`);
+            this.activeDataLayers[layerName] = true;
 
-            // In dashboard mode, show layer info in the panel
-            if (this.dashboardMode) {
+            if (layerName === 'waterResources') {
+                MapController.showWaterResourceLayer();
+                MapController.flyToStep(CAMERA_STEPS.A2_water);
+                this.showWaterResourcesEvidence();
+            } else if (layerName === 'airlineRoutes') {
+                MapController.showAirlineRoutes();
+                MapController.flyToStep(CAMERA_STEPS.A3_location);
+                this.showAllAirlineRoutes();
+            } else if (layerName === 'electricity') {
                 const layerData = AppData.dataLayers[layerName];
                 if (layerData) {
+                    MapController.savePreDataLayerView();
+                    MapController.showDataLayerMarkers(layerName, layerData);
+                    MapController.showKyushuEnergy();
+                    this.showDataLayerPanel(layerName, layerData);
+                }
+            } else if (isMapLayer) {
+                MapController.ensureLayerMarkers(layerName);
+            } else {
+                // Standard data layer
+                const layerData = AppData.dataLayers[layerName];
+                if (layerData) {
+                    MapController.showDataLayerMarkers(layerName, layerData);
                     this.showDataLayerPanel(layerName, layerData);
                 }
             }
-        }
-    },
 
-    /**
-     * Toggle water resources layer - shows water areas, brand markers, and evidence panel
-     */
-    toggleWaterResources(layerName) {
-        const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
-        if (!layerItem) return;
-
-        const isActive = layerItem.classList.contains('active');
-
-        if (isActive) {
-            // Deactivate: hide water markers and panel
-            layerItem.classList.remove('active');
-            layerItem.setAttribute('aria-checked', 'false');
-            MapController.hideWaterResourceLayer();
-            this.hidePanel();
-            this.announceToScreenReader('Water resources layer hidden');
-        } else {
-            // Activate: show water areas, brand markers, and evidence
-            layerItem.classList.add('active');
-            layerItem.setAttribute('aria-checked', 'true');
-            MapController.showWaterResourceLayer();
-            MapController.flyToStep(CAMERA_STEPS.A2_water);
-            this.showWaterResourcesEvidence();
-            this.announceToScreenReader('Water resources layer shown');
+            this.announceToScreenReader(`${displayName} layer shown`);
+            this._handleDataLayerDashboard(layerName);
         }
     },
 
@@ -3002,31 +3033,6 @@ const UI = {
     },
 
     /**
-     * Toggle airline routes layer - shows/hides flight arcs and destination markers
-     */
-    toggleAirlineRoutes(layerName) {
-        const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
-        if (!layerItem) return;
-
-        const isActive = layerItem.classList.contains('active');
-
-        if (isActive) {
-            layerItem.classList.remove('active');
-            layerItem.setAttribute('aria-checked', 'false');
-            MapController.hideAirlineRoutes();
-            this.hidePanel();
-            this.announceToScreenReader('Strategic location layer hidden');
-        } else {
-            layerItem.classList.add('active');
-            layerItem.setAttribute('aria-checked', 'true');
-            MapController.showAirlineRoutes();
-            MapController.flyToStep(CAMERA_STEPS.A3_location);
-            this.showAllAirlineRoutes();
-            this.announceToScreenReader('Strategic location layer shown');
-        }
-    },
-
-    /**
      * Get display name for layer (for screen reader announcements)
      */
     getLayerDisplayName(layerName) {
@@ -3047,59 +3053,6 @@ const UI = {
         return names[layerName] || layerName;
     },
 
-    toggleDataLayer(layerName) {
-        const layerItem = document.querySelector(`#data-layer-items [data-layer="${layerName}"]`);
-        if (!layerItem) return;
-
-        const isActive = layerItem.classList.contains('active');
-        const displayName = this.getLayerDisplayName(layerName);
-
-        if (isActive) {
-            // Deactivate layer
-            layerItem.classList.remove('active');
-            layerItem.setAttribute('aria-checked', 'false');
-
-            // Hide markers and clear from active layers
-            MapController.hideDataLayerMarkers(layerName);
-            delete this.activeDataLayers[layerName];
-
-            // Electricity layer: hide Kyushu energy facilities and restore view
-            if (layerName === 'electricity') {
-                // Don't hide if step 1 (resources) is active (it also shows Kyushu energy)
-                if (!App || !App.state || App.state.currentStep !== 1) {
-                    MapController.hideKyushuEnergy();
-                }
-                MapController.restorePreDataLayerView();
-            }
-
-            this.announceToScreenReader(`${displayName} layer hidden`);
-        } else {
-            // Activate layer - show markers and panel
-            layerItem.classList.add('active');
-            layerItem.setAttribute('aria-checked', 'true');
-
-            // Get layer data
-            const layerData = AppData.dataLayers[layerName];
-            if (layerData) {
-                // Show markers on map
-                MapController.showDataLayerMarkers(layerName, layerData);
-
-                // Track active layer
-                this.activeDataLayers[layerName] = true;
-
-                // Electricity layer: show Kyushu-wide energy facilities
-                if (layerName === 'electricity') {
-                    MapController.savePreDataLayerView();
-                    MapController.showKyushuEnergy();
-                }
-
-                // Show info panel for this layer
-                this.showDataLayerPanel(layerName, layerData);
-            }
-
-            this.announceToScreenReader(`${displayName} layer shown`);
-        }
-    },
 
     /**
      * Show data layer info panel
@@ -3179,6 +3132,90 @@ const UI = {
             ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ''}
             ${markersListHtml}
             ${kyushuEnergyHtml}
+        `;
+
+        this.showPanel(content);
+    },
+
+    /**
+     * Handle dashboard auto-open when data layers are toggled while chatbox is closed.
+     * Journey takes priority when chatbox is open.
+     */
+    _handleDataLayerDashboard() {
+        const chatbox = this.elements.chatbox;
+        const chatboxOpen = chatbox && !chatbox.classList.contains('hidden');
+
+        // Journey takes priority when chatbox is open
+        if (chatboxOpen) return;
+
+        // Check if any data layers are active
+        const activeKeys = Object.keys(this.activeDataLayers);
+        if (activeKeys.length === 0) {
+            // No layers active; close dashboard if it was showing data layer content
+            if (this._dataLayerDashboardActive) {
+                this._dataLayerDashboardActive = false;
+                this.hidePanel();
+            }
+            return;
+        }
+
+        // Auto-open dashboard with data layer sections
+        this._dataLayerDashboardActive = true;
+        this._renderDataLayerDashboard();
+    },
+
+    /**
+     * Render scrollable dashboard with disclosure sections for each active data layer.
+     */
+    _renderDataLayerDashboard() {
+        const activeKeys = Object.keys(this.activeDataLayers);
+        if (activeKeys.length === 0) return;
+
+        let sectionsHtml = '';
+        activeKeys.forEach(layerName => {
+            const displayName = this.getLayerDisplayName(layerName);
+
+            // Try to get data from AppData.dataLayers, or build minimal section
+            const layerData = AppData.dataLayers[layerName];
+            const description = layerData ? layerData.description : '';
+            const statsHtml = layerData && layerData.stats ? layerData.stats.map(stat => `
+                <div class="stat-item">
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('') : '';
+
+            const markersHtml = layerData && layerData.markers ? layerData.markers.map(m => `
+                <button class="data-layer-marker-item" onclick="UI.focusDataLayerMarker('${layerName}', '${m.id}')">
+                    <span class="marker-name">${m.name}</span>
+                </button>
+            `).join('') : '';
+
+            const groupId = `dashboard-layer-${layerName}`;
+            sectionsHtml += `
+                <div class="disclosure-group expanded" data-group-id="${groupId}">
+                    <button class="disclosure-header" aria-expanded="true" onclick="UI.toggleDisclosureGroup('${groupId}')">
+                        <span class="disclosure-triangle" aria-hidden="true">
+                            <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
+                            <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
+                        </span>
+                        <span class="disclosure-title">${displayName}</span>
+                    </button>
+                    <div class="disclosure-content">
+                        ${description ? `<p style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm); color: var(--color-text-secondary);">${description}</p>` : ''}
+                        ${statsHtml ? `<div class="stat-grid" style="padding: var(--space-2) var(--space-4);">${statsHtml}</div>` : ''}
+                        ${markersHtml ? `<div class="data-layer-markers-list" style="padding: var(--space-2) var(--space-4);">${markersHtml}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        const content = `
+            <div class="subtitle">Data layers</div>
+            <h2>Active layers</h2>
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+                ${sectionsHtml}
+            </div>
         `;
 
         this.showPanel(content);

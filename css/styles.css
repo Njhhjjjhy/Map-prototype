@@ -2466,6 +2466,53 @@ a:focus-visible {
     animation: markerPulse 3s var(--easing-standard) infinite;
 }
 
+/* Data layer bounce entrance — scale from 0 to overshoot then settle */
+@keyframes dataLayerBounceIn {
+    0% {
+        scale: 0;
+        opacity: 0;
+    }
+    50% {
+        scale: 1.15;
+        opacity: 1;
+    }
+    75% {
+        scale: 0.95;
+    }
+    100% {
+        scale: 1;
+        opacity: 1;
+    }
+}
+
+.marker-data-bounce {
+    animation: dataLayerBounceIn 400ms var(--easing-decelerate) both;
+}
+
+/* Data layer rise-shrink exit — expand + rise, then shrink + lower + fade */
+@keyframes dataLayerRiseOut {
+    0% {
+        scale: 1;
+        translate: 0 0;
+        opacity: 1;
+    }
+    20% {
+        scale: 1.1;
+        translate: 0 -6px;
+        opacity: 1;
+    }
+    100% {
+        scale: 0;
+        translate: 0 8px;
+        opacity: 0;
+    }
+}
+
+.marker-data-exit {
+    animation: dataLayerRiseOut 1000ms var(--easing-accelerate) forwards !important;
+    pointer-events: none;
+}
+
 /* (Science Park circle — now rendered as Mapbox fill/line layers) */
 
 /* ================================
@@ -4700,6 +4747,8 @@ button.layer-item {
     .marker-ripple,
     .marker-emerge,
     .marker-exiting,
+    .marker-data-bounce,
+    .marker-data-exit,
     .marker-pulse .elevated-marker,
     #right-panel.visible #panel-content,
     .moreharvest-entry-logo,

@@ -1084,6 +1084,8 @@ const App = {
         this.state.expandedGroups = [];
         this.state.activeProperty = null;
         this.state.futureView = false;
+        UI.activeDataLayers = {};
+        UI._dataLayerDashboardActive = false;
 
         setTimeout(() => {
             this.goToStep(1);

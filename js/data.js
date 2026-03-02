@@ -23,7 +23,7 @@ const STEPS = [
         panelTabs: ['Evidence'],
         subItems: [
             { id: 'water', label: 'Water resources', icon: 'droplet' },
-            { id: 'power', label: 'Power sources', icon: 'zap' }
+            { id: 'power', label: 'Power resources', icon: 'zap' }
         ]
     },
     {
@@ -140,7 +140,7 @@ const STEPS = [
         subtitle: 'Investment opportunities',
         cameraKey: 'corridor',
         layers: [],
-        panelTabs: ['Images', 'Truth Engine', 'Future Outlook', 'Financial'],
+        panelTabs: ['Images', 'Truth engine', 'Future outlook', 'Financial'],
         subItems: [
             { id: 'ozu-sugimizu', label: 'Ozu Sugimizu', icon: 'house' },
             { id: 'kikuyo-kubota', label: 'Kikuyo Kubota', icon: 'house' },
