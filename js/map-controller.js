@@ -135,10 +135,10 @@ const CAMERA_STEPS = {
     duration: 2000,
   },
   A2_power: {
-    center: [130.65, 32.75],
-    zoom: 12,
-    pitch: 45,
-    bearing: -15,
+    center: [132.5772, 32.9895],
+    zoom: 6.8,
+    pitch: 37,
+    bearing: 0,
     duration: 2000,
   },
   A3_ecosystem: {
@@ -1573,6 +1573,14 @@ const MapController = {
         `${station.name} - ${station.capacity}`,
       );
       element.addEventListener("click", () => {
+        // Fly to the marker's location
+        this.flyToStep({
+          center: this._toMapbox(station.coords),
+          zoom: 9.4,
+          pitch: 39,
+          bearing: 0,
+          duration: 2000,
+        });
         if (typeof UI !== "undefined") {
           UI.showEnergyStationPanel(station, type);
         }
