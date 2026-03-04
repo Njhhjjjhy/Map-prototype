@@ -1,254 +1,618 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Kumamoto Investment Opportunities</title>
 
     <!-- Google Fonts: REM + Noto Sans JP -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Rem:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Rem:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Mapbox GL JS CSS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
     <!-- Skip Link for keyboard users -->
     <a href="#map-container" class="skip-link">Skip to main content</a>
 
     <!-- Start screen removed - map loads directly -->
-    <div id="start-screen" style="display: none;"></div>
+    <div id="start-screen" style="display: none"></div>
 
     <!-- Main App Container -->
     <div id="app-container">
-        <!-- Map Container -->
-        <div id="map-container" tabindex="-1">
-            <div id="map" role="application" aria-label="Interactive map of Kumamoto investment region">
-            </div>
-            <!-- Screen reader announcements for map interactions -->
-            <div id="map-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <!-- Map Container -->
+      <div id="map-container" tabindex="-1">
+        <div
+          id="map"
+          role="application"
+          aria-label="Interactive map of Kumamoto investment region"
+        ></div>
+        <!-- Screen reader announcements for map interactions -->
+        <div
+          id="map-announcements"
+          class="sr-only"
+          aria-live="polite"
+          aria-atomic="true"
+        ></div>
 
-            <!-- Journey Progress Bar (populated dynamically by UI.updateJourneyProgress) -->
-            <nav id="journey-progress" class="hidden" role="progressbar" aria-valuemin="1" aria-label="Journey progress"></nav>
+        <!-- Journey Progress Bar (populated dynamically by UI.updateJourneyProgress) -->
+        <nav
+          id="journey-progress"
+          class="hidden"
+          role="progressbar"
+          aria-valuemin="1"
+          aria-label="Journey progress"
+        ></nav>
 
-            <!-- Time Toggle -->
-            <div id="time-toggle" class="hidden" role="radiogroup" aria-label="Map time view">
-                <button id="present-btn" class="time-btn active" role="radio" aria-checked="true">Present</button>
-                <button id="future-btn" class="time-btn" role="radio" aria-checked="false">Future</button>
-            </div>
-
-            <!-- Chatbox -->
-            <div id="chatbox" class="hidden" role="region" aria-label="Journey guide" aria-live="polite">
-                <button id="chatbox-back" aria-label="Go back" onclick="App.prevStep()" disabled>
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
-                <button id="chatbox-close" aria-label="Close chatbox">
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-                <div id="chatbox-body">
-                    <h3 id="chatbox-title"></h3>
-                    <div id="chatbox-content"></div>
-                </div>
-            </div>
-
-            <!-- Layers Toggle Button (hidden until journey starts) -->
-            <button id="layers-toggle" class="hidden" aria-label="Toggle map layers" aria-expanded="false">
-                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                    <polyline points="2 17 12 22 22 17"></polyline>
-                    <polyline points="2 12 12 17 22 12"></polyline>
-                </svg>
-            </button>
-
-            <!-- Floating action button to reopen chatbox/AI chat -->
-            <button id="chat-fab" class="hidden" aria-label="Reopen guide">
-                <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-            </button>
-
-            <!-- Data Layers Panel (journey-aware, toggled by button) -->
-            <div id="data-layers" class="hidden" role="region" aria-label="Data layers">
-                <div class="layers-title">Data layers</div>
-                <div class="layer-items" id="data-layer-items">
-                    <!-- Populated by JS - includes both map layers and data layers -->
-                </div>
-            </div>
-
-
-            <!-- Camera Debug Tool (dev only, top-left) -->
-            <button id="camera-debug-toggle" aria-label="Toggle camera debug" title="Camera debug">
-                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                </svg>
-            </button>
-            <div id="camera-debug" class="hidden">
-                <div class="camera-debug-header">
-                    <span class="camera-debug-title">Camera</span>
-                    <button id="camera-debug-copy" aria-label="Copy camera values" title="Copy to clipboard">
-                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="14" height="14" x="8" y="8" rx="2"/>
-                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="camera-debug-grid">
-                    <div class="camera-debug-row">
-                        <span class="camera-debug-label">lat</span>
-                        <span class="camera-debug-value" id="cam-lat">--</span>
-                    </div>
-                    <div class="camera-debug-row">
-                        <span class="camera-debug-label">lng</span>
-                        <span class="camera-debug-value" id="cam-lng">--</span>
-                    </div>
-                    <div class="camera-debug-row">
-                        <span class="camera-debug-label">zoom</span>
-                        <span class="camera-debug-value" id="cam-zoom">--</span>
-                    </div>
-                    <div class="camera-debug-row">
-                        <span class="camera-debug-label">pitch</span>
-                        <span class="camera-debug-value" id="cam-pitch">--</span>
-                    </div>
-                    <div class="camera-debug-row">
-                        <span class="camera-debug-label">bearing</span>
-                        <span class="camera-debug-value" id="cam-bearing">--</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dashboard Toggle Button (right side) -->
-            <button id="panel-toggle" class="hidden" aria-label="Toggle dashboard" aria-expanded="false">
-                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                    <path d="M15 3v18"/>
-                </svg>
-            </button>
-
-            <!-- Dashboard Toggle Button - removed in v2 overhaul -->
+        <!-- Time Toggle -->
+        <div
+          id="time-toggle"
+          class="hidden"
+          role="radiogroup"
+          aria-label="Map time view"
+        >
+          <button
+            id="present-btn"
+            class="time-btn active"
+            role="radio"
+            aria-checked="true"
+          >
+            Present
+          </button>
+          <button
+            id="future-btn"
+            class="time-btn"
+            role="radio"
+            aria-checked="false"
+          >
+            Future
+          </button>
         </div>
 
-        <!-- Dashboard -->
-        <aside id="right-panel" class="hidden" role="complementary" aria-label="Dashboard">
-            <div class="panel-toolbar">
-                <button id="panel-close" aria-label="Close dashboard">
-                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+        <!-- Chatbox -->
+        <div
+          id="chatbox"
+          class="hidden"
+          role="region"
+          aria-label="Journey guide"
+          aria-live="polite"
+        >
+          <button
+            id="chatbox-back"
+            aria-label="Go back"
+            onclick="App.prevStep()"
+            disabled
+          >
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button id="chatbox-close" aria-label="Close chatbox">
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div id="chatbox-body">
+            <h3 id="chatbox-title"></h3>
+            <div id="chatbox-content"></div>
+          </div>
+        </div>
+
+        <!-- Layers Toggle Button (hidden until journey starts) -->
+        <button
+          id="layers-toggle"
+          class="hidden"
+          aria-label="Toggle map layers"
+          aria-expanded="false"
+        >
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </button>
+
+        <!-- Floating action button to reopen chatbox/AI chat -->
+        <button id="chat-fab" class="hidden" aria-label="Reopen guide">
+          <svg
+            aria-hidden="true"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            ></path>
+          </svg>
+        </button>
+
+        <!-- Data Layers Panel (journey-aware, toggled by button) -->
+        <div
+          id="data-layers"
+          class="hidden"
+          role="region"
+          aria-label="Data layers"
+        >
+          <div class="layers-title">Data layers</div>
+          <div class="layer-items" id="data-layer-items">
+            <!-- Populated by JS - includes both map layers and data layers -->
+          </div>
+        </div>
+
+        <!-- Camera Debug Tool (dev only, top-left) -->
+        <button
+          id="camera-debug-toggle"
+          aria-label="Toggle camera debug"
+          title="Camera debug"
+        >
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+            />
+          </svg>
+        </button>
+        <div id="camera-debug" class="hidden">
+          <div class="camera-debug-header">
+            <span class="camera-debug-title">Camera</span>
+            <button
+              id="camera-debug-copy"
+              aria-label="Copy camera values"
+              title="Copy to clipboard"
+            >
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="14" height="14" x="8" y="8" rx="2" />
+                <path
+                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="camera-debug-grid">
+            <div class="camera-debug-row">
+              <span class="camera-debug-label">lat</span>
+              <span class="camera-debug-value" id="cam-lat">--</span>
             </div>
-            <div id="panel-content"></div>
-        </aside>
+            <div class="camera-debug-row">
+              <span class="camera-debug-label">lng</span>
+              <span class="camera-debug-value" id="cam-lng">--</span>
+            </div>
+            <div class="camera-debug-row">
+              <span class="camera-debug-label">zoom</span>
+              <span class="camera-debug-value" id="cam-zoom">--</span>
+            </div>
+            <div class="camera-debug-row">
+              <span class="camera-debug-label">pitch</span>
+              <span class="camera-debug-value" id="cam-pitch">--</span>
+            </div>
+            <div class="camera-debug-row">
+              <span class="camera-debug-label">bearing</span>
+              <span class="camera-debug-value" id="cam-bearing">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- QA Reporter (dev tool, top-left below camera debug) -->
+        <button
+          id="qa-toggle"
+          aria-label="Toggle QA reporter"
+          title="QA reporter"
+        >
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+            />
+            <path d="m9 14 2 2 4-4" />
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+          </svg>
+        </button>
+        <div id="qa-panel" class="hidden">
+          <div class="qa-header">
+            <span class="qa-title">QA reporter</span>
+            <span class="qa-count" id="qa-count">0</span>
+            <button
+              id="qa-copy"
+              class="qa-header-btn"
+              aria-label="Copy all unsolved issues"
+              title="Copy unsolved issues"
+            >
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="14" height="14" x="8" y="8" rx="2" />
+                <path
+                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="qa-step-indicator" id="qa-step-indicator">Step: --</div>
+          <div class="qa-form">
+            <div class="qa-categories" id="qa-categories">
+              <!-- Populated by JS -->
+            </div>
+            <textarea
+              id="qa-description"
+              class="qa-textarea"
+              placeholder="Describe the issue..."
+              rows="3"
+            ></textarea>
+            <button id="qa-add" class="qa-add-btn" disabled>Add issue</button>
+          </div>
+          <div class="qa-divider"></div>
+          <div class="qa-issues" id="qa-issues">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Step Jumper (dev only, bottom-left) -->
+        <button
+          id="step-jumper-toggle"
+          aria-label="Toggle step jumper"
+          title="Step jumper"
+        >
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="8" x2="21" y1="6" y2="6" />
+            <line x1="8" x2="21" y1="12" y2="12" />
+            <line x1="8" x2="21" y1="18" y2="18" />
+            <line x1="3" x2="3.01" y1="6" y2="6" />
+            <line x1="3" x2="3.01" y1="12" y2="12" />
+            <line x1="3" x2="3.01" y1="18" y2="18" />
+          </svg>
+        </button>
+        <div id="step-jumper" class="hidden">
+          <div class="step-jumper-header">
+            <span class="step-jumper-title">Step jumper</span>
+          </div>
+          <div class="step-jumper-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Dashboard Toggle Button (right side) -->
+        <button
+          id="panel-toggle"
+          class="hidden"
+          aria-label="Toggle dashboard"
+          aria-expanded="false"
+        >
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="M15 3v18" />
+          </svg>
+        </button>
+
+        <!-- Dashboard Toggle Button - removed in v2 overhaul -->
+      </div>
+
+      <!-- Dashboard -->
+      <aside
+        id="right-panel"
+        class="hidden"
+        role="complementary"
+        aria-label="Dashboard"
+      >
+        <div class="panel-toolbar">
+          <button id="panel-close" aria-label="Close dashboard">
+            <svg
+              aria-hidden="true"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div id="panel-content"></div>
+      </aside>
     </div>
 
     <!-- Gallery Modal -->
-    <div id="gallery-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
-        <div id="gallery-overlay"></div>
-        <div id="gallery-content">
-            <button id="gallery-close" aria-label="Close gallery">
-                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="14" y1="2" x2="2" y2="14"></line>
-                    <line x1="2" y1="2" x2="14" y2="14"></line>
-                </svg>
-            </button>
-            <h2 id="gallery-title" class="sr-only">Document viewer</h2>
-            <div id="gallery-body"></div>
-        </div>
+    <div
+      id="gallery-modal"
+      class="hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gallery-title"
+    >
+      <div id="gallery-overlay"></div>
+      <div id="gallery-content">
+        <button id="gallery-close" aria-label="Close gallery">
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="14" y1="2" x2="2" y2="14"></line>
+            <line x1="2" y1="2" x2="14" y2="14"></line>
+          </svg>
+        </button>
+        <h2 id="gallery-title" class="sr-only">Document viewer</h2>
+        <div id="gallery-body"></div>
+      </div>
     </div>
 
     <!-- Property Image Quick Look Modal (macOS pattern) -->
-    <div id="property-quick-look" class="hidden" role="dialog" aria-modal="true" aria-label="Property image expanded view">
-        <div id="quick-look-overlay" onclick="UI.hidePropertyImageQuickLook()"></div>
-        <div id="quick-look-content">
-            <button id="quick-look-close" aria-label="Close image" onclick="UI.hidePropertyImageQuickLook()">
-                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="14" y1="2" x2="2" y2="14"></line>
-                    <line x1="2" y1="2" x2="14" y2="14"></line>
-                </svg>
-            </button>
-            <img id="quick-look-image" src="" alt="">
-        </div>
+    <div
+      id="property-quick-look"
+      class="hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Property image expanded view"
+    >
+      <div
+        id="quick-look-overlay"
+        onclick="UI.hidePropertyImageQuickLook()"
+      ></div>
+      <div id="quick-look-content">
+        <button
+          id="quick-look-close"
+          aria-label="Close image"
+          onclick="UI.hidePropertyImageQuickLook()"
+        >
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="14" y1="2" x2="2" y2="14"></line>
+            <line x1="2" y1="2" x2="14" y2="14"></line>
+          </svg>
+        </button>
+        <img id="quick-look-image" src="" alt="" />
+      </div>
     </div>
 
     <!-- Evidence Preview Overlay -->
-    <div id="evidence-preview" class="hidden" role="dialog" aria-modal="true" aria-label="Evidence preview">
-        <div id="evidence-preview-overlay" onclick="UI.hideEvidencePreview()"></div>
-        <div id="evidence-preview-content">
-            <button id="evidence-preview-close" aria-label="Close preview" onclick="UI.hideEvidencePreview()">
-                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="14" y1="2" x2="2" y2="14"></line>
-                    <line x1="2" y1="2" x2="14" y2="14"></line>
-                </svg>
-            </button>
-            <div id="evidence-preview-body"></div>
-        </div>
+    <div
+      id="evidence-preview"
+      class="hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Evidence preview"
+    >
+      <div
+        id="evidence-preview-overlay"
+        onclick="UI.hideEvidencePreview()"
+      ></div>
+      <div id="evidence-preview-content">
+        <button
+          id="evidence-preview-close"
+          aria-label="Close preview"
+          onclick="UI.hideEvidencePreview()"
+        >
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="14" y1="2" x2="2" y2="14"></line>
+            <line x1="2" y1="2" x2="14" y2="14"></line>
+          </svg>
+        </button>
+        <div id="evidence-preview-body"></div>
+      </div>
     </div>
 
     <!-- Hold-to-Confirm Splash Screen (appears at step B6) -->
     <!-- AI Chat (appears after journey completion) -->
     <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
-        <button id="ai-chat-close" aria-label="Close chat">
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="14" y1="2" x2="2" y2="14"></line>
-                <line x1="2" y1="2" x2="14" y2="14"></line>
-            </svg>
+      <button id="ai-chat-close" aria-label="Close chat">
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="14" y1="2" x2="2" y2="14"></line>
+          <line x1="2" y1="2" x2="14" y2="14"></line>
+        </svg>
+      </button>
+      <div class="ai-chat-header">
+        <h3>Ask Me Anything About Kumamoto</h3>
+      </div>
+
+      <div class="ai-chat-suggestions" id="ai-chat-suggestions">
+        <button
+          class="ai-chat-chip"
+          data-question="What are the risks of investing here?"
+        >
+          What are the risks?
         </button>
-        <div class="ai-chat-header">
-            <h3>Ask Me Anything About Kumamoto</h3>
-        </div>
+        <button
+          class="ai-chat-chip"
+          data-question="How do I start investing in Kumamoto?"
+        >
+          How do I invest?
+        </button>
+      </div>
 
-        <div class="ai-chat-suggestions" id="ai-chat-suggestions">
-            <button class="ai-chat-chip" data-question="What are the risks of investing here?">
-                What are the risks?
-            </button>
-            <button class="ai-chat-chip" data-question="How do I start investing in Kumamoto?">
-                How do I invest?
-            </button>
-        </div>
+      <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite">
+        <!-- Messages will be inserted here -->
+      </div>
 
-        <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite">
-            <!-- Messages will be inserted here -->
-        </div>
+      <form class="ai-chat-input-container" id="ai-chat-form">
+        <input
+          type="text"
+          id="ai-chat-input"
+          class="ai-chat-input"
+          placeholder="Ask about Kumamoto..."
+          autocomplete="off"
+          aria-label="Type your question"
+        />
+        <button type="submit" class="ai-chat-send" aria-label="Send message">
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 2L11 13"></path>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+          </svg>
+        </button>
+      </form>
 
-        <form class="ai-chat-input-container" id="ai-chat-form">
-            <input
-                type="text"
-                id="ai-chat-input"
-                class="ai-chat-input"
-                placeholder="Ask about Kumamoto..."
-                autocomplete="off"
-                aria-label="Type your question"
+      <!-- CTAs for clear calls to action (Strengthen Ending) -->
+      <div class="ai-chat-ctas" id="ai-chat-ctas">
+        <button class="ai-chat-cta" onclick="UI.downloadSummary()">
+          <span class="ai-chat-cta-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
             >
-            <button type="submit" class="ai-chat-send" aria-label="Send message">
-                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 2L11 13"></path>
-                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-                </svg>
-            </button>
-        </form>
-
-        <!-- CTAs for clear calls to action (Strengthen Ending) -->
-        <div class="ai-chat-ctas" id="ai-chat-ctas">
-            <button class="ai-chat-cta" onclick="UI.downloadSummary()">
-                <span class="ai-chat-cta-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" x2="12" y1="15" y2="3"/>
-                    </svg>
-                </span>
-                Download summary
-            </button>
-        </div>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" x2="12" y1="15" y2="3" />
+            </svg>
+          </span>
+          Download summary
+        </button>
+      </div>
     </div>
 
     <!-- Chart.js for data visualization -->
@@ -256,12 +620,15 @@
 
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-    <script>window.MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ';</script>
+    <script>
+      window.MAPBOX_ACCESS_TOKEN =
+        "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+    </script>
 
     <!-- App JS -->
     <script src="js/data.js"></script>
     <script src="js/map-controller.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
-</body>
+  </body>
 </html>

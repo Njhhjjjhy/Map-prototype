@@ -29,10 +29,14 @@ const App = {
     currentStep: 0, // 1-11, 0 = not started
     subItemsExplored: [], // Track which sub-items within current step have been viewed
     expandedGroups: [], // Track which parent sub-items are expanded
+    activeParentGroup: null, // Currently selected/highlighted parent group in chatbox
     activeProperty: null, // Currently selected property ID (step 10)
     futureView: false, // Whether future toggle is active (step 8)
     evidenceGroupsViewed: [], // Track which evidence groups have been viewed
     activeEnergyTypes: [], // Track which energy types are toggled on (solar, wind, nuclear)
+    activeGovernmentLevels: [], // Track which government levels are toggled on (central, prefectural, local)
+    visitedGovernmentLevels: [], // Track which government levels have been viewed (persists across toggles)
+    activeInvestmentZones: [], // Track which investment zones are toggled on (kikuyo-zone, koshi-zone, ozu-zone)
   },
 
   /**
@@ -91,13 +95,24 @@ const App = {
     this.state.subItemsExplored = [];
     this.state.expandedGroups = [];
     this.state.activeProperty = null;
+    this.state.activeParentGroup = null;
     this.state.activeEnergyTypes = [];
+    this.state.activeGovernmentLevels = [];
+    this.state.activeDevelopmentChildren = [];
+
+    // Step 6: auto-select Science Park group on entry
+    if (step.id === "transport-access") {
+      this.state.activeParentGroup = "science-park-group";
+      if (!this.state.subItemsExplored.includes("science-park-group")) {
+        this.state.subItemsExplored.push("science-park-group");
+      }
+    }
 
     // --- Progress bar ---
     UI.updateJourneyProgress(stepIndex, STEPS.length);
 
     // --- Special pre-step cinematics ---
-    if (stepIndex === 10 && prevStep > 0 && prevStep !== 10) {
+    if (stepIndex === 9 && prevStep > 0 && prevStep !== 9) {
       await UI.showMoreHarvestEntry();
       await MapController.elevateToCorridorView();
       await new Promise((r) => setTimeout(r, TIMING.breath));
@@ -256,10 +271,20 @@ const App = {
       MapController.showAirlineRoutes();
     }
     if (layers.includes("governmentChain")) {
-      MapController.showGovernmentChain();
+      if (step.id === "government-support") {
+        // Reset and auto-activate central level (like solar for power resources)
+        this.state.activeGovernmentLevels = ["central"];
+        this.state.visitedGovernmentLevels = ["central"];
+        MapController.showGovernmentLevel("central");
+      } else {
+        MapController.showGovernmentChain();
+      }
     }
     if (layers.includes("sciencePark")) {
-      MapController.showSciencePark();
+      MapController.showSciencePark({ skipFly: true });
+    }
+    if (layers.includes("futureZones")) {
+      MapController.showFutureZones();
     }
     if (layers.includes("investmentZones")) {
       MapController.showInvestmentZones();
@@ -281,7 +306,7 @@ const App = {
     if (layers.includes("talentPipeline")) {
       MapController.showTalentPipeline();
     }
-    // Property markers removed per design decision
+    // Properties step: markers shown on individual selection, not on entry
   },
 
   /**
@@ -302,9 +327,30 @@ const App = {
       MapController.hideKyushuEnergy();
       MapController.hideAllEnergyTypes();
       UI.deactivateDataLayer("electricity");
-      UI.deactivateDataLayer("resources");
+      UI.deactivateDataLayer("waterResources");
     }
-    // Resources, sciencePark, companies, properties - cleaned up via marker fade
+    if (layers.includes("governmentChain")) {
+      MapController.hideAllGovernmentLevels();
+    }
+    if (layers.includes("companies")) {
+      MapController.fadeOutMarkerGroup("companies");
+    }
+    if (layers.includes("futureZones")) {
+      MapController.hideFutureZones();
+    }
+    // Clean up zone plan highlights, airport marker, road highlights (step 6)
+    if (step.id === "transport-access") {
+      MapController.hideZonePlanHighlight();
+      if (MapController.markers["airport"]) {
+        MapController.markers["airport"].remove();
+        delete MapController.markers["airport"];
+      }
+    }
+    // Clean up property markers on exit
+    if (step.id === "properties") {
+      MapController.fadeOutMarkerGroup("properties");
+    }
+    // Resources, sciencePark - cleaned up via marker fade
   },
 
   // ================================
@@ -355,13 +401,8 @@ const App = {
         afterItems:
           '<p style="margin-top: var(--space-2);">Click company markers to see investment scale.</p>',
       },
-      "science-park-zones": {
-        title: "Science park and zones",
-        body: "Kumamoto Prefecture designated a special semiconductor development zone with phased activation across multiple municipalities.",
-        afterItems: "",
-      },
       "transport-access": {
-        title: "Infrastructure",
+        title: "Science park and grand airport",
         body: "Kumamoto Science Park anchors a semiconductor corridor backed by <strong>¥4.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia.",
         afterItems: "",
       },
@@ -404,6 +445,11 @@ const App = {
       return this._renderFinalChatbox();
     }
 
+    // Step 4 (government-support) gets toggle rows instead of sub-items
+    if (step.id === "government-support") {
+      return this._renderGovernmentChatbox(n, continueBtn);
+    }
+
     // Step 10 (properties) gets fund stats
     let fundStats = "";
     if (step.id === "properties") {
@@ -442,6 +488,11 @@ const App = {
   _renderSubItems(step) {
     if (!step.subItems || step.subItems.length === 0) return "";
 
+    // Properties step: group sub-items by zone
+    if (step.id === "properties") {
+      return this._renderZoneGroupedSubItems(step);
+    }
+
     // Collect all leaf items for counting (children count, not parents)
     const leafItems = [];
     step.subItems.forEach((item) => {
@@ -456,35 +507,38 @@ const App = {
       .map((item) => {
         const explored = this.state.subItemsExplored.includes(item.id);
         const hasChildren = item.children && item.children.length > 0;
-        const isExpanded = this.state.expandedGroups.includes(item.id);
 
         if (hasChildren) {
-          const childItems = isExpanded
-            ? item.children
-                .map((child) => {
-                  const childExplored = this.state.subItemsExplored.includes(
-                    child.id,
-                  );
-                  return `<button class="chatbox-option chatbox-option-child ${childExplored ? "completed" : ""}"
-                                onclick="App.selectSubItem('${child.id}')"
-                                ${childExplored ? 'aria-disabled="true"' : ""}>
-                            ${child.label}${childExplored ? '<span class="sr-only"> (explored)</span>' : ""}
-                        </button>`;
-                })
-                .join("")
+          const isSelected =
+            this.state.activeParentGroup === item.id ||
+            this.state.subItemsExplored.includes(item.id);
+          const checkmark = isSelected
+            ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
             : "";
 
-          return `<button class="chatbox-option chatbox-option-parent ${explored ? "completed" : ""} ${isExpanded ? "expanded" : ""}"
+          // Children rendered as toggle rows in the dashboard panel
+          return `<button class="chatbox-option chatbox-option-parent ${isSelected ? "selected" : ""}"
                             onclick="App.toggleSubItemGroup('${item.id}')">
                         ${item.label}
-                        <svg class="chatbox-option-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>${childItems}`;
+                        ${checkmark}
+                    </button>`;
         }
+
+        const iconSvg =
+          item.icon === "house"
+            ? `<svg class="chatbox-option-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`
+            : "";
+        const checkmark = explored
+          ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+          : "";
 
         return `<button class="chatbox-option ${explored ? "completed" : ""}"
                         onclick="App.selectSubItem('${item.id}')"
                         ${explored ? 'aria-disabled="true"' : ""}>
-                    ${item.label}${explored ? '<span class="sr-only"> (explored)</span>' : ""}
+                    ${iconSvg}
+                    <span class="chatbox-option-label">${item.label}</span>
+                    ${checkmark}
+                    ${explored ? '<span class="sr-only"> (explored)</span>' : ""}
                 </button>`;
       })
       .join("");
@@ -492,6 +546,67 @@ const App = {
     return `
             <div class="chatbox-options" role="group" aria-label="Step options">
                 ${items}
+            </div>
+        `;
+  },
+
+  /**
+   * Render property sub-items grouped by zone headings.
+   * Looks up each sub-item's zone from AppData.properties.
+   */
+  _renderZoneGroupedSubItems(step) {
+    // Build zone groups preserving sub-item order
+    const zoneOrder = [];
+    const zoneMap = {};
+
+    step.subItems.forEach((item) => {
+      const property = AppData.properties.find((p) => p.id === item.id);
+      const zoneName = property ? property.zone : "Other";
+      // Strip "Development Zone" / "Station Development Zone" for short label
+      const zoneLabel = zoneName
+        .replace(" Station Development Zone", "")
+        .replace(" Development Zone", "");
+
+      if (!zoneMap[zoneName]) {
+        zoneMap[zoneName] = { label: zoneLabel, items: [] };
+        zoneOrder.push(zoneName);
+      }
+      zoneMap[zoneName].items.push(item);
+    });
+
+    const houseSvg = `<svg class="chatbox-option-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`;
+
+    const groups = zoneOrder
+      .map((zoneName) => {
+        const group = zoneMap[zoneName];
+        const itemButtons = group.items
+          .map((item) => {
+            const explored = this.state.subItemsExplored.includes(item.id);
+            const checkmark = explored
+              ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+              : "";
+
+            return `<button class="chatbox-option ${explored ? "completed" : ""}"
+                            onclick="App.selectSubItem('${item.id}')"
+                            ${explored ? 'aria-disabled="true"' : ""}>
+                        ${houseSvg}
+                        <span class="chatbox-option-label">${item.label}</span>
+                        ${checkmark}
+                        ${explored ? '<span class="sr-only"> (explored)</span>' : ""}
+                    </button>`;
+          })
+          .join("");
+
+        return `<div class="chatbox-zone-group">
+                    <div class="chatbox-zone-heading">${group.label}</div>
+                    ${itemButtons}
+                </div>`;
+      })
+      .join("");
+
+    return `
+            <div class="chatbox-options chatbox-options-zoned" role="group" aria-label="Properties by zone">
+                ${groups}
             </div>
         `;
   },
@@ -506,8 +621,42 @@ const App = {
     } else {
       this.state.expandedGroups.push(groupId);
     }
-    // Re-render chatbox to reflect expanded state
+
+    // Track active parent group and update dashboard
     const step = STEPS[this.state.currentStep - 1];
+    if (step && step.id === "transport-access") {
+      const prevGroup = this.state.activeParentGroup;
+      this.state.activeParentGroup = groupId;
+
+      // Mark group as explored so it stays visually selected
+      if (!this.state.subItemsExplored.includes(groupId)) {
+        this.state.subItemsExplored.push(groupId);
+      }
+
+      // Clean up map elements and reset children when parent group changes
+      if (prevGroup !== groupId) {
+        this._cleanupDevelopmentMapElements();
+        this.state.activeDevelopmentChildren = [];
+
+        // Toggle science park circle and camera based on selected group
+        if (groupId === "grand-airport-group") {
+          MapController.setScienceParkCircleVisible(false);
+          MapController.flyToStep({
+            center: [130.9384, 32.8342],
+            zoom: 11.8,
+            pitch: 50,
+            bearing: 22,
+            duration: 2000,
+          });
+        } else if (groupId === "science-park-group") {
+          MapController.setScienceParkCircleVisible(true);
+        }
+      }
+
+      this._renderDevelopmentDashboard();
+    }
+
+    // Re-render chatbox to reflect expanded state
     if (step) this._renderStepChatbox(step);
   },
 
@@ -537,19 +686,16 @@ const App = {
       case 3: // Government support
         this._handleGovernmentSubItem(itemId);
         break;
-      case 5: // Science park + zones
-        this._handleZonePlanSubItem(itemId);
-        break;
-      case 6: // Transport access
+      case 5: // Transport access
         this._handleTransportSubItem(itemId);
         break;
-      case 7: // Education pipeline
+      case 6: // Education pipeline
         this._handleEducationSubItem(itemId);
         break;
-      case 9: // Investment zones
+      case 8: // Investment zones
         this._handleInvestmentZoneSubItem(itemId);
         break;
-      case 10: // Properties
+      case 9: // Properties
         this._handlePropertySubItem(itemId);
         break;
     }
@@ -569,11 +715,11 @@ const App = {
       MapController.flyToStep(CAMERA_STEPS.A2_water);
 
       // Auto-activate the Water resources data layer checkbox
-      UI.activateDataLayer("resources");
+      UI.activateDataLayer("waterResources");
     } else if (itemId === "power") {
       // Hide water markers and overlays before showing power
       this._hideWaterLayers();
-      UI.deactivateDataLayer("resources");
+      UI.deactivateDataLayer("waterResources");
       // Reset active energy types for fresh entry
       this.state.activeEnergyTypes = [];
       // Fly to power resources overview
@@ -620,7 +766,6 @@ const App = {
 
     // Uncheck the Water resources data layer checkbox
     UI.deactivateDataLayer("waterResources");
-    UI.deactivateDataLayer("resources");
   },
 
   /**
@@ -642,170 +787,621 @@ const App = {
     UI.updatePowerSourcesPanel(this.state.activeEnergyTypes);
   },
 
+  /**
+   * Toggle an investment zone on/off (multi-select).
+   * Called from the investment zones panel toggles.
+   */
+  toggleInvestmentZone(zoneId) {
+    const idx = this.state.activeInvestmentZones.indexOf(zoneId);
+    if (idx >= 0) {
+      this.state.activeInvestmentZones.splice(idx, 1);
+      MapController.hideInvestmentZone(zoneId);
+    } else {
+      this.state.activeInvestmentZones.push(zoneId);
+      MapController.showInvestmentZone(zoneId);
+    }
+    UI.updateInvestmentZonesPanel(this.state.activeInvestmentZones);
+  },
+
+  /**
+   * Toggle a government level (single-select).
+   * Selecting a new level deselects the previous one.
+   * Called from the chatbox toggle rows.
+   */
+  toggleGovernmentLevel(level) {
+    const idx = this.state.activeGovernmentLevels.indexOf(level);
+    if (idx >= 0) {
+      // Turn off the currently active level
+      this.state.activeGovernmentLevels.splice(idx, 1);
+      MapController.hideGovernmentLevel(level);
+    } else {
+      // Single-select: hide all other levels first
+      const previous = [...this.state.activeGovernmentLevels];
+      previous.forEach((prev) => {
+        MapController.hideGovernmentLevel(prev);
+      });
+      this.state.activeGovernmentLevels = [level];
+      MapController.showGovernmentLevel(level);
+
+      // Track as visited so chatbox keeps showing it as completed
+      if (!this.state.visitedGovernmentLevels.includes(level)) {
+        this.state.visitedGovernmentLevels.push(level);
+      }
+
+      // Fly to the appropriate camera position for this level
+      this._flyToGovernmentLevel(level);
+    }
+    // Re-render panel and chatbox to reflect toggle state
+    UI.updateGovernmentPanel(this.state.activeGovernmentLevels);
+    const step = STEPS[this.state.currentStep - 1];
+    if (step) this._renderStepChatbox(step);
+  },
+
+  /**
+   * Fly the camera to the appropriate position for a government level.
+   * @param {string} level - 'central' | 'prefectural' | 'local'
+   */
+  _flyToGovernmentLevel(level) {
+    const cameras = {
+      central: CAMERA_STEPS.A4_government,
+      prefectural: {
+        center: [131.9774, 32.3468],
+        zoom: 7.9,
+        pitch: 49,
+        bearing: 21,
+        duration: 3000,
+      },
+      local: {
+        center: [130.9998, 32.8093],
+        zoom: 10.7,
+        pitch: 52,
+        bearing: 19,
+        duration: 3000,
+      },
+    };
+    const cam = cameras[level];
+    if (cam) {
+      MapController.flyToStep(cam);
+    }
+  },
+
+  /**
+   * Render chatbox content for the government-support step.
+   * Uses chatbox-option buttons (matching water/power resources look) with toggle behavior.
+   */
+  _renderGovernmentChatbox(narrative, continueBtn) {
+    const tiers = AppData.governmentTiers || [];
+    const visitedLevels = this.state.visitedGovernmentLevels;
+
+    const items = tiers
+      .map((tier) => {
+        const isVisited = visitedLevels.includes(tier.id);
+        return `<button class="chatbox-option${isVisited ? " completed" : ""}"
+                        onclick="App.toggleGovernmentLevel('${tier.id}')"
+                        aria-pressed="${isVisited}">
+                    ${tier.tier}${isVisited ? '<span class="sr-only"> (active)</span>' : ""}
+                </button>`;
+      })
+      .join("");
+
+    const navRow = continueBtn
+      ? `<div class="chatbox-nav-row">${continueBtn}</div>`
+      : "";
+
+    return `
+            <h3>${narrative.title}</h3>
+            <p>${narrative.body}</p>
+            <div class="chatbox-options" role="group" aria-label="Government levels">
+                ${items}
+            </div>
+            ${narrative.afterItems}
+            ${navRow}
+        `;
+  },
+
   // --- Step 3: Government ---
   _handleGovernmentSubItem(itemId) {
-    const tier = AppData.governmentTiers.find((t) => t.id === itemId);
-    if (tier) {
-      UI.showGovernmentTierPanel(tier);
-      if (tier.coords) {
-        MapController.flyToStep({
-          center: MapController._toMapbox(tier.coords),
-          zoom: 12,
-          pitch: 48,
-          bearing: -10,
-          duration: 1500,
-        });
-      }
-    }
+    // Redirect to toggle for the new toggle-based pattern
+    this.toggleGovernmentLevel(itemId);
   },
 
-  // --- Step 5: Science park + zones ---
-  _handleZonePlanSubItem(itemId) {
-    if (itemId === "science-park") {
+  // --- Step 5: Science Park + Grand Airport ---
+
+  /**
+   * Build and display the development dashboard panel.
+   * Shows parent overview + toggle rows for children + evidence for active child.
+   * Called when a parent group is selected or a child is toggled.
+   */
+  _renderDevelopmentDashboard() {
+    const group = this.state.activeParentGroup;
+    const activeChildren = this.state.activeDevelopmentChildren;
+
+    if (group === "science-park-group") {
       const sp = AppData.sciencePark;
-      UI.showPanel(`
-                <div class="subtitle">Development zone</div>
-                <h2>${sp.name}</h2>
-                <p>${sp.description}</p>
-                <div class="stat-grid">
-                    ${sp.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
-                </div>
-            `);
-      MapController.flyToStep(CAMERA_STEPS.B1_sciencePark);
-    } else if (itemId === "gov-zones") {
-      MapController.showFutureZones();
-      const zones = AppData.futureZones || [];
-      const zoneCards = zones
-        .map(
-          (z) => `
-                <div style="padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-medium);">
-                    <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-                        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${z.color}; flex-shrink: 0;"></div>
-                        <span style="font-weight: var(--font-weight-semibold);">${z.name}</span>
-                    </div>
-                    <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">${z.subtitle}</p>
-                </div>
-            `,
-        )
+      const zones = AppData.scienceParkZonePlans || [];
+
+      const zoneIcons = {
+        "sp-gov-zone":
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+        "sp-kikuyo-plan":
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>',
+        "sp-ozu-plan":
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect x="6" y="10" width="12" height="12"/></svg>',
+      };
+
+      const rowsHtml = zones
+        .map((z) => {
+          const isActive = activeChildren.includes(z.id);
+          const icon =
+            zoneIcons[z.id] ||
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+          return `
+            <button class="energy-toggle-row${isActive ? " active" : ""}"
+                    onclick="App.toggleDevelopmentChild('${z.id}')"
+                    aria-pressed="${isActive}">
+                <span class="energy-toggle-icon" style="color: ${z.strokeColor};">${icon}</span>
+                <span class="energy-toggle-label">${z.name}</span>
+                <span class="energy-toggle-switch ${isActive ? "on" : ""}">
+                    <span class="energy-toggle-knob"></span>
+                </span>
+            </button>
+          `;
+        })
         .join("");
+
+      // Evidence cards for all active children
+      let evidenceHtml = "";
+      const activeZones = activeChildren
+        .map((id) => zones.find((z) => z.id === id))
+        .filter(Boolean);
+
+      if (activeZones.length > 0) {
+        const cardsHtml = activeZones
+          .map((zone) => {
+            const statsHtml = zone.stats
+              ? zone.stats
+                  .map(
+                    (s) => `
+                    <div class="panel-bento-stat">
+                        <div class="panel-bento-stat-value">${s.value}</div>
+                        <div class="panel-bento-stat-label">${s.label}</div>
+                    </div>
+                  `,
+                  )
+                  .join("")
+              : "";
+
+            return `
+              <div class="energy-evidence-card" style="border-left: 3px solid ${zone.strokeColor};">
+                  <div class="panel-bento-label" style="color: ${zone.strokeColor};">Development zone</div>
+                  <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${zone.name}</div>
+                  <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${zone.description}</p>
+                  ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ""}
+                  <div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', '${zone.name.replace(/'/g, "\\'")}')">
+                      <img src="assets/use-case-images/evidence-science-park.webp" alt="${zone.name}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                  </div>
+              </div>
+            `;
+          })
+          .join("");
+
+        evidenceHtml = `
+          <div style="margin-top: var(--space-6);">
+              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Evidence</div>
+              <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                  ${cardsHtml}
+              </div>
+          </div>
+        `;
+      }
+
       UI.showPanel(`
-                <div class="subtitle">Development zones</div>
-                <h2>Government zone clusters</h2>
-                <p>Designated development areas supporting the semiconductor corridor.</p>
-                <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">${zoneCards}</div>
-                <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-semiconductor-clusters.webp', 'Government zone cluster plan')">
-                    <img src="assets/use-case-images/evidence-semiconductor-clusters.webp" alt="Government zone cluster plan" style="width: 100%; border-radius: var(--radius-medium);" />
+        <div class="subtitle">Development zones</div>
+        <h2>Science park</h2>
+        <p>${sp.description}</p>
+        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+            ${rowsHtml}
+        </div>
+        ${evidenceHtml}
+      `);
+    } else if (group === "grand-airport-group") {
+      const airport = AppData.governmentChain?.levels?.find(
+        (l) => l.id === "grand-airport",
+      );
+
+      const airportChildren = [
+        {
+          id: "ga-airport-access",
+          label: "Airport access",
+          color: "#007aff",
+          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
+        },
+        {
+          id: "ga-railway-stations",
+          label: "New railway stations",
+          color: "#ff9500",
+          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M2 16h20"/><path d="M4 16l-2 6h20l-2-6"/><path d="M9.5 11a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/><path d="M15.5 11a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/></svg>',
+        },
+        {
+          id: "ga-road-extensions",
+          label: "Road extensions",
+          color: "#34c759",
+          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
+        },
+      ];
+
+      const rowsHtml = airportChildren
+        .map((c) => {
+          const isActive = activeChildren.includes(c.id);
+          return `
+            <button class="energy-toggle-row${isActive ? " active" : ""}"
+                    onclick="App.toggleDevelopmentChild('${c.id}')"
+                    aria-pressed="${isActive}">
+                <span class="energy-toggle-icon" style="color: ${c.color};">${c.icon}</span>
+                <span class="energy-toggle-label">${c.label}</span>
+                <span class="energy-toggle-switch ${isActive ? "on" : ""}">
+                    <span class="energy-toggle-knob"></span>
+                </span>
+            </button>
+          `;
+        })
+        .join("");
+
+      // Evidence cards for all active children (multi-select)
+      let evidenceHtml = "";
+      const activeItems = activeChildren
+        .map((id) => {
+          const child = airportChildren.find((c) => c.id === id);
+          if (!child) return null;
+          const ev = this._getAirportChildEvidence(id, airport);
+          return ev ? { child, ev } : null;
+        })
+        .filter(Boolean);
+
+      if (activeItems.length > 0) {
+        const cardsHtml = activeItems
+          .map(({ child, ev }) => {
+            const statsHtml = ev.stats?.length
+              ? ev.stats
+                  .map(
+                    (s) => `
+                    <div class="panel-bento-stat">
+                        <div class="panel-bento-stat-value">${s.value}</div>
+                        <div class="panel-bento-stat-label">${s.label}</div>
+                    </div>
+                  `,
+                  )
+                  .join("")
+              : "";
+
+            const imagesHtml = ev.images
+              .map(
+                (img) => `
+                <div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('${img.src}', '${img.alt.replace(/'/g, "\\'")}')">
+                    <img src="${img.src}" alt="${img.alt}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
                 </div>
-            `);
-      MapController.flyToStep({
-        center: [130.85, 32.87],
-        zoom: 11,
-        pitch: 45,
-        bearing: 0,
-        duration: 2000,
-      });
-    } else if (itemId === "kikuyo-plan") {
-      const zone = AppData.futureZones.find((z) => z.id === "kikuyo");
-      if (zone) {
-        UI.showPanel(`
-                    <div class="subtitle">Long-term plan</div>
-                    <h2>${zone.name}</h2>
-                    <p>${zone.description}</p>
-                    <div class="stat-grid">
-                        ${zone.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
-                    </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-semiconductor-clusters.webp', 'Kikuyo development cluster plan')">
-                        <img src="assets/use-case-images/evidence-semiconductor-clusters.webp" alt="Kikuyo development cluster plan" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
-                `);
-        MapController.flyToStep({
-          center: MapController._toMapbox(zone.coords),
-          zoom: 13,
-          pitch: 50,
-          bearing: 10,
-          duration: 2000,
-        });
+              `,
+              )
+              .join("");
+
+            return `
+              <div class="energy-evidence-card" style="border-left: 3px solid ${child.color};">
+                  <div class="panel-bento-label" style="color: ${child.color};">${ev.subtitle}</div>
+                  <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${ev.title}</div>
+                  <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${ev.description}</p>
+                  ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ""}
+                  ${imagesHtml}
+              </div>
+            `;
+          })
+          .join("");
+
+        evidenceHtml = `
+          <div style="margin-top: var(--space-6);">
+              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Evidence</div>
+              <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                  ${cardsHtml}
+              </div>
+          </div>
+        `;
       }
-    } else if (itemId === "ozu-plan") {
-      const zone = AppData.futureZones.find((z) => z.id === "ozu");
-      if (zone) {
-        UI.showPanel(`
-                    <div class="subtitle">Long-term plan</div>
-                    <h2>${zone.name}</h2>
-                    <p>${zone.description}</p>
-                    <div class="stat-grid">
-                        ${zone.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
-                    </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-industrial-park-locations.webp', 'Ozu development plan')">
-                        <img src="assets/use-case-images/evidence-industrial-park-locations.webp" alt="Ozu development plan" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
-                `);
-        MapController.flyToStep({
-          center: MapController._toMapbox(zone.coords),
-          zoom: 13,
-          pitch: 50,
-          bearing: -10,
-          duration: 2000,
-        });
-      }
+
+      UI.showPanel(`
+        <div class="subtitle">Development zones</div>
+        <h2>Grand airport concept</h2>
+        <p>${airport?.description || "A proposed expansion of Aso Kumamoto Airport to serve as a regional semiconductor logistics hub."}</p>
+        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+            ${rowsHtml}
+        </div>
+        ${evidenceHtml}
+      `);
     }
   },
 
-  // --- Step 6: Infrastructure (Science Park + Grand Airport) ---
-  _handleTransportSubItem(itemId) {
-    // Science park children reuse step 5 zone handlers
-    if (
-      itemId === "gov-zones" ||
-      itemId === "kikuyo-plan" ||
-      itemId === "ozu-plan"
-    ) {
-      this._handleZonePlanSubItem(itemId);
+  /**
+   * Return evidence data for a grand airport child item.
+   */
+  _getAirportChildEvidence(childId, airport) {
+    if (childId === "ga-airport-access") {
+      return {
+        subtitle: "Grand airport concept",
+        title: "Airport access",
+        description:
+          airport?.description ||
+          "Airport access infrastructure connecting the semiconductor corridor to Aso Kumamoto Airport.",
+        stats: airport?.stats || [],
+        images: [
+          {
+            src: "assets/use-case-images/evidence-airport-master-plan.webp",
+            alt: "Airport master plan",
+          },
+        ],
+      };
+    }
+    if (childId === "ga-railway-stations") {
+      return {
+        subtitle: "Grand airport concept",
+        title: "New railway stations",
+        description:
+          "A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station.",
+        stats: airport?.stats || [],
+        images: [
+          {
+            src: "assets/use-case-images/evidence-airport-to-city-railway.webp",
+            alt: "Airport to city railway",
+          },
+          {
+            src: "assets/use-case-images/evidence-new-railway-system.webp",
+            alt: "New railway system",
+          },
+        ],
+      };
+    }
+    if (childId === "ga-road-extensions") {
+      return {
+        subtitle: "Grand airport concept",
+        title: "Road extensions",
+        description:
+          'The "10-minute ring" concept connects the airport, industrial parks, and residential zones at approximately 10-minute drive intervals, creating an integrated urban corridor.',
+        stats: [],
+        images: [
+          {
+            src: "assets/use-case-images/evidence-kumamoto-future-road-network.webp",
+            alt: "Future road network",
+          },
+          {
+            src: "assets/use-case-images/evidence-10-minute-ring-road-2.webp",
+            alt: "10-minute ring road",
+          },
+        ],
+      };
+    }
+    return null;
+  },
+
+  /**
+   * Show landmark detail in the right panel when a landmark marker is clicked.
+   */
+  showAirportLandmarkDetail(landmarkId) {
+    const data = AppData.grandAirportData?.airportAccessRoutes;
+    const lm = data?.landmarks?.find((l) => l.id === landmarkId);
+    if (!lm) return;
+
+    const statsHtml = lm.stats?.length
+      ? `<div class="panel-bento-stats">${lm.stats
+          .map(
+            (s) => `
+            <div class="panel-bento-stat">
+              <div class="panel-bento-stat-value">${s.value}</div>
+              <div class="panel-bento-stat-label">${s.label}</div>
+            </div>`,
+          )
+          .join("")}</div>`
+      : "";
+
+    UI.showPanel(`
+      <div class="subtitle" style="color: ${lm.color};">Airport access</div>
+      <h2>${lm.name}</h2>
+      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${lm.description || ""}</p>
+      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
+    `);
+  },
+
+  /**
+   * Show route line detail in the right panel when a route line is clicked.
+   */
+  showAirportLineDetail(routeId) {
+    const routes = AppData.grandAirportData?.airportAccessRoutes?.routes;
+    const route = routes?.find((r) => r.id === routeId);
+    if (!route) return;
+
+    const statsHtml = route.stats?.length
+      ? `<div class="panel-bento-stats">${route.stats
+          .map(
+            (s) => `
+            <div class="panel-bento-stat">
+              <div class="panel-bento-stat-value">${s.value}</div>
+              <div class="panel-bento-stat-label">${s.label}</div>
+            </div>`,
+          )
+          .join("")}</div>`
+      : "";
+
+    UI.showPanel(`
+      <div class="subtitle" style="color: ${route.color};">Airport access</div>
+      <h2>${route.name}</h2>
+      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${route.description || ""}</p>
+      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
+    `);
+  },
+
+  /**
+   * Show road extension detail in the right panel when a road line is clicked.
+   */
+  showRoadExtensionDetail(roadId) {
+    const roads = AppData.grandAirportData?.roadExtensions;
+    const road = roads?.find((r) => r.id === roadId);
+    if (!road) return;
+
+    const color = road.color || "#e63f5a";
+    const statsHtml = road.stats?.length
+      ? `<div class="panel-bento-stats">${road.stats
+          .map(
+            (s) => `
+            <div class="panel-bento-stat">
+              <div class="panel-bento-stat-value">${s.value}</div>
+              <div class="panel-bento-stat-label">${s.label}</div>
+            </div>`,
+          )
+          .join("")}</div>`
+      : "";
+
+    UI.showPanel(`
+      <div class="subtitle" style="color: ${color};">Road extensions</div>
+      <h2>${road.name}</h2>
+      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${road.description || ""}</p>
+      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
+    `);
+  },
+
+  /**
+   * Show railway station detail in the right panel when a station marker is clicked.
+   */
+  showRailwayStationDetail(stationId) {
+    const data = AppData.grandAirportData?.railway;
+    const station = data?.stations?.find((s) => s.id === stationId);
+    if (!station) return;
+
+    const color = station.type === "planned" ? "#ff9500" : "#6e7073";
+    const statsHtml = station.stats?.length
+      ? `<div class="panel-bento-stats">${station.stats
+          .map(
+            (s) => `
+            <div class="panel-bento-stat">
+              <div class="panel-bento-stat-value">${s.value}</div>
+              <div class="panel-bento-stat-label">${s.label}</div>
+            </div>`,
+          )
+          .join("")}</div>`
+      : "";
+
+    UI.showPanel(`
+      <div class="subtitle" style="color: ${color};">New railway stations</div>
+      <h2>${station.name}</h2>
+      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${station.description || ""}</p>
+      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
+    `);
+  },
+
+  /**
+   * Toggle a development child (multi-select).
+   * Each child toggles independently. Activating a science park zone
+   * flies the camera to that zone's position.
+   */
+  toggleDevelopmentChild(childId) {
+    const active = this.state.activeDevelopmentChildren;
+    const idx = active.indexOf(childId);
+
+    if (idx !== -1) {
+      // Turn off this child
+      active.splice(idx, 1);
+      this._removeDevelopmentMapElement(childId);
+    } else {
+      // Grand-airport children are mutually exclusive - deactivate siblings
+      if (childId.startsWith("ga-")) {
+        const gaChildren = active.filter((id) => id.startsWith("ga-"));
+        gaChildren.forEach((id) => {
+          const i = active.indexOf(id);
+          if (i !== -1) active.splice(i, 1);
+          this._removeDevelopmentMapElement(id);
+        });
+      }
+
+      // Turn on this child
+      active.push(childId);
+      this._showDevelopmentMapElement(childId);
+    }
+
+    // Re-render panel to reflect toggle state
+    this._renderDevelopmentDashboard();
+  },
+
+  /**
+   * Show the map element and fly to camera for a single development child.
+   */
+  _showDevelopmentMapElement(childId) {
+    const zonePlan = (AppData.scienceParkZonePlans || []).find(
+      (z) => z.id === childId,
+    );
+    if (zonePlan) {
+      // Show polygon and fly to zone camera
+      MapController.showZonePlanHighlight(zonePlan, { skipFly: false });
       return;
     }
 
-    if (itemId === "grand-airport") {
-      const airport = AppData.governmentChain.levels.find(
-        (l) => l.id === "grand-airport",
-      );
-      if (airport) {
-        MapController.showAirportMarker(airport);
-        MapController.flyToStep({
-          center: MapController._toMapbox(airport.coords),
-          zoom: 13,
-          pitch: 50,
-          bearing: 10,
-          duration: 2000,
-        });
-
-        const pillarsHtml = airport.pillars
-          ? `<div style="margin-top: var(--space-4);">
-                        <p style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Strategic pillars</p>
-                        <ol style="margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);">
-                            ${airport.pillars.map((p) => `<li style="font-size: var(--text-sm); color: var(--color-text-secondary);">${p}</li>`).join("")}
-                        </ol>
-                    </div>`
-          : "";
-
-        UI.showPanel(`
-                    <div class="subtitle">Infrastructure plan</div>
-                    <h2>Grand Airport Concept</h2>
-                    <p>${airport.description}</p>
-                    <div class="stat-grid">
-                        ${airport.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
-                    </div>
-                    ${pillarsHtml}
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-new-grand-airport.webp', 'Grand Airport Concept')">
-                        <img src="assets/use-case-images/evidence-new-grand-airport.webp" alt="Grand Airport Concept" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
-                `);
-      }
+    // Grand airport children
+    const gaCamera = AppData.grandAirportData?.cameras?.[childId];
+    if (childId === "ga-airport-access") {
+      MapController.showAirportAccessRoutes();
+      if (gaCamera) MapController.flyToStep(gaCamera);
+    } else if (childId === "ga-railway-stations") {
+      MapController.showRailwayStations();
+      if (gaCamera) MapController.flyToStep(gaCamera);
+    } else if (childId === "ga-road-extensions") {
+      MapController.showRoadExtensions();
+      MapController.flyToStep({
+        center: [130.9597, 32.8539],
+        zoom: 10.9,
+        pitch: 54,
+        bearing: 0,
+      });
     }
   },
 
-  // --- Step 7: Education ---
+  /**
+   * Remove the map element for a single development child.
+   */
+  _removeDevelopmentMapElement(childId) {
+    const zonePlan = (AppData.scienceParkZonePlans || []).find(
+      (z) => z.id === childId,
+    );
+    if (zonePlan) {
+      const sourceId = `zone-plan-${zonePlan.id}`;
+      MapController._safeRemoveLayer(`${sourceId}-fill`);
+      MapController._safeRemoveLayer(`${sourceId}-stroke`);
+      MapController._safeRemoveSource(sourceId);
+      const group = MapController._layerGroups.zonePlanHighlight;
+      [`${sourceId}-fill`, `${sourceId}-stroke`, sourceId].forEach((id) => {
+        const i = group.indexOf(id);
+        if (i !== -1) group.splice(i, 1);
+      });
+      return;
+    }
+
+    if (childId === "ga-airport-access") {
+      MapController.hideAirportAccessRoutes();
+    } else if (childId === "ga-railway-stations") {
+      MapController.hideRailwayStations();
+    } else if (childId === "ga-road-extensions") {
+      MapController.hideRoadExtensions();
+    }
+  },
+
+  /**
+   * Clean up all map elements added by development children.
+   */
+  _cleanupDevelopmentMapElements() {
+    MapController.hideZonePlanHighlight();
+    MapController.hideAirportMarker();
+    MapController.hideAirportAccessRoutes();
+    MapController.hideRailwayStations();
+    MapController.hideRoadExtensions();
+  },
+
+  // --- Step 6: Education ---
   _handleEducationSubItem(itemId) {
     if (itemId === "universities") {
-      UI.renderInspectorPanel(7, { title: "Talent pipeline" });
+      UI.renderInspectorPanel(6, { title: "Talent pipeline" });
       MapController.showTalentPipeline();
     } else if (itemId === "training") {
       const group = UI.findEvidenceGroup("education-pipeline");
@@ -846,7 +1442,7 @@ const App = {
     }
   },
 
-  // --- Step 9: Investment zones ---
+  // --- Step 8: Investment zones ---
   _handleInvestmentZoneSubItem(itemId) {
     const zoneData = {
       "kikuyo-zone": {
@@ -889,13 +1485,64 @@ const App = {
     }
   },
 
-  // --- Step 10: Properties ---
+  // --- Step 9: Properties (2-step flow) ---
+
+  /**
+   * Step 1: Show context lines from property to infrastructure.
+   * Called when user selects a property from chatbox.
+   */
   _handlePropertySubItem(itemId) {
     const property = AppData.properties.find((p) => p.id === itemId);
-    if (property) {
-      this.state.activeProperty = itemId;
-      UI.showPropertyReveal(property);
+    if (!property) return;
+
+    this.state.activeProperty = itemId;
+
+    // Hide investment zones so context lines are clearly visible
+    MapController.hideInvestmentZones();
+
+    // Remove any previous property markers so only one shows at a time
+    MapController._removeLayerGroup("properties");
+
+    // Show property marker
+    MapController.showSinglePropertyMarker(property);
+
+    // Draw context lines and fly camera to property overview
+    // (showPropertyContextLines handles its own synchronous cleanup)
+    MapController.showPropertyContextLines(property);
+
+    // Show connection info in right panel
+    UI.showPropertyContextPanel(property);
+
+    // Attach click handler on property marker for Step 2
+    const marker = MapController.markers[property.id];
+    if (marker) {
+      const el = marker.getElement();
+      // Remove any previous handler to avoid stacking
+      el.removeEventListener("click", el._contextClickHandler);
+      el._contextClickHandler = () => {
+        this.activatePropertyDashboard(property.id);
+      };
+      el.addEventListener("click", el._contextClickHandler);
     }
+  },
+
+  /**
+   * Step 2: Open property dashboard with tabbed inspector.
+   * Called when user clicks the property marker after context lines are shown.
+   */
+  activatePropertyDashboard(propertyId) {
+    const property = AppData.properties.find(
+      (p) => p.id === (propertyId || this.state.activeProperty),
+    );
+    if (!property) return;
+
+    this.state.activeProperty = property.id;
+
+    // Fade out context lines
+    MapController.removePropertyContextLines();
+
+    // Show tabbed inspector panel for this property
+    UI.renderInspectorPanel(9, { title: property.name, property });
   },
 
   /**
@@ -980,11 +1627,15 @@ const App = {
         break;
 
       case "government-support":
-        UI.showGovernmentOverview();
+        UI.showGovernmentPanel(this.state.activeGovernmentLevels);
         break;
 
       case "corporate-investment":
         UI.showInvestmentOverview();
+        break;
+
+      case "transport-access":
+        this._renderDevelopmentDashboard();
         break;
 
       case "future-outlook": {
@@ -1026,7 +1677,37 @@ const App = {
         break;
 
       case "properties":
-        // Panel shows on property marker click, not auto
+        // Auto-open zone overview panel showing the 3 investment zones
+        UI.showPanel(`
+                    <div class="subtitle">Investment properties</div>
+                    <h2>Zone overview</h2>
+                    <p>Five properties across three investment zones in the semiconductor corridor. Select a property to explore.</p>
+                    <div class="zone-overview-list" style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-6);">
+                        ${AppData.investmentZones
+                          .map((zone) => {
+                            const zoneProps = AppData.properties.filter(
+                              (p) =>
+                                p.zone &&
+                                p.zone
+                                  .toLowerCase()
+                                  .includes(
+                                    zone.name
+                                      .toLowerCase()
+                                      .replace(" zone", ""),
+                                  ),
+                            );
+                            return `<div class="zone-overview-item" style="background: var(--color-bg-secondary); border-radius: var(--radius-medium); padding: var(--space-4);">
+                                <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                    <div style="width: 12px; height: 12px; border-radius: var(--radius-full); background: ${zone.strokeColor}; flex-shrink: 0;"></div>
+                                    <span style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base);">${zone.name}</span>
+                                </div>
+                                <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-2);">${zone.role}</div>
+                                <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${zoneProps.length} ${zoneProps.length === 1 ? "property" : "properties"}</div>
+                            </div>`;
+                          })
+                          .join("")}
+                    </div>
+                `);
         break;
 
       case "final":
@@ -1100,8 +1781,7 @@ const App = {
       resources: "resources",
       "government-support": "governmentChain",
       "corporate-investment": "companies",
-      "science-park-zones": "sciencePark",
-      "transport-access": "infrastructureRoads",
+      "transport-access": "sciencePark",
       "education-pipeline": "talentPipeline",
       "investment-zones": "investmentZones",
       properties: "properties",
@@ -1176,7 +1856,589 @@ const App = {
   },
 };
 
+/* ================================
+   Step Jumper (dev only)
+   Maps the 13 presentation steps to internal code calls.
+   Does NOT modify any existing code or the STEPS array.
+   ================================ */
+
+const StepJumper = {
+  active: false,
+
+  /**
+   * The 13 presentation steps mapped to internal code calls.
+   * codeStep: which goToStep() index to call (null = special handling)
+   * subItem: sub-item to auto-select after goToStep (optional)
+   * implemented: false if the step has no code equivalent yet
+   */
+  steps: [
+    {
+      num: 0,
+      name: "Entry into map",
+      codeStep: null,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 1,
+      name: "Water resources",
+      codeStep: 1,
+      subItem: "water",
+      implemented: true,
+    },
+    {
+      num: 2,
+      name: "Power resources",
+      codeStep: 1,
+      subItem: "power",
+      implemented: true,
+    },
+    {
+      num: 3,
+      name: "Strategic location",
+      codeStep: 2,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 4,
+      name: "Government support",
+      codeStep: 3,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 5,
+      name: "Corporate investment",
+      codeStep: 4,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 6,
+      name: "Science park and grand airport",
+      codeStep: 5,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 7,
+      name: "Clusters around science park",
+      codeStep: null,
+      subItem: null,
+      implemented: false,
+    },
+    {
+      num: 8,
+      name: "Education and talent pipeline",
+      codeStep: 6,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 9,
+      name: "Future outlook",
+      codeStep: 7,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 10,
+      name: "Investment opportunity zones",
+      codeStep: 8,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 11,
+      name: "Investment properties",
+      codeStep: 9,
+      subItem: null,
+      implemented: true,
+    },
+    {
+      num: 12,
+      name: "Q&A mode",
+      codeStep: 10,
+      subItem: null,
+      implemented: true,
+    },
+  ],
+
+  init() {
+    const toggle = document.getElementById("step-jumper-toggle");
+    const panel = document.getElementById("step-jumper");
+    if (!toggle || !panel) return;
+
+    // Populate the list
+    const list = panel.querySelector(".step-jumper-list");
+    this.steps.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.className =
+        "step-jumper-item" + (s.implemented ? "" : " not-implemented");
+      btn.innerHTML = `<span class="step-jumper-num">${s.num}</span><span class="step-jumper-name">${s.name}</span>`;
+      btn.addEventListener("click", () => this._jumpTo(s));
+      list.appendChild(btn);
+    });
+
+    // Toggle panel visibility
+    toggle.addEventListener("click", () => {
+      this.active = !this.active;
+      panel.classList.toggle("hidden", !this.active);
+      toggle.classList.toggle("active", this.active);
+      if (this.active) this._highlightCurrent();
+    });
+  },
+
+  /**
+   * Jump to a presentation step by calling the correct internal functions.
+   */
+  async _jumpTo(step) {
+    if (!step.implemented) return;
+
+    // Step 0: return to welcome/entry state
+    if (step.num === 0) {
+      const current = App.state.currentStep;
+      if (current > 0) {
+        await App._exitStep(current);
+      }
+      App.state.currentStep = 0;
+      App.state.subItemsExplored = [];
+      App.state.expandedGroups = [];
+      App.state.activeProperty = null;
+      UI.updateJourneyProgress(0, STEPS.length);
+      UI.showChatbox(`
+        <h3>Kumamoto investment guide</h3>
+        <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
+        <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      `);
+      MapController.startHeartbeat();
+      this._highlightCurrent();
+      return;
+    }
+
+    // All other steps: call goToStep then optionally select sub-item
+    await App.goToStep(step.codeStep);
+
+    if (step.subItem) {
+      App.selectSubItem(step.subItem);
+    }
+
+    this._highlightCurrent();
+  },
+
+  /**
+   * Highlight the currently active step in the list.
+   */
+  _highlightCurrent() {
+    const items = document.querySelectorAll(".step-jumper-item");
+    const currentCodeStep = App.state.currentStep;
+
+    items.forEach((item, i) => {
+      const s = this.steps[i];
+      let isActive = false;
+
+      if (currentCodeStep === 0 && s.num === 0) {
+        isActive = true;
+      } else if (s.codeStep === currentCodeStep && s.codeStep !== null) {
+        // For steps 1 & 2 (both map to codeStep 1), check sub-item
+        if (s.codeStep === 1) {
+          if (
+            s.subItem === "water" &&
+            App.state.subItemsExplored.includes("water") &&
+            !App.state.subItemsExplored.includes("power")
+          ) {
+            isActive = true;
+          } else if (
+            s.subItem === "power" &&
+            App.state.subItemsExplored.includes("power")
+          ) {
+            isActive = true;
+          } else if (
+            s.subItem === "water" &&
+            App.state.subItemsExplored.length === 0
+          ) {
+            // Just entered step 1, water not yet selected - highlight water as starting point
+            isActive = s.num === 1;
+          }
+        } else {
+          isActive = true;
+        }
+      }
+
+      item.classList.toggle("active", isActive);
+    });
+  },
+};
+
+// ============================================================
+// QA Reporter - dev tool for logging and exporting QA issues
+// ============================================================
+
+const QAReporter = {
+  active: false,
+  issues: [],
+  editingId: null,
+  selectedCategory: null,
+
+  STORAGE_KEY: "qa-reporter-issues",
+
+  CATEGORIES: [
+    { id: "markers", label: "Markers/icons", color: "#007aff" },
+    { id: "chatbox", label: "Chatbox", color: "#ff9500" },
+    { id: "panel", label: "Right panel", color: "#34c759" },
+    { id: "dashboard", label: "Dashboard", color: "#af52de" },
+    { id: "animation", label: "Animation", color: "#ff3b30" },
+    { id: "other", label: "Other", color: "#6e7073" },
+  ],
+
+  init() {
+    this.toggle = document.getElementById("qa-toggle");
+    this.panel = document.getElementById("qa-panel");
+    this.countBadge = document.getElementById("qa-count");
+    this.stepIndicator = document.getElementById("qa-step-indicator");
+    this.categoriesEl = document.getElementById("qa-categories");
+    this.descriptionEl = document.getElementById("qa-description");
+    this.addBtn = document.getElementById("qa-add");
+    this.copyBtn = document.getElementById("qa-copy");
+    this.issuesList = document.getElementById("qa-issues");
+
+    if (!this.toggle || !this.panel) return;
+
+    this._loadFromStorage();
+    this._renderCategories();
+    this._render();
+
+    // Toggle panel
+    this.toggle.addEventListener("click", () => {
+      this.active = !this.active;
+      this.panel.classList.toggle("hidden", !this.active);
+      this.toggle.classList.toggle("active", this.active);
+      if (this.active) this._updateStepIndicator();
+    });
+
+    // Add issue
+    this.addBtn.addEventListener("click", () => this._addIssue());
+
+    // Copy unsolved
+    this.copyBtn.addEventListener("click", () => this._copyUnsolved());
+
+    // Enable/disable add button based on form state
+    this.descriptionEl.addEventListener("input", () => this._updateAddBtn());
+
+    // Update step indicator when step changes (poll on panel open)
+    this._stepPollInterval = null;
+    const startPoll = () => {
+      if (this._stepPollInterval) return;
+      this._stepPollInterval = setInterval(() => {
+        if (this.active) this._updateStepIndicator();
+      }, 1000);
+    };
+    const stopPoll = () => {
+      if (this._stepPollInterval) {
+        clearInterval(this._stepPollInterval);
+        this._stepPollInterval = null;
+      }
+    };
+
+    // Start/stop polling when panel opens/closes
+    const observer = new MutationObserver(() => {
+      if (this.active) startPoll();
+      else stopPoll();
+    });
+    observer.observe(this.panel, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  },
+
+  _loadFromStorage() {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) this.issues = JSON.parse(stored);
+    } catch (e) {
+      this.issues = [];
+    }
+  },
+
+  _saveToStorage() {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.issues));
+    } catch (e) {
+      // Storage full or unavailable
+    }
+  },
+
+  _getCurrentStepLabel() {
+    if (typeof App === "undefined" || !App.state) return "Unknown";
+    const step = App.state.currentStep;
+    if (step === 0) return "0: Entry into map";
+
+    // Use StepJumper steps if available
+    if (typeof StepJumper !== "undefined" && StepJumper.steps) {
+      const match = StepJumper.steps.find((s) => s.codeStep === step);
+      if (match) return match.num + ": " + match.name;
+    }
+
+    return "Step " + step;
+  },
+
+  _updateStepIndicator() {
+    if (this.stepIndicator) {
+      this.stepIndicator.textContent = "Step: " + this._getCurrentStepLabel();
+    }
+  },
+
+  _renderCategories() {
+    if (!this.categoriesEl) return;
+    this.categoriesEl.innerHTML = "";
+    this.CATEGORIES.forEach((cat) => {
+      const btn = document.createElement("button");
+      btn.className = "qa-cat-btn";
+      btn.textContent = cat.label;
+      btn.dataset.catId = cat.id;
+      btn.addEventListener("click", () => {
+        // Deselect all, select this one
+        this.categoriesEl.querySelectorAll(".qa-cat-btn").forEach((b) => {
+          b.classList.remove("selected");
+          b.style.background = "";
+          b.style.borderColor = "";
+        });
+        if (this.selectedCategory === cat.id) {
+          this.selectedCategory = null;
+        } else {
+          this.selectedCategory = cat.id;
+          btn.classList.add("selected");
+          btn.style.background = cat.color;
+          btn.style.borderColor = "transparent";
+        }
+        this._updateAddBtn();
+      });
+      this.categoriesEl.appendChild(btn);
+    });
+  },
+
+  _updateAddBtn() {
+    const hasCategory = !!this.selectedCategory;
+    const hasText =
+      this.descriptionEl && this.descriptionEl.value.trim().length > 0;
+    if (this.addBtn) this.addBtn.disabled = !(hasCategory && hasText);
+  },
+
+  _addIssue() {
+    if (!this.selectedCategory || !this.descriptionEl.value.trim()) return;
+
+    const cat = this.CATEGORIES.find((c) => c.id === this.selectedCategory);
+    const issue = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      step: typeof App !== "undefined" ? App.state.currentStep : 0,
+      stepLabel: this._getCurrentStepLabel(),
+      category: this.selectedCategory,
+      categoryLabel: cat ? cat.label : this.selectedCategory,
+      description: this.descriptionEl.value.trim(),
+      solved: false,
+      timestamp: Date.now(),
+    };
+
+    this.issues.unshift(issue);
+    this._saveToStorage();
+    this._render();
+
+    // Reset form
+    this.descriptionEl.value = "";
+    this.selectedCategory = null;
+    this.categoriesEl.querySelectorAll(".qa-cat-btn").forEach((b) => {
+      b.classList.remove("selected");
+      b.style.background = "";
+      b.style.borderColor = "";
+    });
+    this._updateAddBtn();
+  },
+
+  _toggleSolved(id) {
+    const issue = this.issues.find((i) => i.id === id);
+    if (issue) {
+      issue.solved = !issue.solved;
+      this._saveToStorage();
+      this._render();
+    }
+  },
+
+  _deleteIssue(id) {
+    this.issues = this.issues.filter((i) => i.id !== id);
+    this._saveToStorage();
+    this._render();
+  },
+
+  _startEdit(id) {
+    this.editingId = id;
+    this._render();
+  },
+
+  _saveEdit(id, newText) {
+    const issue = this.issues.find((i) => i.id === id);
+    if (issue && newText.trim()) {
+      issue.description = newText.trim();
+      this._saveToStorage();
+    }
+    this.editingId = null;
+    this._render();
+  },
+
+  _copyUnsolved() {
+    const unsolved = this.issues.filter((i) => !i.solved);
+    if (unsolved.length === 0) {
+      this._flashCopyBtn("empty");
+      return;
+    }
+
+    // Group by step
+    const grouped = {};
+    unsolved.forEach((issue) => {
+      const key = issue.stepLabel || "Step " + issue.step;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(issue);
+    });
+
+    let text = "## QA issues\n\n";
+    Object.keys(grouped).forEach((stepLabel) => {
+      text += "### " + stepLabel + "\n";
+      grouped[stepLabel].forEach((issue) => {
+        text += "- [" + issue.categoryLabel + "] " + issue.description + "\n";
+      });
+      text += "\n";
+    });
+
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      this._flashCopyBtn("copied");
+    });
+  },
+
+  _flashCopyBtn(state) {
+    if (!this.copyBtn) return;
+    this.copyBtn.classList.add(state);
+    setTimeout(() => this.copyBtn.classList.remove(state), 1200);
+  },
+
+  _render() {
+    // Update count badge
+    const unsolvedCount = this.issues.filter((i) => !i.solved).length;
+    if (this.countBadge) {
+      this.countBadge.textContent = unsolvedCount;
+      this.countBadge.classList.toggle("has-issues", unsolvedCount > 0);
+    }
+
+    // Render issue list
+    if (!this.issuesList) return;
+    this.issuesList.innerHTML = "";
+
+    if (this.issues.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "qa-empty";
+      empty.textContent = "No issues logged yet.";
+      this.issuesList.appendChild(empty);
+      return;
+    }
+
+    this.issues.forEach((issue) => {
+      const cat = this.CATEGORIES.find((c) => c.id === issue.category);
+      const catColor = cat ? cat.color : "#6e7073";
+
+      const el = document.createElement("div");
+      el.className = "qa-issue" + (issue.solved ? " solved" : "");
+
+      // Top row: step + category + actions
+      const top = document.createElement("div");
+      top.className = "qa-issue-top";
+
+      const stepSpan = document.createElement("span");
+      stepSpan.className = "qa-issue-step";
+      stepSpan.textContent = issue.stepLabel;
+
+      const catSpan = document.createElement("span");
+      catSpan.className = "qa-issue-cat";
+      catSpan.textContent = issue.categoryLabel;
+      catSpan.style.background = catColor;
+
+      const actions = document.createElement("div");
+      actions.className = "qa-issue-actions";
+
+      // Solve button
+      const solveBtn = document.createElement("button");
+      solveBtn.className =
+        "qa-issue-action solve" + (issue.solved ? " is-solved" : "");
+      solveBtn.title = issue.solved ? "Mark unsolved" : "Mark solved";
+      solveBtn.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      solveBtn.addEventListener("click", () => this._toggleSolved(issue.id));
+
+      // Edit button
+      const editBtn = document.createElement("button");
+      editBtn.className = "qa-issue-action edit";
+      editBtn.title = "Edit";
+      editBtn.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>';
+      editBtn.addEventListener("click", () => this._startEdit(issue.id));
+
+      // Delete button
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "qa-issue-action delete";
+      deleteBtn.title = "Delete";
+      deleteBtn.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>';
+      deleteBtn.addEventListener("click", () => this._deleteIssue(issue.id));
+
+      actions.appendChild(solveBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+
+      top.appendChild(stepSpan);
+      top.appendChild(catSpan);
+      top.appendChild(actions);
+      el.appendChild(top);
+
+      // Description or edit textarea
+      if (this.editingId === issue.id) {
+        const textarea = document.createElement("textarea");
+        textarea.className = "qa-issue-edit-textarea";
+        textarea.value = issue.description;
+        textarea.rows = 2;
+        textarea.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            this._saveEdit(issue.id, textarea.value);
+          }
+          if (e.key === "Escape") {
+            this.editingId = null;
+            this._render();
+          }
+        });
+        textarea.addEventListener("blur", () => {
+          // Small delay to allow button clicks to register
+          setTimeout(() => {
+            if (this.editingId === issue.id) {
+              this._saveEdit(issue.id, textarea.value);
+            }
+          }, 150);
+        });
+        el.appendChild(textarea);
+        // Focus textarea after render
+        requestAnimationFrame(() => textarea.focus());
+      } else {
+        const desc = document.createElement("div");
+        desc.className = "qa-issue-desc";
+        desc.textContent = issue.description;
+        el.appendChild(desc);
+      }
+
+      this.issuesList.appendChild(el);
+    });
+  },
+};
+
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   App.init();
+  StepJumper.init();
+  QAReporter.init();
 });

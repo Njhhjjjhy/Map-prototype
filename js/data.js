@@ -41,8 +41,8 @@ const STEPS = [
     index: 3,
     title: "Government support",
     subtitle: "National to local commitment",
-    cameraKey: "B1",
-    layers: ["governmentChain", "sciencePark", "investmentZones"],
+    cameraKey: "A4_government",
+    layers: ["governmentChain"],
     panelTabs: ["Support", "Dashboard"],
     subItems: [
       { id: "central", label: "Central government", icon: "landmark" },
@@ -61,57 +61,63 @@ const STEPS = [
     subItems: [],
   },
   {
-    id: "science-park-zones",
-    index: 5,
-    title: "Science park and zones",
-    subtitle: "Development clusters and long-term plans",
-    cameraKey: "B1_sciencePark",
-    layers: ["sciencePark", "futureZones", "governmentChain", "companies"],
-    panelTabs: ["Plans", "Zones"],
-    subItems: [
-      {
-        id: "science-park",
-        label: "Kumamoto Science Park",
-        icon: "flask-conical",
-      },
-      { id: "gov-zones", label: "Government zone clusters", icon: "target" },
-      { id: "kikuyo-plan", label: "Kikuyo long-term plan", icon: "map-pin" },
-      { id: "ozu-plan", label: "Ozu long-term plan", icon: "map-pin" },
-    ],
-  },
-  {
     id: "transport-access",
-    index: 6,
-    title: "Infrastructure",
-    subtitle: "Science park and airport connectivity",
-    cameraKey: "B7",
-    layers: ["infrastructureRoads"],
-    panelTabs: ["Overview", "Timeline"],
+    index: 5,
+    title: "Science park and grand airport",
+    subtitle: "Development zones and airport connectivity",
+    cameraKey: "B6_scienceParkAirport",
+    layers: ["sciencePark"],
+    panelTabs: ["Overview"],
     subItems: [
       {
         id: "science-park-group",
-        label: "Kumamoto Science Park",
+        label: "Science park",
         icon: "flask-conical",
         children: [
           {
-            id: "gov-zones",
-            label: "Government zone clusters",
+            id: "sp-gov-zone",
+            label: "Government zone plan",
             icon: "target",
           },
           {
-            id: "kikuyo-plan",
+            id: "sp-kikuyo-plan",
             label: "Kikuyo long-term plan",
             icon: "map-pin",
           },
-          { id: "ozu-plan", label: "Ozu long-term plan", icon: "map-pin" },
+          {
+            id: "sp-ozu-plan",
+            label: "Ozu long-term plan",
+            icon: "map-pin",
+          },
         ],
       },
-      { id: "grand-airport", label: "Grand Airport Concept", icon: "plane" },
+      {
+        id: "grand-airport-group",
+        label: "Grand airport concept",
+        icon: "plane",
+        children: [
+          {
+            id: "ga-airport-access",
+            label: "Airport access",
+            icon: "plane",
+          },
+          {
+            id: "ga-railway-stations",
+            label: "New railway stations",
+            icon: "train-front",
+          },
+          {
+            id: "ga-road-extensions",
+            label: "Road extensions",
+            icon: "route",
+          },
+        ],
+      },
     ],
   },
   {
     id: "education-pipeline",
-    index: 7,
+    index: 6,
     title: "Education pipeline",
     subtitle: "Universities, training, and employment",
     cameraKey: "A3_talent",
@@ -125,7 +131,7 @@ const STEPS = [
   },
   {
     id: "future-outlook",
-    index: 8,
+    index: 7,
     title: "Future outlook",
     subtitle: "Composite 2030+ vision",
     cameraKey: "B6",
@@ -141,7 +147,7 @@ const STEPS = [
   },
   {
     id: "investment-zones",
-    index: 9,
+    index: 8,
     title: "Investment opportunity zones",
     subtitle: "Three zones in the silicon triangle",
     cameraKey: "corridor",
@@ -155,21 +161,23 @@ const STEPS = [
   },
   {
     id: "properties",
-    index: 10,
+    index: 9,
     title: "Properties",
     subtitle: "Investment opportunities",
     cameraKey: "corridor",
-    layers: [],
-    panelTabs: ["Images", "Truth engine", "Future outlook", "Financial"],
+    layers: ["investmentZones"],
+    panelTabs: ["Truth engine", "Future outlook", "Financials", "Images"],
     subItems: [
-      { id: "ozu-sugimizu", label: "Ozu Sugimizu", icon: "house" },
-      { id: "kikuyo-kubota", label: "Kikuyo Kubota", icon: "house" },
-      { id: "haramizu-land", label: "Haramizu Land", icon: "house" },
+      { id: "ozu-1", label: "Ozu 1", icon: "house" },
+      { id: "ozu-2", label: "Ozu 2", icon: "house" },
+      { id: "kikuyo-1", label: "Kikuyo 1", icon: "house" },
+      { id: "haramizu-1", label: "Haramizu 1", icon: "house" },
+      { id: "haramizu-2", label: "Haramizu 2", icon: "house" },
     ],
   },
   {
     id: "final",
-    index: 11,
+    index: 10,
     title: "Journey complete",
     subtitle: "Summary and Q&A",
     cameraKey: "complete",
@@ -563,6 +571,392 @@ const AppData = {
     },
   },
 
+  // Step 5: Science park zone plans (polygon overlays for sub-item highlights)
+  scienceParkZonePlans: [
+    {
+      id: "sp-gov-zone",
+      name: "Government zone plan",
+      description:
+        "The prefectural government designated a special semiconductor zone within the Science Park boundary. This zone provides tax incentives, streamlined permitting, and dedicated infrastructure for semiconductor-related industries.",
+      coords: [32.88, 130.79],
+      polygon: [
+        [130.77, 32.895],
+        [130.81, 32.895],
+        [130.815, 32.875],
+        [130.8, 32.865],
+        [130.775, 32.87],
+        [130.77, 32.895],
+      ],
+      color: "rgba(0, 122, 255, 0.25)",
+      strokeColor: "#007aff",
+      camera: {
+        center: [130.8829, 32.8909],
+        zoom: 11.5,
+        pitch: 52,
+        bearing: 9,
+      },
+      stats: [
+        { value: "560ha", label: "Designated area" },
+        { value: "¥1.2T", label: "Public investment" },
+        { value: "2025", label: "Zoning enacted" },
+        { value: "15", label: "Incentive programs" },
+      ],
+    },
+    {
+      id: "sp-kikuyo-plan",
+      name: "Kikuyo long-term plan",
+      description:
+        "Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, medical, and support services planned for semiconductor workers and their families.",
+      coords: [32.88, 130.83],
+      polygon: [
+        [130.82, 32.895],
+        [130.85, 32.895],
+        [130.855, 32.875],
+        [130.84, 32.865],
+        [130.815, 32.87],
+        [130.82, 32.895],
+      ],
+      color: "rgba(88, 86, 214, 0.25)",
+      strokeColor: "#5856D6",
+      camera: {
+        center: [130.8912, 32.8674],
+        zoom: 12.3,
+        pitch: 52,
+        bearing: 14,
+      },
+      stats: [
+        { value: "320ha", label: "Rezoned area" },
+        { value: "8,000", label: "New housing units" },
+        { value: "2035", label: "Target completion" },
+        { value: "¥280B", label: "Municipal budget" },
+      ],
+    },
+    {
+      id: "sp-ozu-plan",
+      name: "Ozu long-term plan",
+      description:
+        "Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain. 120 hectares designated for industrial and logistics use.",
+      coords: [32.86, 130.87],
+      polygon: [
+        [130.86, 32.875],
+        [130.89, 32.875],
+        [130.895, 32.855],
+        [130.88, 32.845],
+        [130.855, 32.85],
+        [130.86, 32.875],
+      ],
+      color: "rgba(48, 176, 199, 0.25)",
+      strokeColor: "#30B0C7",
+      camera: {
+        center: [130.946, 32.8724],
+        zoom: 11.8,
+        pitch: 52,
+        bearing: 0,
+      },
+      stats: [
+        { value: "120ha", label: "Industrial parcels" },
+        { value: "¥150B", label: "Infrastructure spend" },
+        { value: "2032", label: "Phase 1 complete" },
+        { value: "3,500", label: "Logistics jobs" },
+      ],
+    },
+  ],
+
+  // Step 5: Grand airport access data (routes, railway, landmarks, cameras)
+  grandAirportData: {
+    // Two rail routes from Aso Kumamoto Airport to Higo-Ozu Station
+    airportAccessRoutes: {
+      // Fairly direct path - "previously announced route"
+      previousRoute: [
+        [32.8373, 130.8552], // Aso Kumamoto Airport
+        [32.842, 130.856],
+        [32.848, 130.8575],
+        [32.854, 130.859],
+        [32.86, 130.861],
+        [32.865, 130.863],
+        [32.87, 130.865],
+        [32.8773, 130.8668], // Higo-Ozu Station
+      ],
+      // Sweeping curve east then north - "newly announced route"
+      newRoute: {
+        start: [32.8373, 130.8552], // Aso Kumamoto Airport
+        control: [32.835, 130.9], // Arc control point (sweeps east)
+        end: [32.8773, 130.8668], // Higo-Ozu Station
+        numPoints: 60,
+      },
+      landmarks: [
+        {
+          id: "airport",
+          name: "Aso Kumamoto Airport",
+          coords: [32.8373, 130.8552],
+          icon: "plane",
+          color: "#007aff",
+          description:
+            "Kumamoto's primary airport handling 3.5 million passengers annually. The proposed rail link will cut travel time to the semiconductor corridor to under 15 minutes.",
+          stats: [
+            { value: "3.5M", label: "Annual passengers" },
+            { value: "15 min", label: "Proposed rail time to JASM" },
+          ],
+        },
+        {
+          id: "higo-ozu",
+          name: "Higo-Ozu Station",
+          coords: [32.8773, 130.8668],
+          icon: "train-front",
+          color: "#007aff",
+          description:
+            "Key JR Hohi Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor.",
+          stats: [
+            { value: "JR Hohi", label: "Railway line" },
+            { value: "44 min", label: "To Kumamoto Station" },
+          ],
+        },
+        {
+          id: "semicon-tech-park",
+          name: "Semiconductor Tech Park",
+          coords: [32.876, 130.8],
+          icon: "cpu",
+          color: "#5856D6",
+          description:
+            "A dedicated technology park for semiconductor-related R&D and manufacturing support facilities, anchoring the northern end of the corridor.",
+          stats: [
+            { value: "120 ha", label: "Planned area" },
+            { value: "2027", label: "Target completion" },
+          ],
+        },
+        {
+          id: "jasm-landmark",
+          name: "JASM",
+          coords: [32.874, 130.785],
+          icon: "factory",
+          color: "#ff3b30",
+          description:
+            "Japan Advanced Semiconductor Manufacturing, the TSMC joint venture. The anchor tenant driving infrastructure investment across the corridor.",
+          stats: [
+            { value: "$8.6B", label: "Total investment" },
+            { value: "3,400+", label: "Direct employees" },
+          ],
+        },
+        {
+          id: "new-kikuyo-landmark",
+          name: "New Kikuyo Station",
+          coords: [32.88, 130.81],
+          icon: "train-front",
+          color: "#ff9500",
+          description:
+            "Planned new station on the JR Hohi Line serving the semiconductor corridor workforce. Will reduce commute times for thousands of employees.",
+          stats: [
+            { value: "2028", label: "Planned opening" },
+            { value: "6,000+", label: "Projected daily riders" },
+          ],
+        },
+        {
+          id: "techno-research",
+          name: "Techno Research Park",
+          coords: [32.855, 130.86],
+          icon: "microscope",
+          color: "#5856D6",
+          description:
+            "Established research park housing semiconductor testing and advanced materials labs. Benefits directly from improved airport and rail connectivity.",
+          stats: [
+            { value: "50+", label: "Research tenants" },
+            { value: "1996", label: "Established" },
+          ],
+        },
+      ],
+      // Metadata for route lines (for hover/click interactions)
+      routes: [
+        {
+          id: "prev-route",
+          sourceId: "ga-prev-route",
+          name: "Previously announced route",
+          color: "#007aff",
+          description:
+            "The initial proposed alignment for the airport access railway, following a direct path from Aso Kumamoto Airport to Higo-Ozu Station.",
+          stats: [
+            { value: "6.8 km", label: "Estimated length" },
+            { value: "Direct", label: "Alignment type" },
+          ],
+        },
+        {
+          id: "new-route",
+          sourceId: "ga-new-route",
+          name: "Newly announced route",
+          color: "#ff3b30",
+          description:
+            "The revised route announced in 2024, sweeping east to better serve the Techno Research Park area before connecting to Higo-Ozu Station.",
+          stats: [
+            { value: "8.2 km", label: "Estimated length" },
+            { value: "Curved", label: "Alignment type" },
+          ],
+        },
+        {
+          id: "hohi-line",
+          sourceId: "ga-access-hohi-line",
+          name: "JR Hohi Line",
+          color: "#6e7073",
+          description:
+            "The existing east-west JR railway connecting Kumamoto City to Oita Prefecture. The airport access railway will join this line at Higo-Ozu Station.",
+          stats: [
+            { value: "148 km", label: "Total length" },
+            { value: "1914", label: "Established" },
+          ],
+        },
+      ],
+    },
+
+    // JR Hohi Line and station data
+    railway: {
+      jrHohiLine: [
+        [32.85, 130.78], // West end (approaching Mifunegaoka)
+        [32.854, 130.79],
+        [32.8556, 130.7979], // Mifunegaoka Station
+        [32.86, 130.802],
+        [32.8644, 130.8052], // Sanrigi Station
+        [32.868, 130.81],
+        [32.87, 130.815],
+        [32.88, 130.81], // New Kikuyo Station (planned)
+        [32.875, 130.82],
+        [32.8698, 130.823], // Haramizu Station
+        [32.872, 130.84],
+        [32.875, 130.855],
+        [32.8773, 130.8668], // Higo-Ozu Station
+      ],
+      stations: [
+        {
+          id: "new-kikuyo",
+          name: "New Kikuyo station",
+          coords: [32.88, 130.81],
+          type: "planned",
+          color: "#ff9500",
+          description:
+            "Planned new station on the JR Hohi Line between Mifunegaoka and Haramizu, directly serving the semiconductor corridor workforce. Expected to handle over 6,000 daily riders.",
+          stats: [
+            { value: "2028", label: "Planned opening" },
+            { value: "6,000+", label: "Projected daily riders" },
+          ],
+        },
+        {
+          id: "haramizu",
+          name: "Haramizu station",
+          coords: [32.8698, 130.823],
+          type: "existing",
+          color: "#6e7073",
+          description:
+            "Existing station on the JR Hohi Line east of the semiconductor corridor. Serves as a key access point for the Kikuyo residential area.",
+          stats: [
+            { value: "JR Hohi", label: "Railway line" },
+            { value: "850", label: "Daily riders" },
+          ],
+        },
+        {
+          id: "higo-ozu",
+          name: "Higo-Ozu",
+          coords: [32.8773, 130.8668],
+          type: "existing",
+          color: "#6e7073",
+          description:
+            "Key JR Hohi Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor.",
+          stats: [
+            { value: "JR Hohi", label: "Railway line" },
+            { value: "44 min", label: "To Kumamoto Station" },
+          ],
+        },
+      ],
+    },
+
+    // Camera positions per child toggle
+    cameras: {
+      "ga-airport-access": {
+        center: [130.9403, 32.8435],
+        zoom: 11.5,
+        pitch: 50,
+        bearing: 19,
+      },
+      "ga-railway-stations": {
+        center: [130.9479, 32.8796],
+        zoom: 11.2,
+        pitch: 52,
+        bearing: 0,
+      },
+      "ga-road-extensions": {
+        center: [130.82, 32.86],
+        zoom: 11.5,
+        pitch: 45,
+        bearing: 0,
+      },
+    },
+
+    // Road extensions data - new and expanded road segments
+    roadExtensions: [
+      {
+        id: "north-connection",
+        name: "Metropolitan north connection road",
+        type: "new",
+        color: "#e63f5a",
+        coords: [
+          [32.845, 130.73],
+          [32.85, 130.742],
+          [32.856, 130.755],
+          [32.86, 130.77],
+          [32.862, 130.785],
+          [32.862, 130.8],
+          [32.86, 130.815],
+          [32.858, 130.83],
+        ],
+        description:
+          "New high-standard road connecting provisional Kumamoto Kita JCT eastward through Nishi-Goshi, Goshi, and Ozu-Nishi interchanges. Part of the 10-minute ring concept linking the semiconductor corridor to the expressway network.",
+        stats: [
+          { value: "New", label: "Road type" },
+          { value: "~12 km", label: "Length" },
+          { value: "10-min ring", label: "Concept" },
+        ],
+      },
+      {
+        id: "airport-connection",
+        name: "Airport connection road",
+        type: "new",
+        color: "#007aff",
+        coords: [
+          [32.814, 130.798],
+          [32.818, 130.812],
+          [32.824, 130.825],
+          [32.83, 130.838],
+          [32.835, 130.848],
+          [32.837, 130.855],
+        ],
+        description:
+          "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes, supporting semiconductor industry logistics and business travel.",
+        stats: [
+          { value: "New", label: "Road type" },
+          { value: "~7 km", label: "Length" },
+          { value: "20-min access", label: "Airport target" },
+        ],
+      },
+      {
+        id: "south-connection",
+        name: "Metropolitan south connection road",
+        type: "new",
+        color: "#e63f5a",
+        coords: [
+          [32.78, 130.695],
+          [32.773, 130.705],
+          [32.766, 130.715],
+          [32.758, 130.728],
+          [32.75, 130.742],
+          [32.744, 130.756],
+        ],
+        description:
+          "New high-standard road extending south from Kumamoto city through provisional Shiroyama and Sunahara interchanges to Kashima JCT. Completes the southern leg of the metropolitan expressway ring.",
+        stats: [
+          { value: "New", label: "Road type" },
+          { value: "~8 km", label: "Length" },
+          { value: "10-min ring", label: "Concept" },
+        ],
+      },
+    ],
+  },
+
   // Journey B: Government Commitment Chain
   governmentChain: {
     intro: "Every level of government is aligned behind this corridor.",
@@ -629,9 +1023,9 @@ const AppData = {
       },
       {
         id: "grand-airport",
-        name: "Grand Airport Concept",
+        name: "Grand airport concept",
         coords: [32.84, 130.86],
-        subtitle: "New Grand Airport Vision",
+        subtitle: "New grand airport vision",
         type: "concept",
         description:
           'A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station. The "New Grand Airport Vision" is a 10-year plan with four strategic pillars to position Kumamoto Airport as a gateway for the semiconductor ecosystem.',
@@ -655,11 +1049,12 @@ const AppData = {
   governmentTiers: [
     {
       id: "central",
-      tier: "Central Government",
+      tier: "Central government",
       tierLabel: "National Policy",
       color: "#007aff",
       name: "Japan National Government",
       coords: [32.87, 130.7],
+      tokyoCoords: [35.6762, 139.6503],
       description:
         "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.",
       commitment: "¥10B",
@@ -673,7 +1068,7 @@ const AppData = {
     },
     {
       id: "prefectural",
-      tier: "Prefectural Government",
+      tier: "Prefectural government",
       tierLabel: "Regional Coordination",
       color: "#34c759",
       name: "Kumamoto Prefecture",
@@ -691,18 +1086,18 @@ const AppData = {
     },
     {
       id: "local",
-      tier: "Local Government",
+      tier: "Local municipalities",
       tierLabel: "Implementation",
       color: "#ff9500",
       name: "Local Municipalities",
       coords: [32.87, 130.85],
       description:
         "Three key local initiatives directly supporting the semiconductor corridor workforce and infrastructure.",
-      commitment: "¥595B",
+      commitment: "¥322B",
       commitmentLabel: "Combined Investment",
       stats: [
-        { value: "¥595B", label: "Combined investment" },
-        { value: "3", label: "Key initiatives" },
+        { value: "¥322B", label: "Combined investment" },
+        { value: "3", label: "Key municipalities" },
         { value: "2028", label: "Phase 1 targets" },
         { value: "5,500+", label: "Housing + jobs" },
       ],
@@ -738,23 +1133,55 @@ const AppData = {
           ],
         },
         {
-          id: "grand-airport",
-          name: "Grand Airport Concept",
-          subtitle: "Future connectivity",
-          coords: [32.84, 130.86],
-          commitment: "¥320B",
+          id: "koshi-town",
+          name: "Koshi Town",
+          subtitle: "TEL R&D hub and high-end rentals",
+          coords: [32.884, 130.771],
+          commitment: "¥47B",
           description:
-            "Long-term vision to expand Kumamoto Airport into a major cargo hub serving the semiconductor corridor with direct routes to Asia.",
+            "Tokyo Electron (TEL) is building a major R&D hub in Fukuhara, Koshi Town. The ~27,000 sqm facility represents ~¥47 billion in investment, focused on coating, developing, and cleaning equipment R&D. This drives demand for high-income R&D engineers seeking family-size 2-3LDK mid-to-high-end rentals.",
           stats: [
-            { value: "2035", label: "Target completion" },
-            { value: "+200%", label: "Cargo capacity" },
-            { value: "8", label: "New Asia routes" },
-            { value: "¥320B", label: "Projected investment" },
+            { value: "~27,000sqm", label: "Facility size" },
+            { value: "¥47B", label: "Investment" },
+            { value: "TEL", label: "Tokyo Electron" },
+            { value: "2-3LDK", label: "Rental demand" },
           ],
         },
       ],
     },
   ],
+
+  // Simplified Kumamoto prefecture boundary (approximate outline for map overlay)
+  kumamotoPrefectureBoundary: {
+    type: "Feature",
+    geometry: {
+      type: "Polygon",
+      coordinates: [
+        [
+          [130.37, 33.15],
+          [130.55, 33.18],
+          [130.72, 33.15],
+          [130.87, 33.1],
+          [131.05, 33.0],
+          [131.17, 32.87],
+          [131.21, 32.7],
+          [131.16, 32.55],
+          [131.07, 32.4],
+          [130.92, 32.25],
+          [130.75, 32.13],
+          [130.55, 32.07],
+          [130.38, 32.12],
+          [130.22, 32.28],
+          [130.12, 32.48],
+          [130.1, 32.65],
+          [130.14, 32.8],
+          [130.21, 32.93],
+          [130.3, 33.04],
+          [130.37, 33.15],
+        ],
+      ],
+    },
+  },
 
   // Journey B: Infrastructure - Companies
   companies: [
@@ -1003,26 +1430,50 @@ const AppData = {
   // Q5: Investment Properties (card-based structure)
   properties: [
     {
-      id: "ozu-sugimizu",
-      name: "Ozu Sugimizu",
+      id: "ozu-1",
+      name: "Ozu 1",
       coords: [32.865, 130.87],
       subtitle: "New construction (BTR)",
       type: "Build to rent",
       zone: "Ozu Development Zone",
       distanceToJasm: "5.2 km",
       driveTime: "8 min",
+      address:
+        "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
+      camera: {
+        center: [130.9977, 32.8817],
+        zoom: 10.8,
+        pitch: 50,
+        bearing: 0,
+      },
+      connections: {
+        jasm: { coords: [32.874, 130.785], distance: "5.2 km", time: "8 min" },
+        station: {
+          id: "haramizu-station",
+          name: "Haramizu station",
+          coords: [32.8698, 130.823],
+          distance: "4.8 km",
+          time: "7 min",
+        },
+        airport: {
+          coords: [32.8373, 130.8552],
+          distance: "8.2 km",
+          time: "14 min",
+        },
+        road: { id: "ozu-road", name: "Ozu Road", coords: [32.88, 130.87] },
+      },
 
       cards: [
         {
           type: "images",
           data: {
-            exterior:
-              "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80",
+            exterior: "assets/step-11-images/ozu-exterior.webp",
             interior: [
-              "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80",
-              "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80",
+              "assets/step-11-images/ozu-interior-2.webp",
+              "assets/step-11-images/ozu-interior-3.webp",
+              "assets/step-11-images/ozu-interior-4.webp",
             ],
-            site: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80",
+            site: "",
           },
         },
         {
@@ -1063,7 +1514,7 @@ const AppData = {
         {
           type: "future-outlook",
           data: {
-            description: "Area development plans affecting Ozu Sugimizu",
+            description: "Area development plans affecting Ozu 1",
             factors: [
               {
                 title: "Ozu industrial expansion",
@@ -1116,26 +1567,192 @@ const AppData = {
       ],
     },
     {
-      id: "kikuyo-kubota",
-      name: "Kikuyo Kubota",
+      id: "ozu-2",
+      name: "Ozu 2",
+      coords: [32.862, 130.865],
+      subtitle: "New construction (BTR)",
+      type: "Build to rent",
+      zone: "Ozu Development Zone",
+      distanceToJasm: "5.5 km",
+      driveTime: "9 min",
+      address:
+        "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
+      camera: {
+        center: [130.9709, 32.8484],
+        zoom: 11.3,
+        pitch: 46,
+        bearing: 0,
+      },
+      connections: {
+        jasm: { coords: [32.874, 130.785], distance: "5.5 km", time: "9 min" },
+        station: {
+          id: "haramizu-station",
+          name: "Haramizu station",
+          coords: [32.8698, 130.823],
+          distance: "4.5 km",
+          time: "6 min",
+        },
+        airport: {
+          coords: [32.8373, 130.8552],
+          distance: "8.5 km",
+          time: "15 min",
+        },
+        road: { id: "ozu-road", name: "Ozu Road", coords: [32.88, 130.87] },
+      },
+
+      cards: [
+        {
+          type: "images",
+          data: {
+            exterior: "assets/step-11-images/ozu-exterior.webp",
+            interior: [
+              "assets/step-11-images/ozu-2-interior-1.webp",
+              "assets/step-11-images/ozu-2-interior-2.webp",
+              "assets/step-11-images/ozu-2-interior-3.webp",
+              "assets/step-11-images/ozu-2-interior-4.webp",
+            ],
+            site: "",
+          },
+        },
+        {
+          type: "truth-engine",
+          data: {
+            basicSettings: {
+              propertyName: "Chateau Life Ozu 2",
+              address:
+                "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
+              propertyType: "Detached house (single-family)",
+              landArea: "125.40 sqm (approx. 37.9 tsubo)",
+              buildingArea:
+                "92.50 sqm total (1F: 46.25 sqm, 2F: 46.25 sqm), 2 floors",
+              layout: "4LDK, 3 parking spaces",
+              availability: "July 2026 onwards",
+            },
+            designStrategy: {
+              description: "Expat family standard spec",
+              features: [
+                "Large living/dining",
+                "Dishwasher, floor heating, high insulation",
+                "Ample storage, EV charging prep",
+                "Standardized facade and modular floor plans",
+                "Compressed construction period and cost volatility",
+              ],
+            },
+            landStrategy: {
+              description:
+                "Three-factor balance: school district + living amenities + commute",
+              risks: [
+                "Fragmented land",
+                "Site preparation costs",
+                "Drainage/foundation improvement costs uncertain",
+              ],
+            },
+          },
+        },
+        {
+          type: "future-outlook",
+          data: {
+            description: "Area development plans affecting Ozu 2",
+            factors: [
+              {
+                title: "Ozu industrial expansion",
+                impact:
+                  "120ha new logistics and supply chain facilities by 2027",
+              },
+              {
+                title: "Naka-Kyushu Cross Road",
+                impact:
+                  "Ozu-Kumamoto Road segment under construction, expressway link through corridor",
+              },
+              {
+                title: "Science park expansion",
+                impact:
+                  "Government commitment extends development corridor southward",
+              },
+            ],
+          },
+        },
+        {
+          type: "financial",
+          data: {
+            strategy: "BTR (build to rent)",
+            acquisitionCost: 34200000,
+            paths: {
+              rental: {
+                label: "Build + rental",
+                monthlyRent: 165000,
+                annualRent: 1980000,
+                yield: 0.058,
+              },
+              sale: {
+                label: "Build + sale",
+                salePrice: 43500000,
+                grossProfit: 4300000,
+                grossMargin: 0.126,
+                holdPeriod: "12 months",
+              },
+            },
+            rentalEvidence: {
+              title: "AI rent assessment (4LDK/92sqm)",
+              type: "pdf",
+              description:
+                "Assessed rent ¥165,000/month from comparable properties",
+              image:
+                "assets/use-case-images/evidence-property-rent-evaluation.webp",
+            },
+          },
+        },
+      ],
+    },
+    {
+      id: "kikuyo-1",
+      name: "Kikuyo 1",
       coords: [32.88, 130.825],
       subtitle: "Renovation opportunity",
       type: "Buy-renovate-rent/sell",
       zone: "Kikuyo Development Zone",
       distanceToJasm: "6.8 km",
       driveTime: "10 min",
+      address:
+        "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+      camera: {
+        center: [130.9383, 32.8612],
+        zoom: 11.2,
+        pitch: 46,
+        bearing: 0,
+      },
+      connections: {
+        jasm: { coords: [32.874, 130.785], distance: "6.8 km", time: "10 min" },
+        station: {
+          id: "kikuyo-station",
+          name: "Kikuyo station",
+          coords: [32.88, 130.81],
+          distance: "1.2 km",
+          time: "2 min",
+        },
+        airport: {
+          coords: [32.8373, 130.8552],
+          distance: "7.8 km",
+          time: "13 min",
+        },
+        road: {
+          id: "ozu-kumamoto-road",
+          name: "Ozu-Kumamoto Road",
+          coords: [32.87, 130.82],
+        },
+      },
 
       cards: [
         {
           type: "images",
           data: {
-            exterior:
-              "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80",
+            exterior: "assets/step-11-images/kikuyo-exterior.webp",
             interior: [
-              "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80",
-              "https://images.unsplash.com/photo-1560185127-6a62b8a7d6c8?w=800&q=80",
+              "assets/step-11-images/kikuyo-interior-1.webp",
+              "assets/step-11-images/kikuyo-interior-2.webp",
+              "assets/step-11-images/kikuyo-interior-3.webp",
             ],
-            site: "https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=800&q=80",
+            site: "assets/step-11-images/kikuyo-exterior.webp",
           },
         },
         {
@@ -1176,7 +1793,7 @@ const AppData = {
         {
           type: "future-outlook",
           data: {
-            description: "Area development plans affecting Kikuyo Kubota",
+            description: "Area development plans affecting Kikuyo 1",
             factors: [
               {
                 title: "Kikuyo Station expansion",
@@ -1233,35 +1850,67 @@ const AppData = {
       ],
     },
     {
-      id: "haramizu-land",
-      name: "Haramizu Land",
+      id: "haramizu-1",
+      name: "Haramizu 1",
       coords: [32.8698, 130.823],
       subtitle: "Land development",
       type: "Land acquisition",
       zone: "Haramizu Station Development Zone",
       distanceToJasm: "4.5 km",
       driveTime: "7 min",
+      address:
+        "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+      camera: {
+        center: [130.979, 32.8947],
+        zoom: 10.7,
+        pitch: 46,
+        bearing: 1,
+      },
+      connections: {
+        jasm: { coords: [32.874, 130.785], distance: "4.5 km", time: "7 min" },
+        station: {
+          id: "haramizu-station",
+          name: "Haramizu station",
+          coords: [32.8698, 130.823],
+          distance: "0 km",
+          time: "adjacent",
+        },
+        airport: {
+          coords: [32.8373, 130.8552],
+          distance: "7.2 km",
+          time: "12 min",
+        },
+        road: {
+          id: "ozu-kumamoto-road",
+          name: "Ozu-Kumamoto Road",
+          coords: [32.87, 130.82],
+        },
+      },
 
       cards: [
         {
           type: "images",
           data: {
-            exterior:
-              "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80",
-            interior: [],
-            site: "https://images.unsplash.com/photo-1625722662220-1fbcfe2d7acb?w=800&q=80",
+            exterior: "assets/step-11-images/haramizu-1-exterior-1.webp",
+            interior: [
+              "assets/step-11-images/haramizu-1-interior-1.webp",
+              "assets/step-11-images/haramizu-1-interior-2.webp",
+              "assets/step-11-images/haramizu-1-interior-3.webp",
+            ],
+            site: "assets/step-11-images/haramizu-1-exterior-2.webp",
           },
         },
         {
           type: "truth-engine",
           data: {
             basicSettings: {
+              propertyName: "Haramizu Land 1",
               propertyType: "Land (pre-sale / off-plan)",
-              plots:
-                "Lot 9 (Minamijuke) and Lot 123 (Mukaihara), Aza Haramizu, Kikuyo-machi",
-              landArea: "210.86-224.88 sqm (approx. 63.78-68.02 tsubo)",
-              buildingArea: "102.67-115.10 sqm total, 2 floors each",
-              parking: "3-5 spaces per lot",
+              address:
+                "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+              landArea: "210.86 sqm (approx. 63.78 tsubo)",
+              buildingArea: "102.67 sqm total, 2 floors",
+              parking: "3 spaces",
               availability: "6-9 months after contract signing",
             },
             designStrategy: {
@@ -1337,6 +1986,158 @@ const AppData = {
                 developedValue: 140000000,
                 netProfit: 50000000,
                 irr: 0.17,
+                holdYears: 3,
+              },
+            },
+            rentalEvidence: {
+              title: "Real estate investment analysis",
+              type: "pdf",
+              description:
+                "Comprehensive land value and development ROI projections",
+              image:
+                "assets/use-case-images/evidence-real-estate-investment-analysis.webp",
+            },
+          },
+        },
+      ],
+    },
+    {
+      id: "haramizu-2",
+      name: "Haramizu 2",
+      coords: [32.871, 130.826],
+      subtitle: "Land development",
+      type: "Land acquisition",
+      zone: "Haramizu Station Development Zone",
+      distanceToJasm: "4.3 km",
+      driveTime: "7 min",
+      address:
+        "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+      camera: {
+        center: [130.9631, 32.8761],
+        zoom: 10.9,
+        pitch: 46,
+        bearing: 1,
+      },
+      connections: {
+        jasm: { coords: [32.874, 130.785], distance: "4.3 km", time: "7 min" },
+        station: {
+          id: "haramizu-station",
+          name: "Haramizu station",
+          coords: [32.8698, 130.823],
+          distance: "0.2 km",
+          time: "1 min",
+        },
+        airport: {
+          coords: [32.8373, 130.8552],
+          distance: "7.5 km",
+          time: "13 min",
+        },
+        road: {
+          id: "ozu-kumamoto-road",
+          name: "Ozu-Kumamoto Road",
+          coords: [32.87, 130.82],
+        },
+      },
+
+      cards: [
+        {
+          type: "images",
+          data: {
+            exterior: "assets/step-11-images/haramizu-2-exterior-1..webp",
+            interior: [
+              "assets/step-11-images/haramizu-2-interior-1.webp",
+              "assets/step-11-images/haramizu-2-interior-2.webp",
+              "assets/step-11-images/haramizu-2-interior-3.webp",
+            ],
+            site: "assets/step-11-images/haramizu-2-exterior-2.webp",
+          },
+        },
+        {
+          type: "truth-engine",
+          data: {
+            basicSettings: {
+              propertyName: "Haramizu Land 2",
+              propertyType: "Land (pre-sale / off-plan)",
+              address:
+                "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+              landArea: "224.88 sqm (approx. 68.02 tsubo)",
+              buildingArea: "115.10 sqm total, 2 floors",
+              parking: "5 spaces",
+              availability: "6-9 months after contract signing",
+            },
+            designStrategy: {
+              description: "Three-zone development concept",
+              features: [
+                "Vibrancy zone: station-front retail, F&B, international-friendly services",
+                "Knowledge cluster: R&D offices, co-working, university satellite campus",
+                "Live-work zone: mid-high density condos, serviced apartments for engineers",
+                "Facility introduction: residential, apartments, hotels, university campus",
+              ],
+            },
+            landStrategy: {
+              description:
+                "Long-term city-level project, not single housing development. JR Kyushu new station between Mitsuriki and Haramizu creates transport anchor.",
+              risks: [
+                "Land readjustment timeline uncertainty",
+                "Zoning finalization dependent on municipal process",
+                "Higher upfront capital requirement than renovation path",
+              ],
+            },
+          },
+        },
+        {
+          type: "future-outlook",
+          data: {
+            description:
+              "70-hectare new urban core with national development partners",
+            factors: [
+              {
+                title: "New JR station",
+                impact:
+                  "JR Kyushu confirmed new station between Mitsuriki and Haramizu, direct rail to Kumamoto City",
+              },
+              {
+                title: "Mitsui Fudosan partnership",
+                impact:
+                  "Japan largest developer selected for long-term vision implementation",
+              },
+              {
+                title: "Foreign consultation counter",
+                impact:
+                  "Kikuyo Town established bilingual support (Chinese/English) for international residents",
+              },
+              {
+                title: "Science park adjacency",
+                impact:
+                  "Direct proximity to semiconductor cluster drives sustained demand",
+              },
+            ],
+          },
+        },
+        {
+          type: "financial",
+          data: {
+            strategy: "Land acquisition and hold/develop",
+            landAcquisitionCost: 40000000,
+            developmentBudget: 55000000,
+            totalInvestment: 95000000,
+            scenarios: {
+              bear: {
+                developedValue: 100000000,
+                netProfit: 5000000,
+                irr: 0.04,
+                holdYears: 3,
+              },
+              average: {
+                developedValue: 120000000,
+                netProfit: 25000000,
+                irr: 0.1,
+                holdYears: 3,
+              },
+              bull: {
+                developedValue: 148000000,
+                netProfit: 53000000,
+                irr: 0.18,
                 holdYears: 3,
               },
             },
@@ -1824,7 +2625,7 @@ const AppData = {
         },
         {
           id: "grand-airport-plan",
-          title: "New Grand Airport concept",
+          title: "New grand airport concept",
           type: "pdf",
           date: "2025-01",
           viewed: false,

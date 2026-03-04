@@ -162,6 +162,13 @@ const CAMERA_STEPS = {
     bearing: 0,
     duration: 2500,
   },
+  A4_government: {
+    center: [136.0188, 28.8513],
+    zoom: 5.5,
+    pitch: 47,
+    bearing: 9,
+    duration: 3000,
+  },
   A_to_B: {
     center: [130.75, 32.84],
     zoom: 11,
@@ -184,10 +191,10 @@ const CAMERA_STEPS = {
     duration: 1500,
   },
   B4: {
-    center: [130.8, 32.86],
-    zoom: 12,
-    pitch: 52,
-    bearing: 30,
+    center: [130.9345, 32.7499],
+    zoom: 10.5,
+    pitch: 54,
+    bearing: 34,
     duration: 2500,
   },
   B6: {
@@ -196,6 +203,13 @@ const CAMERA_STEPS = {
     pitch: 50,
     bearing: -20,
     duration: 2000,
+  },
+  B6_scienceParkAirport: {
+    center: [131.1104, 32.7376],
+    zoom: 9.8,
+    pitch: 47,
+    bearing: 9,
+    duration: 2500,
   },
   B7: {
     center: [130.8, 32.86],
@@ -212,10 +226,10 @@ const CAMERA_STEPS = {
     duration: 2000,
   },
   corridor: {
-    center: [130.82, 32.82],
-    zoom: 12.5,
-    pitch: 50,
-    bearing: -15,
+    center: [131.0329, 32.855],
+    zoom: 10.7,
+    pitch: 54,
+    bearing: 0,
     duration: 2000,
   },
   complete: {
@@ -331,11 +345,23 @@ const MapController = {
     energyWind: [],
     energyNuclear: [],
     governmentChain: [],
+    governmentArc: [],
+    prefectureHighlight: [],
+    municipalityCircles: [],
     investmentZones: [],
     semiconductorNetwork: [],
     talentPipeline: [],
     resourceArcs: [],
+    zonePlanHighlight: [],
+    grandAirportAccess: [],
+    grandAirportRailway: [],
+    grandAirportRoads: [],
+    propertyContextLines: [],
   },
+
+  // Road extension animation tracking
+  _roadDrawRafs: [],
+  _roadPulseTimeout: null,
 
   // Infrastructure road tracking
   selectedInfrastructureRoad: null,
@@ -586,37 +612,24 @@ const MapController = {
       this._calculateBearing(map.getCenter(), targetCenter);
 
     if (this.reducedMotion) {
-      map.jumpTo({ center: targetCenter, zoom: 18, pitch: 65, bearing });
+      map.jumpTo({ center: targetCenter, zoom: 16.5, pitch: 55, bearing });
       await this._delay(100);
       this.revealing = false;
       this._currentAnimation = null;
       return;
     }
 
-    // Street-level drill-down: zoom 18, pitch 65 for true street view
+    // Property drill-down: zoom 16.5, pitch 55
     map.flyTo({
       center: targetCenter,
-      zoom: 18,
-      pitch: 65,
+      zoom: 16.5,
+      pitch: 55,
       bearing: bearing,
-      duration: 2500,
+      duration: 1800,
       essential: true,
     });
 
-    await this._waitForMoveEnd(4000);
-    if (thisAnimation.cancelled) {
-      this.revealing = false;
-      return;
-    }
-
-    // Gentle orbit at street level — rotate bearing by 15° over 2.5s
-    if (!thisAnimation.cancelled) {
-      map.easeTo({
-        bearing: bearing + 15,
-        duration: 2500,
-        easing: (t) => t * (2 - t), // ease-out
-      });
-    }
+    await this._waitForMoveEnd(3000);
 
     this.revealing = false;
     this._currentAnimation = null;
@@ -2160,8 +2173,10 @@ const MapController = {
 
   /**
    * Show Science Park circle (steps 3, 5: government support, science park)
+   * @param {Object} [opts] - Options
+   * @param {boolean} [opts.skipFly] - Skip camera flight (camera already positioned by goToStep)
    */
-  showSciencePark() {
+  showSciencePark(opts = {}) {
     const sp = AppData.sciencePark;
 
     // Generate circle polygon
@@ -2177,7 +2192,7 @@ const MapController = {
       type: "fill",
       source: sourceId,
       paint: {
-        "fill-color": MAP_COLORS.error,
+        "fill-color": MAP_COLORS.primary,
         "fill-opacity": 0.18,
       },
     });
@@ -2188,7 +2203,7 @@ const MapController = {
       type: "line",
       source: sourceId,
       paint: {
-        "line-color": MAP_COLORS.error,
+        "line-color": MAP_COLORS.primary,
         "line-width": 2.5,
         "line-opacity": 0.85,
       },
@@ -2200,8 +2215,114 @@ const MapController = {
     );
     this._layerGroups.sciencePark.push(sourceId); // track source too
 
-    // Fly to center
-    this.flyToStep(CAMERA_STEPS.B1_sciencePark);
+    // Fly to center (skip when camera is already positioned by goToStep)
+    if (!opts.skipFly) {
+      this.flyToStep(CAMERA_STEPS.B1_sciencePark);
+    }
+  },
+
+  /**
+   * Toggle visibility of the science park amber circle layers.
+   * @param {boolean} visible - Whether the circle should be visible
+   */
+  setScienceParkCircleVisible(visible) {
+    const vis = visible ? "visible" : "none";
+    if (this.map.getLayer("science-park-circle-fill")) {
+      this.map.setLayoutProperty("science-park-circle-fill", "visibility", vis);
+    }
+    if (this.map.getLayer("science-park-circle-stroke")) {
+      this.map.setLayoutProperty(
+        "science-park-circle-stroke",
+        "visibility",
+        vis,
+      );
+    }
+  },
+
+  /**
+   * Show a single zone plan polygon highlight on the map.
+   * Removes any previous zone plan highlight first (one at a time).
+   * @param {Object} zone - Zone plan data from AppData.scienceParkZonePlans
+   */
+  showZonePlanHighlight(zone, opts = {}) {
+    if (!zone || !zone.polygon) return;
+
+    // Remove this specific zone if it already exists (avoid duplicates)
+    const existingId = `zone-plan-${zone.id}`;
+    this._safeRemoveLayer(`${existingId}-fill`);
+    this._safeRemoveLayer(`${existingId}-stroke`);
+    this._safeRemoveSource(existingId);
+    const group = this._layerGroups.zonePlanHighlight;
+    [`${existingId}-fill`, `${existingId}-stroke`, existingId].forEach((id) => {
+      const i = group.indexOf(id);
+      if (i !== -1) group.splice(i, 1);
+    });
+
+    const sourceId = `zone-plan-${zone.id}`;
+    const geoJson = {
+      type: "Feature",
+      geometry: {
+        type: "Polygon",
+        coordinates: [zone.polygon],
+      },
+    };
+
+    this._safeAddSource(sourceId, { type: "geojson", data: geoJson });
+
+    // Fill layer
+    this.map.addLayer({
+      id: `${sourceId}-fill`,
+      type: "fill",
+      source: sourceId,
+      paint: {
+        "fill-color": zone.color || "rgba(0, 122, 255, 0.25)",
+        "fill-opacity": 0,
+      },
+    });
+
+    // Stroke layer
+    this.map.addLayer({
+      id: `${sourceId}-stroke`,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": zone.strokeColor || "#007aff",
+        "line-width": 2.5,
+        "line-opacity": 0,
+      },
+    });
+
+    // Animate in
+    this.map.setPaintProperty(`${sourceId}-fill`, "fill-opacity", 0.3);
+    this.map.setPaintProperty(`${sourceId}-stroke`, "line-opacity", 0.9);
+
+    this._layerGroups.zonePlanHighlight.push(
+      `${sourceId}-fill`,
+      `${sourceId}-stroke`,
+      sourceId,
+    );
+
+    // Fly to zone camera position (skip when called from subitem click)
+    if (zone.camera && !opts.skipFly) {
+      this.flyToStep({
+        center: zone.camera.center,
+        zoom: zone.camera.zoom,
+        pitch: zone.camera.pitch,
+        bearing: zone.camera.bearing,
+        duration: 2000,
+      });
+    }
+  },
+
+  /**
+   * Remove the current zone plan polygon highlight from the map.
+   */
+  hideZonePlanHighlight() {
+    this._layerGroups.zonePlanHighlight.forEach((id) => {
+      this._safeRemoveLayer(id);
+      this._safeRemoveSource(id);
+    });
+    this._layerGroups.zonePlanHighlight = [];
   },
 
   /**
@@ -2336,6 +2457,403 @@ const MapController = {
     UI.renderInspectorPanel(4, { title: level.name });
   },
 
+  // ────────────────────────────────────────────────
+  // Government level toggles (step 4)
+  // ────────────────────────────────────────────────
+
+  /**
+   * Show a single government level on the map.
+   * Central: animated Bezier arc from Tokyo to Kumamoto (blue).
+   * Prefectural: fill + outline of Kumamoto prefecture boundary (green).
+   * Local: circle polygons + pulsing DOM markers for each municipality (orange).
+   * @param {string} level - 'central' | 'prefectural' | 'local'
+   */
+  showGovernmentLevel(level) {
+    // Hide first to prevent duplicates
+    this.hideGovernmentLevel(level);
+
+    const tiers = AppData.governmentTiers || [];
+    const tier = tiers.find((t) => t.id === level);
+    if (!tier) return;
+
+    const groupKey =
+      level === "central"
+        ? "governmentArc"
+        : level === "prefectural"
+          ? "prefectureHighlight"
+          : "municipalityCircles";
+
+    if (level === "central") {
+      this._showCentralArc(tier, groupKey);
+    } else if (level === "prefectural") {
+      this._showPrefectureHighlight(tier, groupKey);
+    } else if (level === "local") {
+      this._showMunicipalityCircles(tier, groupKey);
+    }
+  },
+
+  /**
+   * Central government: animated Bezier arc from Tokyo to Kumamoto.
+   */
+  _showCentralArc(tier, groupKey) {
+    const color = tier.color || "#007aff";
+    const origin = tier.tokyoCoords || [35.6762, 139.6503];
+    const destination = tier.coords;
+
+    // Calculate arc midpoint with height
+    const midLat = (origin[0] + destination[0]) / 2;
+    const midLng = (origin[1] + destination[1]) / 2;
+    const dLat = destination[0] - origin[0];
+    const dLng = destination[1] - origin[1];
+    const distance = Math.sqrt(dLat * dLat + dLng * dLng);
+    const arcHeight = Math.max(0.3, Math.min(1.5, distance * 0.25));
+    const arcMid = [midLat + arcHeight, midLng];
+    const points = this.generateBezierPoints(origin, arcMid, destination, 80);
+
+    const sourceId = "govt-central-arc";
+    this._safeAddSource(sourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: points },
+      },
+    });
+
+    // Glow layer
+    const glowLayerId = `${sourceId}-glow`;
+    this.map.addLayer({
+      id: glowLayerId,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": color,
+        "line-width": 12,
+        "line-opacity": 0,
+        "line-blur": 4,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
+    // Main arc line
+    const layerId = `${sourceId}-line`;
+    this.map.addLayer({
+      id: layerId,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": color,
+        "line-width": 4,
+        "line-opacity": 0.9,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
+    this._layerGroups[groupKey].push(glowLayerId, layerId, sourceId);
+
+    // Animated reveal then ambient flow
+    this._animateEnergyLine(layerId, glowLayerId, 0, 2500, 0);
+
+    // Origin marker at Tokyo
+    const tokyoHtml = this._elevatedMarkerHtml(
+      '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>',
+      color,
+      32,
+    );
+    const tokyoId = "govt-central-tokyo";
+    const { marker: tokyoMarker } = this._createMarker(origin, tokyoHtml, {
+      entrance: "anchor",
+      ariaLabel: "Tokyo - Central Government",
+    });
+    if (tokyoMarker) {
+      this.markers[tokyoId] = tokyoMarker;
+      this._layerGroups[groupKey].push(tokyoId);
+    }
+
+    // Destination marker at Kumamoto
+    const kumaHtml = this._elevatedMarkerHtml(
+      '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>',
+      color,
+      32,
+    );
+    const kumaId = "govt-central-kuma";
+    const { marker: kumaMarker } = this._createMarker(destination, kumaHtml, {
+      entrance: "ripple",
+      ariaLabel: "Kumamoto - National policy destination",
+    });
+    if (kumaMarker) {
+      this.markers[kumaId] = kumaMarker;
+      this._layerGroups[groupKey].push(kumaId);
+    }
+
+    UI.announceToScreenReader(
+      "Central government arc from Tokyo to Kumamoto added",
+    );
+  },
+
+  /**
+   * Prefectural government: filled + outlined Kumamoto boundary.
+   */
+  _showPrefectureHighlight(tier, groupKey) {
+    const color = tier.color || "#34c759";
+    const boundary = AppData.kumamotoPrefectureBoundary;
+    if (!boundary) return;
+
+    const sourceId = "govt-prefecture-boundary";
+    this._safeAddSource(sourceId, {
+      type: "geojson",
+      data: boundary,
+    });
+
+    // Fill layer
+    const fillId = `${sourceId}-fill`;
+    this.map.addLayer({
+      id: fillId,
+      type: "fill",
+      source: sourceId,
+      paint: {
+        "fill-color": color,
+        "fill-opacity": 0,
+      },
+    });
+
+    // Outline layer
+    const outlineId = `${sourceId}-outline`;
+    this.map.addLayer({
+      id: outlineId,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": color,
+        "line-width": 2.5,
+        "line-opacity": 0,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
+    this._layerGroups[groupKey].push(fillId, outlineId, sourceId);
+
+    // Animate fade-in
+    let startTime = null;
+    const duration = 800;
+    const self = this;
+
+    const animateFade = (now) => {
+      if (!startTime) startTime = now;
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      try {
+        if (self.map.getLayer(fillId)) {
+          self.map.setPaintProperty(fillId, "fill-opacity", eased * 0.15);
+        }
+        if (self.map.getLayer(outlineId)) {
+          self.map.setPaintProperty(outlineId, "line-opacity", eased * 0.7);
+        }
+      } catch (e) {
+        return;
+      }
+
+      if (progress < 1) {
+        self._energyLineAnimations[fillId] = requestAnimationFrame(animateFade);
+      } else {
+        delete self._energyLineAnimations[fillId];
+      }
+    };
+
+    this._energyLineAnimations[fillId] = requestAnimationFrame(animateFade);
+
+    // Prefecture center marker
+    const prefHtml = this._elevatedMarkerHtml(
+      '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>',
+      color,
+      32,
+    );
+    const prefId = "govt-prefecture-marker";
+    const { marker: prefMarker } = this._createMarker(tier.coords, prefHtml, {
+      entrance: "anchor",
+      ariaLabel: "Kumamoto Prefecture",
+    });
+    if (prefMarker) {
+      this.markers[prefId] = prefMarker;
+      this._layerGroups[groupKey].push(prefId);
+    }
+
+    UI.announceToScreenReader("Kumamoto prefecture boundary highlighted");
+  },
+
+  /**
+   * Local government: circle polygons + pulsing DOM markers for municipalities.
+   */
+  _showMunicipalityCircles(tier, groupKey) {
+    const color = tier.color || "#ff9500";
+    const subItems = tier.subItems || [];
+    if (subItems.length === 0) return;
+
+    const circleStagger = 200;
+    const markerBaseDelay = subItems.length * circleStagger + 400;
+
+    // Phase 1: circles fade in with stagger
+    subItems.forEach((item, index) => {
+      const delay = index * circleStagger;
+
+      setTimeout(() => {
+        const circleSourceId = `govt-local-circle-${item.id}`;
+        const circleFeature = this._generateCirclePolygon(
+          this._toMapbox(item.coords),
+          1200,
+          48,
+        );
+
+        this._safeAddSource(circleSourceId, {
+          type: "geojson",
+          data: circleFeature,
+        });
+
+        const fillId = `${circleSourceId}-fill`;
+        this.map.addLayer({
+          id: fillId,
+          type: "fill",
+          source: circleSourceId,
+          paint: {
+            "fill-color": color,
+            "fill-opacity": 0.12,
+          },
+        });
+
+        const outlineId = `${circleSourceId}-outline`;
+        this.map.addLayer({
+          id: outlineId,
+          type: "line",
+          source: circleSourceId,
+          paint: {
+            "line-color": color,
+            "line-width": 2,
+            "line-opacity": 0.5,
+          },
+        });
+
+        this._layerGroups[groupKey].push(fillId, outlineId, circleSourceId);
+      }, delay);
+    });
+
+    // Phase 2: labeled markers pop up after all circles are visible
+    subItems.forEach((item, index) => {
+      const delay = markerBaseDelay + index * 250;
+
+      setTimeout(() => {
+        const markerHtml = `<div class="municipality-labeled-marker" style="--marker-color: ${color};">
+          <div class="municipality-label">
+            <span class="municipality-label-name">${item.name}</span>
+            <span class="municipality-label-value">${item.commitment}</span>
+          </div>
+          <div class="municipality-pulse-marker">
+            <div class="municipality-pulse-ring" style="--pulse-color: ${color};"></div>
+            <div class="municipality-pulse-dot" style="background: ${color};">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+          </div>
+        </div>`;
+
+        const markerId = `govt-local-${item.id}`;
+        const { marker, element } = this._createMarker(
+          item.coords,
+          markerHtml,
+          {
+            className: "municipality-marker-wrapper",
+            ariaLabel: `${item.name} - ${item.commitment}`,
+          },
+        );
+
+        if (marker && element) {
+          this.markers[markerId] = marker;
+          this._layerGroups[groupKey].push(markerId);
+        }
+      }, delay);
+    });
+
+    const announceDelay = markerBaseDelay + subItems.length * 250 + 200;
+    setTimeout(() => {
+      UI.announceToScreenReader(
+        subItems.length + " local municipality markers added",
+      );
+    }, announceDelay);
+  },
+
+  /**
+   * Hide a single government level from the map.
+   * @param {string} level - 'central' | 'prefectural' | 'local'
+   */
+  hideGovernmentLevel(level) {
+    const groupKey =
+      level === "central"
+        ? "governmentArc"
+        : level === "prefectural"
+          ? "prefectureHighlight"
+          : "municipalityCircles";
+
+    const group = this._layerGroups[groupKey] || [];
+
+    // Cancel running animations
+    group.forEach((id) => {
+      if (this._energyLineAnimations[id]) {
+        cancelAnimationFrame(this._energyLineAnimations[id]);
+        delete this._energyLineAnimations[id];
+      }
+    });
+
+    // Remove markers
+    group.forEach((id) => {
+      if (this.markers[id]) {
+        const marker = this.markers[id];
+        const element = marker.getElement();
+        marker.remove();
+        if (element && element.parentNode) {
+          element.remove();
+        }
+        delete this.markers[id];
+      }
+    });
+
+    // Remove layers then sources
+    group.forEach((id) => {
+      if (
+        id.endsWith("-fill") ||
+        id.endsWith("-outline") ||
+        id.endsWith("-line") ||
+        id.endsWith("-glow")
+      ) {
+        this._safeRemoveLayer(id);
+      }
+    });
+    group.forEach((id) => {
+      if (
+        !id.endsWith("-fill") &&
+        !id.endsWith("-outline") &&
+        !id.endsWith("-line") &&
+        !id.endsWith("-glow") &&
+        !this.markers[id]
+      ) {
+        this._safeRemoveSource(id);
+      }
+    });
+
+    this._layerGroups[groupKey] = [];
+  },
+
+  /**
+   * Hide all government level layers.
+   * Called on step exit to clean up.
+   */
+  hideAllGovernmentLevels() {
+    ["central", "prefectural", "local"].forEach((level) =>
+      this.hideGovernmentLevel(level),
+    );
+  },
+
   /**
    * Show company markers (step 4: corporate investment)
    */
@@ -2360,9 +2878,12 @@ const MapController = {
           ariaLabel: company.name,
         });
 
-        this._addTooltip(marker, element, company.name);
+        const tooltipText =
+          (company.stats && company.stats[0] && company.stats[0].value) ||
+          company.name;
+        this._addTooltip(marker, element, tooltipText);
         element.addEventListener("click", () =>
-          UI.renderInspectorPanel(5, { title: company.name }),
+          UI.showCompanyDetailPanel(company),
         );
 
         this.markers[company.id] = marker;
@@ -2484,7 +3005,7 @@ const MapController = {
 
       this._addTooltip(marker, element, zone.name);
       element.addEventListener("click", () =>
-        UI.renderInspectorPanel(6, { title: zone.name, zone }),
+        UI.renderInspectorPanel(5, { title: zone.name, zone }),
       );
 
       this.markers[zone.id] = marker;
@@ -2613,6 +3134,337 @@ const MapController = {
 
   hideInvestmentZones() {
     this._removeLayerGroup("investmentZones");
+  },
+
+  /**
+   * Show a single investment zone by ID (for toggle-based control).
+   */
+  showInvestmentZone(zoneId) {
+    const zone = AppData.investmentZones.find((z) => z.id === zoneId);
+    if (!zone || !this.map) return;
+
+    const centerLngLat = this._toMapbox(zone.coords);
+    const circleGeoJson = this._generateCirclePolygon(
+      centerLngLat,
+      zone.radius,
+    );
+
+    const sourceId = `inv-zone-${zone.id}`;
+    this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
+
+    this.map.addLayer({
+      id: `${sourceId}-fill`,
+      type: "fill",
+      source: sourceId,
+      paint: {
+        "fill-color": zone.color,
+        "fill-opacity": 1,
+      },
+    });
+
+    this.map.addLayer({
+      id: `${sourceId}-stroke`,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": zone.strokeColor,
+        "line-width": 2,
+        "line-dasharray": [5, 10],
+      },
+    });
+
+    // Per-zone label
+    const labelSourceId = `inv-zone-label-${zone.id}`;
+    this._safeAddSource(labelSourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: centerLngLat,
+        },
+        properties: { name: zone.name },
+      },
+    });
+
+    this.map.addLayer({
+      id: `${labelSourceId}-text`,
+      type: "symbol",
+      source: labelSourceId,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-size": 14,
+        "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+        "text-allow-overlap": true,
+        "text-ignore-placement": true,
+      },
+      paint: {
+        "text-color": "#1e1f20",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2.5,
+      },
+    });
+
+    this._layerGroups.investmentZones.push(
+      `${sourceId}-fill`,
+      `${sourceId}-stroke`,
+      sourceId,
+      `${labelSourceId}-text`,
+      labelSourceId,
+    );
+  },
+
+  /**
+   * Hide a single investment zone by ID.
+   */
+  hideInvestmentZone(zoneId) {
+    if (!this.map) return;
+    const sourceId = `inv-zone-${zoneId}`;
+    const labelSourceId = `inv-zone-label-${zoneId}`;
+    const ids = [
+      `${sourceId}-fill`,
+      `${sourceId}-stroke`,
+      `${labelSourceId}-text`,
+    ];
+
+    ids.forEach((id) => this._safeRemoveLayer(id));
+    this._safeRemoveSource(sourceId);
+    this._safeRemoveSource(labelSourceId);
+
+    // Clean tracking array
+    this._layerGroups.investmentZones =
+      this._layerGroups.investmentZones.filter(
+        (id) =>
+          !id.startsWith(`inv-zone-${zoneId}`) &&
+          !id.startsWith(`inv-zone-label-${zoneId}`),
+      );
+  },
+
+  // ================================
+  // PROPERTY CONTEXT LINES (step 11: property 2-step flow)
+  // ================================
+
+  /**
+   * Draw animated context lines from a property to JASM, station, airport, and road.
+   * Camera pulls back to overview so all connections are visible.
+   * @param {Object} property - property object with coords and connections
+   */
+  showPropertyContextLines(property) {
+    // Synchronous cleanup (skip fade-out animation when replacing lines immediately)
+    this._removeLayerGroup("propertyContextLines");
+
+    const conn = property.connections;
+    if (!conn) return;
+
+    const propLngLat = this._toMapbox(property.coords);
+
+    // Build line features for each connection type
+    const lineColors = {
+      jasm: "#ff3b30",
+      station: "#007aff",
+      airport: "#34c759",
+      road: "#5ac8fa",
+    };
+
+    const lineLabels = {
+      jasm: `JASM - ${conn.jasm.time}`,
+      station: `${conn.station.name} - ${conn.station.time}`,
+      airport: `Airport - ${conn.airport.time}`,
+      road: conn.road.name,
+    };
+
+    const features = [];
+    const types = ["jasm", "station", "airport", "road"];
+    const allCoords = [propLngLat];
+
+    types.forEach((type, index) => {
+      const target = conn[type];
+      if (!target || !target.coords) return;
+      const targetLngLat = this._toMapbox(target.coords);
+      allCoords.push(targetLngLat);
+
+      features.push({
+        type: "Feature",
+        id: index,
+        geometry: {
+          type: "LineString",
+          coordinates: [propLngLat, targetLngLat],
+        },
+        properties: {
+          type: type,
+          label: lineLabels[type],
+          color: lineColors[type],
+          index: index,
+        },
+      });
+    });
+
+    const sourceId = "property-context-lines";
+    this._safeAddSource(sourceId, {
+      type: "geojson",
+      data: { type: "FeatureCollection", features },
+    });
+
+    // Glow layer
+    this.map.addLayer({
+      id: `${sourceId}-glow`,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": 12,
+        "line-opacity": ["number", ["feature-state", "opacity"], 0],
+        "line-blur": 8,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
+    // Main line layer - dashed
+    this.map.addLayer({
+      id: `${sourceId}-line`,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": 3,
+        "line-opacity": ["number", ["feature-state", "opacity"], 0],
+        "line-dasharray": [6, 4],
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
+    // Label layer along lines
+    this.map.addLayer({
+      id: `${sourceId}-labels`,
+      type: "symbol",
+      source: sourceId,
+      layout: {
+        "symbol-placement": "line-center",
+        "text-field": ["get", "label"],
+        "text-size": 12,
+        "text-font": ["DIN Pro Medium", "Arial Unicode MS Regular"],
+        "text-anchor": "center",
+        "text-offset": [0, -1.2],
+        "text-allow-overlap": true,
+        "text-ignore-placement": true,
+      },
+      paint: {
+        "text-color": ["get", "color"],
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2,
+        "text-opacity": ["number", ["feature-state", "textOpacity"], 0],
+      },
+    });
+
+    // Stagger line appearance
+    features.forEach((feature, index) => {
+      setTimeout(() => {
+        if (!this.map || !this.map.getSource(sourceId)) return;
+        this.map.setFeatureState(
+          { source: sourceId, id: index },
+          { opacity: 0.2, textOpacity: 0 },
+        );
+        // Fade in over two frames
+        setTimeout(() => {
+          if (!this.map || !this.map.getSource(sourceId)) return;
+          this.map.setFeatureState(
+            { source: sourceId, id: index },
+            { opacity: 0.7, textOpacity: 1 },
+          );
+        }, 150);
+      }, index * 200);
+    });
+
+    this._layerGroups.propertyContextLines.push(
+      `${sourceId}-glow`,
+      `${sourceId}-line`,
+      `${sourceId}-labels`,
+      sourceId,
+    );
+
+    // Add endpoint markers at each connection target so lines clearly lead somewhere
+    const endpointIcons = {
+      jasm: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M22 22H2V10l7-3v3l7-3v3l6-3v15zM4 20h16v-8l-4 2v-2l-5 2v-2l-5 2v-2l-2 1v7z"/></svg>`,
+      station: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M12 2C8 2 5 4 5 8v6c0 2 1 3.5 3 4l-2 2v1h12v-1l-2-2c2-.5 3-2 3-4V8c0-4-3-6-7-6zm-2 14H8v-4h2v4zm6 0h-2v-4h2v4zm2-6H6V8c0-3 2.5-4 6-4s6 1 6 4v2z"/></svg>`,
+      airport: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
+      road: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M11 2v3H8l1 3h2v3H8l1 3h2v3H8l1 3h2v2h2v-2h2l-1-3h-2v-3h3l-1-3h-2V8h3l-1-3h-2V2h-2z"/></svg>`,
+    };
+    types.forEach((type, index) => {
+      const target = conn[type];
+      if (!target || !target.coords) return;
+      const endpointId = `context-endpoint-${type}`;
+      const color = lineColors[type];
+      const icon = endpointIcons[type] || "";
+      const html = this._elevatedMarkerHtml(icon, color, 24);
+      const { marker } = this._createMarker(target.coords, html, {
+        ariaLabel: lineLabels[type],
+      });
+      if (marker) {
+        // Fade in with stagger matching lines
+        const el = marker.getElement();
+        if (el) {
+          el.style.opacity = "0";
+          el.style.transition = "opacity 300ms ease";
+          setTimeout(
+            () => {
+              el.style.opacity = "1";
+            },
+            index * 200 + 150,
+          );
+        }
+        this.markers[endpointId] = marker;
+        this._layerGroups.propertyContextLines.push(endpointId);
+      }
+    });
+
+    // Fly to per-property camera position (or fallback to fitBounds)
+    if (property.camera) {
+      this.map.flyTo({
+        center: property.camera.center,
+        zoom: property.camera.zoom,
+        pitch: property.camera.pitch,
+        bearing: property.camera.bearing,
+        duration: 1500,
+      });
+    } else {
+      const bounds = allCoords.reduce(
+        (b, c) => b.extend(c),
+        new mapboxgl.LngLatBounds(allCoords[0], allCoords[0]),
+      );
+      this.map.fitBounds(bounds, {
+        padding: { top: 80, bottom: 100, left: 80, right: 420 },
+        duration: 1500,
+        maxZoom: 12,
+        pitch: 45,
+        bearing: 0,
+      });
+    }
+  },
+
+  /**
+   * Remove context lines with fade out.
+   */
+  removePropertyContextLines() {
+    const sourceId = "property-context-lines";
+    if (!this.map || !this.map.getSource(sourceId)) {
+      // Nothing to remove - just clear the tracking array in case of stale entries
+      this._layerGroups.propertyContextLines = [];
+      return;
+    }
+    // Fade out feature states
+    const features = this.map.getSource(sourceId)._data;
+    if (features && features.features) {
+      features.features.forEach((_, i) => {
+        this.map.setFeatureState(
+          { source: sourceId, id: i },
+          { opacity: 0, textOpacity: 0 },
+        );
+      });
+    }
+    // Remove layers after fade completes
+    setTimeout(() => {
+      this._removeLayerGroup("propertyContextLines");
+    }, 300);
   },
 
   // ================================
@@ -2834,7 +3686,7 @@ const MapController = {
       );
       element.addEventListener("click", () => {
         this.clearInfrastructureRoadSelection();
-        UI.renderInspectorPanel(7, { title: station.name });
+        UI.renderInspectorPanel(6, { title: station.name });
       });
       this.infrastructureMarkers.push(marker);
       this._layerGroups.infrastructureRoads.push(`station-${station.id}`);
@@ -2960,6 +3812,752 @@ const MapController = {
     }
   },
 
+  // ================================
+  // GRAND AIRPORT ACCESS ROUTES
+  // ================================
+
+  /**
+   * Draw two rail routes from Aso Kumamoto Airport to Higo-Ozu Station
+   * plus landmark markers along the corridor.
+   */
+  showAirportAccessRoutes() {
+    const data = AppData.grandAirportData?.airportAccessRoutes;
+    if (!data || !this.map) return;
+
+    // Clean up previous if any
+    this.hideAirportAccessRoutes();
+
+    // 1. "Previously announced" route - dashed blue line
+    const prevCoords = data.previousRoute.map((c) => this._toMapbox(c));
+    const prevSourceId = "ga-prev-route";
+    this._safeAddSource(prevSourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: prevCoords },
+      },
+    });
+    // Glow
+    this.map.addLayer({
+      id: `${prevSourceId}-glow`,
+      type: "line",
+      source: prevSourceId,
+      paint: {
+        "line-color": "#007aff",
+        "line-width": 6,
+        "line-opacity": 0.12,
+        "line-blur": 3,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    // Main line
+    this.map.addLayer({
+      id: `${prevSourceId}-line`,
+      type: "line",
+      source: prevSourceId,
+      paint: {
+        "line-color": "#007aff",
+        "line-width": 2.5,
+        "line-opacity": 0.5,
+        "line-dasharray": [4, 3],
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    this._layerGroups.grandAirportAccess.push(
+      `${prevSourceId}-glow`,
+      `${prevSourceId}-line`,
+      prevSourceId,
+    );
+
+    // 2. "Newly announced" route - solid red curve via bezier
+    const nr = data.newRoute;
+    const curvePoints = this.generateBezierPoints(
+      nr.start,
+      nr.control,
+      nr.end,
+      nr.numPoints || 60,
+    );
+    const newSourceId = "ga-new-route";
+    this._safeAddSource(newSourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: curvePoints },
+      },
+    });
+    // Glow layer
+    this.map.addLayer({
+      id: `${newSourceId}-glow`,
+      type: "line",
+      source: newSourceId,
+      paint: {
+        "line-color": "#ff3b30",
+        "line-width": 7,
+        "line-opacity": 0.15,
+        "line-blur": 4,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    // Main line
+    this.map.addLayer({
+      id: `${newSourceId}-line`,
+      type: "line",
+      source: newSourceId,
+      paint: {
+        "line-color": "#ff3b30",
+        "line-width": 3.5,
+        "line-opacity": 0.85,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    this._layerGroups.grandAirportAccess.push(
+      `${newSourceId}-glow`,
+      `${newSourceId}-line`,
+      newSourceId,
+    );
+
+    // 3. Landmark markers (elevated 36px, hover tooltip, click for detail)
+    const landmarkIcons = {
+      plane: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>`,
+      "train-front": `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`,
+      cpu: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></svg>`,
+      factory: `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`,
+      microscope: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg>`,
+    };
+
+    data.landmarks.forEach((lm) => {
+      const id = `ga-landmark-${lm.id}`;
+
+      // Use branded JASM logo instead of generic icon
+      let html;
+      if (lm.id === "jasm-landmark") {
+        html = this._brandedMarkerHtml("jasm");
+      } else {
+        const iconSvg = landmarkIcons[lm.icon] || landmarkIcons.plane;
+        html = this._elevatedMarkerHtml(iconSvg, lm.color, 36);
+      }
+
+      const { marker, element } = this._createMarker(lm.coords, html, {
+        className: "ga-landmark-marker",
+        entrance: "anchor",
+        ariaLabel: lm.name,
+      });
+
+      // Hover tooltip (text on hover only)
+      this._addTooltip(marker, element, lm.name);
+
+      // Click to show detail in dashboard
+      element.addEventListener("click", () => {
+        App.showAirportLandmarkDetail(lm.id);
+      });
+
+      this.markers[id] = marker;
+      this._layerGroups.grandAirportAccess.push(id);
+    });
+
+    // 4. JR Hohi Line - east-west railway context
+    const railwayData = AppData.grandAirportData?.railway;
+    if (railwayData?.jrHohiLine) {
+      const hohiCoords = railwayData.jrHohiLine.map((c) => this._toMapbox(c));
+      const hohiSourceId = "ga-access-hohi-line";
+      this._safeAddSource(hohiSourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: { type: "LineString", coordinates: hohiCoords },
+        },
+      });
+      // Subtle glow
+      this.map.addLayer({
+        id: `${hohiSourceId}-glow`,
+        type: "line",
+        source: hohiSourceId,
+        paint: {
+          "line-color": "#6e7073",
+          "line-width": 6,
+          "line-opacity": 0.08,
+          "line-blur": 3,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+      // Main line - solid gray railway
+      this.map.addLayer({
+        id: `${hohiSourceId}-line`,
+        type: "line",
+        source: hohiSourceId,
+        paint: {
+          "line-color": "#6e7073",
+          "line-width": 2.5,
+          "line-opacity": 0.6,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+      this._layerGroups.grandAirportAccess.push(
+        `${hohiSourceId}-glow`,
+        `${hohiSourceId}-line`,
+        hohiSourceId,
+      );
+    }
+
+    // 5. Line interactions: pulse animation, hover tooltips, click handlers
+    const routesMeta = data.routes || [];
+    const lineConfigs = [
+      {
+        lineId: `${prevSourceId}-line`,
+        glowId: `${prevSourceId}-glow`,
+        baseWidth: 2.5,
+        routeId: "prev-route",
+      },
+      {
+        lineId: `${newSourceId}-line`,
+        glowId: `${newSourceId}-glow`,
+        baseWidth: 3.5,
+        routeId: "new-route",
+      },
+      {
+        lineId: "ga-access-hohi-line-line",
+        glowId: "ga-access-hohi-line-glow",
+        baseWidth: 2.5,
+        routeId: "hohi-line",
+      },
+    ];
+
+    // Shared popup for hover tooltips
+    const linePopup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      className: "mapbox-tooltip",
+      offset: [0, -10],
+    });
+    this._airportRoutePopup = linePopup;
+
+    // Event handlers stored for cleanup
+    this._airportRouteHandlers = [];
+
+    lineConfigs.forEach(({ lineId, baseWidth, routeId }) => {
+      if (!this.map.getLayer(lineId)) return;
+      const meta = routesMeta.find((r) => r.id === routeId);
+      const name = meta?.name || routeId;
+
+      const enterHandler = (e) => {
+        this.map.getCanvas().style.cursor = "pointer";
+        if (this.map.getLayer(lineId)) {
+          this.map.setPaintProperty(lineId, "line-width", baseWidth + 2);
+        }
+        linePopup.setLngLat(e.lngLat).setText(name).addTo(this.map);
+      };
+      const moveHandler = (e) => {
+        linePopup.setLngLat(e.lngLat);
+      };
+      const leaveHandler = () => {
+        this.map.getCanvas().style.cursor = "";
+        if (this.map.getLayer(lineId)) {
+          this.map.setPaintProperty(lineId, "line-width", baseWidth);
+        }
+        linePopup.remove();
+      };
+      const clickHandler = () => {
+        App.showAirportLineDetail(routeId);
+      };
+
+      this.map.on("mouseenter", lineId, enterHandler);
+      this.map.on("mousemove", lineId, moveHandler);
+      this.map.on("mouseleave", lineId, leaveHandler);
+      this.map.on("click", lineId, clickHandler);
+
+      this._airportRouteHandlers.push(
+        { event: "mouseenter", layer: lineId, fn: enterHandler },
+        { event: "mousemove", layer: lineId, fn: moveHandler },
+        { event: "mouseleave", layer: lineId, fn: leaveHandler },
+        { event: "click", layer: lineId, fn: clickHandler },
+      );
+    });
+
+    // Pulse animation on glow and main line layers
+    let phase = 0;
+    const pulseConfigs = [
+      // Glow layers
+      { id: `${prevSourceId}-glow`, base: 0.12, amp: 0.1 },
+      { id: `${newSourceId}-glow`, base: 0.15, amp: 0.12 },
+      { id: "ga-access-hohi-line-glow", base: 0.08, amp: 0.08 },
+      // Main line layers
+      { id: `${prevSourceId}-line`, base: 0.5, amp: 0.25 },
+      { id: `${newSourceId}-line`, base: 0.85, amp: 0.15 },
+      { id: "ga-access-hohi-line-line", base: 0.6, amp: 0.2 },
+    ];
+    this._airportRoutePulseTimer = setInterval(() => {
+      phase += 0.04;
+      pulseConfigs.forEach(({ id, base, amp }) => {
+        if (this.map.getLayer(id)) {
+          const opacity = base + amp * Math.sin(phase);
+          this.map.setPaintProperty(id, "line-opacity", opacity);
+        }
+      });
+    }, 50);
+  },
+
+  /**
+   * Remove airport access route lines, landmark markers, and interaction handlers.
+   */
+  hideAirportAccessRoutes() {
+    // Clean up pulse animation
+    if (this._airportRoutePulseTimer) {
+      clearInterval(this._airportRoutePulseTimer);
+      this._airportRoutePulseTimer = null;
+    }
+
+    // Clean up event handlers
+    if (this._airportRouteHandlers) {
+      this._airportRouteHandlers.forEach(({ event, layer, fn }) => {
+        this.map.off(event, layer, fn);
+      });
+      this._airportRouteHandlers = null;
+    }
+
+    // Clean up popup
+    if (this._airportRoutePopup) {
+      this._airportRoutePopup.remove();
+      this._airportRoutePopup = null;
+    }
+
+    const group = this._layerGroups.grandAirportAccess;
+    group.forEach((id) => {
+      // Remove map layers/sources
+      this._safeRemoveLayer(id);
+      this._safeRemoveSource(id);
+      // Remove HTML markers
+      if (this.markers[id]) {
+        const el = this.markers[id].getElement();
+        if (el) el.classList.add("marker-fade-out");
+        this.markers[id].remove();
+        delete this.markers[id];
+      }
+    });
+    this._layerGroups.grandAirportAccess = [];
+  },
+
+  // ================================
+  // GRAND AIRPORT RAILWAY STATIONS
+  // ================================
+
+  /**
+   * Draw the JR Hohi Line and station markers along it.
+   * Planned stations are highlighted with orange, existing with gray.
+   */
+  showRailwayStations() {
+    const data = AppData.grandAirportData?.railway;
+    if (!data || !this.map) return;
+
+    // Clean up previous if any
+    this.hideRailwayStations();
+
+    // 1. JR Hohi Line
+    const lineCoords = data.jrHohiLine.map((c) => this._toMapbox(c));
+    const lineSourceId = "ga-jr-hohi-line";
+    this._safeAddSource(lineSourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: lineCoords },
+      },
+    });
+    // Glow
+    this.map.addLayer({
+      id: `${lineSourceId}-glow`,
+      type: "line",
+      source: lineSourceId,
+      paint: {
+        "line-color": "#ff9500",
+        "line-width": 8,
+        "line-opacity": 0.12,
+        "line-blur": 4,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    // Main line
+    this.map.addLayer({
+      id: `${lineSourceId}-line`,
+      type: "line",
+      source: lineSourceId,
+      paint: {
+        "line-color": "#ff9500",
+        "line-width": 3,
+        "line-opacity": 0.8,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    this._layerGroups.grandAirportRailway.push(
+      `${lineSourceId}-glow`,
+      `${lineSourceId}-line`,
+      lineSourceId,
+    );
+
+    // 2. Station markers (elevated style, tooltip on hover, click for detail)
+    const trainIconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M2 16h20"/><path d="M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`;
+
+    data.stations.forEach((station) => {
+      const isPlanned = station.type === "planned";
+      const color = isPlanned ? "#ff9500" : "#6e7073";
+      const id = `ga-station-${station.id}`;
+
+      const html = this._elevatedMarkerHtml(trainIconSvg, color, 36);
+
+      const { marker, element } = this._createMarker(station.coords, html, {
+        className: "ga-station-marker",
+        entrance: "anchor",
+        ariaLabel: station.name,
+      });
+
+      // Hover tooltip (text on hover only)
+      this._addTooltip(marker, element, station.name);
+
+      // Click to show detail in dashboard
+      element.addEventListener("click", () => {
+        App.showRailwayStationDetail(station.id);
+      });
+
+      this.markers[id] = marker;
+      this._layerGroups.grandAirportRailway.push(id);
+    });
+
+    // Pulse animation - oscillate glow width and opacity for visible breathing effect
+    let railPhase = 0;
+    this._railwayPulseTimer = setInterval(() => {
+      railPhase += 0.05;
+      const sin = Math.sin(railPhase);
+      if (this.map.getLayer(`${lineSourceId}-glow`)) {
+        this.map.setPaintProperty(
+          `${lineSourceId}-glow`,
+          "line-opacity",
+          0.15 + 0.15 * sin,
+        );
+        this.map.setPaintProperty(
+          `${lineSourceId}-glow`,
+          "line-width",
+          8 + 4 * sin,
+        );
+      }
+      if (this.map.getLayer(`${lineSourceId}-line`)) {
+        this.map.setPaintProperty(
+          `${lineSourceId}-line`,
+          "line-opacity",
+          0.6 + 0.4 * sin,
+        );
+      }
+    }, 50);
+  },
+
+  /**
+   * Remove JR Hohi Line and station markers.
+   */
+  hideRailwayStations() {
+    // Clean up pulse animation
+    if (this._railwayPulseTimer) {
+      clearInterval(this._railwayPulseTimer);
+      this._railwayPulseTimer = null;
+    }
+
+    const group = this._layerGroups.grandAirportRailway;
+    group.forEach((id) => {
+      this._safeRemoveLayer(id);
+      this._safeRemoveSource(id);
+      if (this.markers[id]) {
+        const el = this.markers[id].getElement();
+        if (el) el.classList.add("marker-fade-out");
+        this.markers[id].remove();
+        delete this.markers[id];
+      }
+    });
+    this._layerGroups.grandAirportRailway = [];
+  },
+
+  // ================================
+  // GRAND AIRPORT ROAD EXTENSIONS
+  // ================================
+
+  /**
+   * Draw three high-standard road extensions with progressive line-drawing animation.
+   * Roads are based on the Kumamoto Metropolitan Area future road network plan:
+   *   1. North connection road (Kumamoto Kita JCT to Ozu-Nishi IC)
+   *   2. Airport connection road (Kumamoto IC to Aso Kumamoto Airport)
+   *   3. South connection road (city south to Kashima JCT)
+   */
+  showRoadExtensions() {
+    const roads = AppData.grandAirportData?.roadExtensions;
+    if (!roads || !this.map) return;
+
+    this.hideRoadExtensions();
+
+    const drawDuration = 1200;
+    const stagger = 500;
+
+    // Shared popup for hover tooltips
+    this._roadExtPopup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      className: "mapbox-tooltip",
+      offset: [0, -10],
+    });
+    this._roadExtHandlers = [];
+
+    roads.forEach((road, index) => {
+      const allCoords = road.coords.map((c) => this._toMapbox(c));
+      const sourceId = `ga-road-ext-${road.id}`;
+      const color = road.color || "#e63f5a";
+
+      // Start with a zero-length line at the first point
+      this._safeAddSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [allCoords[0], allCoords[0]],
+          },
+        },
+      });
+
+      // Glow layer
+      this.map.addLayer({
+        id: `${sourceId}-glow`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": color,
+          "line-width": 10,
+          "line-opacity": 0.2,
+          "line-blur": 6,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      // Main dashed line
+      this.map.addLayer({
+        id: `${sourceId}-line`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": color,
+          "line-width": 4,
+          "line-opacity": 0.9,
+          "line-dasharray": [6, 4],
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      this._layerGroups.grandAirportRoads.push(
+        `${sourceId}-glow`,
+        `${sourceId}-line`,
+        sourceId,
+      );
+
+      // Hover + click handlers on the main line layer
+      const lineLayerId = `${sourceId}-line`;
+      const glowLayerId = `${sourceId}-glow`;
+      const baseLineWidth = 4;
+      const roadId = road.id;
+
+      const enterHandler = () => {
+        this.map.getCanvas().style.cursor = "pointer";
+        if (this.map.getLayer(lineLayerId)) {
+          this.map.setPaintProperty(
+            lineLayerId,
+            "line-width",
+            baseLineWidth + 2,
+          );
+        }
+        if (this.map.getLayer(glowLayerId)) {
+          this.map.setPaintProperty(glowLayerId, "line-opacity", 0.4);
+        }
+      };
+
+      const moveHandler = (e) => {
+        if (this._roadExtPopup) {
+          this._roadExtPopup
+            .setLngLat(e.lngLat)
+            .setText(road.name)
+            .addTo(this.map);
+        }
+      };
+
+      const leaveHandler = () => {
+        this.map.getCanvas().style.cursor = "";
+        if (this.map.getLayer(lineLayerId)) {
+          this.map.setPaintProperty(lineLayerId, "line-width", baseLineWidth);
+        }
+        if (this.map.getLayer(glowLayerId)) {
+          this.map.setPaintProperty(glowLayerId, "line-opacity", 0.2);
+        }
+        if (this._roadExtPopup) this._roadExtPopup.remove();
+      };
+
+      const clickHandler = () => {
+        App.showRoadExtensionDetail(roadId);
+      };
+
+      this.map.on("mouseenter", lineLayerId, enterHandler);
+      this.map.on("mousemove", lineLayerId, moveHandler);
+      this.map.on("mouseleave", lineLayerId, leaveHandler);
+      this.map.on("click", lineLayerId, clickHandler);
+
+      this._roadExtHandlers.push(
+        { event: "mouseenter", layer: lineLayerId, fn: enterHandler },
+        { event: "mousemove", layer: lineLayerId, fn: moveHandler },
+        { event: "mouseleave", layer: lineLayerId, fn: leaveHandler },
+        { event: "click", layer: lineLayerId, fn: clickHandler },
+      );
+
+      // Stagger the draw animation for each road
+      const delay = index * stagger;
+      setTimeout(() => {
+        this._animateRoadDraw(sourceId, allCoords, drawDuration);
+      }, delay);
+    });
+
+    // Start breathing pulse after all roads finish drawing
+    const totalDrawTime = roads.length * stagger + drawDuration + 200;
+    this._roadPulseTimeout = setTimeout(() => {
+      this._startRoadPulse(roads);
+    }, totalDrawTime);
+  },
+
+  /**
+   * Progressively extend a line from its first point to full length.
+   * Uses ease-out cubic for natural deceleration.
+   */
+  _animateRoadDraw(sourceId, allCoords, duration) {
+    const startTime = performance.now();
+    const totalSegments = allCoords.length - 1;
+
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+
+      const currentLength = eased * totalSegments;
+      const full = Math.floor(currentLength);
+      const frac = currentLength - full;
+
+      // Build coordinates up to the current progress point
+      const drawn = allCoords.slice(0, full + 1);
+
+      // Interpolate a partial point between the current segment endpoints
+      if (full < totalSegments) {
+        const from = allCoords[full];
+        const to = allCoords[full + 1];
+        drawn.push([
+          from[0] + (to[0] - from[0]) * frac,
+          from[1] + (to[1] - from[1]) * frac,
+        ]);
+      }
+
+      const source = this.map.getSource(sourceId);
+      if (source) {
+        source.setData({
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates:
+              drawn.length >= 2 ? drawn : [allCoords[0], allCoords[0]],
+          },
+        });
+      }
+
+      if (t < 1) {
+        const rafId = requestAnimationFrame(step);
+        this._roadDrawRafs.push(rafId);
+      }
+    };
+
+    const rafId = requestAnimationFrame(step);
+    this._roadDrawRafs.push(rafId);
+  },
+
+  /**
+   * Start a continuous breathing pulse on all road extension glow layers.
+   */
+  _startRoadPulse(roads) {
+    let phase = 0;
+    const glowIds = roads.map((r) => `ga-road-ext-${r.id}-glow`);
+    const lineIds = roads.map((r) => `ga-road-ext-${r.id}-line`);
+
+    this._roadExtPulseTimer = setInterval(() => {
+      phase += 0.05;
+      const sin = Math.sin(phase);
+      glowIds.forEach((id) => {
+        if (this.map.getLayer(id)) {
+          this.map.setPaintProperty(id, "line-opacity", 0.15 + 0.15 * sin);
+          this.map.setPaintProperty(id, "line-width", 10 + 4 * sin);
+        }
+      });
+      lineIds.forEach((id) => {
+        if (this.map.getLayer(id)) {
+          this.map.setPaintProperty(id, "line-opacity", 0.6 + 0.4 * sin);
+        }
+      });
+    }, 50);
+  },
+
+  /**
+   * Remove road extension lines and clean up all animations.
+   */
+  hideRoadExtensions() {
+    // Cancel any pending draw animations
+    if (this._roadDrawRafs) {
+      this._roadDrawRafs.forEach((id) => cancelAnimationFrame(id));
+    }
+    this._roadDrawRafs = [];
+
+    // Cancel pulse start timeout
+    if (this._roadPulseTimeout) {
+      clearTimeout(this._roadPulseTimeout);
+      this._roadPulseTimeout = null;
+    }
+
+    // Cancel pulse interval
+    if (this._roadExtPulseTimer) {
+      clearInterval(this._roadExtPulseTimer);
+      this._roadExtPulseTimer = null;
+    }
+
+    // Clean up hover/click event handlers
+    if (this._roadExtHandlers) {
+      this._roadExtHandlers.forEach(({ event, layer, fn }) => {
+        this.map.off(event, layer, fn);
+      });
+      this._roadExtHandlers = null;
+    }
+
+    // Clean up popup
+    if (this._roadExtPopup) {
+      this._roadExtPopup.remove();
+      this._roadExtPopup = null;
+    }
+
+    const group = this._layerGroups.grandAirportRoads;
+    group.forEach((id) => {
+      this._safeRemoveLayer(id);
+      this._safeRemoveSource(id);
+    });
+    this._layerGroups.grandAirportRoads = [];
+  },
+
+  /**
+   * Remove the airport marker from the map.
+   */
+  hideAirportMarker() {
+    if (this.markers["airport"]) {
+      const el = this.markers["airport"].getElement();
+      if (el) el.classList.add("marker-fade-out");
+      this.markers["airport"].remove();
+      delete this.markers["airport"];
+    }
+    // Remove from infrastructure roads group tracking
+    const idx = this._layerGroups.infrastructureRoads.indexOf("airport");
+    if (idx !== -1) this._layerGroups.infrastructureRoads.splice(idx, 1);
+  },
+
   selectInfrastructureRoad(roadId) {
     // Deselect previous
     if (
@@ -3006,26 +4604,49 @@ const MapController = {
    * Show property markers (Leaflet-compatible API for dashboard)
    */
   showPropertyMarkers() {
-    AppData.properties.forEach((property, index) => {
-      setTimeout(() => {
-        const html = this._markerIconHtml("property");
-        const { marker, element } = this._createMarker(property.coords, html, {
-          entrance: "emerge",
-          ariaLabel: property.name,
-        });
+    // Group properties by zone for staggered cascade
+    const zoneOrder = [];
+    const zoneMap = {};
+    AppData.properties.forEach((property) => {
+      const zone = property.zone || "Other";
+      if (!zoneMap[zone]) {
+        zoneMap[zone] = [];
+        zoneOrder.push(zone);
+      }
+      zoneMap[zone].push(property);
+    });
 
-        this._addTooltip(marker, element, property.name);
+    // Stagger: 300ms between zones, 100ms between items within a zone
+    let baseDelay = 0;
+    zoneOrder.forEach((zone) => {
+      const properties = zoneMap[zone];
+      properties.forEach((property, indexInZone) => {
+        const delay = baseDelay + indexInZone * 100;
+        setTimeout(() => {
+          const html = this._markerIconHtml("property");
+          const { marker, element } = this._createMarker(
+            property.coords,
+            html,
+            {
+              entrance: "emerge",
+              ariaLabel: property.name,
+            },
+          );
 
-        element.addEventListener("mouseover", () =>
-          this.preloadImages(property),
-        );
-        element.addEventListener("click", () => {
-          UI.showPropertyReveal(property);
-        });
+          this._addTooltip(marker, element, property.name);
 
-        this.markers[property.id] = marker;
-        this._layerGroups.properties.push(property.id);
-      }, index * 100);
+          element.addEventListener("mouseover", () =>
+            this.preloadImages(property),
+          );
+          element.addEventListener("click", () => {
+            UI.showPropertyReveal(property);
+          });
+
+          this.markers[property.id] = marker;
+          this._layerGroups.properties.push(property.id);
+        }, delay);
+      });
+      baseDelay += properties.length * 100 + 300;
     });
   },
 
@@ -4061,9 +5682,12 @@ const MapController = {
           element.firstElementChild.style.animationDelay = `${index * 60}ms`;
         }
 
-        this._addTooltip(marker, element, company.name);
+        const tooltipText =
+          (company.stats && company.stats[0] && company.stats[0].value) ||
+          company.name;
+        this._addTooltip(marker, element, tooltipText);
         element.addEventListener("click", () =>
-          UI.renderInspectorPanel(5, { title: company.name }),
+          UI.showCompanyDetailPanel(company),
         );
 
         this.markers[company.id] = marker;
