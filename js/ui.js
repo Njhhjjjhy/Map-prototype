@@ -251,6 +251,17 @@ const UI = {
       }
     });
 
+    // Delegated click handler for zone property rows (survives innerHTML restore)
+    this.elements.panelContent.addEventListener("click", (e) => {
+      const row = e.target.closest(".zone-property-row");
+      if (row) {
+        const propId = row.dataset.propertyId;
+        if (propId && typeof App !== "undefined") {
+          App.selectProperty(propId);
+        }
+      }
+    });
+
     // Keyboard handling for property image Quick Look (Escape to close)
     document.addEventListener("keydown", (e) => {
       const quickLook = document.getElementById("property-quick-look");
@@ -1523,6 +1534,127 @@ const UI = {
     this.elements.panelContent.innerHTML = content;
   },
 
+  // ────────────────────────────────────────────────
+  // Investment zones panel (step 11 / properties)
+  // ────────────────────────────────────────────────
+
+  /**
+   * Show the investment zones panel with toggleable zones.
+   * Called when the "properties" step activates.
+   * @param {string[]} activeZones - zone IDs, e.g. ['koshi-zone']
+   */
+  showInvestmentZonesPanel(activeZones) {
+    const content = this._buildInvestmentZonesContent(activeZones || []);
+    this.showPanel(content);
+  },
+
+  /**
+   * Re-render the investment zones panel to reflect current toggle state.
+   * @param {string[]} activeZones - currently toggled-on zone IDs
+   */
+  updateInvestmentZonesPanel(activeZones) {
+    const content = this._buildInvestmentZonesContent(activeZones);
+    this.elements.panelContent.innerHTML = content;
+  },
+
+  /**
+   * Build the HTML for the investment zones panel.
+   * @param {string[]} activeZones - currently toggled-on zone IDs
+   * @returns {string} HTML string
+   */
+  _buildInvestmentZonesContent(activeZones) {
+    const zones = AppData.investmentZones || [];
+
+    const rowsHtml = zones
+      .map((zone) => {
+        const isActive = activeZones.includes(zone.id);
+        return `
+                <button class="energy-toggle-row${isActive ? " active" : ""}"
+                        onclick="App.toggleInvestmentZone('${zone.id}')"
+                        aria-pressed="${isActive}">
+                    <span class="energy-toggle-icon">
+                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: var(--radius-full); background: ${zone.strokeColor}; flex-shrink: 0;"></span>
+                    </span>
+                    <span class="energy-toggle-label">${zone.name}</span>
+                    <span class="energy-toggle-switch ${isActive ? "on" : ""}">
+                        <span class="energy-toggle-knob"></span>
+                    </span>
+                </button>
+            `;
+      })
+      .join("");
+
+    // Build detail cards for active zones
+    let detailsHtml = "";
+    if (activeZones.length > 0) {
+      const cardsHtml = activeZones
+        .map((zoneId) => {
+          const zone = zones.find((z) => z.id === zoneId);
+          if (!zone) return "";
+
+          // Find properties in this zone
+          const zoneProps = AppData.properties.filter(
+            (p) =>
+              p.zone &&
+              p.zone
+                .toLowerCase()
+                .includes(zone.name.toLowerCase().replace(" zone", "")),
+          );
+
+          const propsListHtml =
+            zoneProps.length > 0
+              ? zoneProps
+                  .map(
+                    (p) => `
+                    <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-small); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);"
+                         onmouseenter="this.style.background='var(--color-bg-secondary)'"
+                         onmouseleave="this.style.background=''"
+                         onclick="App.selectProperty('${p.id}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium);">${p.name}</div>
+                            <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${p.subtitle}</div>
+                        </div>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m9 18 6-6-6-6"/></svg>
+                    </div>
+                `,
+                  )
+                  .join("")
+              : `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); padding: var(--space-3);">No properties in this zone.</div>`;
+
+          return `
+                    <div class="energy-evidence-card" style="border-left: 3px solid ${zone.strokeColor};">
+                        <div class="panel-bento-label" style="color: ${zone.strokeColor};">${zone.role}</div>
+                        <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${zone.name}</div>
+                        <div style="display: flex; flex-direction: column; gap: 0;">
+                            ${propsListHtml}
+                        </div>
+                    </div>
+                `;
+        })
+        .join("");
+
+      detailsHtml = `
+                <div style="margin-top: var(--space-6);">
+                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Zone details</div>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+    }
+
+    return `
+            <div class="subtitle">Investment properties</div>
+            <h2>Zone overview</h2>
+            <p>Five properties across three investment zones in the semiconductor corridor. Toggle a zone to explore its properties.</p>
+            <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+                ${rowsHtml}
+            </div>
+            ${detailsHtml}
+        `;
+  },
+
   /**
    * Build the HTML for the power sources panel.
    * @param {string[]} activeTypes - currently toggled-on types
@@ -2055,6 +2187,44 @@ const UI = {
   },
 
   /**
+   * Show a panel listing all properties in a selected zone for drill-down.
+   * Each row is clickable and calls App.selectProperty().
+   * @param {string} label - zone group label (e.g. "Ozu properties")
+   * @param {Array} properties - array of property objects in this zone
+   */
+  showZonePropertiesPanel(label, properties) {
+    const rows = properties
+      .map((p) => {
+        const typeLabel = p.type || p.subtitle || "";
+        return `
+        <div class="zone-property-row" data-property-id="${p.id}"
+             style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-medium); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);"
+             onmouseenter="this.style.backgroundColor='var(--color-bg-secondary)'"
+             onmouseleave="this.style.backgroundColor='transparent'">
+          <div style="width: 32px; height: 32px; border-radius: var(--radius-full); background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${MAP_COLORS.property}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-medium); color: var(--color-text-primary);">${p.name}</div>
+            <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: 2px;">${typeLabel}</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>`;
+      })
+      .join("");
+
+    const content = `
+      <div class="subtitle">Properties</div>
+      <h2>${label}</h2>
+      <p style="color: var(--color-text-secondary); margin-top: var(--space-3);">${properties.length} ${properties.length === 1 ? "property" : "properties"} in this zone</p>
+      <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-6);">
+        ${rows}
+      </div>`;
+
+    this.showPanel(content);
+  },
+
+  /**
    * Show the Step 1 context panel: property connections to infrastructure.
    * @param {Object} property - property object with connections data
    */
@@ -2138,6 +2308,76 @@ const UI = {
     this.showPanel(html, { clearHistory: true });
     this.currentProperty = property;
 
+    setTimeout(() => {
+      this.initPanelResize();
+    }, 0);
+  },
+
+  /**
+   * Show endpoint detail in the right panel when a context-line endpoint marker is clicked.
+   */
+  showEndpointDetail(property, type) {
+    if (typeof property === "string") {
+      property = AppData.properties.find((p) => p.id === property);
+      if (!property) return;
+    }
+    const conn = property.connections;
+    if (!conn || !conn[type]) return;
+
+    const target = conn[type];
+    const colors = {
+      jasm: "#ff3b30",
+      station: "#007aff",
+      airport: "#34c759",
+      road: "#5ac8fa",
+    };
+    const names = {
+      jasm: "JASM (TSMC)",
+      station: target.name || "Station",
+      airport: "Kumamoto Airport",
+      road: target.name || "Road",
+    };
+    const subtitles = {
+      jasm: "Semiconductor factory",
+      station: "Rail connection",
+      airport: "Air access",
+      road: "Road infrastructure",
+    };
+
+    const color = colors[type] || "#6e7073";
+    const name = names[type];
+    const subtitle = subtitles[type];
+
+    let statsHtml = "";
+    if (target.distance) {
+      statsHtml += `
+        <div class="panel-bento-stat">
+          <div class="panel-bento-stat-value">${target.distance}</div>
+          <div class="panel-bento-stat-label">Distance</div>
+        </div>`;
+    }
+    if (target.time) {
+      statsHtml += `
+        <div class="panel-bento-stat">
+          <div class="panel-bento-stat-value">${target.time}</div>
+          <div class="panel-bento-stat-label">Drive time</div>
+        </div>`;
+    }
+
+    const html = `
+      <div class="inspector-resize-handle"></div>
+      <div class="inspector-title-bar">
+        <div class="inspector-subtitle" style="color: ${color};">${subtitle}</div>
+        <h2 class="inspector-title">${name}</h2>
+      </div>
+      <div class="inspector-body">
+        <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">
+          Connection from ${property.name}
+        </p>
+        ${statsHtml ? `<div class="panel-bento-stats" style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
+      </div>`;
+
+    this.showPanel(html);
     setTimeout(() => {
       this.initPanelResize();
     }, 0);
@@ -2602,10 +2842,6 @@ const UI = {
                     </button>
                 </div>
 
-                <div class="calc-row">
-                    <span class="calc-label">Acquisition cost</span>
-                    <span class="calc-value">${formatYen(fin.acquisitionCost)}</span>
-                </div>
                 <div class="calc-row">
                     <span class="calc-label">Appreciation rate</span>
                     <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
@@ -4347,13 +4583,11 @@ const UI = {
     const properties = AppData.properties;
 
     // Calculate total potential (using average scenario)
-    let totalAcquisition = 0;
     let totalNetProfit = 0;
     const propertyNames = [];
 
     properties.forEach((property) => {
       const fin = this._getFinancialData(property);
-      totalAcquisition += fin.totalInvestment || fin.acquisitionCost || 0;
       totalNetProfit += fin.scenarios?.average?.netProfit || 0;
       propertyNames.push(property.name);
     });
@@ -4512,10 +4746,6 @@ const UI = {
                     </span>
                 </button>
                 <div class="financials-disclosure-content" id="financials-details">
-                    <div class="calc-row">
-                        <span class="calc-label">Acquisition cost</span>
-                        <span class="calc-value">${formatYen(fin.acquisitionCost)}</span>
-                    </div>
                     <div class="calc-row">
                         <span class="calc-label">Appreciation rate</span>
                         <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
@@ -5238,13 +5468,15 @@ const UI = {
         );
       }
       case 3: {
-        // Images tab
+        // Images tab - exteriors first, then interiors, deduplicated
         const imgs = this._getImagesData(property);
         const allImages = [
-          imgs.exterior,
-          ...(imgs.interior || []),
-          imgs.site,
-        ].filter(Boolean);
+          ...new Set(
+            [imgs.exterior, imgs.site, ...(imgs.interior || [])].filter(
+              Boolean,
+            ),
+          ),
+        ];
         return allImages.length
           ? this.renderEvidenceGalleryCard(
               allImages,
@@ -5538,137 +5770,6 @@ const UI = {
     return [];
   },
 
-  _buildAcquisitionTable(property) {
-    const fin = this._getFinancialData(property);
-    const cost = fin.totalInvestment || fin.acquisitionCost || 0;
-    const rows = [];
-    if (fin.renovationCost) {
-      rows.push({
-        label: "Acquisition cost",
-        values: [this.formatYen(fin.acquisitionCost || 0)],
-      });
-      rows.push({
-        label: "Renovation cost",
-        values: [this.formatYen(fin.renovationCost)],
-      });
-    } else if (fin.developmentBudget) {
-      rows.push({
-        label: "Land acquisition",
-        values: [this.formatYen(fin.landAcquisitionCost || 0)],
-      });
-      rows.push({
-        label: "Development budget",
-        values: [this.formatYen(fin.developmentBudget)],
-      });
-    } else {
-      rows.push({
-        label: "Hard costs",
-        values: [this.formatYen(Math.round(cost * 0.87))],
-      });
-      rows.push({
-        label: "Acquisition fees",
-        values: [this.formatYen(Math.round(cost * 0.05))],
-        isDisclosure: true,
-        subRows: [
-          {
-            label: "Agent commission",
-            values: [this.formatYen(Math.round(cost * 0.03))],
-          },
-          {
-            label: "Legal and admin",
-            values: [this.formatYen(Math.round(cost * 0.02))],
-          },
-        ],
-      });
-      rows.push({
-        label: "Fit-out",
-        values: [this.formatYen(Math.round(cost * 0.04))],
-      });
-      rows.push({
-        label: "Stamp duty",
-        values: [this.formatYen(Math.round(cost * 0.03))],
-      });
-    }
-    rows.push({
-      label: "Total investment",
-      values: [this.formatYen(cost)],
-      isTotal: true,
-    });
-    return { headers: ["Item", "Amount"], rows };
-  },
-
-  _buildRentalTable(property) {
-    const fin = this._getFinancialData(property);
-
-    // Renovation properties: single-column rental path
-    if (fin.paths) {
-      const rental = fin.paths.rental || {};
-      return {
-        headers: ["", "Value"],
-        rows: [
-          {
-            label: "Monthly rent",
-            values: [this.formatYen(rental.monthlyRent || 0)],
-          },
-          {
-            label: "Annual rent",
-            values: [this.formatYen(rental.annualRent || 0)],
-          },
-          { label: "NOI", values: [this.formatYen(rental.noi || 0)] },
-          {
-            label: "Yield",
-            values: [((rental.yield || 0) * 100).toFixed(1) + "%"],
-            isTotal: true,
-          },
-        ],
-      };
-    }
-
-    // Scenario-based properties: bear / average / bull columns
-    const scenarios = fin.scenarios || {};
-    const bear = scenarios.bear || {};
-    const avg = scenarios.average || {};
-    const bull = scenarios.bull || {};
-    return {
-      headers: ["", "Bear", "Average", "Bull"],
-      rows: [
-        {
-          label: "Annual rent",
-          values: [
-            this.formatYen(bear.annualRent || 0),
-            this.formatYen(avg.annualRent || 0),
-            this.formatYen(bull.annualRent || 0),
-          ],
-        },
-        {
-          label: "NOI",
-          values: [
-            this.formatYen(bear.noi || 0),
-            this.formatYen(avg.noi || 0),
-            this.formatYen(bull.noi || 0),
-          ],
-        },
-        {
-          label: "Exit price",
-          values: [
-            this.formatYen(bear.exitPrice || bear.developedValue || 0),
-            this.formatYen(avg.exitPrice || avg.developedValue || 0),
-            this.formatYen(bull.exitPrice || bull.developedValue || 0),
-          ],
-        },
-        {
-          label: "IRR",
-          values: [
-            ((bear.irr || 0) * 100).toFixed(1) + "%",
-            ((avg.irr || 0) * 100).toFixed(1) + "%",
-            ((bull.irr || 0) * 100).toFixed(1) + "%",
-          ],
-          isTotal: true,
-        },
-      ],
-    };
-  },
-
   // ---- Card data accessors ----
 
   _getFinancialData(property) {
@@ -5759,30 +5860,27 @@ const UI = {
     const scenarios = fin.scenarios || {};
     const scenario = this.currentScenario || "average";
     const sc = scenarios[scenario] || {};
-    const imgs = this._getImagesData(property);
-    const thumb = imgs.exterior || "";
-
-    // Determine total investment cost
+    // Internal only: used for yield % calculation, never displayed
     const totalCost = fin.totalInvestment || fin.acquisitionCost || 0;
 
     let rows = [];
     if (fin.paths) {
-      // Renovation property: show rent + yield + sale margin (no absolute prices)
+      // Paths property: show guaranteed rent + yield, market yield
       const rental = fin.paths.rental || {};
-      const sale = fin.paths.sale || {};
+      const market = fin.paths.market || {};
       rows = [
         {
           label: "Monthly rent",
           value: this.formatYen(rental.monthlyRent || 0) + "/mo",
         },
         {
-          label: "Rental yield",
+          label: "Guaranteed yield",
           value: ((rental.yield || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
         {
-          label: "Sale margin",
-          value: ((sale.grossMargin || 0) * 100).toFixed(1) + "%",
+          label: "Market yield",
+          value: ((market.yield || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
       ];
@@ -5834,7 +5932,6 @@ const UI = {
     return `<div class="icard icard-hero icard-calculator">
             <div class="icard-calculator-header">
                 <div class="icard-title">Return calculator</div>
-                ${thumb ? `<img class="icard-calculator-thumbnail" src="${thumb}" alt="${property.name || ""}" />` : ""}
             </div>
             ${
               hasScenarios
@@ -5854,20 +5951,20 @@ const UI = {
   renderYieldSummaryCard(property) {
     const fin = this._getFinancialData(property);
 
-    // Renovation properties use paths instead of scenarios
+    // Paths properties: guaranteed vs market yield
     if (fin.paths) {
       const rental = fin.paths.rental || {};
-      const sale = fin.paths.sale || {};
+      const market = fin.paths.market || {};
       return `<div class="icard icard-standard">
                 <div class="icard-title">Yield summary</div>
                 <div class="icard-yield-row">
                     <div class="icard-yield-item">
                         <div class="icard-yield-value">${((rental.yield || 0) * 100).toFixed(1)}%</div>
-                        <div class="icard-yield-label">Rental yield</div>
+                        <div class="icard-yield-label">Guaranteed yield</div>
                     </div>
                     <div class="icard-yield-item">
-                        <div class="icard-yield-value">${((sale.grossMargin || 0) * 100).toFixed(1)}%</div>
-                        <div class="icard-yield-label">Sale margin</div>
+                        <div class="icard-yield-value">${((market.yield || 0) * 100).toFixed(1)}%</div>
+                        <div class="icard-yield-label">Market yield</div>
                     </div>
                 </div>
             </div>`;
@@ -6104,14 +6201,14 @@ const UI = {
 
   renderStickySummaryRow(property) {
     const fin = this._getFinancialData(property);
-    const cost = fin.totalInvestment || fin.acquisitionCost || 0;
     const avg = fin.scenarios?.average || {};
     const rental = fin.paths?.rental || {};
     const annualIncome = avg.annualRent || rental.annualRent || 0;
+    const yieldVal = rental.yield || avg.noiTicRatio || avg.irr || 0;
     return `<div class="icard-sticky-summary">
             <div>
-                <div class="icard-sticky-label">Total investment</div>
-                <div class="icard-sticky-value">${this.formatYen(cost)}</div>
+                <div class="icard-sticky-label">Rental yield</div>
+                <div class="icard-sticky-value">${(yieldVal * 100).toFixed(1)}%</div>
             </div>
             <div style="text-align: right;">
                 <div class="icard-sticky-label">Projected annual income</div>
@@ -6268,15 +6365,13 @@ const UI = {
 
     // Build new stats HTML
     const fin = this._getFinancialData(property);
-    const totalCost = fin.totalInvestment || fin.acquisitionCost || 0;
     let statsHtml = "";
 
     if (fin.paths) {
-      // Renovation property: show rental + sale paths
+      // Paths-based property: show rental yield summary
       const rental = fin.paths.rental || {};
-      const sale = fin.paths.sale || {};
+      const market = fin.paths.market || {};
       const rows = [
-        { label: "Total investment", value: this.formatYen(totalCost) },
         {
           label: "Monthly rent",
           value: this.formatYen(rental.monthlyRent || 0) + "/mo",
@@ -6285,14 +6380,16 @@ const UI = {
         {
           label: "Rental yield",
           value: ((rental.yield || 0) * 100).toFixed(1) + "%",
-        },
-        { label: "Sale price", value: this.formatYen(sale.salePrice || 0) },
-        {
-          label: "Gross profit",
-          value: this.formatYen(sale.grossProfit || 0),
           highlight: true,
         },
       ];
+      if (market.yield) {
+        rows.push({
+          label: "Market yield",
+          value: ((market.yield || 0) * 100).toFixed(1) + "%",
+          highlight: true,
+        });
+      }
       statsHtml = rows
         .map(
           (r) => `<div class="icard-calc-row">
@@ -6305,13 +6402,8 @@ const UI = {
       const scenarios = fin.scenarios || {};
       const sc = scenarios[scenario] || {};
       const rows = [
-        { label: "Total cost", value: this.formatYen(totalCost) },
         { label: "Annual rent", value: this.formatYen(sc.annualRent || 0) },
         { label: "NOI", value: this.formatYen(sc.noi || 0) },
-        {
-          label: "Exit price",
-          value: this.formatYen(sc.exitPrice || sc.developedValue || 0),
-        },
         {
           label: "IRR",
           value: ((sc.irr || 0) * 100).toFixed(1) + "%",

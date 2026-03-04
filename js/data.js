@@ -154,8 +154,8 @@ const STEPS = [
     layers: ["investmentZones"],
     panelTabs: ["Zones", "Metrics"],
     subItems: [
-      { id: "kikuyo-zone", label: "Kikuyo zone", icon: "target" },
       { id: "koshi-zone", label: "Koshi zone", icon: "target" },
+      { id: "kikuyo-zone", label: "Kikuyo zone", icon: "target" },
       { id: "ozu-zone", label: "Ozu zone", icon: "target" },
     ],
   },
@@ -168,11 +168,13 @@ const STEPS = [
     layers: ["investmentZones"],
     panelTabs: ["Truth engine", "Future outlook", "Financials", "Images"],
     subItems: [
-      { id: "ozu-1", label: "Ozu 1", icon: "house" },
-      { id: "ozu-2", label: "Ozu 2", icon: "house" },
-      { id: "kikuyo-1", label: "Kikuyo 1", icon: "house" },
-      { id: "haramizu-1", label: "Haramizu 1", icon: "house" },
-      { id: "haramizu-2", label: "Haramizu 2", icon: "house" },
+      { id: "ozu-properties", label: "Ozu properties", icon: "house" },
+      { id: "kikuyo-properties", label: "Kikuyo properties", icon: "house" },
+      {
+        id: "haramizu-developments",
+        label: "Haramizu developments",
+        icon: "house",
+      },
     ],
   },
   {
@@ -1383,15 +1385,6 @@ const AppData = {
   // Silicon Triangle Investment Zones (step 9)
   investmentZones: [
     {
-      id: "kikuyo-zone",
-      name: "Kikuyo zone",
-      role: "Factory core / new urban core",
-      coords: [32.88, 130.83],
-      radius: 4500,
-      color: "rgba(251, 185, 49, 0.15)",
-      strokeColor: "rgba(251, 185, 49, 0.4)",
-    },
-    {
       id: "koshi-zone",
       name: "Koshi zone",
       role: "R&D / tools and process innovation",
@@ -1401,6 +1394,15 @@ const AppData = {
       strokeColor: "rgba(0, 122, 255, 0.4)",
     },
     {
+      id: "kikuyo-zone",
+      name: "Kikuyo zone",
+      role: "Factory core / new urban core",
+      coords: [32.88, 130.83],
+      radius: 4500,
+      color: "rgba(251, 185, 49, 0.15)",
+      strokeColor: "rgba(251, 185, 49, 0.4)",
+    },
+    {
       id: "ozu-zone",
       name: "Ozu zone",
       role: "Gateway / office and logistics support",
@@ -1408,6 +1410,15 @@ const AppData = {
       radius: 4000,
       color: "rgba(52, 199, 89, 0.15)",
       strokeColor: "rgba(52, 199, 89, 0.4)",
+    },
+    {
+      id: "haramizu-zone",
+      name: "Haramizu zone",
+      role: "Station-area development hub",
+      coords: [32.8704, 130.8245],
+      radius: 2000,
+      color: "rgba(255, 149, 0, 0.15)",
+      strokeColor: "rgba(255, 149, 0, 0.4)",
     },
   ],
 
@@ -1441,10 +1452,10 @@ const AppData = {
       address:
         "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
       camera: {
-        center: [130.9977, 32.8817],
-        zoom: 10.8,
-        pitch: 50,
-        bearing: 0,
+        center: [130.87, 32.865],
+        zoom: 14.0,
+        pitch: 52,
+        bearing: 15,
       },
       connections: {
         jasm: { coords: [32.874, 130.785], distance: "5.2 km", time: "8 min" },
@@ -1469,9 +1480,9 @@ const AppData = {
           data: {
             exterior: "assets/step-11-images/ozu-exterior.webp",
             interior: [
-              "assets/step-11-images/ozu-interior-2.webp",
-              "assets/step-11-images/ozu-interior-3.webp",
-              "assets/step-11-images/ozu-interior-4.webp",
+              "assets/step-11-images/ozu-1-interior-2.webp",
+              "assets/step-11-images/ozu-1-interior-3.webp",
+              "assets/step-11-images/ozu-1-interior-4.webp",
             ],
             site: "",
           },
@@ -1538,21 +1549,34 @@ const AppData = {
           type: "financial",
           data: {
             strategy: "BTR (build to rent)",
-            acquisitionCost: 32600000,
+            acquisitionCost: 45600000,
             paths: {
               rental: {
-                label: "Build + rental",
-                monthlyRent: 160000,
-                annualRent: 1920000,
-                yield: 0.059,
+                label: "Guaranteed rent (Plan B)",
+                monthlyRent: 152000,
+                annualRent: 1824000,
+                yield: 0.04,
+                guaranteePeriod: "5 years",
               },
-              sale: {
-                label: "Build + sale",
-                salePrice: 42000000,
-                grossProfit: 4000000,
-                grossMargin: 0.123,
-                holdPeriod: "12 months",
+              market: {
+                label: "Market rent (Plan A)",
+                monthlyRent: 190000,
+                annualRent: 2280000,
+                yield: 0.05,
               },
+            },
+            expenses: {
+              fixedAssetTax: 100000,
+              managementFee: 182400,
+              insurance: 50000,
+              internet: 50000,
+              taxAccountant: 40000,
+            },
+            loan: {
+              loanAmount: 22800000,
+              loanTerm: 20,
+              interestRate: 0.025,
+              monthlyRepayment: 120818,
             },
             rentalEvidence: {
               title: "AI rent assessment (4LDK/89sqm)",
@@ -1578,10 +1602,10 @@ const AppData = {
       address:
         "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
       camera: {
-        center: [130.9709, 32.8484],
-        zoom: 11.3,
-        pitch: 46,
-        bearing: 0,
+        center: [130.865, 32.862],
+        zoom: 14.0,
+        pitch: 52,
+        bearing: 15,
       },
       connections: {
         jasm: { coords: [32.874, 130.785], distance: "5.5 km", time: "9 min" },
@@ -1622,9 +1646,8 @@ const AppData = {
               address:
                 "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
               propertyType: "Detached house (single-family)",
-              landArea: "125.40 sqm (approx. 37.9 tsubo)",
-              buildingArea:
-                "92.50 sqm total (1F: 46.25 sqm, 2F: 46.25 sqm), 2 floors",
+              landArea: "200.7 sqm (approx. 60.7 tsubo)",
+              buildingArea: "94.81 sqm total, 2 floors",
               layout: "4LDK, 3 parking spaces",
               availability: "July 2026 onwards",
             },
@@ -1676,27 +1699,40 @@ const AppData = {
           type: "financial",
           data: {
             strategy: "BTR (build to rent)",
-            acquisitionCost: 34200000,
+            acquisitionCost: 45600000,
             paths: {
               rental: {
-                label: "Build + rental",
-                monthlyRent: 165000,
-                annualRent: 1980000,
-                yield: 0.058,
+                label: "Guaranteed rent (Plan B)",
+                monthlyRent: 152000,
+                annualRent: 1824000,
+                yield: 0.04,
+                guaranteePeriod: "5 years",
               },
-              sale: {
-                label: "Build + sale",
-                salePrice: 43500000,
-                grossProfit: 4300000,
-                grossMargin: 0.126,
-                holdPeriod: "12 months",
+              market: {
+                label: "Market rent (Plan A)",
+                monthlyRent: 190000,
+                annualRent: 2280000,
+                yield: 0.05,
               },
             },
+            expenses: {
+              fixedAssetTax: 100000,
+              managementFee: 182400,
+              insurance: 50000,
+              internet: 50000,
+              taxAccountant: 40000,
+            },
+            loan: {
+              loanAmount: 22800000,
+              loanTerm: 20,
+              interestRate: 0.025,
+              monthlyRepayment: 120818,
+            },
             rentalEvidence: {
-              title: "AI rent assessment (4LDK/92sqm)",
+              title: "AI rent assessment (4LDK/95sqm)",
               type: "pdf",
               description:
-                "Assessed rent ¥165,000/month from comparable properties",
+                "Assessed rent ¥152,000/month guaranteed, ¥190,000/month market estimate",
               image:
                 "assets/use-case-images/evidence-property-rent-evaluation.webp",
             },
@@ -1716,10 +1752,10 @@ const AppData = {
       address:
         "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto",
       camera: {
-        center: [130.9383, 32.8612],
-        zoom: 11.2,
-        pitch: 46,
-        bearing: 0,
+        center: [130.825, 32.88],
+        zoom: 14.0,
+        pitch: 52,
+        bearing: 5,
       },
       connections: {
         jasm: { coords: [32.874, 130.785], distance: "6.8 km", time: "10 min" },
@@ -1752,7 +1788,7 @@ const AppData = {
               "assets/step-11-images/kikuyo-interior-2.webp",
               "assets/step-11-images/kikuyo-interior-3.webp",
             ],
-            site: "assets/step-11-images/kikuyo-exterior.webp",
+            site: "",
           },
         },
         {
@@ -1820,28 +1856,41 @@ const AppData = {
         {
           type: "financial",
           data: {
-            strategy: "Renovation: two exit paths",
-            acquisitionCost: 33900000,
+            strategy: "BTR (build to rent)",
+            acquisitionCost: 45600000,
             paths: {
               rental: {
-                label: "Renovation + rental",
-                monthlyRent: 170000,
-                annualRent: 2040000,
-                yield: 0.06,
+                label: "Guaranteed rent (Plan B)",
+                monthlyRent: 152000,
+                annualRent: 1824000,
+                yield: 0.04,
+                guaranteePeriod: "5 years",
               },
-              sale: {
-                label: "Renovation + sale",
-                salePrice: 43000000,
-                grossProfit: 4400000,
-                grossMargin: 0.13,
-                holdPeriod: "6 months",
+              market: {
+                label: "Market rent (Plan A)",
+                monthlyRent: 190000,
+                annualRent: 2280000,
+                yield: 0.05,
               },
+            },
+            expenses: {
+              fixedAssetTax: 100000,
+              managementFee: 182400,
+              insurance: 50000,
+              internet: 50000,
+              taxAccountant: 40000,
+            },
+            loan: {
+              loanAmount: 22800000,
+              loanTerm: 20,
+              interestRate: 0.025,
+              monthlyRepayment: 120818,
             },
             rentalEvidence: {
               title: "AI rent assessment (4LDK/115sqm)",
               type: "pdf",
               description:
-                "Assessed rent ¥170,000/month from 30 comparable properties",
+                "Assessed rent ¥152,000/month guaranteed, ¥190,000/month market estimate",
               image:
                 "assets/use-case-images/evidence-rental-assessment-report.webp",
             },
@@ -1861,10 +1910,10 @@ const AppData = {
       address:
         "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
       camera: {
-        center: [130.979, 32.8947],
-        zoom: 10.7,
-        pitch: 46,
-        bearing: 1,
+        center: [130.823, 32.8698],
+        zoom: 14.2,
+        pitch: 52,
+        bearing: 10,
       },
       connections: {
         jasm: { coords: [32.874, 130.785], distance: "4.5 km", time: "7 min" },
@@ -1909,8 +1958,8 @@ const AppData = {
               address:
                 "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
               landArea: "210.86 sqm (approx. 63.78 tsubo)",
-              buildingArea: "102.67 sqm total, 2 floors",
-              parking: "3 spaces",
+              buildingArea: "Planned (spec to be confirmed)",
+              parking: "4-5 spaces (planned)",
               availability: "6-9 months after contract signing",
             },
             designStrategy: {
@@ -2013,10 +2062,10 @@ const AppData = {
       address:
         "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
       camera: {
-        center: [130.9631, 32.8761],
-        zoom: 10.9,
-        pitch: 46,
-        bearing: 1,
+        center: [130.826, 32.871],
+        zoom: 14.2,
+        pitch: 52,
+        bearing: 10,
       },
       connections: {
         jasm: { coords: [32.874, 130.785], distance: "4.3 km", time: "7 min" },
@@ -2043,7 +2092,7 @@ const AppData = {
         {
           type: "images",
           data: {
-            exterior: "assets/step-11-images/haramizu-2-exterior-1..webp",
+            exterior: "assets/step-11-images/haramizu-2-exterior-1.webp",
             interior: [
               "assets/step-11-images/haramizu-2-interior-1.webp",
               "assets/step-11-images/haramizu-2-interior-2.webp",
@@ -2061,8 +2110,8 @@ const AppData = {
               address:
                 "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
               landArea: "224.88 sqm (approx. 68.02 tsubo)",
-              buildingArea: "115.10 sqm total, 2 floors",
-              parking: "5 spaces",
+              buildingArea: "Planned (spec to be confirmed)",
+              parking: "3-4 spaces (planned)",
               availability: "6-9 months after contract signing",
             },
             designStrategy: {

@@ -545,6 +545,46 @@ const MapController = {
   },
 
   /**
+   * Cinematic spiral-in camera animation to a coordinate.
+   * Bearing rotates ~40 degrees while zooming in and pitching up,
+   * giving a sweeping reveal effect over ~2500ms.
+   * @param {Array} coords - [lat, lng] (data format, auto-converted)
+   */
+  async cinematicSpiralTo(coords) {
+    if (!this.initialized) return;
+
+    this.pauseHeartbeat();
+
+    const center = this._toMapbox(coords);
+    const currentBearing = this.map.getBearing();
+    const duration = 2500;
+
+    if (this.reducedMotion) {
+      this.map.jumpTo({
+        center,
+        zoom: 13,
+        pitch: 52,
+        bearing: currentBearing + 40,
+      });
+      this._resetIdleTimer();
+      return;
+    }
+
+    this.map.flyTo({
+      center,
+      zoom: 13,
+      pitch: 52,
+      bearing: currentBearing + 40,
+      duration,
+      essential: true,
+      easing: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+    });
+
+    await this._waitForMoveEnd(duration + 1500);
+    this._resetIdleTimer();
+  },
+
+  /**
    * Elevate to 3D corridor view (steps 9-10: investment zones, properties)
    */
   async elevateToCorridorView() {
@@ -3384,10 +3424,16 @@ const MapController = {
 
     // Add endpoint markers at each connection target so lines clearly lead somewhere
     const endpointIcons = {
-      jasm: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M22 22H2V10l7-3v3l7-3v3l6-3v15zM4 20h16v-8l-4 2v-2l-5 2v-2l-5 2v-2l-2 1v7z"/></svg>`,
-      station: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M12 2C8 2 5 4 5 8v6c0 2 1 3.5 3 4l-2 2v1h12v-1l-2-2c2-.5 3-2 3-4V8c0-4-3-6-7-6zm-2 14H8v-4h2v4zm6 0h-2v-4h2v4zm2-6H6V8c0-3 2.5-4 6-4s6 1 6 4v2z"/></svg>`,
-      airport: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
-      road: `<svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M11 2v3H8l1 3h2v3H8l1 3h2v3H8l1 3h2v2h2v-2h2l-1-3h-2v-3h3l-1-3h-2V8h3l-1-3h-2V2h-2z"/></svg>`,
+      jasm: `<img src="assets/Jasm-logo.svg" width="22" height="22" style="object-fit: contain;" alt="JASM" />`,
+      station: `<svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 2C8 2 5 4 5 8v6c0 2 1 3.5 3 4l-2 2v1h12v-1l-2-2c2-.5 3-2 3-4V8c0-4-3-6-7-6zm-2 14H8v-4h2v4zm6 0h-2v-4h2v4zm2-6H6V8c0-3 2.5-4 6-4s6 1 6 4v2z"/></svg>`,
+      airport: `<svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
+      road: `<svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M11 2v3H8l1 3h2v3H8l1 3h2v3H8l1 3h2v2h2v-2h2l-1-3h-2v-3h3l-1-3h-2V8h3l-1-3h-2V2h-2z"/></svg>`,
+    };
+    const endpointNames = {
+      jasm: "JASM (TSMC)",
+      station: conn.station?.name || "Station",
+      airport: "Kumamoto Airport",
+      road: conn.road?.name || "Road",
     };
     types.forEach((type, index) => {
       const target = conn[type];
@@ -3395,19 +3441,28 @@ const MapController = {
       const endpointId = `context-endpoint-${type}`;
       const color = lineColors[type];
       const icon = endpointIcons[type] || "";
-      const html = this._elevatedMarkerHtml(icon, color, 24);
-      const { marker } = this._createMarker(target.coords, html, {
-        ariaLabel: lineLabels[type],
+      // JASM uses white background for logo; others use colored background
+      const markerBg = type === "jasm" ? "#ffffff" : color;
+      const html = this._elevatedMarkerHtml(icon, markerBg, 36);
+      const { marker, element } = this._createMarker(target.coords, html, {
+        ariaLabel: endpointNames[type],
       });
       if (marker) {
+        // Hover tooltip
+        this._addTooltip(marker, element, endpointNames[type], [0, -28]);
+
+        // Click to show endpoint detail in panel
+        element.addEventListener("click", () => {
+          UI.showEndpointDetail(property, type);
+        });
+
         // Fade in with stagger matching lines
-        const el = marker.getElement();
-        if (el) {
-          el.style.opacity = "0";
-          el.style.transition = "opacity 300ms ease";
+        if (element) {
+          element.style.opacity = "0";
+          element.style.transition = "opacity 300ms ease";
           setTimeout(
             () => {
-              el.style.opacity = "1";
+              element.style.opacity = "1";
             },
             index * 200 + 150,
           );
@@ -5594,9 +5649,25 @@ const MapController = {
   // ================================
 
   showSinglePropertyMarker(property) {
-    const html = this._markerIconHtml("property");
+    // Use a larger marker (48px) so properties are clearly visible on the map
+    const icon = `<svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg>`;
+    const html = this._elevatedMarkerHtml(
+      icon,
+      MAP_COLORS.property,
+      48,
+      {},
+      "pin",
+    );
     const { marker, element } = this._createMarker(property.coords, html);
     this._addTooltip(marker, element, property.name);
+
+    // Click marker to select this property and show dashboard
+    element.addEventListener("click", () => {
+      if (typeof App !== "undefined") {
+        App.selectProperty(property.id);
+      }
+    });
+
     this.markers[property.id] = marker;
     this._layerGroups.properties.push(property.id);
   },

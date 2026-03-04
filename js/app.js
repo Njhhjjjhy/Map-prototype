@@ -286,7 +286,7 @@ const App = {
     if (layers.includes("futureZones")) {
       MapController.showFutureZones();
     }
-    if (layers.includes("investmentZones")) {
+    if (layers.includes("investmentZones") && step.id !== "properties") {
       MapController.showInvestmentZones();
     }
     if (layers.includes("companies")) {
@@ -488,11 +488,6 @@ const App = {
   _renderSubItems(step) {
     if (!step.subItems || step.subItems.length === 0) return "";
 
-    // Properties step: group sub-items by zone
-    if (step.id === "properties") {
-      return this._renderZoneGroupedSubItems(step);
-    }
-
     // Collect all leaf items for counting (children count, not parents)
     const leafItems = [];
     step.subItems.forEach((item) => {
@@ -546,67 +541,6 @@ const App = {
     return `
             <div class="chatbox-options" role="group" aria-label="Step options">
                 ${items}
-            </div>
-        `;
-  },
-
-  /**
-   * Render property sub-items grouped by zone headings.
-   * Looks up each sub-item's zone from AppData.properties.
-   */
-  _renderZoneGroupedSubItems(step) {
-    // Build zone groups preserving sub-item order
-    const zoneOrder = [];
-    const zoneMap = {};
-
-    step.subItems.forEach((item) => {
-      const property = AppData.properties.find((p) => p.id === item.id);
-      const zoneName = property ? property.zone : "Other";
-      // Strip "Development Zone" / "Station Development Zone" for short label
-      const zoneLabel = zoneName
-        .replace(" Station Development Zone", "")
-        .replace(" Development Zone", "");
-
-      if (!zoneMap[zoneName]) {
-        zoneMap[zoneName] = { label: zoneLabel, items: [] };
-        zoneOrder.push(zoneName);
-      }
-      zoneMap[zoneName].items.push(item);
-    });
-
-    const houseSvg = `<svg class="chatbox-option-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`;
-
-    const groups = zoneOrder
-      .map((zoneName) => {
-        const group = zoneMap[zoneName];
-        const itemButtons = group.items
-          .map((item) => {
-            const explored = this.state.subItemsExplored.includes(item.id);
-            const checkmark = explored
-              ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-              : "";
-
-            return `<button class="chatbox-option ${explored ? "completed" : ""}"
-                            onclick="App.selectSubItem('${item.id}')"
-                            ${explored ? 'aria-disabled="true"' : ""}>
-                        ${houseSvg}
-                        <span class="chatbox-option-label">${item.label}</span>
-                        ${checkmark}
-                        ${explored ? '<span class="sr-only"> (explored)</span>' : ""}
-                    </button>`;
-          })
-          .join("");
-
-        return `<div class="chatbox-zone-group">
-                    <div class="chatbox-zone-heading">${group.label}</div>
-                    ${itemButtons}
-                </div>`;
-      })
-      .join("");
-
-    return `
-            <div class="chatbox-options chatbox-options-zoned" role="group" aria-label="Properties by zone">
-                ${groups}
             </div>
         `;
   },
@@ -1485,49 +1419,119 @@ const App = {
     }
   },
 
-  // --- Step 9: Properties (2-step flow) ---
+  // --- Step 9: Properties (zone group flow) ---
 
   /**
-   * Step 1: Show context lines from property to infrastructure.
-   * Called when user selects a property from chatbox.
+   * Zone group ID to zone filter mapping.
+   * Maps chatbox sub-item IDs to property zone name fragments.
    */
-  _handlePropertySubItem(itemId) {
-    const property = AppData.properties.find((p) => p.id === itemId);
-    if (!property) return;
-
-    this.state.activeProperty = itemId;
-
-    // Hide investment zones so context lines are clearly visible
-    MapController.hideInvestmentZones();
-
-    // Remove any previous property markers so only one shows at a time
-    MapController._removeLayerGroup("properties");
-
-    // Show property marker
-    MapController.showSinglePropertyMarker(property);
-
-    // Draw context lines and fly camera to property overview
-    // (showPropertyContextLines handles its own synchronous cleanup)
-    MapController.showPropertyContextLines(property);
-
-    // Show connection info in right panel
-    UI.showPropertyContextPanel(property);
-
-    // Attach click handler on property marker for Step 2
-    const marker = MapController.markers[property.id];
-    if (marker) {
-      const el = marker.getElement();
-      // Remove any previous handler to avoid stacking
-      el.removeEventListener("click", el._contextClickHandler);
-      el._contextClickHandler = () => {
-        this.activatePropertyDashboard(property.id);
-      };
-      el.addEventListener("click", el._contextClickHandler);
-    }
+  _propertyZoneMap: {
+    "ozu-properties": {
+      filter: "ozu",
+      zoneId: "ozu-zone",
+      label: "Ozu properties",
+      camera: {
+        center: [130.8976, 32.8417],
+        zoom: 12.7,
+        pitch: 52,
+        bearing: 45,
+      },
+    },
+    "kikuyo-properties": {
+      filter: "kikuyo",
+      zoneId: "kikuyo-zone",
+      label: "Kikuyo properties",
+      camera: {
+        center: [130.8154, 32.8531],
+        zoom: 13.0,
+        pitch: 52,
+        bearing: 86,
+      },
+    },
+    "haramizu-developments": {
+      filter: "haramizu",
+      zoneId: "haramizu-zone",
+      label: "Haramizu developments",
+      camera: {
+        center: [130.8154, 32.8648],
+        zoom: 14.4,
+        pitch: 52,
+        bearing: 0,
+      },
+    },
   },
 
   /**
-   * Step 2: Open property dashboard with tabbed inspector.
+   * Handle zone group selection from chatbox.
+   * Shows the zone circle, property markers, and cinematic camera sweep.
+   */
+  _handlePropertySubItem(itemId) {
+    const zoneInfo = this._propertyZoneMap[itemId];
+    if (!zoneInfo) return;
+
+    this.state.activePropertyZone = itemId;
+    this.state.activeProperty = null;
+
+    // Find properties in this zone
+    const zoneProps = AppData.properties.filter(
+      (p) => p.zone && p.zone.toLowerCase().includes(zoneInfo.filter),
+    );
+    if (zoneProps.length === 0) return;
+
+    // Clean up previous state
+    MapController.hideInvestmentZones();
+    MapController._removeLayerGroup("properties");
+    MapController.removePropertyContextLines();
+
+    // Show just this zone circle
+    MapController.showInvestmentZone(zoneInfo.zoneId);
+
+    // Show markers for all properties in this zone
+    zoneProps.forEach((prop) => {
+      MapController.showSinglePropertyMarker(prop);
+    });
+
+    // Fly to the specified camera position for this zone
+    if (zoneInfo.camera) {
+      MapController.flyToStep({
+        center: [zoneInfo.camera.center[0], zoneInfo.camera.center[1]],
+        zoom: zoneInfo.camera.zoom,
+        pitch: zoneInfo.camera.pitch,
+        bearing: zoneInfo.camera.bearing || 0,
+        duration: 2000,
+      });
+    }
+
+    // Show zone properties panel for individual drill-down
+    UI.showZonePropertiesPanel(zoneInfo.label, zoneProps);
+  },
+
+  /**
+   * Select an individual property from the zone properties panel.
+   * Shows context lines and property marker, then allows drill-down.
+   */
+  selectProperty(propertyId) {
+    const property = AppData.properties.find((p) => p.id === propertyId);
+    if (!property) return;
+
+    this.state.activeProperty = propertyId;
+
+    // Hide zone circles so property is the focus
+    MapController.hideInvestmentZones();
+
+    // Remove all property markers, show only selected one
+    MapController._removeLayerGroup("properties");
+    MapController.showSinglePropertyMarker(property);
+
+    // Draw context lines to infrastructure connections
+    MapController.showPropertyContextLines(property);
+
+    // Show full tabbed inspector immediately (truth engine, financials, etc.)
+    this.activatePropertyDashboard(property.id);
+  },
+
+  /**
+   * Open property dashboard with tabbed inspector.
    * Called when user clicks the property marker after context lines are shown.
    */
   activatePropertyDashboard(propertyId) {
@@ -1537,9 +1541,6 @@ const App = {
     if (!property) return;
 
     this.state.activeProperty = property.id;
-
-    // Fade out context lines
-    MapController.removePropertyContextLines();
 
     // Show tabbed inspector panel for this property
     UI.renderInspectorPanel(9, { title: property.name, property });
@@ -1564,8 +1565,9 @@ const App = {
         ) {
           totalNetProfit += d.scenarios.average.exitPrice - d.acquisitionCost;
         }
-      } else if (d.paths && d.paths.sale) {
-        totalNetProfit += d.paths.sale.grossProfit || 0;
+      } else if (d.paths && d.paths.market) {
+        // Market path uses yield, not gross profit; skip absolute profit
+        totalNetProfit += 0;
       }
     });
     const formatYen = (num) => {
@@ -1677,37 +1679,11 @@ const App = {
         break;
 
       case "properties":
-        // Auto-open zone overview panel showing the 3 investment zones
-        UI.showPanel(`
-                    <div class="subtitle">Investment properties</div>
-                    <h2>Zone overview</h2>
-                    <p>Five properties across three investment zones in the semiconductor corridor. Select a property to explore.</p>
-                    <div class="zone-overview-list" style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-6);">
-                        ${AppData.investmentZones
-                          .map((zone) => {
-                            const zoneProps = AppData.properties.filter(
-                              (p) =>
-                                p.zone &&
-                                p.zone
-                                  .toLowerCase()
-                                  .includes(
-                                    zone.name
-                                      .toLowerCase()
-                                      .replace(" zone", ""),
-                                  ),
-                            );
-                            return `<div class="zone-overview-item" style="background: var(--color-bg-secondary); border-radius: var(--radius-medium); padding: var(--space-4);">
-                                <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
-                                    <div style="width: 12px; height: 12px; border-radius: var(--radius-full); background: ${zone.strokeColor}; flex-shrink: 0;"></div>
-                                    <span style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base);">${zone.name}</span>
-                                </div>
-                                <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-2);">${zone.role}</div>
-                                <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${zoneProps.length} ${zoneProps.length === 1 ? "property" : "properties"}</div>
-                            </div>`;
-                          })
-                          .join("")}
-                    </div>
-                `);
+        // Initialize with Koshi zone active by default
+        this.state.activeInvestmentZones = [];
+        this.state.activeInvestmentZones.push("koshi-zone");
+        MapController.showInvestmentZone("koshi-zone");
+        UI.showInvestmentZonesPanel(this.state.activeInvestmentZones);
         break;
 
       case "final":
