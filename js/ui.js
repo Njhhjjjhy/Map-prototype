@@ -5941,6 +5941,12 @@ const UI = {
                     <button class="icard-scenario-btn${scenario === "average" ? " active" : ""}" data-scenario="average">Avg</button>
                     <button class="icard-scenario-btn${scenario === "bull" ? " active" : ""}" data-scenario="bull">Bull</button>
                 </div>
+            </div>
+            <div class="icard-chart-section">
+                <div class="chart-container" style="height: 120px;">
+                    <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios: Bear, Average, and Bull net profit"></canvas>
+                </div>
+                <div id="scenario-chart-table"></div>
             </div>`
                 : ""
             }
@@ -6343,6 +6349,13 @@ const UI = {
         }
       });
     });
+
+    // Render scenario chart if canvas is present (properties with bear/avg/bull)
+    const property =
+      options.property || this.currentProperty || AppData.properties?.[0];
+    if (property && panel.querySelector("#scenario-chart")) {
+      setTimeout(() => this.renderScenarioChart(property), 50);
+    }
   },
 
   _refreshCalculator(options = {}) {
