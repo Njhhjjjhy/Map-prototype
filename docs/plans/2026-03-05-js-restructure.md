@@ -225,8 +225,8 @@ Each phase is a separate commit. Test the app in-browser after each phase before
 
 1. Create `js/dev/step-jumper.js` - extract `StepJumper` from `app.js`.
 2. Create `js/dev/qa-reporter.js` - extract `QAReporter` from `app.js`.
-3. Create `js/dev/camera-debug.js` - extract `initCameraDebug` and helpers from `map-controller.js`.
-4. Import dev tools conditionally in `main.js`.
+3. Camera debug stays in `map-controller.js` (tight coupling to `this.map` state).
+4. Update `main.js` to import dev tools from `js/dev/`.
 
 **Verification:** Step jumper, QA reporter, and camera debug all still work.
 
@@ -316,3 +316,42 @@ Each phase is a separate commit. Test the app in-browser after each phase before
 | **Total** | **38** | **~19,350** | ~900 lines saved from deduplication |
 
 No single file exceeds ~1,400 lines. Most are under 800.
+
+---
+
+## Progress log
+
+### Phase 1: ES module conversion - done
+**Commit:** `9bdfa0b`
+
+Converted all 4 JS files to ES modules with `import`/`export`. Single entry point `js/main.js` loaded via `<script type="module">`. All globals exposed on `window` for inline onclick compatibility. Created `js/shared/` with timing, utils, icons, and history-stack modules (ready for use in later phases, not yet consumed by legacy code).
+
+### Phase 2: Split data.js - done
+**Commit:** `69e43c7`
+
+Replaced `data.js` (3,832 lines) with 9 files in `js/data/`: steps, resources, infrastructure, government, companies, properties, evidence, data-layers, plus index.js. No file exceeds 1,037 lines.
+
+### Phase 3: Extract dev tools - done
+**Commit:** `43cb94a`
+
+Moved StepJumper (224 lines) and QAReporter (368 lines) from `app.js` into `js/dev/`. Camera debug left in `map-controller.js` due to tight `this.map` coupling. `app.js` reduced from 2,474 to 1,890 lines.
+
+**Current state after Phase 3:**
+
+| File | Lines | Change |
+|------|------:|--------|
+| `js/app.js` | 1,890 | Was 2,474 (-584) |
+| `js/ui.js` | 6,920 | Unchanged (imports added) |
+| `js/map-controller.js` | 7,044 | Unchanged (imports added) |
+| `js/data/` (9 files) | 3,888 | Was data.js 3,832 |
+| `js/shared/` (4 files) | 296 | New |
+| `js/dev/` (2 files) | 592 | Extracted from app.js |
+| `js/main.js` | 39 | New |
+
+### Phase 4: Split map-controller.js - next
+
+### Phase 5: Split ui.js - pending
+
+### Phase 6: Split app.js and extract step handlers - pending
+
+### Phase 7: Final cleanup and deduplication - pending
