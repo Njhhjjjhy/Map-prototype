@@ -1200,50 +1200,47 @@ export const methods = {
       prevSourceId,
     );
 
-    // 2. "Newly announced" route - solid red curve via bezier
-    const nr = data.newRoute;
-    const curvePoints = this.generateBezierPoints(
-      nr.start,
-      nr.control,
-      nr.end,
-      nr.numPoints || 60,
+    // 2. "Newly announced" route - airport-monorail polygon (filled corridor)
+    const govZone = (AppData.scienceParkZonePlans || []).find(
+      (z) => z.id === "sp-gov-zone",
+    );
+    const monorail = govZone?.infrastructureLines?.find(
+      (l) => l.id === "airport-monorail",
     );
     const newSourceId = "ga-new-route";
+    const polyCoords = monorail?.polygon || [];
     this._safeAddSource(newSourceId, {
       type: "geojson",
       data: {
         type: "Feature",
-        geometry: { type: "LineString", coordinates: curvePoints },
+        geometry: { type: "Polygon", coordinates: [polyCoords] },
       },
     });
-    // Glow layer
+    // Fill
     this.map.addLayer({
-      id: `${newSourceId}-glow`,
+      id: `${newSourceId}-fill`,
+      type: "fill",
+      source: newSourceId,
+      paint: {
+        "fill-color": "#ff3b30",
+        "fill-opacity": 0.2,
+      },
+    });
+    // Stroke
+    this.map.addLayer({
+      id: `${newSourceId}-stroke`,
       type: "line",
       source: newSourceId,
       paint: {
         "line-color": "#ff3b30",
-        "line-width": 7,
-        "line-opacity": 0.15,
-        "line-blur": 4,
-      },
-      layout: { "line-cap": "round", "line-join": "round" },
-    });
-    // Main line
-    this.map.addLayer({
-      id: `${newSourceId}-line`,
-      type: "line",
-      source: newSourceId,
-      paint: {
-        "line-color": "#ff3b30",
-        "line-width": 3.5,
-        "line-opacity": 0.85,
+        "line-width": 2,
+        "line-opacity": 0.8,
       },
       layout: { "line-cap": "round", "line-join": "round" },
     });
     this._layerGroups.grandAirportAccess.push(
-      `${newSourceId}-glow`,
-      `${newSourceId}-line`,
+      `${newSourceId}-fill`,
+      `${newSourceId}-stroke`,
       newSourceId,
     );
 
@@ -1340,10 +1337,11 @@ export const methods = {
         routeId: "prev-route",
       },
       {
-        lineId: `${newSourceId}-line`,
-        glowId: `${newSourceId}-glow`,
-        baseWidth: 3.5,
+        lineId: `${newSourceId}-fill`,
+        glowId: `${newSourceId}-stroke`,
+        baseWidth: 2,
         routeId: "new-route",
+        isPolygon: true,
       },
       {
         lineId: "ga-access-hohi-line-line",
@@ -1365,15 +1363,21 @@ export const methods = {
     // Event handlers stored for cleanup
     this._airportRouteHandlers = [];
 
-    lineConfigs.forEach(({ lineId, baseWidth, routeId }) => {
+    lineConfigs.forEach(({ lineId, baseWidth, routeId, isPolygon }) => {
       if (!this.map.getLayer(lineId)) return;
       const meta = routesMeta.find((r) => r.id === routeId);
       const name = meta?.name || routeId;
 
       const enterHandler = (e) => {
         this.map.getCanvas().style.cursor = "pointer";
-        if (this.map.getLayer(lineId)) {
-          this.map.setPaintProperty(lineId, "line-width", baseWidth + 2);
+        if (isPolygon) {
+          if (this.map.getLayer(lineId)) {
+            this.map.setPaintProperty(lineId, "fill-opacity", 0.35);
+          }
+        } else {
+          if (this.map.getLayer(lineId)) {
+            this.map.setPaintProperty(lineId, "line-width", baseWidth + 2);
+          }
         }
         linePopup.setLngLat(e.lngLat).setText(name).addTo(this.map);
       };
@@ -1382,8 +1386,14 @@ export const methods = {
       };
       const leaveHandler = () => {
         this.map.getCanvas().style.cursor = "";
-        if (this.map.getLayer(lineId)) {
-          this.map.setPaintProperty(lineId, "line-width", baseWidth);
+        if (isPolygon) {
+          if (this.map.getLayer(lineId)) {
+            this.map.setPaintProperty(lineId, "fill-opacity", 0.2);
+          }
+        } else {
+          if (this.map.getLayer(lineId)) {
+            this.map.setPaintProperty(lineId, "line-width", baseWidth);
+          }
         }
         linePopup.remove();
       };
@@ -1409,19 +1419,20 @@ export const methods = {
     const pulseConfigs = [
       // Glow layers
       { id: `${prevSourceId}-glow`, base: 0.12, amp: 0.1 },
-      { id: `${newSourceId}-glow`, base: 0.15, amp: 0.12 },
       { id: "ga-access-hohi-line-glow", base: 0.08, amp: 0.08 },
       // Main line layers
       { id: `${prevSourceId}-line`, base: 0.5, amp: 0.25 },
-      { id: `${newSourceId}-line`, base: 0.85, amp: 0.15 },
       { id: "ga-access-hohi-line-line", base: 0.6, amp: 0.2 },
+      // Polygon layers (fill + stroke)
+      { id: `${newSourceId}-fill`, base: 0.2, amp: 0.08, prop: "fill-opacity" },
+      { id: `${newSourceId}-stroke`, base: 0.8, amp: 0.15 },
     ];
     this._airportRoutePulseTimer = setInterval(() => {
       phase += 0.04;
-      pulseConfigs.forEach(({ id, base, amp }) => {
+      pulseConfigs.forEach(({ id, base, amp, prop }) => {
         if (this.map.getLayer(id)) {
           const opacity = base + amp * Math.sin(phase);
-          this.map.setPaintProperty(id, "line-opacity", opacity);
+          this.map.setPaintProperty(id, prop || "line-opacity", opacity);
         }
       });
     }, 50);
@@ -1435,11 +1446,11 @@ export const methods = {
     }
 
     // Clean up event handlers
-    if (this._airportRouteHandlers) {
+    if (this._airportRouteHandlers?.length) {
       this._airportRouteHandlers.forEach(({ event, layer, fn }) => {
         this.map.off(event, layer, fn);
       });
-      this._airportRouteHandlers = null;
+      this._airportRouteHandlers = [];
     }
 
     // Clean up popup
@@ -1818,11 +1829,11 @@ export const methods = {
     }
 
     // Clean up hover/click event handlers
-    if (this._roadExtHandlers) {
+    if (this._roadExtHandlers?.length) {
       this._roadExtHandlers.forEach(({ event, layer, fn }) => {
         this.map.off(event, layer, fn);
       });
-      this._roadExtHandlers = null;
+      this._roadExtHandlers = [];
     }
 
     // Clean up popup

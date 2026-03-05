@@ -3,43 +3,43 @@ import { MAP_COLORS, CAMERA_STEPS } from "./constants.js";
 
 export const methods = {
   showSciencePark(opts = {}) {
-    const sp = AppData.sciencePark;
-
-    // Generate circle polygon
-    const centerLngLat = this._toMapbox(sp.center);
-    const circleGeoJson = this._generateCirclePolygon(centerLngLat, sp.radius);
-
-    const sourceId = "science-park-circle";
-    this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
-
-    // Fill layer
-    this.map.addLayer({
-      id: `${sourceId}-fill`,
-      type: "fill",
-      source: sourceId,
-      paint: {
-        "fill-color": MAP_COLORS.primary,
-        "fill-opacity": 0.18,
+    const circles = [
+      {
+        id: "science-park-circle-tsmc",
+        label: "TSMC Semiconductor Hub",
+        center: [130.825, 32.885],
+        radius: 12000,
+        color: MAP_COLORS.primary,
       },
-    });
-
-    // Stroke layer
-    this.map.addLayer({
-      id: `${sourceId}-stroke`,
-      type: "line",
-      source: sourceId,
-      paint: {
-        "line-color": MAP_COLORS.primary,
-        "line-width": 2.5,
-        "line-opacity": 0.85,
+      {
+        id: "science-park-circle-airport",
+        label: "Kumamoto Airport Development Zone",
+        center: [130.85989089814692, 32.841638592865074],
+        radius: 10000,
+        color: "#7C3AED",
       },
-    });
+    ];
 
-    this._layerGroups.sciencePark.push(
-      `${sourceId}-fill`,
-      `${sourceId}-stroke`,
-    );
-    this._layerGroups.sciencePark.push(sourceId); // track source too
+    circles.forEach(({ id, center, radius, color }) => {
+      const geoJson = this._generateCirclePolygon(center, radius);
+      this._safeAddSource(id, { type: "geojson", data: geoJson });
+
+      this.map.addLayer({
+        id: `${id}-fill`,
+        type: "fill",
+        source: id,
+        paint: { "fill-color": color, "fill-opacity": 0.18 },
+      });
+
+      this.map.addLayer({
+        id: `${id}-stroke`,
+        type: "line",
+        source: id,
+        paint: { "line-color": color, "line-width": 2.5, "line-opacity": 0.85 },
+      });
+
+      this._layerGroups.sciencePark.push(`${id}-fill`, `${id}-stroke`, id);
+    });
 
     // Fly to center (skip when camera is already positioned by goToStep)
     if (!opts.skipFly) {
@@ -49,16 +49,15 @@ export const methods = {
 
   setScienceParkCircleVisible(visible) {
     const vis = visible ? "visible" : "none";
-    if (this.map.getLayer("science-park-circle-fill")) {
-      this.map.setLayoutProperty("science-park-circle-fill", "visibility", vis);
-    }
-    if (this.map.getLayer("science-park-circle-stroke")) {
-      this.map.setLayoutProperty(
-        "science-park-circle-stroke",
-        "visibility",
-        vis,
-      );
-    }
+    const ids = ["science-park-circle-tsmc", "science-park-circle-airport"];
+    ids.forEach((id) => {
+      if (this.map.getLayer(`${id}-fill`)) {
+        this.map.setLayoutProperty(`${id}-fill`, "visibility", vis);
+      }
+      if (this.map.getLayer(`${id}-stroke`)) {
+        this.map.setLayoutProperty(`${id}-stroke`, "visibility", vis);
+      }
+    });
   },
 
   showZonePlanHighlight(zone, opts = {}) {
@@ -212,125 +211,127 @@ export const methods = {
 
     // Render infrastructure lines and point markers
     if (zone.infrastructureLines) {
-      zone.infrastructureLines.forEach((infra) => {
-        if (infra.type === "line") {
-          // Draw a line between two points
-          const sourceId = `gov-infra-${infra.id}`;
-          this._safeAddSource(sourceId, {
-            type: "geojson",
-            data: {
-              type: "Feature",
-              geometry: {
-                type: "LineString",
-                coordinates: [
-                  [infra.from[1], infra.from[0]],
-                  [infra.to[1], infra.to[0]],
-                ],
+      zone.infrastructureLines
+        .filter((infra) => infra.id !== "airport-monorail")
+        .forEach((infra) => {
+          if (infra.type === "line") {
+            // Draw a line between two points
+            const sourceId = `gov-infra-${infra.id}`;
+            this._safeAddSource(sourceId, {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates: [
+                    [infra.from[1], infra.from[0]],
+                    [infra.to[1], infra.to[0]],
+                  ],
+                },
               },
-            },
-          });
+            });
 
-          this.map.addLayer({
-            id: `${sourceId}-line`,
-            type: "line",
-            source: sourceId,
-            paint: {
-              "line-color": infra.color,
-              "line-width": 3,
-              "line-dasharray": [6, 4],
-              "line-opacity": 0.8,
-            },
-            layout: { "line-cap": "round", "line-join": "round" },
-          });
-
-          group.push(`${sourceId}-line`, sourceId);
-
-          // Label marker at midpoint
-          const midCoords = [
-            (infra.from[0] + infra.to[0]) / 2,
-            (infra.from[1] + infra.to[1]) / 2,
-          ];
-          const labelHtml = `<div class="gov-zone-label">
-          <span class="gov-zone-label-text">${infra.label}</span>
-        </div>`;
-          const markerId = `gov-infra-marker-${infra.id}`;
-          const { marker } = this._createMarker(midCoords, labelHtml, {
-            className: "gov-zone-label-wrapper",
-            ariaLabel: infra.label,
-          });
-          if (marker) {
-            this.markers[markerId] = marker;
-            group.push(markerId);
-          }
-        } else if (infra.type === "polygon") {
-          // Draw a filled polygon outline (e.g. monorail corridor)
-          const sourceId = `gov-infra-${infra.id}`;
-          this._safeAddSource(sourceId, {
-            type: "geojson",
-            data: {
-              type: "Feature",
-              geometry: {
-                type: "Polygon",
-                coordinates: [infra.polygon],
+            this.map.addLayer({
+              id: `${sourceId}-line`,
+              type: "line",
+              source: sourceId,
+              paint: {
+                "line-color": infra.color,
+                "line-width": 3,
+                "line-dasharray": [6, 4],
+                "line-opacity": 0.8,
               },
-            },
-          });
+              layout: { "line-cap": "round", "line-join": "round" },
+            });
 
-          this.map.addLayer({
-            id: `${sourceId}-fill`,
-            type: "fill",
-            source: sourceId,
-            paint: {
-              "fill-color": infra.color,
-              "fill-opacity": 1,
-            },
-          });
+            group.push(`${sourceId}-line`, sourceId);
 
-          this.map.addLayer({
-            id: `${sourceId}-stroke`,
-            type: "line",
-            source: sourceId,
-            paint: {
-              "line-color": infra.strokeColor || infra.color,
-              "line-width": 2,
-              "line-opacity": 0.8,
-            },
-          });
-
-          group.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
-
-          // Label at centroid
-          const coords = infra.polygon;
-          const midIdx = Math.floor(coords.length / 2);
-          const labelCoords = [coords[midIdx][1], coords[midIdx][0]];
-          const labelHtml = `<div class="gov-zone-label">
+            // Label marker at midpoint
+            const midCoords = [
+              (infra.from[0] + infra.to[0]) / 2,
+              (infra.from[1] + infra.to[1]) / 2,
+            ];
+            const labelHtml = `<div class="gov-zone-label">
           <span class="gov-zone-label-text">${infra.label}</span>
         </div>`;
-          const markerId = `gov-infra-marker-${infra.id}`;
-          const { marker } = this._createMarker(labelCoords, labelHtml, {
-            className: "gov-zone-label-wrapper",
-            ariaLabel: infra.label,
-          });
-          if (marker) {
-            this.markers[markerId] = marker;
-            group.push(markerId);
-          }
-        } else if (infra.type === "point") {
-          // Labeled point marker
-          const labelHtml = `<div class="gov-zone-label">
+            const markerId = `gov-infra-marker-${infra.id}`;
+            const { marker } = this._createMarker(midCoords, labelHtml, {
+              className: "gov-zone-label-wrapper",
+              ariaLabel: infra.label,
+            });
+            if (marker) {
+              this.markers[markerId] = marker;
+              group.push(markerId);
+            }
+          } else if (infra.type === "polygon") {
+            // Draw a filled polygon outline (e.g. monorail corridor)
+            const sourceId = `gov-infra-${infra.id}`;
+            this._safeAddSource(sourceId, {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                geometry: {
+                  type: "Polygon",
+                  coordinates: [infra.polygon],
+                },
+              },
+            });
+
+            this.map.addLayer({
+              id: `${sourceId}-fill`,
+              type: "fill",
+              source: sourceId,
+              paint: {
+                "fill-color": infra.color,
+                "fill-opacity": 1,
+              },
+            });
+
+            this.map.addLayer({
+              id: `${sourceId}-stroke`,
+              type: "line",
+              source: sourceId,
+              paint: {
+                "line-color": infra.strokeColor || infra.color,
+                "line-width": 2,
+                "line-opacity": 0.8,
+              },
+            });
+
+            group.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
+
+            // Label at centroid
+            const coords = infra.polygon;
+            const midIdx = Math.floor(coords.length / 2);
+            const labelCoords = [coords[midIdx][1], coords[midIdx][0]];
+            const labelHtml = `<div class="gov-zone-label">
           <span class="gov-zone-label-text">${infra.label}</span>
         </div>`;
-          const markerId = `gov-infra-marker-${infra.id}`;
-          const { marker } = this._createMarker(infra.coords, labelHtml, {
-            className: "gov-zone-label-wrapper",
-            ariaLabel: infra.label,
-          });
-          if (marker) {
-            this.markers[markerId] = marker;
-            group.push(markerId);
+            const markerId = `gov-infra-marker-${infra.id}`;
+            const { marker } = this._createMarker(labelCoords, labelHtml, {
+              className: "gov-zone-label-wrapper",
+              ariaLabel: infra.label,
+            });
+            if (marker) {
+              this.markers[markerId] = marker;
+              group.push(markerId);
+            }
+          } else if (infra.type === "point") {
+            // Labeled point marker
+            const labelHtml = `<div class="gov-zone-label">
+          <span class="gov-zone-label-text">${infra.label}</span>
+        </div>`;
+            const markerId = `gov-infra-marker-${infra.id}`;
+            const { marker } = this._createMarker(infra.coords, labelHtml, {
+              className: "gov-zone-label-wrapper",
+              ariaLabel: infra.label,
+            });
+            if (marker) {
+              this.markers[markerId] = marker;
+              group.push(markerId);
+            }
           }
-        }
-      });
+        });
     }
   },
 

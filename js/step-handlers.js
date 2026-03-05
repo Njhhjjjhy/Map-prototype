@@ -1,6 +1,16 @@
 import { STEPS, AppData } from "./data/index.js";
 import { CAMERA_STEPS, MAP_COLORS, MapController } from "./map/index.js";
 import { UI } from "./ui/index.js";
+import {
+  panelHeader,
+  bentoStats,
+  evidenceImage,
+  toggleRow,
+  evidenceCard,
+  SVG_CHECKMARK,
+  continueBtn,
+  SVG_ARROW_RIGHT,
+} from "./shared/templates.js";
 
 export const stepHandlers = {
   /**
@@ -33,13 +43,10 @@ export const stepHandlers = {
         // Toggle science park circle and camera based on selected group
         if (groupId === "grand-airport-group") {
           MapController.setScienceParkCircleVisible(false);
-          MapController.flyToStep({
-            center: [130.9384, 32.8342],
-            zoom: 11.8,
-            pitch: 50,
-            bearing: 22,
-            duration: 2000,
-          });
+
+          // Auto-toggle airport access as the default child
+          this.state.activeDevelopmentChildren = ["ga-airport-access"];
+          this._showDevelopmentMapElement("ga-airport-access");
         } else if (groupId === "science-park-group") {
           MapController.setScienceParkCircleVisible(true);
         }
@@ -326,17 +333,14 @@ export const stepHandlers = {
           const icon =
             zoneIcons[z.id] ||
             '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
-          return `
-            <button class="energy-toggle-row${isActive ? " active" : ""}"
-                    onclick="App.toggleDevelopmentChild('${z.id}')"
-                    aria-pressed="${isActive}">
-                <span class="energy-toggle-icon" style="color: ${z.strokeColor};">${icon}</span>
-                <span class="energy-toggle-label">${z.name}</span>
-                <span class="energy-toggle-switch ${isActive ? "on" : ""}">
-                    <span class="energy-toggle-knob"></span>
-                </span>
-            </button>
-          `;
+          return toggleRow({
+            id: z.id,
+            label: z.name,
+            color: z.strokeColor,
+            icon,
+            active: isActive,
+            onclick: `App.toggleDevelopmentChild('${z.id}')`,
+          });
         })
         .join("");
 
@@ -349,30 +353,18 @@ export const stepHandlers = {
       if (activeZones.length > 0) {
         const cardsHtml = activeZones
           .map((zone) => {
-            const statsHtml = zone.stats
-              ? zone.stats
-                  .map(
-                    (s) => `
-                    <div class="panel-bento-stat">
-                        <div class="panel-bento-stat-value">${s.value}</div>
-                        <div class="panel-bento-stat-label">${s.label}</div>
-                    </div>
-                  `,
-                  )
-                  .join("")
-              : "";
-
-            return `
-              <div class="energy-evidence-card" style="border-left: 3px solid ${zone.strokeColor};">
-                  <div class="panel-bento-label" style="color: ${zone.strokeColor};">Development zone</div>
-                  <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${zone.name}</div>
-                  <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${zone.description}</p>
-                  ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ""}
-                  <div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', '${zone.name.replace(/'/g, "\\'")}')">
+            const imageHtml = `<div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', '${zone.name.replace(/'/g, "\\'")}')">
                       <img src="assets/use-case-images/evidence-science-park.webp" alt="${zone.name}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                  </div>
-              </div>
-            `;
+                  </div>`;
+
+            return evidenceCard({
+              color: zone.strokeColor,
+              subtitle: "Development zone",
+              title: zone.name,
+              description: zone.description,
+              stats: zone.stats,
+              extra: imageHtml,
+            });
           })
           .join("");
 
@@ -387,9 +379,7 @@ export const stepHandlers = {
       }
 
       UI.showPanel(`
-        <div class="subtitle">Development zones</div>
-        <h2>Science park</h2>
-        <p>${sp.description}</p>
+        ${panelHeader("Development zones", "Science park", sp.description)}
         <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
@@ -424,17 +414,14 @@ export const stepHandlers = {
       const rowsHtml = airportChildren
         .map((c) => {
           const isActive = activeChildren.includes(c.id);
-          return `
-            <button class="energy-toggle-row${isActive ? " active" : ""}"
-                    onclick="App.toggleDevelopmentChild('${c.id}')"
-                    aria-pressed="${isActive}">
-                <span class="energy-toggle-icon" style="color: ${c.color};">${c.icon}</span>
-                <span class="energy-toggle-label">${c.label}</span>
-                <span class="energy-toggle-switch ${isActive ? "on" : ""}">
-                    <span class="energy-toggle-knob"></span>
-                </span>
-            </button>
-          `;
+          return toggleRow({
+            id: c.id,
+            label: c.label,
+            color: c.color,
+            icon: c.icon,
+            active: isActive,
+            onclick: `App.toggleDevelopmentChild('${c.id}')`,
+          });
         })
         .join("");
 
@@ -452,19 +439,6 @@ export const stepHandlers = {
       if (activeItems.length > 0) {
         const cardsHtml = activeItems
           .map(({ child, ev }) => {
-            const statsHtml = ev.stats?.length
-              ? ev.stats
-                  .map(
-                    (s) => `
-                    <div class="panel-bento-stat">
-                        <div class="panel-bento-stat-value">${s.value}</div>
-                        <div class="panel-bento-stat-label">${s.label}</div>
-                    </div>
-                  `,
-                  )
-                  .join("")
-              : "";
-
             const imagesHtml = ev.images
               .map(
                 (img) => `
@@ -475,15 +449,14 @@ export const stepHandlers = {
               )
               .join("");
 
-            return `
-              <div class="energy-evidence-card" style="border-left: 3px solid ${child.color};">
-                  <div class="panel-bento-label" style="color: ${child.color};">${ev.subtitle}</div>
-                  <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${ev.title}</div>
-                  <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${ev.description}</p>
-                  ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ""}
-                  ${imagesHtml}
-              </div>
-            `;
+            return evidenceCard({
+              color: child.color,
+              subtitle: ev.subtitle,
+              title: ev.title,
+              description: ev.description,
+              stats: ev.stats,
+              extra: imagesHtml,
+            });
           })
           .join("");
 
@@ -498,9 +471,7 @@ export const stepHandlers = {
       }
 
       UI.showPanel(`
-        <div class="subtitle">Development zones</div>
-        <h2>Grand airport concept</h2>
-        <p>${airport?.description || "A proposed expansion of Aso Kumamoto Airport to serve as a regional semiconductor logistics hub."}</p>
+        ${panelHeader("Development zones", "Grand airport concept", airport?.description || "A proposed expansion of Aso Kumamoto Airport to serve as a regional semiconductor logistics hub.")}
         <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
@@ -578,17 +549,7 @@ export const stepHandlers = {
     const lm = data?.landmarks?.find((l) => l.id === landmarkId);
     if (!lm) return;
 
-    const statsHtml = lm.stats?.length
-      ? `<div class="panel-bento-stats">${lm.stats
-          .map(
-            (s) => `
-            <div class="panel-bento-stat">
-              <div class="panel-bento-stat-value">${s.value}</div>
-              <div class="panel-bento-stat-label">${s.label}</div>
-            </div>`,
-          )
-          .join("")}</div>`
-      : "";
+    const statsHtml = lm.stats?.length ? bentoStats(lm.stats) : "";
 
     UI.showPanel(`
       <div class="subtitle" style="color: ${lm.color};">Airport access</div>
@@ -606,17 +567,7 @@ export const stepHandlers = {
     const route = routes?.find((r) => r.id === routeId);
     if (!route) return;
 
-    const statsHtml = route.stats?.length
-      ? `<div class="panel-bento-stats">${route.stats
-          .map(
-            (s) => `
-            <div class="panel-bento-stat">
-              <div class="panel-bento-stat-value">${s.value}</div>
-              <div class="panel-bento-stat-label">${s.label}</div>
-            </div>`,
-          )
-          .join("")}</div>`
-      : "";
+    const statsHtml = route.stats?.length ? bentoStats(route.stats) : "";
 
     UI.showPanel(`
       <div class="subtitle" style="color: ${route.color};">Airport access</div>
@@ -635,17 +586,7 @@ export const stepHandlers = {
     if (!road) return;
 
     const color = road.color || "#e63f5a";
-    const statsHtml = road.stats?.length
-      ? `<div class="panel-bento-stats">${road.stats
-          .map(
-            (s) => `
-            <div class="panel-bento-stat">
-              <div class="panel-bento-stat-value">${s.value}</div>
-              <div class="panel-bento-stat-label">${s.label}</div>
-            </div>`,
-          )
-          .join("")}</div>`
-      : "";
+    const statsHtml = road.stats?.length ? bentoStats(road.stats) : "";
 
     UI.showPanel(`
       <div class="subtitle" style="color: ${color};">Road extensions</div>
@@ -664,17 +605,7 @@ export const stepHandlers = {
     if (!station) return;
 
     const color = station.type === "planned" ? "#ff9500" : "#6e7073";
-    const statsHtml = station.stats?.length
-      ? `<div class="panel-bento-stats">${station.stats
-          .map(
-            (s) => `
-            <div class="panel-bento-stat">
-              <div class="panel-bento-stat-value">${s.value}</div>
-              <div class="panel-bento-stat-label">${s.label}</div>
-            </div>`,
-          )
-          .join("")}</div>`
-      : "";
+    const statsHtml = station.stats?.length ? bentoStats(station.stats) : "";
 
     UI.showPanel(`
       <div class="subtitle" style="color: ${color};">New railway stations</div>
@@ -711,6 +642,11 @@ export const stepHandlers = {
       // Turn on this child
       active.push(childId);
       this._showDevelopmentMapElement(childId);
+    }
+
+    // Show circles only when no children are active
+    if (this.state.activeParentGroup === "science-park-group") {
+      MapController.setScienceParkCircleVisible(active.length === 0);
     }
 
     // Re-render panel to reflect toggle state
@@ -1044,9 +980,7 @@ export const stepHandlers = {
                     <div class="journey-recap-headline-detail">across the portfolio</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                    <button class="chatbox-continue primary" onclick="App.enterQAMode()">
-                        Enter Q&amp;A
-                    </button>
+                    ${continueBtn("App.enterQAMode()", "Enter Q&amp;A")}
                     <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); setTimeout(() => { UI.showAIChat(); UI.downloadSummary(); }, 600);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -1133,9 +1067,7 @@ export const stepHandlers = {
     const groupHtml = UI.generateDisclosureGroup(group);
 
     const content = `
-            <div class="subtitle">Supporting evidence</div>
-            <h2>${group.title}</h2>
-            <p>Select an item below to view detailed documentation.</p>
+            ${panelHeader("Supporting evidence", group.title, "Select an item below to view detailed documentation.")}
             ${groupHtml}
             <button class="panel-btn" onclick="UI.showEvidenceListPanel()">
                 View all evidence
@@ -1196,7 +1128,7 @@ export const stepHandlers = {
       UI.showChatbox(`
                 <h3>Kumamoto investment guide</h3>
                 <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-                <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
             `);
     }
   },

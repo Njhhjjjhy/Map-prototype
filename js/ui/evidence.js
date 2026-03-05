@@ -1,5 +1,11 @@
 import { AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
+import {
+  panelHeader,
+  statGrid,
+  disclosureTriangle,
+  SVG_CHEVRON_RIGHT,
+} from "../shared/templates.js";
 
 export const methods = {
   showEvidencePreview(groupId, itemId) {
@@ -108,9 +114,7 @@ export const methods = {
                 </span>
                 <span class="disclosure-item-title">${item.title}</span>
                 <span class="disclosure-item-chevron" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
+                    ${SVG_CHEVRON_RIGHT}
                 </span>
             </button>
         `,
@@ -125,14 +129,7 @@ export const methods = {
                         aria-controls="disclosure-content-${group.id}"
                         id="disclosure-header-${group.id}"
                         onclick="UI.toggleDisclosureGroup('${group.id}')">
-                    <span class="disclosure-triangle" aria-hidden="true">
-                        <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M6 4l6 4-6 4V4z"/>
-                        </svg>
-                        <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M4 6l4 6 4-6H4z"/>
-                        </svg>
-                    </span>
+                    ${disclosureTriangle()}
                     <span class="disclosure-icon" aria-hidden="true">
                         ${this.getLucideIcon(group.icon)}
                     </span>
@@ -197,18 +194,7 @@ export const methods = {
    * @param {Object} item - Sub-item data
    */
   showDisclosureItemDetail(group, item) {
-    const statsHtml = item.stats
-      ? item.stats
-          .map(
-            (stat) => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `,
-          )
-          .join("")
-      : "";
+    const statsHtml = statGrid(item.stats);
 
     const content = `
             <div class="disclosure-detail-header">
@@ -221,7 +207,7 @@ export const methods = {
             </div>
             <h2>${item.title}</h2>
             <p>${item.description}</p>
-            ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ""}
+            ${statsHtml}
             <button class="panel-btn primary" onclick="UI.showGallery('${item.title}', '${item.type}', '${item.description.replace(/'/g, "\\'")}', ${item.image ? "'" + item.image + "'" : "null"})">
                 View ${this.getTypeLabel(item.type)}
             </button>
@@ -262,9 +248,7 @@ export const methods = {
       .join("");
 
     const content = `
-            <div class="subtitle">Evidence library</div>
-            <h2>Supporting documents</h2>
-            <p>Explore detailed evidence and documentation for each category.</p>
+            ${panelHeader("Evidence library", "Supporting documents", "Explore detailed evidence and documentation for each category.")}
             ${groupsHtml}
         `;
 

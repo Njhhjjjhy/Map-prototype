@@ -95,14 +95,14 @@ const state = {
   // Airport route tracking
   _airportRoutePulseTimer: null,
   _airportRoutePopup: null,
-  _airportRouteHandlers: {},
+  _airportRouteHandlers: [],
 
   // Railway pulse tracking
   _railwayPulseTimer: null,
 
   // Road extension tracking
   _roadExtPopup: null,
-  _roadExtHandlers: {},
+  _roadExtHandlers: [],
   _roadExtPulseTimer: null,
 
   // Road index map

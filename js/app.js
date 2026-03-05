@@ -6,6 +6,12 @@ import { STEPS, AppData } from "./data/index.js";
 import { CAMERA_STEPS, MapController } from "./map/index.js";
 import { UI } from "./ui/index.js";
 import { stepHandlers } from "./step-handlers.js";
+import {
+  panelHeader,
+  evidenceImage,
+  continueBtn,
+  SVG_ARROW_RIGHT,
+} from "./shared/templates.js";
 
 /**
  * Shared timing constants - semantic names for setTimeout values.
@@ -79,7 +85,7 @@ const App = {
     UI.showChatbox(`
             <h3>Kumamoto investment guide</h3>
             <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-            <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
         `);
   },
 
@@ -212,7 +218,7 @@ const App = {
       UI.showChatbox(`
                 <h3>Kumamoto investment guide</h3>
                 <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-                <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
             `);
 
       MapController.startHeartbeat();
@@ -394,10 +400,8 @@ const App = {
    */
   _getStepChatboxContent(step) {
     const subItemsHtml = this._renderSubItems(step);
-    const continueBtn =
-      step.index < STEPS.length
-        ? `<button class="chatbox-continue primary" onclick="App.nextStep()">Continue</button>`
-        : "";
+    const continueBtnHtml =
+      step.index < STEPS.length ? continueBtn("App.nextStep()") : "";
 
     // Step-specific narratives
     const narratives = {
@@ -470,7 +474,7 @@ const App = {
 
     // Step 4 (government-support) gets toggle rows instead of sub-items
     if (step.id === "government-support") {
-      return this._renderGovernmentChatbox(n, continueBtn);
+      return this._renderGovernmentChatbox(n, continueBtnHtml);
     }
 
     // Step 10 (properties) gets fund stats
@@ -490,8 +494,8 @@ const App = {
       }
     }
 
-    const navRow = continueBtn
-      ? `<div class="chatbox-nav-row">${continueBtn}</div>`
+    const navRow = continueBtnHtml
+      ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`
       : "";
 
     return `
@@ -600,30 +604,18 @@ const App = {
         );
 
         UI.showPanel(`
-                    <div class="subtitle">Future outlook</div>
-                    <h2>2030+ vision</h2>
-                    <p>Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.</p>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', 'Science park plan')">
-                        <img src="assets/use-case-images/evidence-science-park.webp" alt="Science park plan" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-new-grand-airport.webp', 'Grand airport concept')">
-                        <img src="assets/use-case-images/evidence-new-grand-airport.webp" alt="Grand airport concept" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-kumamoto-future-road-network.webp', 'Future road network')">
-                        <img src="assets/use-case-images/evidence-kumamoto-future-road-network.webp" alt="Future road network" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
+                    ${panelHeader("Future outlook", "2030+ vision", "Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.")}
+                    ${evidenceImage("assets/use-case-images/evidence-science-park.webp", "Science park plan")}
+                    ${evidenceImage("assets/use-case-images/evidence-new-grand-airport.webp", "Grand airport concept")}
+                    ${evidenceImage("assets/use-case-images/evidence-kumamoto-future-road-network.webp", "Future road network")}
                 `);
         break;
       }
 
       case "investment-zones":
         UI.showPanel(`
-                    <div class="subtitle">Silicon triangle</div>
-                    <h2>Investment opportunity zones</h2>
-                    <p>Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details.</p>
-                    <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-tsmc-infrastructure-overview.webp', 'TSMC infrastructure overview')">
-                        <img src="assets/use-case-images/evidence-tsmc-infrastructure-overview.webp" alt="TSMC infrastructure overview" style="width: 100%; border-radius: var(--radius-medium);" />
-                    </div>
+                    ${panelHeader("Silicon triangle", "Investment opportunity zones", "Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details.")}
+                    ${evidenceImage("assets/use-case-images/evidence-tsmc-infrastructure-overview.webp", "TSMC infrastructure overview")}
                 `);
         break;
 
@@ -661,7 +653,7 @@ const App = {
       UI.showChatbox(`
                 <h3>Kumamoto investment guide</h3>
                 <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-                <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
             `);
     }
   },

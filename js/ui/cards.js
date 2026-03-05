@@ -1,12 +1,19 @@
 import { AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
+import {
+  panelHeader,
+  statGrid,
+  bentoStats,
+  evidenceCard,
+  toggleRow,
+  dataAttribution,
+  connectionItem,
+} from "../shared/templates.js";
 
 export const methods = {
   showInvestmentOverview() {
     const content = `
-            <div class="subtitle">Corporate investment</div>
-            <h2>Investment comparison</h2>
-            <p>Total corporate investment in the Kumamoto semiconductor corridor.</p>
+            ${panelHeader("Corporate investment", "Investment comparison", "Total corporate investment in the Kumamoto semiconductor corridor.")}
             <div class="chart-container" style="height: 280px; margin: 24px 0;">
                 <canvas id="investment-chart" role="img" aria-label="Bar chart comparing corporate investments across seven companies in the Kumamoto corridor"></canvas>
             </div>
@@ -21,10 +28,7 @@ export const methods = {
                     <div class="stat-label">Direct jobs</div>
                 </div>
             </div>
-            <div class="data-attribution">
-                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
-                <p>Investment data from official company announcements</p>
-            </div>
+            ${dataAttribution("Investment data from official company announcements")}
         `;
 
     this.showPanel(content);
@@ -37,16 +41,7 @@ export const methods = {
    * Show app directly - no start screen, subtle fade-in
    */
   showResourcePanel(resource) {
-    const statsHtml = resource.stats
-      .map(
-        (stat) => `
-            <div class="panel-bento-stat">
-                <div class="panel-bento-stat-value">${stat.value}</div>
-                <div class="panel-bento-stat-label">${stat.label}</div>
-            </div>
-        `,
-      )
-      .join("");
+    const statsHtml = bentoStats(resource.stats);
 
     // Generate energy mix section for power resource (disclosure groups)
     let energyMixHtml = "";
@@ -114,10 +109,8 @@ export const methods = {
     }
 
     const content = `
-            <div class="subtitle">${resource.subtitle}</div>
-            <h2>${resource.name}</h2>
-            <p>${resource.description}</p>
-            <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+            ${panelHeader(resource.subtitle, resource.name, resource.description)}
+            <div style="margin-top: var(--space-4);">
                 ${statsHtml}
             </div>
             ${energyMixHtml}
@@ -138,16 +131,7 @@ export const methods = {
     const haramizu = AppData.haramizuStation;
     if (!haramizu) return;
 
-    const statsHtml = haramizu.stats
-      .map(
-        (stat) => `
-            <div class="panel-bento-stat">
-                <div class="panel-bento-stat-value">${stat.value}</div>
-                <div class="panel-bento-stat-label">${stat.label}</div>
-            </div>
-        `,
-      )
-      .join("");
+    const statsHtml = bentoStats(haramizu.stats);
 
     const zonesHtml = haramizu.zones
       .map(
@@ -161,10 +145,8 @@ export const methods = {
       .join("");
 
     const content = `
-            <div class="subtitle">${haramizu.subtitle}</div>
-            <h2>${haramizu.name}</h2>
-            <p>${haramizu.description}</p>
-            <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+            ${panelHeader(haramizu.subtitle, haramizu.name, haramizu.description)}
+            <div style="margin-top: var(--space-4);">
                 ${statsHtml}
             </div>
             <div style="margin-top: var(--space-6);">
@@ -202,8 +184,7 @@ export const methods = {
 
     const totalCommitment = "¥4T+";
     this.showPanel(`
-            <div class="subtitle">Government commitment</div>
-            <h2>National to local alignment</h2>
+            ${panelHeader("Government commitment", "National to local alignment")}
             <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
                 <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${totalCommitment}</span>
                 <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">Combined commitment</span>
@@ -243,22 +224,13 @@ export const methods = {
     }
 
     const content = `
-            <div class="subtitle">${tier.tierLabel || "Government tier"}</div>
-            <h2>${tier.name}</h2>
+            ${panelHeader(tier.tierLabel || "Government tier", tier.name)}
             <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
                 <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: ${tier.color || "var(--color-primary)"};">${tier.commitment}</span>
                 <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${tier.commitmentLabel || ""}</span>
             </div>
             <p>${tier.description}</p>
-            ${
-              tier.stats
-                ? `
-                <div class="stat-grid" style="margin-top: var(--space-4);">
-                    ${tier.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
-                </div>
-            `
-                : ""
-            }
+            ${tier.stats ? statGrid(tier.stats, "margin-top: var(--space-4)") : ""}
             ${subItemsHtml}
         `;
 
@@ -271,8 +243,7 @@ export const methods = {
    */
   showRoadDetailPanel(road) {
     const content = `
-            <div class="subtitle">Infrastructure plan</div>
-            <h2>${road.name}</h2>
+            ${panelHeader("Infrastructure plan", road.name)}
             <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
                 <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${road.commuteImpact}</span>
                 <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">commute saved</span>
@@ -304,15 +275,10 @@ export const methods = {
    * @param {Object} company - Company data from AppData.companies
    */
   showCompanyDetailPanel(company) {
-    const statsHtml = (company.stats || [])
-      .map(
-        (stat) => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>`,
-      )
-      .join("");
+    const statsHtml = statGrid(
+      company.stats || [],
+      "margin-top: var(--space-4)",
+    );
 
     const evidenceHtml = company.evidence
       ? `
@@ -322,12 +288,9 @@ export const methods = {
       : "";
 
     const content = `
-            <div class="subtitle">Corporate investment</div>
-            <h2>${company.name}</h2>
+            ${panelHeader("Corporate investment", company.name)}
             ${company.subtitle ? `<p style="margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-text-tertiary);">${company.subtitle}</p>` : ""}
-            <div class="stat-grid" style="margin-top: var(--space-4);">
-                ${statsHtml}
-            </div>
+            ${statsHtml}
             <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${company.description || ""}</p>
             ${evidenceHtml}
         `;
@@ -340,25 +303,11 @@ export const methods = {
    * @param {Object} evidence - Evidence marker data
    */
   showWaterEvidencePanel(evidence) {
-    const statsHtml = evidence.stats
-      .map(
-        (stat) => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `,
-      )
-      .join("");
-
     const content = `
-            <div class="subtitle">Water quality evidence</div>
-            <h2>${evidence.name}</h2>
+            ${panelHeader("Water quality evidence", evidence.name)}
             <p class="panel-subtitle" style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">${evidence.subtitle}</p>
             <p style="margin-bottom: var(--space-4);">${evidence.description}</p>
-            <div class="stat-grid">
-                ${statsHtml}
-            </div>
+            ${statGrid(evidence.stats)}
             <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
                 Major manufacturers chose Kumamoto for water quality - proof the resource meets industrial standards.
             </p>
@@ -495,19 +444,13 @@ export const methods = {
     const rowsHtml = zones
       .map((zone) => {
         const isActive = activeZones.includes(zone.id);
-        return `
-                <button class="energy-toggle-row${isActive ? " active" : ""}"
-                        onclick="App.toggleInvestmentZone('${zone.id}')"
-                        aria-pressed="${isActive}">
-                    <span class="energy-toggle-icon">
-                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: var(--radius-full); background: ${zone.strokeColor}; flex-shrink: 0;"></span>
-                    </span>
-                    <span class="energy-toggle-label">${zone.name}</span>
-                    <span class="energy-toggle-switch ${isActive ? "on" : ""}">
-                        <span class="energy-toggle-knob"></span>
-                    </span>
-                </button>
-            `;
+        return toggleRow({
+          id: zone.id,
+          label: zone.name,
+          icon: `<span style="display: inline-block; width: 12px; height: 12px; border-radius: var(--radius-full); background: ${zone.strokeColor}; flex-shrink: 0;"></span>`,
+          active: isActive,
+          onclick: `App.toggleInvestmentZone('${zone.id}')`,
+        });
       })
       .join("");
 
@@ -587,9 +530,7 @@ export const methods = {
     }
 
     return `
-            <div class="subtitle">Investment properties</div>
-            <h2>Zone overview</h2>
-            <p>Five properties across three investment zones in the semiconductor corridor. Toggle a zone to explore its properties.</p>
+            ${panelHeader("Investment properties", "Zone overview", "Five properties across three investment zones in the semiconductor corridor. Toggle a zone to explore its properties.")}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>
@@ -629,17 +570,14 @@ export const methods = {
     const rowsHtml = types
       .map((t) => {
         const isActive = activeTypes.includes(t.key);
-        return `
-                <button class="energy-toggle-row${isActive ? " active" : ""}"
-                        onclick="App.toggleEnergyType('${t.key}')"
-                        aria-pressed="${isActive}">
-                    <span class="energy-toggle-icon" style="color: ${t.color};">${t.icon}</span>
-                    <span class="energy-toggle-label">${t.label}</span>
-                    <span class="energy-toggle-switch ${isActive ? "on" : ""}">
-                        <span class="energy-toggle-knob"></span>
-                    </span>
-                </button>
-            `;
+        return toggleRow({
+          id: t.key,
+          label: t.label,
+          color: t.color,
+          icon: t.icon,
+          active: isActive,
+          onclick: `App.toggleEnergyType('${t.key}')`,
+        });
       })
       .join("");
 
@@ -651,18 +589,6 @@ export const methods = {
           const ev = evidence[key];
           if (!ev) return "";
           const t = types.find((t) => t.key === key);
-          const statsHtml = ev.stats
-            ? ev.stats
-                .map(
-                  (s) => `
-                    <div class="panel-bento-stat">
-                        <div class="panel-bento-stat-value">${s.value}</div>
-                        <div class="panel-bento-stat-label">${s.label}</div>
-                    </div>
-                `,
-                )
-                .join("")
-            : "";
 
           const imageHtml = ev.image
             ? `
@@ -672,15 +598,14 @@ export const methods = {
                 `
             : "";
 
-          return `
-                    <div class="energy-evidence-card" style="border-left: 3px solid ${t.color};">
-                        <div class="panel-bento-label" style="color: ${t.color};">${ev.subtitle}</div>
-                        <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${ev.title}</div>
-                        <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${ev.description}</p>
-                        ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ""}
-                        ${imageHtml}
-                    </div>
-                `;
+          return evidenceCard({
+            color: t.color,
+            subtitle: ev.subtitle,
+            title: ev.title,
+            description: ev.description,
+            stats: ev.stats,
+            extra: imageHtml,
+          });
         })
         .join("");
 
@@ -695,9 +620,7 @@ export const methods = {
     }
 
     return `
-            <div class="subtitle">Sustainable energy</div>
-            <h2>Power resources</h2>
-            <p>Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require.</p>
+            ${panelHeader("Sustainable energy", "Power resources", "Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require.")}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>
@@ -750,17 +673,14 @@ export const methods = {
     const rowsHtml = tiers
       .map((tier) => {
         const isActive = activeLevels.includes(tier.id);
-        return `
-                <button class="energy-toggle-row${isActive ? " active" : ""}"
-                        onclick="App.toggleGovernmentLevel('${tier.id}')"
-                        aria-pressed="${isActive}">
-                    <span class="energy-toggle-icon" style="color: ${tier.color};">${svgIcons[tier.id] || ""}</span>
-                    <span class="energy-toggle-label">${tier.tier}</span>
-                    <span class="energy-toggle-switch ${isActive ? "on" : ""}">
-                        <span class="energy-toggle-knob"></span>
-                    </span>
-                </button>
-            `;
+        return toggleRow({
+          id: tier.id,
+          label: tier.tier,
+          color: tier.color,
+          icon: svgIcons[tier.id] || "",
+          active: isActive,
+          onclick: `App.toggleGovernmentLevel('${tier.id}')`,
+        });
       })
       .join("");
 
@@ -771,19 +691,6 @@ export const methods = {
         .map((levelId) => {
           const tier = tiers.find((t) => t.id === levelId);
           if (!tier) return "";
-
-          const statsHtml = tier.stats
-            ? tier.stats
-                .map(
-                  (s) => `
-                    <div class="panel-bento-stat">
-                        <div class="panel-bento-stat-value">${s.value}</div>
-                        <div class="panel-bento-stat-label">${s.label}</div>
-                    </div>
-                `,
-                )
-                .join("")
-            : "";
 
           // Sub-items for local tier
           let subItemsHtml = "";
@@ -807,15 +714,14 @@ export const methods = {
                     `;
           }
 
-          return `
-                    <div class="energy-evidence-card" style="border-left: 3px solid ${tier.color};">
-                        <div class="panel-bento-label" style="color: ${tier.color};">${tier.tierLabel}</div>
-                        <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${tier.name}</div>
-                        <p style="font-size: var(--text-sm); margin-bottom: var(--space-4);">${tier.description}</p>
-                        ${statsHtml ? `<div class="panel-bento-stats">${statsHtml}</div>` : ""}
-                        ${subItemsHtml}
-                    </div>
-                `;
+          return evidenceCard({
+            color: tier.color,
+            subtitle: tier.tierLabel,
+            title: tier.name,
+            description: tier.description,
+            stats: tier.stats,
+            extra: subItemsHtml,
+          });
         })
         .join("");
 
@@ -857,9 +763,7 @@ export const methods = {
     }
 
     return `
-            <div class="subtitle">Tri-level alignment</div>
-            <h2>Government support</h2>
-            <p>Japan's semiconductor strategy is backed by coordinated investment across central, prefectural, and local government - a rare tri-level alignment that de-risks the corridor.</p>
+            ${panelHeader("Tri-level alignment", "Government support", "Japan's semiconductor strategy is backed by coordinated investment across central, prefectural, and local government - a rare tri-level alignment that de-risks the corridor.")}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>
@@ -955,8 +859,7 @@ export const methods = {
       : "";
 
     const content = `
-            <div class="subtitle">International route</div>
-            <h2>${destination.name} (${destination.code})</h2>
+            ${panelHeader("International route", `${destination.name} (${destination.code})`)}
             ${semiBadge}
 
             ${headlineHtml}
@@ -1004,8 +907,7 @@ export const methods = {
     this.disclosureState["active-routes"] = true;
 
     const content = `
-            <div class="subtitle">Aso Kumamoto Airport</div>
-            <h2>International routes</h2>
+            ${panelHeader("Aso Kumamoto Airport", "International routes")}
             <p style="margin-bottom: var(--space-4);">Direct connections to ${activeRoutes.length} destinations across Korea, Taiwan, and greater Asia.</p>
 
             <div class="disclosure-group expanded" data-group-id="active-routes">
@@ -1156,8 +1058,7 @@ export const methods = {
       .join("");
 
     const content = `
-      <div class="subtitle">Properties</div>
-      <h2>${label}</h2>
+      ${panelHeader("Properties", label)}
       <p style="color: var(--color-text-secondary); margin-top: var(--space-3);">${properties.length} ${properties.length === 1 ? "property" : "properties"} in this zone</p>
       <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-6);">
         ${rows}
@@ -1192,44 +1093,32 @@ export const methods = {
     let connectionsHtml = "";
 
     // JASM
-    connectionsHtml += `
-      <div class="context-connection-item">
-        <div class="context-connection-icon">${connectionIcons.jasm}</div>
-        <div class="context-connection-info">
-          <div class="context-connection-name">JASM (TSMC)</div>
-          <div class="context-connection-detail">${conn.jasm.distance} - ${conn.jasm.time} drive</div>
-        </div>
-      </div>`;
+    connectionsHtml += connectionItem(
+      connectionIcons.jasm,
+      "JASM (TSMC)",
+      `${conn.jasm.distance} - ${conn.jasm.time} drive`,
+    );
 
     // Station
-    connectionsHtml += `
-      <div class="context-connection-item">
-        <div class="context-connection-icon">${connectionIcons.station}</div>
-        <div class="context-connection-info">
-          <div class="context-connection-name">${conn.station.name}</div>
-          <div class="context-connection-detail">${conn.station.distance} - ${conn.station.time}</div>
-        </div>
-      </div>`;
+    connectionsHtml += connectionItem(
+      connectionIcons.station,
+      conn.station.name,
+      `${conn.station.distance} - ${conn.station.time}`,
+    );
 
     // Airport
-    connectionsHtml += `
-      <div class="context-connection-item">
-        <div class="context-connection-icon">${connectionIcons.airport}</div>
-        <div class="context-connection-info">
-          <div class="context-connection-name">Kumamoto Airport</div>
-          <div class="context-connection-detail">${conn.airport.distance} - ${conn.airport.time} drive</div>
-        </div>
-      </div>`;
+    connectionsHtml += connectionItem(
+      connectionIcons.airport,
+      "Kumamoto Airport",
+      `${conn.airport.distance} - ${conn.airport.time} drive`,
+    );
 
     // Road
-    connectionsHtml += `
-      <div class="context-connection-item">
-        <div class="context-connection-icon">${connectionIcons.road}</div>
-        <div class="context-connection-info">
-          <div class="context-connection-name">${conn.road.name}</div>
-          <div class="context-connection-detail">Planned infrastructure extension</div>
-        </div>
-      </div>`;
+    connectionsHtml += connectionItem(
+      connectionIcons.road,
+      conn.road.name,
+      "Planned infrastructure extension",
+    );
 
     const html = `
       <div class="inspector-resize-handle"></div>
@@ -1456,8 +1345,7 @@ export const methods = {
     );
 
     const content = `
-            <div class="subtitle">Financial projection</div>
-            <h2>Performance calculator</h2>
+            ${panelHeader("Financial projection", "Performance calculator")}
 
             <!-- HEADLINE STAT - Von Restorff Effect -->
             <div class="headline-stat">
@@ -1532,10 +1420,7 @@ export const methods = {
                 </div>
             </div>
 
-            <div class="data-attribution">
-                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
-                <p>Price data from Kumamoto Land Registry (Jan 2026)</p>
-            </div>
+            ${dataAttribution("Price data from Kumamoto Land Registry (Jan 2026)")}
 
             <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
                 View rental report

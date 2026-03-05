@@ -1,5 +1,6 @@
 import { STEPS, STAGE_TABS, AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
+import { icardStats, icard, emptyCard } from "../shared/templates.js";
 
 export const methods = {
   async startDashboardMode() {
@@ -397,21 +398,11 @@ export const methods = {
                         ${t.tierLabel ? `<div class="icard-source">${t.tierLabel}</div>` : ""}
                         <div class="icard-title">${t.name}</div>
                         <div class="icard-stats-grid">
-                            ${(t.stats || [])
-                              .map(
-                                (s) => `<div class="icard-stat">
-                                <div class="icard-stat-value">${s.value}</div>
-                                <div class="icard-stat-label">${s.label}</div>
-                            </div>`,
-                              )
-                              .join("")}
+                            ${icardStats(t.stats || [])}
                         </div>
                     </div>`;
         });
-        return (
-          html ||
-          '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No government data available.</p></div>'
-        );
+        return html || emptyCard("No government data available.");
       }
       case 1: {
         // Investment tab: corporate companies
@@ -444,14 +435,7 @@ export const methods = {
                         ${t.tierLabel ? `<div class="icard-source">${t.tierLabel}</div>` : ""}
                         <div class="icard-title">${t.name}</div>
                         <div class="icard-stats-grid">
-                            ${(t.stats || [])
-                              .map(
-                                (s) => `<div class="icard-stat">
-                                <div class="icard-stat-value">${s.value}</div>
-                                <div class="icard-stat-label">${s.label}</div>
-                            </div>`,
-                              )
-                              .join("")}
+                            ${icardStats(t.stats || [])}
                         </div>
                     </div>`;
         });
@@ -508,7 +492,7 @@ export const methods = {
               allImages,
               property.name || "Property gallery",
             )
-          : '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No images available.</p></div>';
+          : emptyCard("No images available.");
       }
       default:
         return "";
@@ -516,7 +500,7 @@ export const methods = {
   },
   _renderTruthEngineCard(property, te) {
     if (!te || (!te.basicSettings && !te.designStrategy && !te.landStrategy)) {
-      return '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No truth engine data available.</p></div>';
+      return emptyCard("No truth engine data available.");
     }
     let html = "";
 
@@ -575,7 +559,7 @@ export const methods = {
   },
   _renderFutureOutlookCard(property, fo) {
     if (!fo || !fo.factors?.length) {
-      return '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No future outlook data available.</p></div>';
+      return emptyCard("No future outlook data available.");
     }
     let html = "";
     if (fo.description) {
@@ -641,27 +625,23 @@ export const methods = {
         risks.forEach((r) => (html += this.renderRiskCard(r)));
         const roads = AppData.infrastructureRoads || [];
         roads.forEach((road) => {
-          html += `<div class="icard icard-standard">
-                        <div class="icard-title">${road.name}</div>
-                        <div class="icard-stats-grid">
-                            <div class="icard-stat">
-                                <div class="icard-stat-value">${road.status}</div>
-                                <div class="icard-stat-label">Status</div>
-                            </div>
-                            <div class="icard-stat">
-                                <div class="icard-stat-value">${road.commuteImpact}</div>
-                                <div class="icard-stat-label">Commute saved</div>
-                            </div>
-                            <div class="icard-stat">
-                                <div class="icard-stat-value">${road.completionDate}</div>
-                                <div class="icard-stat-label">Completion</div>
-                            </div>
-                            <div class="icard-stat">
-                                <div class="icard-stat-value">${road.budget}</div>
-                                <div class="icard-stat-label">Budget</div>
-                            </div>
-                        </div>
-                    </div>`;
+          html += icard(
+            { title: road.name },
+            `<div class="icard-stats-grid">
+                            ${icardStats([
+                              { value: road.status, label: "Status" },
+                              {
+                                value: road.commuteImpact,
+                                label: "Commute saved",
+                              },
+                              {
+                                value: road.completionDate,
+                                label: "Completion",
+                              },
+                              { value: road.budget, label: "Budget" },
+                            ])}
+                        </div>`,
+          );
         });
         return html;
       }
@@ -725,7 +705,7 @@ export const methods = {
   _renderEvidenceForGroup(groupId) {
     const group = AppData.evidenceGroups?.[groupId];
     if (!group || !group.items?.length) {
-      return '<div class="icard icard-compact"><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No evidence documents available.</p></div>';
+      return emptyCard("No evidence documents available.");
     }
     return group.items.map((item) => this.renderEvidenceDocCard(item)).join("");
   },
@@ -1054,14 +1034,7 @@ export const methods = {
                 </div>
             </div>
             <div class="icard-stats-grid">
-                ${stats
-                  .map(
-                    (s) => `<div class="icard-stat">
-                    <div class="icard-stat-value">${s.value}</div>
-                    <div class="icard-stat-label">${s.label}</div>
-                </div>`,
-                  )
-                  .join("")}
+                ${icardStats(stats)}
             </div>
         </div>`;
   },
@@ -1091,19 +1064,18 @@ export const methods = {
         </div>`;
   },
   renderCommuteCard(property) {
-    return `<div class="icard icard-standard">
-            <div class="icard-title">Commute to JASM</div>
-            <div class="icard-stats-grid">
-                <div class="icard-stat">
-                    <div class="icard-stat-value">${property.distanceToJasm || "n/a"}</div>
-                    <div class="icard-stat-label">Distance</div>
-                </div>
-                <div class="icard-stat">
-                    <div class="icard-stat-value">${property.driveTime || "n/a"}</div>
-                    <div class="icard-stat-label">Drive time</div>
-                </div>
-            </div>
-        </div>`;
+    return icard(
+      { title: "Commute to JASM" },
+      `<div class="icard-stats-grid">
+                ${icardStats([
+                  {
+                    value: property.distanceToJasm || "n/a",
+                    label: "Distance",
+                  },
+                  { value: property.driveTime || "n/a", label: "Drive time" },
+                ])}
+            </div>`,
+    );
   },
   renderRiskCard(risk) {
     const level = (risk.risk || "moderate").toLowerCase();
@@ -1123,14 +1095,7 @@ export const methods = {
             ${zone.subtitle ? `<div class="icard-source">${zone.subtitle}</div>` : ""}
             <div class="icard-title">${zone.name || "Zone profile"}</div>
             <div class="icard-stats-grid">
-                ${stats
-                  .map(
-                    (s) => `<div class="icard-stat">
-                    <div class="icard-stat-value">${s.value}</div>
-                    <div class="icard-stat-label">${s.label}</div>
-                </div>`,
-                  )
-                  .join("")}
+                ${icardStats(stats)}
             </div>
             ${zone.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3); line-height: var(--line-height-normal);">${zone.description}</p>` : ""}
         </div>`;

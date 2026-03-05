@@ -1,5 +1,10 @@
 import { AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
+import {
+  panelHeader,
+  statGrid,
+  disclosureTriangle,
+} from "../shared/templates.js";
 
 export const methods = {
   showDataLayers(stepIndex) {
@@ -480,9 +485,7 @@ export const methods = {
   showWaterResourcesEvidence() {
     const water = AppData.resources.water;
     const content = `
-            <div class="subtitle">JASM ESG report</div>
-            <h2>Water resources</h2>
-            <p>${water.description}</p>
+            ${panelHeader("JASM ESG report", "Water resources", water.description)}
             <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', 'JASM ESG report - green power and sustainability section')">
                 <img src="assets/use-case-images/evidence-renewable-energy.webp"
                      alt="JASM ESG report - green power and sustainability section"
@@ -551,18 +554,7 @@ export const methods = {
    * @param {Object} layerData - Layer data from AppData
    */
   showDataLayerPanel(layerName, layerData) {
-    const statsHtml = layerData.stats
-      ? layerData.stats
-          .map(
-            (stat) => `
-            <div class="stat-item">
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `,
-          )
-          .join("")
-      : "";
+    const statsHtml = statGrid(layerData.stats);
 
     const markersListHtml = layerData.markers
       ? `
@@ -604,10 +596,7 @@ export const methods = {
         return `
                     <div class="disclosure-group" data-group-id="${groupId}">
                         <button class="disclosure-header" aria-expanded="false" onclick="UI.toggleDisclosureGroup('${groupId}')">
-                            <span class="disclosure-triangle" aria-hidden="true">
-                                <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
-                                <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
-                            </span>
+                            ${disclosureTriangle()}
                             <span class="disclosure-icon" style="color: ${colorMap[type]}">${iconMap[type]}</span>
                             <span class="disclosure-title">${labelMap[type]}</span>
                             <span class="disclosure-badge">${facilities.length}</span>
@@ -639,10 +628,8 @@ export const methods = {
     }
 
     const content = `
-            <div class="subtitle">Data layer</div>
-            <h2>${layerData.name}</h2>
-            <p>${layerData.description}</p>
-            ${statsHtml ? `<div class="stat-grid">${statsHtml}</div>` : ""}
+            ${panelHeader("Data layer", layerData.name, layerData.description)}
+            ${statsHtml}
             ${markersListHtml}
             ${kyushuEnergyHtml}
         `;
@@ -704,16 +691,7 @@ export const methods = {
       const description = layerData ? layerData.description : "";
       const statsHtml =
         layerData && layerData.stats
-          ? layerData.stats
-              .map(
-                (stat) => `
-                <div class="stat-item">
-                    <div class="stat-value">${stat.value}</div>
-                    <div class="stat-label">${stat.label}</div>
-                </div>
-            `,
-              )
-              .join("")
+          ? statGrid(layerData.stats, "padding: var(--space-2) var(--space-4);")
           : "";
 
       const markersHtml =
@@ -733,15 +711,12 @@ export const methods = {
       sectionsHtml += `
                 <div class="disclosure-group expanded" data-group-id="${groupId}">
                     <button class="disclosure-header" aria-expanded="true" onclick="UI.toggleDisclosureGroup('${groupId}')">
-                        <span class="disclosure-triangle" aria-hidden="true">
-                            <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
-                            <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
-                        </span>
+                        ${disclosureTriangle()}
                         <span class="disclosure-title">${displayName}</span>
                     </button>
                     <div class="disclosure-content">
                         ${description ? `<p style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm); color: var(--color-text-secondary);">${description}</p>` : ""}
-                        ${statsHtml ? `<div class="stat-grid" style="padding: var(--space-2) var(--space-4);">${statsHtml}</div>` : ""}
+                        ${statsHtml}
                         ${markersHtml ? `<div class="data-layer-markers-list" style="padding: var(--space-2) var(--space-4);">${markersHtml}</div>` : ""}
                     </div>
                 </div>
@@ -749,8 +724,7 @@ export const methods = {
     });
 
     const content = `
-            <div class="subtitle">Data layers</div>
-            <h2>Active layers</h2>
+            ${panelHeader("Data layers", "Active layers")}
             <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
                 ${sectionsHtml}
             </div>
@@ -879,10 +853,10 @@ export const methods = {
           <canvas id="investment-chart" role="img" aria-label="Corporate investment comparison chart"></canvas>
         </div>
         <div id="investment-chart-table"></div>
-        <div class="stat-grid">
-          <div class="stat-item"><div class="stat-value">¥2.6T+</div><div class="stat-label">Total investment</div></div>
-          <div class="stat-item"><div class="stat-value">9,600+</div><div class="stat-label">Direct jobs</div></div>
-        </div>
+        ${statGrid([
+          { value: "¥2.6T+", label: "Total investment" },
+          { value: "9,600+", label: "Direct jobs" },
+        ])}
       `;
     }
 
@@ -904,7 +878,7 @@ export const methods = {
     const layerData = AppData.dataLayers[layerKey];
     if (layerData) {
       const statsHtml = layerData.stats
-        ? `<div class="stat-grid" style="margin-top: var(--space-4);">${layerData.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}</div>`
+        ? statGrid(layerData.stats, "margin-top: var(--space-4);")
         : "";
       const markersHtml = layerData.markers
         ? `<div class="data-layer-markers-list" style="margin-top: var(--space-4);">${layerData.markers.map((m) => `<button class="data-layer-marker-item" onclick="UI.focusDataLayerMarker('${layerKey}', '${m.id}')"><span class="marker-name">${m.name}</span></button>`).join("")}</div>`
@@ -963,8 +937,7 @@ export const methods = {
     detailsHtml += "</div>";
 
     const content = `
-            <div class="subtitle">${layerData.name}</div>
-            <h2>${marker.name}</h2>
+            ${panelHeader(layerData.name, marker.name)}
             ${detailsHtml}
         `;
 

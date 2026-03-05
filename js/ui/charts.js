@@ -1,5 +1,6 @@
 import { AppData } from "../data/index.js";
 import { TIMING } from "../app.js";
+import { panelHeader, statGrid, dataAttribution } from "../shared/templates.js";
 
 export const methods = {
   destroyChart(chartId) {
@@ -319,9 +320,7 @@ export const methods = {
       .join("");
 
     const content = `
-            <div class="subtitle">Growth drivers</div>
-            <h2>Truth engine</h2>
-            <p>Key factors driving future value appreciation for this property:</p>
+            ${panelHeader("Growth drivers", "Truth engine", "Key factors driving future value appreciation for this property:")}
             ${driversHtml}
             <button class="panel-btn primary" onclick="UI.showPerformanceCalculator()">
                 Performance calculator
@@ -364,8 +363,7 @@ export const methods = {
     const confidence = this.getConfidenceInfo(scenario);
 
     const content = `
-            <div class="subtitle">Financial projection</div>
-            <h2>Performance calculator</h2>
+            ${panelHeader("Financial projection", "Performance calculator")}
 
             <div class="calculator-section">
                 <h4>Scenario comparison</h4>
@@ -452,23 +450,16 @@ export const methods = {
     const stats = AppData.areaStats;
 
     const content = `
-            <div class="subtitle">Market overview</div>
-            <h2>Area statistics</h2>
+            ${panelHeader("Market overview", "Area statistics")}
 
-            <div class="stat-grid">
-                <div class="stat-item">
-                    <div class="stat-value">${stats.avgAppreciation}</div>
-                    <div class="stat-label">Avg. annual appreciation</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${stats.avgRentalYield}</div>
-                    <div class="stat-label">Avg. rental yield</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${stats.occupancyRate}</div>
-                    <div class="stat-label">Occupancy rate</div>
-                </div>
-            </div>
+            ${statGrid([
+              {
+                value: stats.avgAppreciation,
+                label: "Avg. annual appreciation",
+              },
+              { value: stats.avgRentalYield, label: "Avg. rental yield" },
+              { value: stats.occupancyRate, label: "Occupancy rate" },
+            ])}
 
             <div class="calculator-section">
                 <h4>Appreciation trend</h4>
@@ -479,10 +470,7 @@ export const methods = {
                 <p class="chart-caption">Year-over-year property appreciation in the Kumamoto semiconductor corridor.</p>
             </div>
 
-            <div class="data-attribution">
-                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
-                <p>Data from Kumamoto Prefecture Real Estate Association</p>
-            </div>
+            ${dataAttribution("Data from Kumamoto Prefecture Real Estate Association")}
         `;
 
     this.showPanel(content);
