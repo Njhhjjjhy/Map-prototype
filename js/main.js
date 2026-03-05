@@ -13,7 +13,7 @@ import {
   CAMERA_STEPS,
   MapController,
 } from "./map/index.js";
-import { UI } from "./ui.js";
+import { UI } from "./ui/index.js";
 import { TIMING, App } from "./app.js";
 import { StepJumper } from "./dev/step-jumper.js";
 import { QAReporter } from "./dev/qa-reporter.js";
