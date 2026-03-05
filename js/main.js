@@ -6,7 +6,7 @@
  * so we assign them to window here.
  */
 
-import { STEPS, STAGE_TABS, AppData } from "./data.js";
+import { STEPS, STAGE_TABS, AppData } from "./data/index.js";
 import {
   MAP_COLORS,
   CAMERA_FEELINGS,

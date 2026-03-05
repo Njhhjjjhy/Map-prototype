@@ -2,7 +2,7 @@
  * Main App - State Machine for Journey Progression
  */
 
-import { STEPS, AppData } from "./data.js";
+import { STEPS, AppData } from "./data/index.js";
 import { CAMERA_STEPS, MapController } from "./map-controller.js";
 import { UI } from "./ui.js";
 

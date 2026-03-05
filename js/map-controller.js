@@ -15,7 +15,7 @@
  *   MapController.destroy()                       - Reset state (app restart)
  */
 
-import { AppData } from "./data.js";
+import { AppData } from "./data/index.js";
 import { TIMING, App } from "./app.js";
 import { UI } from "./ui.js";
 
