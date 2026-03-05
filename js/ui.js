@@ -2,6 +2,10 @@
  * UI Components - Panel, Chatbox, Gallery, Controls
  */
 
+import { STEPS, STAGE_TABS, AppData } from "./data.js";
+import { MAP_COLORS, CAMERA_STEPS, MapController } from "./map-controller.js";
+import { TIMING, App } from "./app.js";
+
 const UI = {
   elements: {},
   currentScenario: "average",
@@ -6914,3 +6918,5 @@ const UI = {
     }
   },
 };
+
+export { UI };

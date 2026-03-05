@@ -3828,3 +3828,5 @@ const AppData = {
       "Semiconductor shift work creates year-round demand with no seasonal dip. April hiring cycles cause 15-20% rental inquiry spikes.",
   },
 };
+
+export { STEPS, STAGE_TABS, AppData };

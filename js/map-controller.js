@@ -1,19 +1,23 @@
 /**
- * MapController — Unified Mapbox GL JS 3D map engine
+ * MapController - Unified Mapbox GL JS 3D map engine
  *
  * Replaces both MapManager (Leaflet) and MapboxReveal (Mapbox overlay).
  * Single persistent Mapbox GL JS instance for all journeys with cinematic
  * camera choreography throughout.
  *
  * API:
- *   MapController.init()                          — Create Mapbox instance + 3D buildings
- *   MapController.flyToStep(config)               — Cinematic camera flight to any position
- *   MapController.elevateToCorridorView()         — Tilt into 3D corridor (steps 9-10)
- *   MapController.forwardReveal(property)         — Bird's-eye drill-down to property
- *   MapController.reverseReveal()                 — Fly back to corridor
- *   MapController.preloadImages(property)         — Preload images on hover
- *   MapController.destroy()                       — Reset state (app restart)
+ *   MapController.init()                          - Create Mapbox instance + 3D buildings
+ *   MapController.flyToStep(config)               - Cinematic camera flight to any position
+ *   MapController.elevateToCorridorView()         - Tilt into 3D corridor (steps 9-10)
+ *   MapController.forwardReveal(property)         - Bird's-eye drill-down to property
+ *   MapController.reverseReveal()                 - Fly back to corridor
+ *   MapController.preloadImages(property)         - Preload images on hover
+ *   MapController.destroy()                       - Reset state (app restart)
  */
+
+import { AppData } from "./data.js";
+import { TIMING, App } from "./app.js";
+import { UI } from "./ui.js";
 
 /**
  * Design system colors — mirrors CSS custom properties from CLAUDE.md
@@ -7036,3 +7040,5 @@ const MapController = {
     });
   },
 };
+
+export { MAP_COLORS, CAMERA_FEELINGS, CAMERA_STEPS, MapController };

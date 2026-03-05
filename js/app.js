@@ -2,8 +2,12 @@
  * Main App - State Machine for Journey Progression
  */
 
+import { STEPS, AppData } from "./data.js";
+import { CAMERA_STEPS, MapController } from "./map-controller.js";
+import { UI } from "./ui.js";
+
 /**
- * Shared timing constants — semantic names for setTimeout values.
+ * Shared timing constants - semantic names for setTimeout values.
  * CSS token equivalents noted in comments.
  */
 const TIMING = {
@@ -2466,9 +2470,4 @@ const QAReporter = {
   },
 };
 
-// Initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
-  App.init();
-  StepJumper.init();
-  QAReporter.init();
-});
+export { TIMING, App, StepJumper, QAReporter };
