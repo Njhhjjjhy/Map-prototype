@@ -133,33 +133,70 @@ The smoothing script lives at `~/.claude/skills/smooth-outline/smooth-polygon.py
 
 ```
 map-prototype/
-├── index.html              # Main entry point
+├── index.html                  # Main entry point
 ├── css/
-│   └── styles.css          # All CSS (single file)
+│   └── styles.css              # All CSS (single file)
 ├── js/
-│   ├── app.js              # Main app logic & state machine
-│   ├── map-controller.js   # Mapbox GL JS setup, markers, layers, 3D camera
-│   ├── data.js             # All mock data
-│   └── ui.js               # Panel, chatbox, gallery, charts, draggable
+│   ├── main.js                 # Module entry point, global exposure
+│   ├── app.js                  # Core state machine, step navigation (708 lines)
+│   ├── step-handlers.js        # Step-specific sub-item handlers (1,203 lines)
+│   ├── map/
+│   │   ├── index.js            # MapController facade
+│   │   ├── state.js            # Shared mutable state
+│   │   ├── constants.js        # MAP_COLORS, CAMERA_FEELINGS, CAMERA_STEPS
+│   │   ├── core.js             # init, destroy, safe helpers, utilities
+│   │   ├── camera.js           # flyToStep, cinematic moves, reveal
+│   │   ├── markers.js          # Marker creation, HTML templates
+│   │   ├── airlines.js         # Airline routes, arc lines
+│   │   ├── heartbeat.js        # Idle drift, marker pulse
+│   │   ├── resources.js        # Water, energy, resource arcs
+│   │   ├── zones.js            # Science park, investment zones
+│   │   ├── properties.js       # Property context lines, talent pipeline
+│   │   ├── infrastructure.js   # Roads, government, airport, rail
+│   │   └── data-layers.js      # Data layer markers, animated routes
+│   ├── ui/
+│   │   ├── index.js            # UI facade
+│   │   ├── state.js            # Shared UI state
+│   │   ├── core.js             # Init, chatbox, panel, FAB, progress
+│   │   ├── cards.js            # Detail panels, government, airline, property
+│   │   ├── charts.js           # Chart.js rendering, calculator
+│   │   ├── data-layers.js      # Data layer toggles, dashboard, QA panel
+│   │   ├── ai-chat.js          # AI chat system
+│   │   ├── overlays.js         # Transition overlay, gallery, quick look
+│   │   ├── evidence.js         # Disclosure groups, evidence preview
+│   │   └── inspector.js        # Inspector panel, stage renderers, cards
+│   ├── data/
+│   │   ├── index.js            # AppData facade
+│   │   ├── steps.js            # STEPS, STAGE_TABS, CAMERA_STEPS
+│   │   ├── resources.js        # Water, power, sewage, silicon island
+│   │   ├── infrastructure.js   # Science park, airport, roads, stations
+│   │   ├── government.js       # Government chain, tiers, boundary
+│   │   ├── companies.js        # Corporate investment data
+│   │   ├── properties.js       # Property cards, zones, GKTK fund
+│   │   ├── evidence.js         # Evidence groups
+│   │   └── data-layers.js      # Toggleable data layer definitions
+│   ├── shared/
+│   │   ├── utils.js            # formatYen, toggleArrayItem, cycleIndex
+│   │   ├── icons.js            # SVG icon map
+│   │   ├── timing.js           # TIMING constants
+│   │   └── history-stack.js    # Reusable HistoryStack class
+│   └── dev/
+│       ├── step-jumper.js      # Step jumper tool
+│       └── qa-reporter.js      # QA reporter tool
 ├── assets/
-│   ├── placeholders/       # Placeholder images
-│   ├── Assets1.webp        # Brand logo (dark)
-│   ├── Assets2.webp        # Brand logo (alt)
-│   ├── Assets3.svg         # Brand mark (SVG)
-│   ├── Assets4.svg         # Brand mark (variant)
-│   └── Assets4-white.svg   # Brand mark (white)
+│   ├── placeholders/           # Placeholder images
+│   └── map-outlines/           # KML and GeoJSON boundary data
 ├── docs/
-│   ├── design-tokens.md    # Full CSS token definitions
-│   ├── components.md       # Component specifications
-│   ├── motion.md           # Animation & timing specs
-│   ├── interaction-patterns.md  # Interaction & accessibility
-│   ├── checklist.md        # QA checklist
-│   ├── BEATSHEET.md        # Narrative beat sheet
+│   ├── design-tokens.md        # Full CSS token definitions
+│   ├── components.md           # Component specifications
+│   ├── motion.md               # Animation & timing specs
+│   ├── interaction-patterns.md # Interaction & accessibility
+│   ├── checklist.md            # QA checklist
+│   ├── BEATSHEET.md            # Narrative beat sheet
 │   ├── Map prototype spec.md   # App specification
-│   └── plans/              # Design documents and plans
-├── feedback/               # User research
-├── CLAUDE.md               # This file (design system rules)
-└── package.json            # Dependencies
+│   └── plans/                  # Design documents and plans
+├── CLAUDE.md                   # This file (design system rules)
+└── package.json                # Dependencies
 ```
 
 ---

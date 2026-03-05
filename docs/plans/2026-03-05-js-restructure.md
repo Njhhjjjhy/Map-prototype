@@ -380,8 +380,29 @@ Replaced `map-controller.js` (7,044 lines) with 13 files in `js/map/`. Used a Py
 | `js/map/index.js` | 41 | Facade composing all sub-modules into MapController |
 | **Total** | **6,602** | Was 7,044 in single file |
 
-### Phase 5: Split ui.js - next
+### Phase 5: Split ui.js - done
+**Commit:** `0c0f681`
 
-### Phase 6: Split app.js and extract step handlers - pending
+Replaced `ui.js` (6,922 lines) with 10 files in `js/ui/` using the same Object.assign facade pattern. Fixed orphaned JSDoc comments from extraction (systematic issue where `*/` closing lines fell outside extraction ranges).
 
-### Phase 7: Final cleanup and deduplication - pending
+| File | Lines | Contents |
+|------|------:|---------|
+| `js/ui/state.js` | 65 | All shared UI state |
+| `js/ui/core.js` | 984 | Init, chatbox, panel, FAB, progress, time toggle, utilities |
+| `js/ui/cards.js` | 1,547 | Detail panels for resources, government, companies, properties |
+| `js/ui/charts.js` | 500 | Chart.js rendering, calculator, scenarios |
+| `js/ui/data-layers.js` | 958 | Data layer toggles, dashboard, QA panel |
+| `js/ui/ai-chat.js` | 423 | AI chat system, download summary |
+| `js/ui/overlays.js` | 609 | Transition overlay, gallery, quick look, focus trap |
+| `js/ui/evidence.js` | 283 | Disclosure groups, evidence preview |
+| `js/ui/inspector.js` | 1,424 | Inspector panel, stage renderers, card renderers |
+| `js/ui/index.js` | 31 | Facade composing all sub-modules into UI |
+
+### Phase 6: Split app.js and extract step handlers - done
+**Commit:** `d73a1b5`
+
+Extracted step-specific handlers from `app.js` (1,890 lines) into `js/step-handlers.js` (1,203 lines). Core state machine stays in `app.js` (708 lines). Methods merged via `Object.assign(App, stepHandlers)`. Avoided circular import by having step-handlers access `TIMING` via `window` instead of importing from app.js.
+
+### Phase 7: Final cleanup - done
+
+Replaced bare `setTimeout` numbers with `TIMING.*` constants in app.js. Updated CLAUDE.md file structure to reflect new module layout. `shared/` modules (utils, icons, timing, history-stack) remain available but not yet consumed - wiring them in would require changing import chains across many files for minimal gain.

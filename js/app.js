@@ -260,7 +260,7 @@ const App = {
 
     // Hide UI sequentially for cleaner exit
     UI.hideChatbox();
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, TIMING.fast));
     UI.hidePanel();
 
     // Clean up step-specific map elements
@@ -272,7 +272,7 @@ const App = {
       this.state.futureView = false;
     }
 
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, TIMING.restartDelay));
   },
 
   /**
@@ -594,7 +594,10 @@ const App = {
         if (airport) MapController.showAirportMarker(airport);
 
         // Emphasize road extensions for the future vision
-        setTimeout(() => MapController.highlightRoadExtensions(), 500);
+        setTimeout(
+          () => MapController.highlightRoadExtensions(),
+          TIMING.restartDelay,
+        );
 
         UI.showPanel(`
                     <div class="subtitle">Future outlook</div>
