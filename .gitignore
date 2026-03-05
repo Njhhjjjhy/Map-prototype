@@ -1,6 +1,9 @@
 # Worktrees
 .worktrees/
 
+# Handoffs
+.handoffs/
+
 # OS files
 .DS_Store
 

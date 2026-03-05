@@ -25,6 +25,8 @@ const TIMING = {
 };
 
 const App = {
+  _transitioning: false, // Lock to prevent concurrent step transitions
+
   state: {
     currentStep: 0, // 1-11, 0 = not started
     subItemsExplored: [], // Track which sub-items within current step have been viewed
@@ -36,7 +38,8 @@ const App = {
     activeEnergyTypes: [], // Track which energy types are toggled on (solar, wind, nuclear)
     activeGovernmentLevels: [], // Track which government levels are toggled on (central, prefectural, local)
     visitedGovernmentLevels: [], // Track which government levels have been viewed (persists across toggles)
-    activeInvestmentZones: [], // Track which investment zones are toggled on (kikuyo-zone, koshi-zone, ozu-zone)
+    activeInvestmentZones: [], // Track which investment zones are toggled on (kikuyo-zone, ozu-zone, koshi-zone)
+    qaMode: false, // Whether Q&A mode is active (post-journey exploration)
   },
 
   /**
@@ -82,6 +85,10 @@ const App = {
   async goToStep(stepIndex) {
     const step = STEPS[stepIndex - 1];
     if (!step) return;
+
+    // Transition lock - prevent concurrent step transitions
+    if (this._transitioning) return;
+    this._transitioning = true;
 
     const prevStep = this.state.currentStep;
 
@@ -163,6 +170,8 @@ const App = {
 
     // --- Accessibility ---
     UI.announceToScreenReader(`Step ${stepIndex}: ${step.title}`);
+
+    this._transitioning = false;
   },
 
   /**
@@ -181,9 +190,11 @@ const App = {
   async prevStep() {
     const current = this.state.currentStep;
     if (current <= 0) return;
+    if (this._transitioning) return;
 
     if (current === 1) {
       // Return to welcome state (step 0)
+      this._transitioning = true;
       await this._exitStep(1);
       this.state.currentStep = 0;
       this.state.subItemsExplored = [];
@@ -200,6 +211,7 @@ const App = {
             `);
 
       MapController.startHeartbeat();
+      this._transitioning = false;
     } else {
       this.goToStep(current - 1);
     }
@@ -262,6 +274,9 @@ const App = {
    * Show the map layers required for a step.
    */
   _showStepLayers(step, opts = {}) {
+    // Clean up any existing layers for this step first (idempotent re-entry)
+    this._hideStepLayers(step);
+
     const layers = step.layers || [];
 
     if (layers.includes("resources")) {
@@ -350,7 +365,10 @@ const App = {
     if (step.id === "properties") {
       MapController.fadeOutMarkerGroup("properties");
     }
-    // Resources, sciencePark - cleaned up via marker fade
+    // Clean up science park circle layers and markers
+    if (layers.includes("sciencePark")) {
+      MapController._removeLayerGroup("sciencePark");
+    }
   },
 
   // ================================
@@ -1380,25 +1398,25 @@ const App = {
   _handleInvestmentZoneSubItem(itemId) {
     const zoneData = {
       "kikuyo-zone": {
-        name: "Kikuyo zone",
+        name: "Kikuyo",
         role: "Factory core / new urban core",
         description:
           "Manufacturing nucleus and new urban district. Haramizu station new station area targeted as advanced new urban district integrating residence, commerce, education, and research.",
-        coords: [32.88, 130.83],
-      },
-      "koshi-zone": {
-        name: "Koshi zone",
-        role: "R&D / tools and process innovation",
-        description:
-          "Research and development focus with equipment chain concentration. Home to Tokyo Electron and supporting tool manufacturers.",
-        coords: [32.85, 130.78],
+        coords: [32.86, 130.83],
       },
       "ozu-zone": {
-        name: "Ozu zone",
+        name: "Ozu",
         role: "Gateway / office and logistics support",
         description:
           "Transportation hub with logistics coordination and supplier office locations. Gateway to the semiconductor corridor.",
-        coords: [32.86, 130.87],
+        coords: [32.88, 130.87],
+      },
+      "koshi-zone": {
+        name: "Koshi",
+        role: "R&D / tools and process innovation",
+        description:
+          "Research and development focus with equipment chain concentration. Home to Tokyo Electron and supporting tool manufacturers.",
+        coords: [32.905, 130.76],
       },
     };
     const zone = zoneData[itemId];
@@ -1426,44 +1444,33 @@ const App = {
    * Maps chatbox sub-item IDs to property zone name fragments.
    */
   _propertyZoneMap: {
-    "ozu-properties": {
-      filter: "ozu",
-      zoneId: "ozu-zone",
-      label: "Ozu properties",
-      camera: {
-        center: [130.8976, 32.8417],
-        zoom: 12.7,
-        pitch: 52,
-        bearing: 45,
-      },
-    },
     "kikuyo-properties": {
       filter: "kikuyo",
       zoneId: "kikuyo-zone",
       label: "Kikuyo properties",
       camera: {
-        center: [130.8154, 32.8531],
-        zoom: 13.0,
+        center: [130.83, 32.87],
+        zoom: 12.5,
         pitch: 52,
-        bearing: 86,
+        bearing: 20,
       },
     },
-    "haramizu-developments": {
-      filter: "haramizu",
-      zoneId: "haramizu-zone",
-      label: "Haramizu developments",
+    "ozu-properties": {
+      filter: "ozu",
+      zoneId: "ozu-zone",
+      label: "Ozu properties",
       camera: {
-        center: [130.8154, 32.8648],
-        zoom: 14.4,
+        center: [130.87, 32.865],
+        zoom: 12.7,
         pitch: 52,
-        bearing: 0,
+        bearing: 45,
       },
     },
   },
 
   /**
    * Handle zone group selection from chatbox.
-   * Shows the zone circle, property markers, and cinematic camera sweep.
+   * Shows the zone boundary, property markers, and cinematic camera sweep.
    */
   _handlePropertySubItem(itemId) {
     const zoneInfo = this._propertyZoneMap[itemId];
@@ -1483,7 +1490,7 @@ const App = {
     MapController._removeLayerGroup("properties");
     MapController.removePropertyContextLines();
 
-    // Show just this zone circle
+    // Show just this zone boundary
     MapController.showInvestmentZone(zoneInfo.zoneId);
 
     // Show markers for all properties in this zone
@@ -1516,7 +1523,7 @@ const App = {
 
     this.state.activeProperty = propertyId;
 
-    // Hide zone circles so property is the focus
+    // Hide zone boundaries so property is the focus
     MapController.hideInvestmentZones();
 
     // Remove all property markers, show only selected one
@@ -1598,8 +1605,8 @@ const App = {
                     <div class="journey-recap-headline-detail">across the portfolio</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                    <button class="chatbox-continue primary" onclick="UI.hideChatbox(); setTimeout(() => UI.showAIChat(), 600);">
-                        Ask Me Anything
+                    <button class="chatbox-continue primary" onclick="App.enterQAMode()">
+                        Enter Q&amp;A
                     </button>
                     <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); setTimeout(() => { UI.showAIChat(); UI.downloadSummary(); }, 600);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1612,6 +1619,49 @@ const App = {
                 </div>
             </div>
         `;
+  },
+
+  // ================================
+  // Q&A Mode
+  // ================================
+
+  /**
+   * Enter Q&A mode: clean map, show AI chat, enable all data layer toggles.
+   */
+  async enterQAMode() {
+    if (this._transitioning) return;
+    this._transitioning = true;
+    this.state.qaMode = true;
+
+    // Clean up the current step
+    if (this.state.currentStep > 0) {
+      await this._exitStep(this.state.currentStep);
+    }
+
+    // Clear all map annotations for a clean base map
+    MapController.clearAll();
+
+    // Hide progress bar and time toggle
+    UI.updateJourneyProgress(0, STEPS.length);
+    UI.hideTimeToggle();
+
+    // Populate data layers panel with all 11 layer groups (all unselected)
+    UI.showDataLayers("qa");
+
+    // Show AI chat with Q&A suggestion chips
+    UI.showQAChatbox();
+
+    // Ensure right panel is hidden initially
+    UI.hidePanel();
+
+    // Show persistent controls
+    UI.showLayersToggle();
+    UI.showPanelToggle();
+
+    // Restart ambient motion
+    MapController.startHeartbeat();
+
+    this._transitioning = false;
   },
 
   // ================================
@@ -1679,10 +1729,10 @@ const App = {
         break;
 
       case "properties":
-        // Initialize with Koshi zone active by default
+        // Initialize with Kikuyo zone active by default
         this.state.activeInvestmentZones = [];
-        this.state.activeInvestmentZones.push("koshi-zone");
-        MapController.showInvestmentZone("koshi-zone");
+        this.state.activeInvestmentZones.push("kikuyo-zone");
+        MapController.showInvestmentZone("kikuyo-zone");
         UI.showInvestmentZonesPanel(this.state.activeInvestmentZones);
         break;
 
@@ -1818,6 +1868,7 @@ const App = {
     });
 
     // Reset state
+    this._transitioning = false;
     this.state.currentStep = 0;
     this.state.subItemsExplored = [];
     this.state.expandedGroups = [];
@@ -1971,9 +2022,11 @@ const StepJumper = {
    */
   async _jumpTo(step) {
     if (!step.implemented) return;
+    if (App._transitioning) return;
 
     // Step 0: return to welcome/entry state
     if (step.num === 0) {
+      App._transitioning = true;
       const current = App.state.currentStep;
       if (current > 0) {
         await App._exitStep(current);
@@ -1990,6 +2043,7 @@ const StepJumper = {
       `);
       MapController.startHeartbeat();
       this._highlightCurrent();
+      App._transitioning = false;
       return;
     }
 

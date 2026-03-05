@@ -1592,35 +1592,50 @@ const UI = {
           const zone = zones.find((z) => z.id === zoneId);
           if (!zone) return "";
 
-          // Find properties in this zone
+          // Find properties in this zone by exact zone name match
           const zoneProps = AppData.properties.filter(
-            (p) =>
-              p.zone &&
-              p.zone
-                .toLowerCase()
-                .includes(zone.name.toLowerCase().replace(" zone", "")),
+            (p) => p.zone && p.zone === zone.name,
           );
 
-          const propsListHtml =
-            zoneProps.length > 0
-              ? zoneProps
-                  .map(
-                    (p) => `
-                    <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-small); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);"
-                         onmouseenter="this.style.background='var(--color-bg-secondary)'"
-                         onmouseleave="this.style.background=''"
-                         onclick="App.selectProperty('${p.id}')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium);">${p.name}</div>
-                            <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${p.subtitle}</div>
-                        </div>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m9 18 6-6-6-6"/></svg>
+          let propsListHtml;
+          if (zoneProps.length > 0) {
+            // Group properties by sub-area
+            const subAreaMap = {};
+            zoneProps.forEach((p) => {
+              const area = p.subArea || "Other";
+              if (!subAreaMap[area]) subAreaMap[area] = [];
+              subAreaMap[area].push(p);
+            });
+
+            propsListHtml = Object.entries(subAreaMap)
+              .map(
+                ([area, props]) => `
+                    <div style="margin-top: var(--space-3);">
+                        <div style="font-size: var(--text-xs); font-weight: var(--font-weight-medium); color: var(--color-text-tertiary); text-transform: none; margin-bottom: var(--space-1);">${area}</div>
+                        ${props
+                          .map(
+                            (p) => `
+                            <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-small); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);"
+                                 onmouseenter="this.style.background='var(--color-bg-secondary)'"
+                                 onmouseleave="this.style.background=''"
+                                 onclick="App.selectProperty('${p.id}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium);">${p.name}</div>
+                                    <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${p.subtitle}</div>
+                                </div>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m9 18 6-6-6-6"/></svg>
+                            </div>
+                        `,
+                          )
+                          .join("")}
                     </div>
                 `,
-                  )
-                  .join("")
-              : `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); padding: var(--space-3);">No properties in this zone.</div>`;
+              )
+              .join("");
+          } else {
+            propsListHtml = `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); padding: var(--space-3);">No properties yet.</div>`;
+          }
 
           return `
                     <div class="energy-evidence-card" style="border-left: 3px solid ${zone.strokeColor};">
@@ -3645,6 +3660,17 @@ const UI = {
       airlineRoutes: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
             </svg>`,
+      // Train icon (Lucide: train-front)
+      railCommute: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/><path d="m9 15-1-1"/><path d="m15 15 1-1"/>
+                <path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/>
+                <path d="m8 19-2 3"/><path d="m16 19 2 3"/>
+            </svg>`,
+      // Road icon (Lucide: route)
+      infraPlan: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
+                <circle cx="18" cy="5" r="3"/>
+            </svg>`,
     };
 
     // Populate Data Layers section with cumulative step-ordered items.
@@ -3714,13 +3740,55 @@ const UI = {
         label: "Science park",
         labelFrom5: "Science park & airport concept",
       },
+      {
+        step: 6,
+        layer: "scienceParkClusters",
+        icon: icons.sciencePark,
+        label: "Science park clusters",
+      },
+      {
+        step: 7,
+        layer: "talentPipeline",
+        icon: icons.employment,
+        label: "Talent pipeline",
+      },
+      {
+        step: 8,
+        layer: "futureOutlook",
+        icon: icons.infrastructure,
+        label: "Future outlook",
+      },
+      {
+        step: 9,
+        layer: "investmentZones",
+        icon: icons.realEstate,
+        label: "Investment zones",
+      },
+      {
+        step: 10,
+        layer: "properties",
+        icon: icons.properties,
+        label: "Properties",
+      },
+      {
+        step: 10,
+        layer: "railCommute",
+        icon: icons.railCommute,
+        label: "Rail commute",
+      },
+      {
+        step: 10,
+        layer: "infraPlan",
+        icon: icons.infraPlan,
+        label: "Infrastructure plan",
+      },
     ];
 
     let html = "";
     if (stepIndex === "initial") {
       html = layerBtn("waterResources", icons.riskyArea, "Water resources");
-    } else if (stepIndex === "dashboard") {
-      // Dashboard: show all available layers (use extended label for combined entry)
+    } else if (stepIndex === "dashboard" || stepIndex === "qa") {
+      // Dashboard / Q&A: show all available layers (use extended label for combined entry)
       html = LAYER_SEQUENCE.map((item) => {
         const label = item.labelFrom5 || item.label;
         return layerBtn(item.layer, item.icon, label);
@@ -3812,6 +3880,18 @@ const UI = {
   },
 
   /**
+   * Reset all data layers to inactive state.
+   */
+  resetAllDataLayers() {
+    this.activeDataLayers = {};
+    const allItems = document.querySelectorAll("#data-layer-items .layer-item");
+    allItems.forEach((item) => {
+      item.classList.remove("active");
+      item.setAttribute("aria-checked", "false");
+    });
+  },
+
+  /**
    * Toggle layers panel visibility
    */
   toggleLayersPanel() {
@@ -3875,20 +3955,35 @@ const UI = {
 
       if (layerName === "waterResources") {
         MapController.hideWaterResourceLayer();
-        this.hidePanel();
+        if (!App.state.qaMode) this.hidePanel();
       } else if (layerName === "airlineRoutes") {
         MapController.hideAirlineRoutes();
-        this.hidePanel();
+        if (!App.state.qaMode) this.hidePanel();
       } else if (layerName === "electricity") {
         MapController.fadeOutDataLayerMarkersAnimated(layerName);
         if (!App || !App.state || App.state.currentStep !== 1) {
           MapController.hideKyushuEnergy();
         }
-        MapController.restorePreDataLayerView();
+        if (!App.state.qaMode) MapController.restorePreDataLayerView();
       } else if (layerName === "governmentChain") {
         MapController.hideLayer("governmentChain");
         MapController.hideAllGovernmentLevels();
-        this.hidePanel();
+        if (!App.state.qaMode) this.hidePanel();
+      } else if (layerName === "scienceParkClusters") {
+        MapController.fadeOutMarkerGroup("sciencePark");
+      } else if (layerName === "talentPipeline") {
+        MapController.hideTalentPipeline();
+      } else if (layerName === "futureOutlook") {
+        MapController.hideFutureZones();
+        MapController.hideInfrastructureRoads();
+      } else if (layerName === "investmentZones") {
+        MapController.hideInvestmentZones();
+      } else if (layerName === "properties") {
+        MapController.fadeOutMarkerGroup("properties");
+      } else if (layerName === "railCommute") {
+        MapController.hideRailCommute();
+      } else if (layerName === "infraPlan") {
+        MapController.hideInfraPlan();
       } else if (isMapLayer) {
         MapController.hideLayer(layerName);
       } else {
@@ -3906,19 +4001,23 @@ const UI = {
 
       if (layerName === "waterResources") {
         MapController.showWaterResourceLayer();
-        MapController.flyToStep(CAMERA_STEPS.A2_water);
-        this.showWaterResourcesEvidence();
+        if (!App.state.qaMode) {
+          MapController.flyToStep(CAMERA_STEPS.A2_water);
+          this.showWaterResourcesEvidence();
+        }
       } else if (layerName === "airlineRoutes") {
         MapController.showAirlineRoutes();
-        MapController.flyToStep(CAMERA_STEPS.A3_location);
-        this.showAllAirlineRoutes();
+        if (!App.state.qaMode) {
+          MapController.flyToStep(CAMERA_STEPS.A3_location);
+          this.showAllAirlineRoutes();
+        }
       } else if (layerName === "electricity") {
         const layerData = AppData.dataLayers[layerName];
         if (layerData) {
-          MapController.savePreDataLayerView();
+          if (!App.state.qaMode) MapController.savePreDataLayerView();
           MapController.showDataLayerMarkers(layerName, layerData);
           MapController.showKyushuEnergy();
-          this.showDataLayerPanel(layerName, layerData);
+          if (!App.state.qaMode) this.showDataLayerPanel(layerName, layerData);
         }
       } else if (layerName === "governmentChain") {
         // On the government step, restore active level; otherwise show chain
@@ -3934,9 +4033,28 @@ const UI = {
         } else {
           MapController.showGovernmentChain();
         }
-        MapController.flyToStep(CAMERA_STEPS.A4_government);
+        if (!App.state.qaMode) {
+          MapController.flyToStep(CAMERA_STEPS.A4_government);
+        }
+      } else if (layerName === "scienceParkClusters") {
+        MapController.showSciencePark();
+      } else if (layerName === "talentPipeline") {
+        MapController.showTalentPipeline({ skipFly: App.state.qaMode });
+      } else if (layerName === "futureOutlook") {
+        MapController.showFutureZones();
+        MapController.showInfrastructureRoads({ skipFly: App.state.qaMode });
+      } else if (layerName === "investmentZones") {
+        MapController.showInvestmentZones();
+      } else if (layerName === "properties") {
+        MapController.showPropertyMarkers();
+      } else if (layerName === "railCommute") {
+        MapController.showRailCommute();
+      } else if (layerName === "infraPlan") {
+        MapController.showInfraPlan();
       } else if (isMapLayer) {
-        MapController.ensureLayerMarkers(layerName);
+        MapController.ensureLayerMarkers(layerName, {
+          skipFitBounds: App.state.qaMode,
+        });
       } else {
         // Standard data layer
         const layerData = AppData.dataLayers[layerName];
@@ -4005,14 +4123,19 @@ const UI = {
       baseMap: "Base map",
       trafficFlow: "Traffic flow",
       railCommute: "Rail commute",
+      infraPlan: "Infrastructure plan",
       electricity: "Electricity usage",
       employment: "Employment",
-      infrastructure: "Infrastructure plan",
+      infrastructure: "Infrastructure roads",
       realEstate: "Real estate",
       riskyArea: "Risky area",
       airlineRoutes: "Strategic location",
       governmentChain: "Government support",
       waterResources: "Water resources",
+      scienceParkClusters: "Science park clusters",
+      talentPipeline: "Talent pipeline",
+      futureOutlook: "Future outlook",
+      investmentZones: "Investment zones",
     };
     return names[layerName] || layerName;
   },
@@ -4127,6 +4250,17 @@ const UI = {
    * Journey takes priority when chatbox is open.
    */
   _handleDataLayerDashboard() {
+    // In Q&A mode, always use the tabbed QA panel
+    if (App.state.qaMode) {
+      const activeKeys = Object.keys(this.activeDataLayers);
+      if (activeKeys.length === 0) {
+        this.hidePanel();
+        return;
+      }
+      this._renderQAPanel();
+      return;
+    }
+
     const chatbox = this.elements.chatbox;
     const chatboxOpen = chatbox && !chatbox.classList.contains("hidden");
 
@@ -4218,6 +4352,166 @@ const UI = {
         `;
 
     this.showPanel(content);
+  },
+
+  // ================================
+  // Q&A TABBED PANEL
+  // ================================
+
+  /**
+   * Render a tabbed right panel for Q&A mode showing active layers as tabs.
+   */
+  _renderQAPanel() {
+    const activeKeys = Object.keys(this.activeDataLayers);
+    if (activeKeys.length === 0) {
+      this.hidePanel();
+      return;
+    }
+
+    // Default to first active tab if current selection is no longer active
+    if (!this._qaActiveTab || !this.activeDataLayers[this._qaActiveTab]) {
+      this._qaActiveTab = activeKeys[0];
+    }
+
+    const tabsHtml = activeKeys
+      .map((key) => {
+        const label = this.getLayerDisplayName(key);
+        const active = key === this._qaActiveTab ? " active" : "";
+        return `<button class="qa-tab${active}" data-layer="${key}" onclick="UI._switchQATab('${key}')">${label}</button>`;
+      })
+      .join("");
+
+    const bodyHtml = this._getQATabContent(this._qaActiveTab);
+
+    const content = `
+      <div class="subtitle">Q&amp;A mode</div>
+      <h2>Layer details</h2>
+      <div class="qa-panel-tabs">${tabsHtml}</div>
+      <div class="qa-tab-body">${bodyHtml}</div>
+    `;
+
+    this.showPanel(content);
+
+    // Render chart if companies tab is active
+    if (this._qaActiveTab === "companies") {
+      setTimeout(() => this.renderInvestmentChart(), 50);
+    }
+  },
+
+  /**
+   * Switch the active tab in Q&A mode panel.
+   */
+  _switchQATab(layerKey) {
+    this._qaActiveTab = layerKey;
+    this._renderQAPanel();
+  },
+
+  /**
+   * Get panel body HTML for a given layer key in Q&A mode.
+   * Delegates to existing data or builds from AppData.dataLayers.
+   */
+  _getQATabContent(layerKey) {
+    // Water resources - JASM ESG evidence
+    if (layerKey === "waterResources") {
+      const water = AppData.resources.water;
+      return `
+        <p>${water.description}</p>
+        <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', 'JASM ESG report')">
+          <img src="assets/use-case-images/evidence-renewable-energy.webp" alt="JASM ESG report" style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
+        </div>
+        <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+          ${water.stats.map((s) => `<div class="panel-bento-stat"><div class="panel-bento-stat-value">${s.value}</div><div class="panel-bento-stat-label">${s.label}</div></div>`).join("")}
+        </div>
+      `;
+    }
+
+    // Airline routes - destination summary
+    if (layerKey === "airlineRoutes") {
+      const routes = AppData.airlineRoutes;
+      const activeCount = routes.destinations
+        ? routes.destinations.filter((d) => d.status === "active").length
+        : 0;
+      const destList = routes.destinations
+        ? routes.destinations
+            .map(
+              (d) =>
+                `<div class="data-layer-marker-item" style="cursor: default;"><span class="marker-name">${d.name} (${d.code})</span><span style="color: var(--color-text-tertiary); font-size: var(--text-sm);">${d.flightTime}</span></div>`,
+            )
+            .join("")
+        : "";
+      return `
+        <p>Direct flights from ${routes.origin.name} (${routes.origin.code}) connect Kumamoto to major semiconductor hubs across Asia.</p>
+        <div class="panel-bento-stats" style="margin-top: var(--space-4);">
+          <div class="panel-bento-stat"><div class="panel-bento-stat-value">${activeCount}</div><div class="panel-bento-stat-label">Active routes</div></div>
+          <div class="panel-bento-stat"><div class="panel-bento-stat-value">${routes.destinations ? routes.destinations.length : 0}</div><div class="panel-bento-stat-label">Total destinations</div></div>
+        </div>
+        <div class="data-layer-markers-list" style="margin-top: var(--space-4);">${destList}</div>
+      `;
+    }
+
+    // Government chain - support levels
+    if (layerKey === "governmentChain") {
+      const gov = AppData.governmentChain;
+      const levelsList = gov.levels
+        ? gov.levels
+            .map(
+              (lvl) =>
+                `<div class="data-layer-marker-item" style="cursor: default;"><span class="marker-name">${lvl.name}</span><span style="color: var(--color-text-tertiary); font-size: var(--text-sm);">${lvl.stats[0].value}</span></div>`,
+            )
+            .join("")
+        : "";
+      return `
+        <p>${gov.intro}</p>
+        <div class="data-layer-markers-list" style="margin-top: var(--space-4);">${levelsList}</div>
+      `;
+    }
+
+    // Corporate investment - chart
+    if (layerKey === "companies") {
+      return `
+        <p>Total corporate investment in the Kumamoto semiconductor corridor.</p>
+        <div class="chart-container" style="height: 280px; margin: var(--space-6) 0;">
+          <canvas id="investment-chart" role="img" aria-label="Corporate investment comparison chart"></canvas>
+        </div>
+        <div id="investment-chart-table"></div>
+        <div class="stat-grid">
+          <div class="stat-item"><div class="stat-value">¥2.6T+</div><div class="stat-label">Total investment</div></div>
+          <div class="stat-item"><div class="stat-value">9,600+</div><div class="stat-label">Direct jobs</div></div>
+        </div>
+      `;
+    }
+
+    // Properties - list
+    if (layerKey === "properties" && AppData.properties) {
+      const list = AppData.properties
+        .map(
+          (p) =>
+            `<button class="data-layer-marker-item" onclick="UI.showPropertyDetail && UI.showPropertyDetail('${p.id}')"><span class="marker-name">${p.name}</span></button>`,
+        )
+        .join("");
+      return `
+        <p>Investment properties in the Kumamoto corridor.</p>
+        <div class="data-layer-markers-list" style="margin-top: var(--space-4);">${list}</div>
+      `;
+    }
+
+    // Fallback: render from AppData.dataLayers
+    const layerData = AppData.dataLayers[layerKey];
+    if (layerData) {
+      const statsHtml = layerData.stats
+        ? `<div class="stat-grid" style="margin-top: var(--space-4);">${layerData.stats.map((s) => `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}</div>`
+        : "";
+      const markersHtml = layerData.markers
+        ? `<div class="data-layer-markers-list" style="margin-top: var(--space-4);">${layerData.markers.map((m) => `<button class="data-layer-marker-item" onclick="UI.focusDataLayerMarker('${layerKey}', '${m.id}')"><span class="marker-name">${m.name}</span></button>`).join("")}</div>`
+        : "";
+      return `
+        <p>${layerData.description}</p>
+        ${statsHtml}
+        ${markersHtml}
+      `;
+    }
+
+    return `<p>No details available for this layer.</p>`;
   },
 
   /**
@@ -4346,6 +4640,51 @@ const UI = {
         ctasElement.classList.remove("hidden");
       }
     }
+
+    // Initialize if not already done
+    if (!this.aiChatInitialized) {
+      this.initAIChat();
+      this.aiChatInitialized = true;
+    }
+
+    // Focus the input
+    setTimeout(() => {
+      document.getElementById("ai-chat-input").focus();
+    }, 400);
+  },
+
+  /**
+   * Show AI chat configured for Q&A mode: hide chatbox, replace suggestion
+   * chips with layer-topic questions, hide CTAs.
+   */
+  showQAChatbox() {
+    // Hide the step chatbox
+    this.elements.chatbox.classList.add("hidden");
+    this.hideChatFab();
+
+    const aiChat = document.getElementById("ai-chat");
+    aiChat.classList.remove("hidden");
+    this._retriggerAnimation(aiChat);
+
+    // Hide CTAs in Q&A mode
+    const ctasElement = document.getElementById("ai-chat-ctas");
+    if (ctasElement) {
+      ctasElement.classList.add("hidden");
+    }
+
+    // Replace suggestion chips with Q&A topics
+    const suggestions = document.getElementById("ai-chat-suggestions");
+    suggestions.classList.remove("hidden");
+    suggestions.innerHTML = `
+      <button class="ai-chat-chip" data-question="What about Kumamoto's water quality and supply?">Water quality?</button>
+      <button class="ai-chat-chip" data-question="How strong is government support for the semiconductor corridor?">Government support?</button>
+      <button class="ai-chat-chip" data-question="What are the projected property returns in Kumamoto?">Property returns?</button>
+      <button class="ai-chat-chip" data-question="Tell me about the talent pipeline and workforce availability.">Talent pipeline?</button>
+    `;
+
+    // Clear previous messages
+    const messages = document.getElementById("ai-chat-messages");
+    messages.innerHTML = "";
 
     // Initialize if not already done
     if (!this.aiChatInitialized) {

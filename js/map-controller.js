@@ -357,6 +357,8 @@ const MapController = {
     grandAirportRailway: [],
     grandAirportRoads: [],
     propertyContextLines: [],
+    railCommute: [],
+    infraPlan: [],
   },
 
   // Road extension animation tracking
@@ -2066,7 +2068,7 @@ const MapController = {
    * Show talent pipeline — Kyushu-wide university/institution markers
    * Similar scope to showKyushuEnergy (extends beyond Kumamoto)
    */
-  showTalentPipeline() {
+  showTalentPipeline(opts = {}) {
     this.hideTalentPipeline();
 
     const pipeline = AppData.talentPipeline;
@@ -2152,13 +2154,15 @@ const MapController = {
     this._layerGroups.talentPipeline.push(`${sourceId}-line`, sourceId);
 
     // Fly to Kyushu overview to show all institutions
-    this.flyToStep({
-      center: [130.7, 32.5],
-      zoom: 7,
-      pitch: 25,
-      bearing: 0,
-      duration: 2500,
-    });
+    if (!opts.skipFly) {
+      this.flyToStep({
+        center: [130.7, 32.5],
+        zoom: 7,
+        pitch: 25,
+        bearing: 0,
+        duration: 2500,
+      });
+    }
   },
 
   hideTalentPipeline() {
@@ -2285,7 +2289,7 @@ const MapController = {
    * @param {Object} zone - Zone plan data from AppData.scienceParkZonePlans
    */
   showZonePlanHighlight(zone, opts = {}) {
-    if (!zone || !zone.polygon) return;
+    if (!zone) return;
 
     // Remove this specific zone if it already exists (avoid duplicates)
     const existingId = `zone-plan-${zone.id}`;
@@ -2298,49 +2302,52 @@ const MapController = {
       if (i !== -1) group.splice(i, 1);
     });
 
-    const sourceId = `zone-plan-${zone.id}`;
-    const geoJson = {
-      type: "Feature",
-      geometry: {
-        type: "Polygon",
-        coordinates: [zone.polygon],
-      },
-    };
+    // If zone has industrialZones array, render cluster view instead of single polygon
+    if (zone.industrialZones) {
+      this._showGovZoneClusters(zone);
+    } else if (zone.polygon) {
+      // Standard single-polygon rendering
+      const sourceId = `zone-plan-${zone.id}`;
+      const geoJson = {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [zone.polygon],
+        },
+      };
 
-    this._safeAddSource(sourceId, { type: "geojson", data: geoJson });
+      this._safeAddSource(sourceId, { type: "geojson", data: geoJson });
 
-    // Fill layer
-    this.map.addLayer({
-      id: `${sourceId}-fill`,
-      type: "fill",
-      source: sourceId,
-      paint: {
-        "fill-color": zone.color || "rgba(0, 122, 255, 0.25)",
-        "fill-opacity": 0,
-      },
-    });
+      this.map.addLayer({
+        id: `${sourceId}-fill`,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": zone.color || "rgba(0, 122, 255, 0.25)",
+          "fill-opacity": 0,
+        },
+      });
 
-    // Stroke layer
-    this.map.addLayer({
-      id: `${sourceId}-stroke`,
-      type: "line",
-      source: sourceId,
-      paint: {
-        "line-color": zone.strokeColor || "#007aff",
-        "line-width": 2.5,
-        "line-opacity": 0,
-      },
-    });
+      this.map.addLayer({
+        id: `${sourceId}-stroke`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": zone.strokeColor || "#007aff",
+          "line-width": 2.5,
+          "line-opacity": 0,
+        },
+      });
 
-    // Animate in
-    this.map.setPaintProperty(`${sourceId}-fill`, "fill-opacity", 0.3);
-    this.map.setPaintProperty(`${sourceId}-stroke`, "line-opacity", 0.9);
+      this.map.setPaintProperty(`${sourceId}-fill`, "fill-opacity", 0.3);
+      this.map.setPaintProperty(`${sourceId}-stroke`, "line-opacity", 0.9);
 
-    this._layerGroups.zonePlanHighlight.push(
-      `${sourceId}-fill`,
-      `${sourceId}-stroke`,
-      sourceId,
-    );
+      this._layerGroups.zonePlanHighlight.push(
+        `${sourceId}-fill`,
+        `${sourceId}-stroke`,
+        sourceId,
+      );
+    }
 
     // Fly to zone camera position (skip when called from subitem click)
     if (zone.camera && !opts.skipFly) {
@@ -2355,10 +2362,225 @@ const MapController = {
   },
 
   /**
+   * Render government zone plan with multiple industrial park circles and company dots.
+   * Matches the reference image showing semiconductor cluster areas.
+   */
+  _showGovZoneClusters(zone) {
+    const group = this._layerGroups.zonePlanHighlight;
+
+    // Render each industrial zone as a circle polygon
+    zone.industrialZones.forEach((iz, index) => {
+      const sourceId = `gov-zone-${iz.id}`;
+      const circleGeoJson = this._generateCirclePolygon(
+        this._toMapbox(iz.coords),
+        iz.radius,
+        48,
+      );
+
+      this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
+
+      this.map.addLayer({
+        id: `${sourceId}-fill`,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": iz.color,
+          "fill-opacity": 1,
+        },
+      });
+
+      this.map.addLayer({
+        id: `${sourceId}-stroke`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": iz.strokeColor,
+          "line-width": 2,
+          "line-opacity": 0.6,
+        },
+      });
+
+      group.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
+
+      // Labeled marker at center of each zone
+      const labelHtml = `<div class="gov-zone-label">
+        <span class="gov-zone-label-text">${iz.name}</span>
+        ${iz.subtitle ? `<span class="gov-zone-label-sub">${iz.subtitle}</span>` : ""}
+      </div>`;
+
+      const markerId = `gov-zone-marker-${iz.id}`;
+      const { marker } = this._createMarker(iz.coords, labelHtml, {
+        className: "gov-zone-label-wrapper",
+        ariaLabel: iz.name,
+      });
+
+      if (marker) {
+        this.markers[markerId] = marker;
+        group.push(markerId);
+      }
+    });
+
+    // Render company dot markers
+    if (zone.companyDots) {
+      zone.companyDots.forEach((dot) => {
+        const dotHtml = `<div class="gov-company-dot" style="--dot-color: ${dot.color};">
+          <div class="gov-company-dot-circle"></div>
+          <span class="gov-company-dot-label">${dot.label}</span>
+        </div>`;
+
+        const markerId = `gov-dot-${dot.id}`;
+        const { marker } = this._createMarker(dot.coords, dotHtml, {
+          className: "gov-company-dot-wrapper",
+          ariaLabel: dot.label,
+        });
+
+        if (marker) {
+          this.markers[markerId] = marker;
+          group.push(markerId);
+        }
+      });
+    }
+
+    // Render infrastructure lines and point markers
+    if (zone.infrastructureLines) {
+      zone.infrastructureLines.forEach((infra) => {
+        if (infra.type === "line") {
+          // Draw a line between two points
+          const sourceId = `gov-infra-${infra.id}`;
+          this._safeAddSource(sourceId, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                coordinates: [
+                  [infra.from[1], infra.from[0]],
+                  [infra.to[1], infra.to[0]],
+                ],
+              },
+            },
+          });
+
+          this.map.addLayer({
+            id: `${sourceId}-line`,
+            type: "line",
+            source: sourceId,
+            paint: {
+              "line-color": infra.color,
+              "line-width": 3,
+              "line-dasharray": [6, 4],
+              "line-opacity": 0.8,
+            },
+            layout: { "line-cap": "round", "line-join": "round" },
+          });
+
+          group.push(`${sourceId}-line`, sourceId);
+
+          // Label marker at midpoint
+          const midCoords = [
+            (infra.from[0] + infra.to[0]) / 2,
+            (infra.from[1] + infra.to[1]) / 2,
+          ];
+          const labelHtml = `<div class="gov-zone-label">
+            <span class="gov-zone-label-text">${infra.label}</span>
+          </div>`;
+          const markerId = `gov-infra-marker-${infra.id}`;
+          const { marker } = this._createMarker(midCoords, labelHtml, {
+            className: "gov-zone-label-wrapper",
+            ariaLabel: infra.label,
+          });
+          if (marker) {
+            this.markers[markerId] = marker;
+            group.push(markerId);
+          }
+        } else if (infra.type === "polygon") {
+          // Draw a filled polygon outline (e.g. monorail corridor)
+          const sourceId = `gov-infra-${infra.id}`;
+          this._safeAddSource(sourceId, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: [infra.polygon],
+              },
+            },
+          });
+
+          this.map.addLayer({
+            id: `${sourceId}-fill`,
+            type: "fill",
+            source: sourceId,
+            paint: {
+              "fill-color": infra.color,
+              "fill-opacity": 1,
+            },
+          });
+
+          this.map.addLayer({
+            id: `${sourceId}-stroke`,
+            type: "line",
+            source: sourceId,
+            paint: {
+              "line-color": infra.strokeColor || infra.color,
+              "line-width": 2,
+              "line-opacity": 0.8,
+            },
+          });
+
+          group.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
+
+          // Label at centroid
+          const coords = infra.polygon;
+          const midIdx = Math.floor(coords.length / 2);
+          const labelCoords = [coords[midIdx][1], coords[midIdx][0]];
+          const labelHtml = `<div class="gov-zone-label">
+            <span class="gov-zone-label-text">${infra.label}</span>
+          </div>`;
+          const markerId = `gov-infra-marker-${infra.id}`;
+          const { marker } = this._createMarker(labelCoords, labelHtml, {
+            className: "gov-zone-label-wrapper",
+            ariaLabel: infra.label,
+          });
+          if (marker) {
+            this.markers[markerId] = marker;
+            group.push(markerId);
+          }
+        } else if (infra.type === "point") {
+          // Labeled point marker
+          const labelHtml = `<div class="gov-zone-label">
+            <span class="gov-zone-label-text">${infra.label}</span>
+          </div>`;
+          const markerId = `gov-infra-marker-${infra.id}`;
+          const { marker } = this._createMarker(infra.coords, labelHtml, {
+            className: "gov-zone-label-wrapper",
+            ariaLabel: infra.label,
+          });
+          if (marker) {
+            this.markers[markerId] = marker;
+            group.push(markerId);
+          }
+        }
+      });
+    }
+  },
+
+  /**
    * Remove the current zone plan polygon highlight from the map.
    */
   hideZonePlanHighlight() {
-    this._layerGroups.zonePlanHighlight.forEach((id) => {
+    const group = this._layerGroups.zonePlanHighlight;
+    group.forEach((id) => {
+      // Remove DOM markers
+      if (this.markers[id]) {
+        const marker = this.markers[id];
+        const element = marker.getElement();
+        marker.remove();
+        if (element && element.parentNode) {
+          element.remove();
+        }
+        delete this.markers[id];
+      }
       this._safeRemoveLayer(id);
       this._safeRemoveSource(id);
     });
@@ -2739,11 +2961,12 @@ const MapController = {
 
       setTimeout(() => {
         const circleSourceId = `govt-local-circle-${item.id}`;
-        const circleFeature = this._generateCirclePolygon(
-          this._toMapbox(item.coords),
-          1200,
-          48,
-        );
+        const circleFeature = item.boundary
+          ? {
+              type: "Feature",
+              geometry: { type: "Polygon", coordinates: [item.boundary] },
+            }
+          : this._generateCirclePolygon(this._toMapbox(item.coords), 1200, 48);
 
         this._safeAddSource(circleSourceId, {
           type: "geojson",
@@ -2997,18 +3220,19 @@ const MapController = {
    */
   showFutureZones() {
     AppData.futureZones.forEach((zone) => {
-      // Circle polygon
-      const centerLngLat = this._toMapbox(zone.coords);
-      const circleGeoJson = this._generateCirclePolygon(
-        centerLngLat,
-        zone.radius,
-      );
+      // Use boundary polygon if available, otherwise fall back to circle
+      const zoneGeoJson = zone.boundary
+        ? {
+            type: "Feature",
+            geometry: { type: "Polygon", coordinates: [zone.boundary] },
+          }
+        : this._generateCirclePolygon(this._toMapbox(zone.coords), zone.radius);
 
       const zoneColor = zone.color || MAP_COLORS.zone;
       const zoneStroke = zone.strokeColor || zoneColor;
 
       const sourceId = `future-zone-${zone.id}`;
-      this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
+      this._safeAddSource(sourceId, { type: "geojson", data: zoneGeoJson });
 
       this.map.addLayer({
         id: `${sourceId}-fill`,
@@ -3091,18 +3315,28 @@ const MapController = {
   },
 
   /**
+   * Build a GeoJSON polygon feature from a zone's boundary coordinates.
+   * Boundary is already in [lng, lat] format.
+   */
+  _zoneBoundaryToGeoJson(zone) {
+    return {
+      type: "Feature",
+      geometry: {
+        type: "Polygon",
+        coordinates: [zone.boundary],
+      },
+    };
+  },
+
+  /**
    * Show investment zone overlays with persistent labels (step 9: investment zones)
    */
   showInvestmentZones() {
     AppData.investmentZones.forEach((zone) => {
-      const centerLngLat = this._toMapbox(zone.coords);
-      const circleGeoJson = this._generateCirclePolygon(
-        centerLngLat,
-        zone.radius,
-      );
+      const boundaryGeoJson = this._zoneBoundaryToGeoJson(zone);
 
       const sourceId = `inv-zone-${zone.id}`;
-      this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
+      this._safeAddSource(sourceId, { type: "geojson", data: boundaryGeoJson });
 
       this.map.addLayer({
         id: `${sourceId}-fill`,
@@ -3138,7 +3372,7 @@ const MapController = {
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: this._toMapbox(zone.coords),
+        coordinates: this._toMapbox(zone.center),
       },
       properties: { name: zone.name },
     }));
@@ -3178,19 +3412,17 @@ const MapController = {
 
   /**
    * Show a single investment zone by ID (for toggle-based control).
+   * Uses boundary polygon from zone data.
    */
   showInvestmentZone(zoneId) {
     const zone = AppData.investmentZones.find((z) => z.id === zoneId);
     if (!zone || !this.map) return;
 
-    const centerLngLat = this._toMapbox(zone.coords);
-    const circleGeoJson = this._generateCirclePolygon(
-      centerLngLat,
-      zone.radius,
-    );
+    const boundaryGeoJson = this._zoneBoundaryToGeoJson(zone);
+    const centerLngLat = this._toMapbox(zone.center);
 
     const sourceId = `inv-zone-${zone.id}`;
-    this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
+    this._safeAddSource(sourceId, { type: "geojson", data: boundaryGeoJson });
 
     this.map.addLayer({
       id: `${sourceId}-fill`,
@@ -3252,6 +3484,16 @@ const MapController = {
       `${labelSourceId}-text`,
       labelSourceId,
     );
+
+    // Subtle camera ease to focus on the selected zone
+    this.map.easeTo({
+      center: centerLngLat,
+      zoom: 11.8,
+      pitch: 50,
+      bearing: this.map.getBearing(),
+      duration: 1200,
+      easing: (t) => t * (2 - t),
+    });
   },
 
   /**
@@ -3526,7 +3768,7 @@ const MapController = {
   // INFRASTRUCTURE ROADS (step 6: transport access)
   // ================================
 
-  showInfrastructureRoads() {
+  showInfrastructureRoads(opts = {}) {
     this.hideInfrastructureRoads();
 
     // Build a FeatureCollection for all roads
@@ -3778,7 +4020,9 @@ const MapController = {
     }
 
     // Fly to show all roads
-    this.flyToStep(CAMERA_STEPS.B7);
+    if (!opts.skipFly) {
+      this.flyToStep(CAMERA_STEPS.B7);
+    }
   },
 
   hideInfrastructureRoads() {
@@ -3814,6 +4058,303 @@ const MapController = {
     this._layerGroups.infrastructureRoads = [];
 
     this.selectedInfrastructureRoad = null;
+  },
+
+  // ── Line-grow animation engine ───────────────────────────────────
+  // Grows a line by interpolating along its full coordinate path and
+  // updating the GeoJSON source each frame. Reliable across all Mapbox versions.
+
+  _lineGrowAnimations: {},
+
+  /**
+   * Interpolate a point between two coordinates.
+   */
+  _lerpCoord(a, b, t) {
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  },
+
+  /**
+   * Get the sub-path of a coordinate array from 0 to fraction t (0-1).
+   * Interpolates between segment vertices for smooth growth.
+   */
+  _subPath(fullCoords, t) {
+    if (t <= 0) return [fullCoords[0], fullCoords[0]];
+    if (t >= 1) return fullCoords;
+
+    // Compute cumulative segment lengths
+    const lengths = [0];
+    for (let i = 1; i < fullCoords.length; i++) {
+      const dx = fullCoords[i][0] - fullCoords[i - 1][0];
+      const dy = fullCoords[i][1] - fullCoords[i - 1][1];
+      lengths.push(lengths[i - 1] + Math.sqrt(dx * dx + dy * dy));
+    }
+    const totalLen = lengths[lengths.length - 1];
+    const targetLen = t * totalLen;
+
+    // Find which segment we're in and interpolate
+    const result = [fullCoords[0]];
+    for (let i = 1; i < fullCoords.length; i++) {
+      if (lengths[i] >= targetLen) {
+        const segStart = lengths[i - 1];
+        const segEnd = lengths[i];
+        const segT = (targetLen - segStart) / (segEnd - segStart);
+        result.push(this._lerpCoord(fullCoords[i - 1], fullCoords[i], segT));
+        return result;
+      }
+      result.push(fullCoords[i]);
+    }
+    return result;
+  },
+
+  /**
+   * Animate a line growing from start to end by updating GeoJSON source data.
+   * @param {string} sourceId - Mapbox source ID to update
+   * @param {Array} fullCoords - Complete [lng,lat] coordinate array
+   * @param {number} duration - Animation duration in ms
+   * @param {number} delay - Delay before starting in ms
+   */
+  _startLineGrow(sourceId, fullCoords, duration, delay) {
+    const self = this;
+    const startTime = performance.now() + (delay || 0);
+
+    const animate = (now) => {
+      if (!self.map || !self.map.getSource(sourceId)) return;
+      const elapsed = now - startTime;
+      if (elapsed < 0) {
+        self._lineGrowAnimations[sourceId] = requestAnimationFrame(animate);
+        return;
+      }
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const partial = self._subPath(fullCoords, eased);
+
+      try {
+        self.map.getSource(sourceId).setData({
+          type: "Feature",
+          geometry: { type: "LineString", coordinates: partial },
+        });
+      } catch (e) {
+        return;
+      }
+
+      if (progress < 1) {
+        self._lineGrowAnimations[sourceId] = requestAnimationFrame(animate);
+      } else {
+        delete self._lineGrowAnimations[sourceId];
+      }
+    };
+    this._lineGrowAnimations[sourceId] = requestAnimationFrame(animate);
+  },
+
+  _stopLineGrow(sourceId) {
+    if (this._lineGrowAnimations[sourceId]) {
+      cancelAnimationFrame(this._lineGrowAnimations[sourceId]);
+      delete this._lineGrowAnimations[sourceId];
+    }
+  },
+
+  // ── Rail Commute Layer ──────────────────────────────────────────────
+  // Three JR Hohi Line routes with track-base, cross-tie, and flowing-dot layers.
+
+  _railCommuteData: {
+    routes: [
+      {
+        id: "kumamoto-hikarinomori",
+        name: "Kumamoto to Hikarinomori",
+        color: "#4A90D9",
+        path: [
+          [32.7904, 130.6885],
+          [32.812, 130.725],
+          [32.842, 130.768],
+          [32.8582, 130.7867],
+        ],
+      },
+      {
+        id: "kumamoto-haramizu",
+        name: "Kumamoto to Haramizu",
+        color: "#5DBB63",
+        path: [
+          [32.7904, 130.6885],
+          [32.812, 130.725],
+          [32.842, 130.768],
+          [32.8582, 130.7867],
+          [32.8707, 130.8292],
+        ],
+      },
+      {
+        id: "kumamoto-higo-ozu",
+        name: "Kumamoto to Higo-Ozu",
+        color: "#E85D4C",
+        path: [
+          [32.7904, 130.6885],
+          [32.812, 130.725],
+          [32.842, 130.768],
+          [32.8582, 130.7867],
+          [32.8707, 130.8292],
+          [32.8776, 130.8662],
+        ],
+      },
+    ],
+  },
+
+  showRailCommute() {
+    this.hideRailCommute();
+    const duration = 5000;
+    // Offset each line sideways so they run parallel like a subway map
+    const offsets = [-4, 0, 4];
+
+    this._railCommuteData.routes.forEach((route, idx) => {
+      const fullCoords = route.path.map((c) => this._toMapbox(c));
+      const sourceId = `rail-commute-${route.id}`;
+      const startCoord = fullCoords[0];
+
+      this._safeAddSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [startCoord, startCoord],
+          },
+        },
+      });
+
+      // Colored line with lateral offset
+      const lineLayer = `${sourceId}-line`;
+      this.map.addLayer({
+        id: lineLayer,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": route.color,
+          "line-width": 4,
+          "line-opacity": 0.9,
+          "line-offset": offsets[idx] || 0,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      this._layerGroups.railCommute.push(lineLayer, sourceId);
+
+      // All three grow simultaneously
+      this._startLineGrow(sourceId, fullCoords, duration, 0);
+    });
+  },
+
+  hideRailCommute() {
+    this._layerGroups.railCommute.forEach((id) => {
+      this._stopLineGrow(id);
+      if (this.map && this.map.getLayer(id)) {
+        this._safeRemoveLayer(id);
+      } else if (this.map && this.map.getSource(id)) {
+        this._safeRemoveSource(id);
+      }
+    });
+    this._layerGroups.railCommute = [];
+  },
+
+  // ── Infrastructure Plan Layer (animated road corridors) ─────────────
+  // Two government-planned road corridors with flowing-dot animation.
+  // Resolved paths loaded from assets/map-outlines/infra.json.
+
+  _infraPlanCache: null,
+
+  async _loadInfraPlanData() {
+    if (this._infraPlanCache) return this._infraPlanCache;
+    try {
+      const resp = await fetch("assets/map-outlines/infra.json");
+      const data = await resp.json();
+      this._infraPlanCache = data.filter(
+        (d) => d.id === "north-liaison-road" || d.id === "airport-liaison-road",
+      );
+      // Simplify: keep every Nth point to reduce coordinate density
+      this._infraPlanCache.forEach((corridor) => {
+        const path = corridor.resolvedPath;
+        const step = Math.max(1, Math.floor(path.length / 80));
+        const simplified = [];
+        for (let i = 0; i < path.length; i += step) {
+          simplified.push(path[i]);
+        }
+        if (simplified[simplified.length - 1] !== path[path.length - 1]) {
+          simplified.push(path[path.length - 1]);
+        }
+        corridor.resolvedPath = simplified;
+      });
+      return this._infraPlanCache;
+    } catch (e) {
+      console.warn("Failed to load infra.json:", e);
+      return [];
+    }
+  },
+
+  _infraPlanMeta: {
+    "north-liaison-road": {
+      name: "North Liaison Road",
+      color: "#FBB931",
+    },
+    "airport-liaison-road": {
+      name: "Airport Liaison Road",
+      color: "#00D4FF",
+    },
+  },
+
+  async showInfraPlan() {
+    this.hideInfraPlan();
+    const corridors = await this._loadInfraPlanData();
+    if (!corridors.length) return;
+    const duration = 5000;
+
+    corridors.forEach((corridor, idx) => {
+      const meta = this._infraPlanMeta[corridor.id] || {
+        name: corridor.name,
+        color: "#FBB931",
+      };
+      const fullCoords = corridor.resolvedPath.map((p) => [p.lng, p.lat]);
+      const sourceId = `infra-plan-${corridor.id}`;
+      const startCoord = fullCoords[0];
+
+      this._safeAddSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [startCoord, startCoord],
+          },
+        },
+      });
+
+      // Line that grows along the road corridor
+      const lineLayer = `${sourceId}-line`;
+      this.map.addLayer({
+        id: lineLayer,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": meta.color,
+          "line-width": 5,
+          "line-opacity": 0.9,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      this._layerGroups.infraPlan.push(lineLayer, sourceId);
+
+      // Grow the line by updating source data each frame
+      this._startLineGrow(sourceId, fullCoords, duration, idx * 1000);
+    });
+  },
+
+  hideInfraPlan() {
+    this._layerGroups.infraPlan.forEach((id) => {
+      this._stopLineGrow(id);
+      if (this.map && this.map.getLayer(id)) {
+        this._safeRemoveLayer(id);
+      } else if (this.map && this.map.getSource(id)) {
+        this._safeRemoveSource(id);
+      }
+    });
+    this._layerGroups.infraPlan = [];
   },
 
   /**
@@ -5720,7 +6261,7 @@ const MapController = {
   // LAYER VISIBILITY
   // ================================
 
-  ensureLayerMarkers(layerName) {
+  ensureLayerMarkers(layerName, opts = {}) {
     const group = this._layerGroups[layerName];
     const hasMarkers =
       group && group.length > 0 && group.some((id) => this.markers[id]);
@@ -5777,8 +6318,10 @@ const MapController = {
       return;
     }
 
-    // Fit bounds around the layer's markers
-    this._fitBoundsForLayer(layerName);
+    // Fit bounds around the layer's markers (skip in Q&A mode)
+    if (!opts.skipFitBounds) {
+      this._fitBoundsForLayer(layerName);
+    }
   },
 
   _applyBounceToGroup(layerName) {

@@ -1,0 +1,570 @@
+{
+  "_meta": {
+    "description": "Complete specification of all animated traffic flows on the MOHA map. Covers four flow systems: Rail Commute, Traffic Flow, Infrastructure Plan corridors, and Property Route. Also includes the static/animated elements that co-render on the Infrastructure Plan layer (impact circles, future zones, company markers).",
+    "renderer": "Google Maps JavaScript API polylines with symbol icons",
+    "animationEngine": "requestAnimationFrame loop updating icon offsets",
+    "replicationNotes": {
+      "fullyStatic": [
+        "railCommute (all paths hardcoded in this file)",
+        "trafficFlow (all paths hardcoded in this file)",
+        "infrastructurePlanCorridors (resolved paths cached in infra.json)"
+      ],
+      "runtimeResolved": [
+        "propertyRoute: entirely dynamic based on user-selected property position. No static path to export."
+      ],
+      "googleMapsApiDependencies": [
+        "google.maps.SymbolPath.CIRCLE (numeric constant = 0)",
+        "google.maps.Polyline with icons[] array",
+        "google.maps.DirectionsService (for corridor and property route resolution)",
+        "google.maps.geometry.encoding.decodePath (for Routes API polyline decoding)",
+        "google.maps.marker.AdvancedMarkerElement (for company/future markers)",
+        "google.maps.Circle (for impact zones)",
+        "google.maps.OverlayView (for future zone animated overlays)"
+      ]
+    }
+  },
+
+  "animationSystem": {
+    "description": "All animated flows share the same core technique: a Polyline with strokeOpacity: 0 (invisible base stroke) and two icon layers. The first icon is a repeating circle that gets its offset updated each frame to create the illusion of flowing dots. The second icon is a dense 1px-repeat vertical line that fills in a semi-transparent base color.",
+    "frameInterval": {
+      "description": "Minimum milliseconds between animation updates (checked via timestamp delta)",
+      "railCommute": 50,
+      "traffic": 50,
+      "govPlanCorridors": 40
+    },
+    "offsetCounter": {
+      "description": "A shared counter (offsetRef) increments from 0 to 99 and wraps. Each frame: offsetRef = (offsetRef + 1) % 100. The actual pixel/percent offset is derived from this counter multiplied by a speed factor."
+    }
+  },
+
+  "railCommute": {
+    "layerFile": "components/map/layers/RailCommuteLayer.tsx",
+    "description": "JR Hohi Line routes from Kumamoto Station to three stations near the TSMC semiconductor hub. Each route renders as a 3-polyline stack: track base, cross-tie rails, and animated flowing dots.",
+    "legendLabel": "JR Hohi Line Routes from Kumamoto",
+    "routes": [
+      {
+        "id": "kumamoto-hikarinomori",
+        "name": "Kumamoto to Hikarinomori",
+        "nameJp": "熊本駅 → 光の森駅",
+        "fromStation": "kumamoto-jr",
+        "toStation": "hikarinomori",
+        "distanceKm": 12.4,
+        "travelTimeMin": 18,
+        "color": "#4A90D9",
+        "path": [
+          { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+          { "lat": 32.7985, "lng": 130.705 },
+          { "lat": 32.812, "lng": 130.725 },
+          { "lat": 32.828, "lng": 130.748 },
+          { "lat": 32.842, "lng": 130.768 },
+          { "lat": 32.8581645788132, "lng": 130.78674425856488 }
+        ],
+        "ref": {
+          "url": "https://www.jrkyushu.co.jp/railway/station/",
+          "label": "JR Kyushu"
+        }
+      },
+      {
+        "id": "kumamoto-haramizu",
+        "name": "Kumamoto to Haramizu",
+        "nameJp": "熊本駅 → 原水駅",
+        "fromStation": "kumamoto-jr",
+        "toStation": "haramizu",
+        "distanceKm": 17.2,
+        "travelTimeMin": 25,
+        "color": "#5DBB63",
+        "path": [
+          { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+          { "lat": 32.7985, "lng": 130.705 },
+          { "lat": 32.812, "lng": 130.725 },
+          { "lat": 32.828, "lng": 130.748 },
+          { "lat": 32.842, "lng": 130.768 },
+          { "lat": 32.8581645788132, "lng": 130.78674425856488 },
+          { "lat": 32.865, "lng": 130.808 },
+          { "lat": 32.87071541271004, "lng": 130.8291661179721 }
+        ],
+        "ref": {
+          "url": "https://www.jrkyushu.co.jp/railway/station/",
+          "label": "JR Kyushu"
+        }
+      },
+      {
+        "id": "kumamoto-higo-ozu",
+        "name": "Kumamoto to Higo-Ozu",
+        "nameJp": "熊本駅 → 肥後大津駅",
+        "fromStation": "kumamoto-jr",
+        "toStation": "higo-ozu",
+        "distanceKm": 21.3,
+        "travelTimeMin": 32,
+        "color": "#E85D4C",
+        "path": [
+          { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+          { "lat": 32.7985, "lng": 130.705 },
+          { "lat": 32.812, "lng": 130.725 },
+          { "lat": 32.828, "lng": 130.748 },
+          { "lat": 32.842, "lng": 130.768 },
+          { "lat": 32.8581645788132, "lng": 130.78674425856488 },
+          { "lat": 32.865, "lng": 130.808 },
+          { "lat": 32.87071541271004, "lng": 130.8291661179721 },
+          { "lat": 32.875, "lng": 130.848 },
+          { "lat": 32.877643313351285, "lng": 130.8661699380599 }
+        ],
+        "ref": {
+          "url": "https://www.jrkyushu.co.jp/railway/station/",
+          "label": "JR Kyushu"
+        }
+      }
+    ],
+    "visualLayers": {
+      "description": "Each route produces 3 stacked polylines in this order:",
+      "trackBase": {
+        "purpose": "Dark sleeper/ballast effect forming the railway bed",
+        "strokeColor": "#1a1a2e",
+        "strokeWeight": 10,
+        "strokeOpacity": 0.9,
+        "zIndex": 40,
+        "icons": "none",
+        "animated": false
+      },
+      "trackRails": {
+        "purpose": "Cross-tie pattern simulating railway sleepers",
+        "strokeColor": "#444466",
+        "strokeWeight": 6,
+        "strokeOpacity": 0,
+        "zIndex": 41,
+        "animated": false,
+        "icons": [
+          {
+            "purpose": "Repeating vertical bars = sleeper/cross-tie marks",
+            "path": "M 0,-2.5 L 0,2.5",
+            "scale": 1,
+            "strokeColor": "#666688",
+            "strokeOpacity": 0.8,
+            "strokeWeight": 6,
+            "offset": "0",
+            "repeat": "12px"
+          }
+        ]
+      },
+      "flowingDots": {
+        "purpose": "Animated flowing circles representing train/commuter movement",
+        "strokeColor": "route.color (per-route)",
+        "strokeWeight": 5,
+        "strokeOpacity": 0,
+        "zIndex": 42,
+        "animated": true,
+        "icons": [
+          {
+            "purpose": "Primary flowing dot - animated offset creates movement",
+            "path": "google.maps.SymbolPath.CIRCLE",
+            "scale": 4,
+            "fillColor": "route.color",
+            "fillOpacity": 0.9,
+            "strokeColor": "#ffffff",
+            "strokeWeight": 1,
+            "strokeOpacity": 0.6,
+            "offset": "animated (0-30%)",
+            "repeat": "30px"
+          },
+          {
+            "purpose": "Dense base fill - 1px repeat creates a solid colored line behind the dots",
+            "path": "M 0,-1 0,1",
+            "scale": 4,
+            "strokeColor": "route.color",
+            "strokeOpacity": 0.3,
+            "strokeWeight": 5,
+            "offset": "0",
+            "repeat": "1px"
+          }
+        ],
+        "animation": {
+          "frameIntervalMs": 50,
+          "speedFactor": 100,
+          "offsetFormula": "dashOffset = ((offsetRef * 100) / 100) % 30",
+          "offsetUnit": "%",
+          "note": "Only every 3rd polyline is animated (index % 3 === 2), skipping trackBase and trackRails"
+        }
+      }
+    }
+  },
+
+  "trafficFlow": {
+    "layerFile": "components/map/layers/TrafficLayer.tsx",
+    "description": "Road traffic density visualization for the 5-7pm evening rush. Routes are color-coded by congestion level (high/medium/low) with speed-varied animation - high-traffic routes animate faster.",
+    "legendLabel": "Traffic Density",
+    "levelStyles": {
+      "high": {
+        "color": "#E85D4C",
+        "strokeWeight": 6,
+        "opacity": 0.8,
+        "dotScale": 4,
+        "animationSpeed": 80,
+        "zIndex": 30
+      },
+      "medium": {
+        "color": "#FBB931",
+        "strokeWeight": 5,
+        "opacity": 0.8,
+        "dotScale": 3,
+        "animationSpeed": 120,
+        "zIndex": 20
+      },
+      "low": {
+        "color": "#5DBB63",
+        "strokeWeight": 4,
+        "opacity": 0.8,
+        "dotScale": 2.5,
+        "animationSpeed": 180,
+        "zIndex": 10
+      }
+    },
+    "routes": [
+      {
+        "name": "Route 57 Kikuyo Bypass (国道57号菊陽バイパス)",
+        "level": "high",
+        "flow": 28500,
+        "source": "Road Traffic Census FY2021 estimate",
+        "path": [
+          { "lat": 32.8195, "lng": 130.7585 },
+          { "lat": 32.8285, "lng": 130.772 },
+          { "lat": 32.8355, "lng": 130.788 },
+          { "lat": 32.842, "lng": 130.805 },
+          { "lat": 32.8485, "lng": 130.818 },
+          { "lat": 32.8545, "lng": 130.8295 },
+          { "lat": 32.861, "lng": 130.842 },
+          { "lat": 32.868, "lng": 130.855 }
+        ]
+      },
+      {
+        "name": "Route 337 Kumamoto-Kikuyo Line (県道337号熊本菊陽線)",
+        "level": "high",
+        "flow": 24880,
+        "source": "Road Traffic Census FY2021",
+        "path": [
+          { "lat": 32.812, "lng": 130.745 },
+          { "lat": 32.822, "lng": 130.758 },
+          { "lat": 32.834, "lng": 130.772 },
+          { "lat": 32.845, "lng": 130.785 },
+          { "lat": 32.856, "lng": 130.798 },
+          { "lat": 32.865, "lng": 130.81 }
+        ]
+      },
+      {
+        "name": "Route 57 Ozu Section (国道57号大津区間)",
+        "level": "medium",
+        "flow": 9975,
+        "source": "Road Traffic Census FY2021",
+        "path": [
+          { "lat": 32.868, "lng": 130.855 },
+          { "lat": 32.875, "lng": 130.868 },
+          { "lat": 32.882, "lng": 130.881 },
+          { "lat": 32.888, "lng": 130.895 },
+          { "lat": 32.892, "lng": 130.908 }
+        ]
+      },
+      {
+        "name": "Pref. Route 30 Ozu-Ueki Line (県道大津植木線 - TSMC Access)",
+        "level": "high",
+        "flow": 18500,
+        "source": "Kikuyo Town Traffic Survey 2024",
+        "path": [
+          { "lat": 32.878, "lng": 130.818 },
+          { "lat": 32.868, "lng": 130.82 },
+          { "lat": 32.858, "lng": 130.8215 },
+          { "lat": 32.8485, "lng": 130.823 },
+          { "lat": 32.839, "lng": 130.8245 }
+        ]
+      },
+      {
+        "name": "Route 443 Koshi-Ozu Line (国道443号)",
+        "level": "medium",
+        "flow": 12769,
+        "source": "Road Traffic Census FY2021",
+        "path": [
+          { "lat": 32.892, "lng": 130.768 },
+          { "lat": 32.898, "lng": 130.782 },
+          { "lat": 32.902, "lng": 130.798 },
+          { "lat": 32.905, "lng": 130.815 }
+        ]
+      },
+      {
+        "name": "Haramizu Station Access Road (原水駅前通り)",
+        "level": "medium",
+        "flow": 8500,
+        "source": "Kikuyo Town estimate",
+        "path": [
+          { "lat": 32.8545, "lng": 130.8295 },
+          { "lat": 32.858, "lng": 130.835 },
+          { "lat": 32.862, "lng": 130.838 }
+        ]
+      },
+      {
+        "name": "Hikarinomori Area Road (光の森通り)",
+        "level": "medium",
+        "flow": 11200,
+        "source": "Koshi City estimate",
+        "path": [
+          { "lat": 32.892, "lng": 130.758 },
+          { "lat": 32.895, "lng": 130.768 },
+          { "lat": 32.898, "lng": 130.778 }
+        ]
+      },
+      {
+        "name": "Naka-Kyushu Expressway (中九州横断道路)",
+        "level": "medium",
+        "flow": 8082,
+        "source": "Road Traffic Census FY2021",
+        "path": [
+          { "lat": 32.875, "lng": 130.842 },
+          { "lat": 32.882, "lng": 130.858 },
+          { "lat": 32.889, "lng": 130.875 },
+          { "lat": 32.895, "lng": 130.892 }
+        ]
+      }
+    ],
+    "visualSpec": {
+      "perRoute": {
+        "strokeOpacity": 0,
+        "icons": [
+          {
+            "purpose": "Flowing dot - size and speed vary by traffic level",
+            "path": "google.maps.SymbolPath.CIRCLE",
+            "scale": "levelStyles[level].dotScale",
+            "fillColor": "levelStyles[level].color",
+            "fillOpacity": "levelStyles[level].opacity",
+            "strokeColor": "#ffffff",
+            "strokeWeight": 1,
+            "strokeOpacity": 0.6,
+            "offset": "animated",
+            "repeat": "30px"
+          },
+          {
+            "purpose": "Dense base fill line",
+            "path": "M 0,-1 0,1",
+            "scale": "strokeWeight * 0.8",
+            "strokeColor": "levelStyles[level].color",
+            "strokeOpacity": 0.3,
+            "strokeWeight": "levelStyles[level].strokeWeight",
+            "offset": "0",
+            "repeat": "1px"
+          }
+        ]
+      },
+      "animation": {
+        "frameIntervalMs": 50,
+        "speedFactors": {
+          "high": 80,
+          "medium": 120,
+          "low": 180
+        },
+        "offsetFormula": "dashOffset = ((offsetRef * speedFactor) / 100) % 30",
+        "offsetUnit": "%",
+        "note": "Higher speed factor = faster-appearing flow. High traffic moves fastest visually."
+      }
+    }
+  },
+
+  "infrastructurePlanCorridors": {
+    "layerFile": "components/map/layers/GovPlanLayer.tsx",
+    "description": "Government-planned road corridors connecting Kumamoto City Center to the TSMC/JASM semiconductor hub and airport. Resolved paths are cached in infra.json (high-fidelity road-following coordinates from Google Routes API).",
+    "legendLabel": "10-Min/20-Min Infrastructure Concept",
+    "resolvedPathsFile": "infra.json",
+    "corridors": [
+      {
+        "id": "north-liaison-road",
+        "name": "Kumamoto Urban Area North Liaison Road",
+        "nameJp": "熊本都市圏北連絡道路",
+        "purpose": "Connects the City Center to the Northern highway network (Kumamoto IC / Koshi area) to bypass local street congestion.",
+        "color": "#FBB931",
+        "distance": { "km": 18.9, "minutes": 43 },
+        "resolvedPathRef": "infra.json → id: north-liaison-road",
+        "anchorEndpoints": [
+          { "lat": 32.803, "lng": 130.707, "label": "Kumamoto City Center" },
+          { "lat": 32.886, "lng": 130.842, "label": "JASM / TSMC Factory" }
+        ],
+        "ref": {
+          "url": "https://www.qsr.mlit.go.jp/kumamoto/",
+          "label": "MLIT Kyushu"
+        }
+      },
+      {
+        "id": "airport-liaison-road",
+        "name": "Kumamoto Airport Liaison Road",
+        "nameJp": "熊本空港連絡道路",
+        "purpose": "A high-speed link directly to the airport (and by extension, the JASM logistics hub nearby). Likely follows or parallels the current Second Airport Line (Route 36).",
+        "color": "#00D4FF",
+        "distance": { "km": 17.5, "minutes": 36 },
+        "resolvedPathRef": "infra.json → id: airport-liaison-road",
+        "anchorEndpoints": [
+          { "lat": 32.803, "lng": 130.707, "label": "Kumamoto City Center" },
+          { "lat": 32.837, "lng": 130.855, "label": "Kumamoto Airport (KMJ)" }
+        ],
+        "ref": {
+          "url": "https://www.qsr.mlit.go.jp/kumamoto/",
+          "label": "MLIT Kyushu"
+        }
+      },
+      {
+        "id": "middle-kyushu-expressway",
+        "name": "Middle Kyushu Expressway (Ozu-Kumamoto Road)",
+        "nameJp": "中九州横断道路（大津熊本道路）",
+        "purpose": "Connects directly to the JASM area from the north, linking Kumamoto IC to Ozu via an expanded expressway.",
+        "color": "#5DBB63",
+        "distance": { "km": 5.5, "minutes": 9 },
+        "resolvedPathRef": "infra.json → id: middle-kyushu-expressway",
+        "anchorEndpoints": [
+          {
+            "lat": 32.885,
+            "lng": 130.825,
+            "label": "JASM / TSMC Factory area"
+          },
+          {
+            "lat": 32.915,
+            "lng": 130.805,
+            "label": "Kumamoto IC / Ozu direction"
+          }
+        ],
+        "routeResolution": "Google Routes API (DRIVE, TRAFFIC_AWARE) or Directions API fallback",
+        "ref": {
+          "url": "https://www.qsr.mlit.go.jp/kumamoto/",
+          "label": "MLIT Kyushu"
+        }
+      }
+    ],
+    "anchors": [
+      {
+        "id": "kumamoto-city-center",
+        "name": "Kumamoto City Center",
+        "nameJp": "熊本市中心部",
+        "position": { "lat": 32.803, "lng": 130.707 },
+        "type": "city-center",
+        "markerIcon": {
+          "path": "google.maps.SymbolPath.CIRCLE",
+          "scale": 10,
+          "fillColor": "#FBB931",
+          "fillOpacity": 1,
+          "strokeColor": "#ffffff",
+          "strokeWeight": 2
+        }
+      },
+      {
+        "id": "jasm-tsmc-factory",
+        "name": "JASM / TSMC Factory",
+        "nameJp": "JASM / TSMC工場",
+        "position": { "lat": 32.885, "lng": 130.825 },
+        "type": "factory",
+        "markerIcon": {
+          "path": "google.maps.SymbolPath.CIRCLE",
+          "scale": 12,
+          "fillColor": "#E85D4C",
+          "fillOpacity": 1,
+          "strokeColor": "#ffffff",
+          "strokeWeight": 2
+        }
+      },
+      {
+        "id": "kumamoto-airport",
+        "name": "Kumamoto Airport (KMJ)",
+        "nameJp": "熊本空港",
+        "position": { "lat": 32.837, "lng": 130.855 },
+        "type": "airport",
+        "markerIcon": {
+          "path": "google.maps.SymbolPath.CIRCLE",
+          "scale": 12,
+          "fillColor": "#4A90D9",
+          "fillOpacity": 1,
+          "strokeColor": "#ffffff",
+          "strokeWeight": 2
+        }
+      }
+    ],
+    "visualSpec": {
+      "corridorPolyline": {
+        "strokeOpacity": 0,
+        "defaultStrokeWeight": 6,
+        "selectedStrokeWeight": 8,
+        "defaultZIndex": 20,
+        "selectedZIndex": 25,
+        "icons": [
+          {
+            "purpose": "Flowing dot - larger and brighter when selected",
+            "path": "google.maps.SymbolPath.CIRCLE",
+            "scale": { "default": 4, "selected": 5 },
+            "fillColor": "corridor.color",
+            "fillOpacity": 1,
+            "strokeColor": "#ffffff",
+            "strokeWeight": { "default": 1.5, "selected": 2 },
+            "strokeOpacity": { "default": 0.8, "selected": 1 },
+            "offset": "animated",
+            "repeat": "25px"
+          },
+          {
+            "purpose": "Dense base fill line",
+            "path": "M 0,-1 0,1",
+            "scale": { "default": 5, "selected": 6 },
+            "strokeColor": "corridor.color",
+            "strokeOpacity": { "default": 0.4, "selected": 0.7 },
+            "strokeWeight": { "default": 5, "selected": 6 },
+            "offset": "0",
+            "repeat": "1px"
+          }
+        ]
+      },
+      "hitAreaPolyline": {
+        "purpose": "Invisible wide polyline for click detection",
+        "strokeColor": "transparent",
+        "strokeWeight": 20,
+        "strokeOpacity": 0,
+        "zIndex": 30,
+        "clickable": true
+      },
+      "animation": {
+        "frameIntervalMs": 40,
+        "speedMultiplier": 1.2,
+        "offsetFormula": "dashOffset = (offsetRef * 1.2) % 25",
+        "offsetUnit": "px",
+        "note": "Uses pixel offset (not %) and a tighter 25px modulus for smoother corridor flow. Slightly faster frame rate (40ms vs 50ms) than rail/traffic layers."
+      }
+    }
+  },
+
+  "propertyRoute": {
+    "layerFile": "components/map/layers/PropertyRouteLayer.tsx",
+    "description": "Dynamic route from a selected property to TSMC. Calculated at runtime via Google Directions API (DRIVING mode). Falls back to straight-line with Haversine distance if API fails.",
+    "visualSpec": {
+      "strokeWeight": 6,
+      "strokeOpacity": 0,
+      "zIndex": 150,
+      "icons": [
+        {
+          "purpose": "Flowing dot matching Traffic layer style",
+          "path": "google.maps.SymbolPath.CIRCLE",
+          "scale": 4,
+          "fillColor": "#FF8660",
+          "fillOpacity": 0.8,
+          "strokeColor": "#ffffff",
+          "strokeWeight": 1,
+          "strokeOpacity": 0.6,
+          "offset": "animated",
+          "repeat": "30px"
+        },
+        {
+          "purpose": "Base line showing route path",
+          "path": "M 0,-1 0,1",
+          "scale": 4.8,
+          "strokeColor": "#FBB931",
+          "strokeOpacity": 0.3,
+          "strokeWeight": 6,
+          "offset": "0",
+          "repeat": "1px"
+        }
+      ],
+      "animation": {
+        "frameIntervalMs": 50,
+        "speedFactor": 100,
+        "offsetFormula": "dashOffset = ((offsetRef * 100) / 100) % 30",
+        "offsetUnit": "%"
+      }
+    }
+  }
+}

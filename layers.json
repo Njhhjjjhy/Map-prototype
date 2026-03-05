@@ -1,0 +1,634 @@
+{
+  "railCommute": {
+    "routes": [
+      {
+        "id": "kumamoto-hikarinomori",
+        "name": "Kumamoto to Hikarinomori",
+        "nameJp": "熊本駅 → 光の森駅",
+        "fromStation": "kumamoto-jr",
+        "toStation": "hikarinomori",
+        "path": [
+          { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+          { "lat": 32.7985, "lng": 130.7050 },
+          { "lat": 32.8120, "lng": 130.7250 },
+          { "lat": 32.8280, "lng": 130.7480 },
+          { "lat": 32.8420, "lng": 130.7680 },
+          { "lat": 32.8581645788132, "lng": 130.78674425856488 }
+        ],
+        "distanceKm": 12.4,
+        "travelTimeMin": 18,
+        "color": "#4A90D9",
+        "ref": { "url": "https://www.jrkyushu.co.jp/railway/station/", "label": "JR Kyushu" }
+      },
+      {
+        "id": "kumamoto-haramizu",
+        "name": "Kumamoto to Haramizu",
+        "nameJp": "熊本駅 → 原水駅",
+        "fromStation": "kumamoto-jr",
+        "toStation": "haramizu",
+        "path": [
+          { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+          { "lat": 32.7985, "lng": 130.7050 },
+          { "lat": 32.8120, "lng": 130.7250 },
+          { "lat": 32.8280, "lng": 130.7480 },
+          { "lat": 32.8420, "lng": 130.7680 },
+          { "lat": 32.8581645788132, "lng": 130.78674425856488 },
+          { "lat": 32.8650, "lng": 130.8080 },
+          { "lat": 32.87071541271004, "lng": 130.8291661179721 }
+        ],
+        "distanceKm": 17.2,
+        "travelTimeMin": 25,
+        "color": "#5DBB63",
+        "ref": { "url": "https://www.jrkyushu.co.jp/railway/station/", "label": "JR Kyushu" }
+      },
+      {
+        "id": "kumamoto-higo-ozu",
+        "name": "Kumamoto to Higo-Ozu",
+        "nameJp": "熊本駅 → 肥後大津駅",
+        "fromStation": "kumamoto-jr",
+        "toStation": "higo-ozu",
+        "path": [
+          { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+          { "lat": 32.7985, "lng": 130.7050 },
+          { "lat": 32.8120, "lng": 130.7250 },
+          { "lat": 32.8280, "lng": 130.7480 },
+          { "lat": 32.8420, "lng": 130.7680 },
+          { "lat": 32.8581645788132, "lng": 130.78674425856488 },
+          { "lat": 32.8650, "lng": 130.8080 },
+          { "lat": 32.87071541271004, "lng": 130.8291661179721 },
+          { "lat": 32.8750, "lng": 130.8480 },
+          { "lat": 32.877643313351285, "lng": 130.8661699380599 }
+        ],
+        "distanceKm": 21.3,
+        "travelTimeMin": 32,
+        "color": "#E85D4C",
+        "ref": { "url": "https://www.jrkyushu.co.jp/railway/station/", "label": "JR Kyushu" }
+      }
+    ]
+  },
+  "traffic": {
+    "routes": [
+      {
+        "name": "Route 57 Kikuyo Bypass (国道57号菊陽バイパス)",
+        "path": [
+          { "lat": 32.8195, "lng": 130.7585 },
+          { "lat": 32.8285, "lng": 130.7720 },
+          { "lat": 32.8355, "lng": 130.7880 },
+          { "lat": 32.8420, "lng": 130.8050 },
+          { "lat": 32.8485, "lng": 130.8180 },
+          { "lat": 32.8545, "lng": 130.8295 },
+          { "lat": 32.8610, "lng": 130.8420 },
+          { "lat": 32.8680, "lng": 130.8550 }
+        ],
+        "level": "high",
+        "flow": 28500,
+        "source": "Road Traffic Census FY2021 estimate"
+      },
+      {
+        "name": "Route 337 Kumamoto-Kikuyo Line (県道337号熊本菊陽線)",
+        "path": [
+          { "lat": 32.8120, "lng": 130.7450 },
+          { "lat": 32.8220, "lng": 130.7580 },
+          { "lat": 32.8340, "lng": 130.7720 },
+          { "lat": 32.8450, "lng": 130.7850 },
+          { "lat": 32.8560, "lng": 130.7980 },
+          { "lat": 32.8650, "lng": 130.8100 }
+        ],
+        "level": "high",
+        "flow": 24880,
+        "source": "Road Traffic Census FY2021"
+      },
+      {
+        "name": "Route 57 Ozu Section (国道57号大津区間)",
+        "path": [
+          { "lat": 32.8680, "lng": 130.8550 },
+          { "lat": 32.8750, "lng": 130.8680 },
+          { "lat": 32.8820, "lng": 130.8810 },
+          { "lat": 32.8880, "lng": 130.8950 },
+          { "lat": 32.8920, "lng": 130.9080 }
+        ],
+        "level": "medium",
+        "flow": 9975,
+        "source": "Road Traffic Census FY2021"
+      },
+      {
+        "name": "Pref. Route 30 Ozu-Ueki Line (県道大津植木線 - TSMC Access)",
+        "path": [
+          { "lat": 32.8780, "lng": 130.8180 },
+          { "lat": 32.8680, "lng": 130.8200 },
+          { "lat": 32.8580, "lng": 130.8215 },
+          { "lat": 32.8485, "lng": 130.8230 },
+          { "lat": 32.8390, "lng": 130.8245 }
+        ],
+        "level": "high",
+        "flow": 18500,
+        "source": "Kikuyo Town Traffic Survey 2024"
+      },
+      {
+        "name": "Route 443 Koshi-Ozu Line (国道443号)",
+        "path": [
+          { "lat": 32.8920, "lng": 130.7680 },
+          { "lat": 32.8980, "lng": 130.7820 },
+          { "lat": 32.9020, "lng": 130.7980 },
+          { "lat": 32.9050, "lng": 130.8150 }
+        ],
+        "level": "medium",
+        "flow": 12769,
+        "source": "Road Traffic Census FY2021"
+      },
+      {
+        "name": "Haramizu Station Access Road (原水駅前通り)",
+        "path": [
+          { "lat": 32.8545, "lng": 130.8295 },
+          { "lat": 32.8580, "lng": 130.8350 },
+          { "lat": 32.8620, "lng": 130.8380 }
+        ],
+        "level": "medium",
+        "flow": 8500,
+        "source": "Kikuyo Town estimate"
+      },
+      {
+        "name": "Hikarinomori Area Road (光の森通り)",
+        "path": [
+          { "lat": 32.8920, "lng": 130.7580 },
+          { "lat": 32.8950, "lng": 130.7680 },
+          { "lat": 32.8980, "lng": 130.7780 }
+        ],
+        "level": "medium",
+        "flow": 11200,
+        "source": "Koshi City estimate"
+      },
+      {
+        "name": "Naka-Kyushu Expressway (中九州横断道路)",
+        "path": [
+          { "lat": 32.8750, "lng": 130.8420 },
+          { "lat": 32.8820, "lng": 130.8580 },
+          { "lat": 32.8890, "lng": 130.8750 },
+          { "lat": 32.8950, "lng": 130.8920 }
+        ],
+        "level": "medium",
+        "flow": 8082,
+        "source": "Road Traffic Census FY2021"
+      }
+    ]
+  },
+  "power": {
+    "substations": [
+      {
+        "id": "kikuyo-sub",
+        "name": "Kikuyo Substation (66kV/6.6kV)",
+        "position": { "lat": 32.8520, "lng": 130.8280 },
+        "voltage": 66,
+        "capacity": 80000,
+        "type": "distribution"
+      },
+      {
+        "id": "koshi-sub",
+        "name": "Koshi Substation (154kV/66kV)",
+        "position": { "lat": 32.8950, "lng": 130.7780 },
+        "voltage": 154,
+        "capacity": 200000,
+        "type": "transmission"
+      },
+      {
+        "id": "ozu-sub",
+        "name": "Ozu Substation (66kV/6.6kV)",
+        "position": { "lat": 32.8780, "lng": 130.8820 },
+        "voltage": 66,
+        "capacity": 50000,
+        "type": "distribution"
+      },
+      {
+        "id": "tsmc-sub",
+        "name": "TSMC Dedicated Substation (154kV)",
+        "position": { "lat": 32.8420, "lng": 130.8180 },
+        "voltage": 154,
+        "capacity": 300000,
+        "type": "industrial"
+      }
+    ],
+    "transmissionLines": [
+      {
+        "id": "main-154kv",
+        "name": "Kumamoto-Kikuyo 154kV Line",
+        "voltage": 154,
+        "path": [
+          { "lat": 32.8100, "lng": 130.7500 },
+          { "lat": 32.8250, "lng": 130.7680 },
+          { "lat": 32.8420, "lng": 130.7920 },
+          { "lat": 32.8520, "lng": 130.8280 },
+          { "lat": 32.8420, "lng": 130.8180 }
+        ]
+      },
+      {
+        "id": "koshi-154kv",
+        "name": "Koshi Transmission Line 154kV",
+        "voltage": 154,
+        "path": [
+          { "lat": 32.9200, "lng": 130.7400 },
+          { "lat": 32.9100, "lng": 130.7550 },
+          { "lat": 32.8950, "lng": 130.7780 },
+          { "lat": 32.8520, "lng": 130.8280 }
+        ]
+      },
+      {
+        "id": "ozu-66kv",
+        "name": "Ozu Distribution Line 66kV",
+        "voltage": 66,
+        "path": [
+          { "lat": 32.8520, "lng": 130.8280 },
+          { "lat": 32.8620, "lng": 130.8450 },
+          { "lat": 32.8700, "lng": 130.8620 },
+          { "lat": 32.8780, "lng": 130.8820 }
+        ]
+      },
+      {
+        "id": "kikuyo-distribution",
+        "name": "Kikuyo Distribution 6.6kV",
+        "voltage": 6.6,
+        "path": [
+          { "lat": 32.8520, "lng": 130.8280 },
+          { "lat": 32.8580, "lng": 130.8350 },
+          { "lat": 32.8650, "lng": 130.8420 },
+          { "lat": 32.8700, "lng": 130.8350 }
+        ]
+      },
+      {
+        "id": "tsmc-dedicated",
+        "name": "TSMC Dedicated 154kV Supply",
+        "voltage": 154,
+        "path": [
+          { "lat": 32.8520, "lng": 130.8280 },
+          { "lat": 32.8470, "lng": 130.8230 },
+          { "lat": 32.8420, "lng": 130.8180 }
+        ]
+      }
+    ],
+    "zones": [
+      { "regionId": "kikuyo", "intensity": 1.0, "kwh": 1600000, "source": "Includes TSMC fab (~1.2M kWh/day at 50% capacity) + residential (~209K kWh/day for ~19K households)" },
+      { "regionId": "koshi", "intensity": 0.47, "kwh": 750000, "source": "Sony Image Sensor + semiconductor suppliers + residential (~27.5K households)" },
+      { "regionId": "ozu", "intensity": 0.175, "kwh": 280000, "source": "Primarily residential (~16K households) + logistics centers" }
+    ]
+  },
+  "employment": {
+    "semiHotspots": [
+      { "position": { "lat": 32.88571594003311, "lng": 130.84227494479052 }, "intensity": 1.0, "jobs": 1700, "type": "semiconductor" }
+    ],
+    "otherHotspots": [
+      { "position": { "lat": 32.89099261407297, "lng": 130.8379041220886 }, "intensity": 1.0, "jobs": 2200, "type": "other" },
+      { "position": { "lat": 32.89848409344948, "lng": 130.75459677905255 }, "intensity": 0.68, "jobs": 1500, "type": "other" }
+    ]
+  },
+  "realEstate": {
+    "zones": [
+      { "regionId": "kikuyo", "priceLevel": 1.0, "price": 350000, "trend": 32.5 },
+      { "regionId": "koshi", "priceLevel": 0.8, "price": 280000, "trend": 18.5 },
+      { "regionId": "ozu", "priceLevel": 0.63, "price": 220000, "trend": 28.4 }
+    ]
+  },
+  "govPlan": {
+    "circles": [
+      {
+        "id": "tsmc-impact-zone",
+        "name": "TSMC Semiconductor Hub",
+        "nameJp": "TSMC半導体ハブ",
+        "center": { "lat": 32.885, "lng": 130.825 },
+        "radiusKm": 12,
+        "color": "#E85D4C",
+        "description": [
+          "TSMC, Sony, Denso, and Toyota are creating a major semiconductor hub in Kumamoto.",
+          "Supported by ¥1.2T+ in subsidies and USD 20B+ invested across two fabs.",
+          "First fab launches late 2024, producing 12/16 nm and 22/28 nm chips for automotive and industrial use.",
+          "The project will create 3,400+ high-tech jobs and enhance Japan's chip manufacturing resilience.",
+          "It drives ¥5T in supply-chain investments, strengthening Kyushu's industrial base.",
+          "Over 10 years, it is expected to deliver ¥23T in economic benefits across Kyushu, Yamaguchi, and Okinawa.",
+          "Kumamoto remains the primary beneficiary with ~ ¥13T in long-term gains."
+        ],
+        "ref": { "url": "https://www.meti.go.jp/english/policy/0704_001.pdf", "label": "METI Semiconductor Policy" }
+      },
+      {
+        "id": "airport-development-zone",
+        "name": "Aso Kumamoto Airport Development Zone",
+        "nameJp": "阿蘇くまもと空港開発ゾーン",
+        "center": { "lat": 32.841638592865074, "lng": 130.85989089814692 },
+        "radiusKm": 10,
+        "color": "#4A90D9",
+        "description": [
+          "This concept aims to turn the Aso Kumamoto Airport area into a long-term growth engine for the region, guided by a 10-year plan through FY2033.",
+          "Driven by JASM and the expanding semiconductor ecosystem, the plan integrates:",
+          "• Airport upgrades",
+          "• Semiconductor industrial clusters",
+          "• New transport infrastructure",
+          "• Livable town development"
+        ],
+        "ref": { "url": "https://www.mlit.go.jp/koku/koku_fr1_000073.html", "label": "MLIT Aviation" }
+      }
+    ],
+    "futureCircles": [
+      {
+        "id": "semiconductor-cluster-area",
+        "name": "Semiconductor Cluster Area",
+        "nameJp": "半導体クラスター地区",
+        "center": { "lat": 32.905, "lng": 130.795 },
+        "radiusKm": 3,
+        "color": "#9B59B6",
+        "description": [
+          "Kochi municipal industrial park / Kikuyo Town-operated industrial park",
+          "Part of the Kumamoto Science Park Promotion Vision to transform the area around TSMC into an international semiconductor hub.",
+          "Focus on industrial clustering, attracting semiconductor and high-tech firms, R&D centers."
+        ],
+        "ref": { "url": "https://www.pref.kumamoto.jp/", "label": "Kumamoto Prefecture" }
+      },
+      {
+        "id": "kikuchi-industrial-park",
+        "name": "Kumamoto Prefecture Industrial Park",
+        "nameJp": "熊本県工業団地（菊池市）",
+        "center": { "lat": 32.925, "lng": 130.810 },
+        "radiusKm": 2.5,
+        "color": "#E67E22",
+        "description": [
+          "Kumamoto Prefecture industrial park (Kikuchi city)",
+          "Designated for semiconductor-related manufacturing expansion.",
+          "Part of the 'Silicon Island Kyushu' initiative."
+        ],
+        "ref": { "url": "https://www.pref.kumamoto.jp/", "label": "Kumamoto Prefecture" }
+      },
+      {
+        "id": "kyokushikawabe-zone",
+        "name": "Kyokushikawabe Business/Industrial Zone",
+        "nameJp": "旭志川辺ビジネス・工業ゾーン",
+        "center": { "lat": 32.935, "lng": 130.855 },
+        "radiusKm": 2,
+        "color": "#3498DB",
+        "description": [
+          "Kyokushikawabe business/industrial zone",
+          "Planned expansion area for semiconductor supply chain companies."
+        ],
+        "ref": { "url": "https://www.pref.kumamoto.jp/", "label": "Kumamoto Prefecture" }
+      },
+      {
+        "id": "ozu-industrial-zone",
+        "name": "Ozu Town-operated Industrial Zone",
+        "nameJp": "大津町営工業団地",
+        "center": { "lat": 32.890, "lng": 130.875 },
+        "radiusKm": 2,
+        "color": "#1ABC9C",
+        "description": [
+          "Ozu town-operated industrial zone",
+          "Strategic location near airport for logistics and manufacturing."
+        ],
+        "ref": { "url": "https://www.town.ozu.kumamoto.jp/", "label": "Ozu Town" }
+      },
+      {
+        "id": "kikuyo-rezoned-district",
+        "name": "Kikuyo Town Rezoned Development District",
+        "nameJp": "菊陽町再開発地区",
+        "center": { "lat": 32.870, "lng": 130.805 },
+        "radiusKm": 2,
+        "color": "#F1C40F",
+        "description": [
+          "Kikuyo town rezoned development district",
+          "Residential and commercial development to support semiconductor workforce.",
+          "New housing, amenities, and transit connections planned."
+        ],
+        "ref": { "url": "http://www.town.kikuyo.lg.jp/", "label": "Kikuyo Town" }
+      },
+      {
+        "id": "south-residential-area-1",
+        "name": "Southern Residential Development Area",
+        "nameJp": "南部住宅開発地区",
+        "center": { "lat": 32.820, "lng": 130.830 },
+        "radiusKm": 2.5,
+        "color": "#2ECC71",
+        "description": [
+          "Planned residential development area in the southern region near Kumamoto Airport.",
+          "New housing communities to accommodate semiconductor industry workers.",
+          "Part of the 'Livable Town Development' initiative in the Grand Airport Plan."
+        ],
+        "ref": { "url": "https://www.pref.kumamoto.jp/", "label": "Kumamoto Prefecture" }
+      },
+      {
+        "id": "south-residential-area-2",
+        "name": "Airport South Residential Zone",
+        "nameJp": "空港南住宅ゾーン",
+        "center": { "lat": 32.815, "lng": 130.870 },
+        "radiusKm": 2,
+        "color": "#27AE60",
+        "description": [
+          "Airport south side residential zone",
+          "Strategic housing development for airport and industrial workers.",
+          "Easy access to Kumamoto Airport and semiconductor facilities."
+        ],
+        "ref": { "url": "https://www.pref.kumamoto.jp/", "label": "Kumamoto Prefecture" }
+      }
+    ],
+    "futureIndustries": [
+      {
+        "id": "sony-expansion",
+        "name": "Sony New Image Sensor Plant",
+        "nameJp": "ソニー新イメージセンサー工場",
+        "position": { "lat": 32.895, "lng": 130.840 },
+        "logo": "/companies/Sony.svg",
+        "investmentSize": "Expansion in Kōshi",
+        "investmentDetails": [
+          "Sony Corporation is building a new image sensor plant in Kōshi next to its existing factory near JASM.",
+          "Part of the Kumamoto Science Park ecosystem."
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/Sony+Semiconductor+Manufacturing+Corporation",
+        "ref": { "url": "https://www.sony-semicon.com/en/news/", "label": "Sony Semiconductor News" }
+      },
+      {
+        "id": "mitsubishi-sic-plant",
+        "name": "Mitsubishi Electric SiC Plant",
+        "nameJp": "三菱電機SiCパワー半導体工場",
+        "position": { "lat": 32.920, "lng": 130.760 },
+        "logo": "/companies/Mitsubishi_Electric.svg",
+        "investmentSize": "8-inch SiC power-semiconductor plant",
+        "investmentDetails": [
+          "Mitsubishi Electric Corporation is constructing an 8-inch SiC power-semiconductor plant in Kikuchi (Shisui).",
+          "Operations starting in late 2025."
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/Mitsubishi+Electric",
+        "ref": { "url": "https://www.mitsubishielectric.com/en/", "label": "Mitsubishi Electric" }
+      },
+      {
+        "id": "jasm-fab2",
+        "name": "JASM Fab 2 (Expansion)",
+        "nameJp": "JASM第2工場",
+        "position": { "lat": 32.882, "lng": 130.845 },
+        "logo": "/companies/JASM.svg",
+        "investmentSize": "Factory expansion (22/28 nm, 12/16 nm)",
+        "investmentDetails": [
+          "Japan Advanced Semiconductor Manufacturing (Kikuyō Town - Foundry)",
+          "Factory expansion for 22/28 nm and 12/16 nm process nodes."
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/JASM+TSMC",
+        "ref": { "url": "https://pr.tsmc.com/", "label": "TSMC Press" }
+      },
+      {
+        "id": "fujifilm-expansion",
+        "name": "Fujifilm Electronic Materials",
+        "nameJp": "富士フイルムエレクトロニクスマテリアルズ",
+        "position": { "lat": 32.875, "lng": 130.815 },
+        "logo": "/companies/Fujifilm.svg",
+        "investmentSize": "Expansion planned",
+        "investmentDetails": [
+          "Fujifilm Electronic Materials Manufacturing (Kikuyō Town - Electronic materials)",
+          "Expansion planned to support semiconductor industry growth."
+        ],
+        "googleMapsUrl": "https://www.google.com/maps",
+        "ref": { "url": "https://www.fujifilm.com/", "label": "Fujifilm" }
+      }
+    ],
+    "corridors": [
+      {
+        "id": "north-liaison-road",
+        "name": "Kumamoto Urban Area North Liaison Road",
+        "nameJp": "熊本都市圏北連絡道路",
+        "purpose": "Connects the City Center to the Northern highway network (Kumamoto IC / Koshi area) to bypass local street congestion.",
+        "path": [
+          { "lat": 32.803, "lng": 130.707 },
+          { "lat": 32.886, "lng": 130.842 }
+        ],
+        "color": "#FBB931",
+        "ref": { "url": "https://www.qsr.mlit.go.jp/kumamoto/", "label": "MLIT Kyushu" }
+      },
+      {
+        "id": "airport-liaison-road",
+        "name": "Kumamoto Airport Liaison Road",
+        "nameJp": "熊本空港連絡道路",
+        "purpose": "A high-speed link directly to the airport (and by extension, the JASM logistics hub nearby). Likely follows or parallels the current Second Airport Line (Route 36).",
+        "path": [
+          { "lat": 32.803, "lng": 130.707 },
+          { "lat": 32.837, "lng": 130.855 }
+        ],
+        "color": "#00D4FF",
+        "ref": { "url": "https://www.qsr.mlit.go.jp/kumamoto/", "label": "MLIT Kyushu" }
+      },
+      {
+        "id": "middle-kyushu-expressway",
+        "name": "Middle Kyushu Expressway (Ozu-Kumamoto Road)",
+        "nameJp": "中九州横断道路（大津熊本道路）",
+        "purpose": "Connects directly to the JASM area from the north, linking Kumamoto IC to Ozu via an expanded expressway.",
+        "path": [
+          { "lat": 32.885, "lng": 130.825 },
+          { "lat": 32.915, "lng": 130.805 }
+        ],
+        "color": "#5DBB63",
+        "ref": { "url": "https://www.qsr.mlit.go.jp/kumamoto/", "label": "MLIT Kyushu" }
+      }
+    ],
+    "anchors": [
+      {
+        "id": "kumamoto-city-center",
+        "name": "Kumamoto City Center",
+        "nameJp": "熊本市中心部",
+        "position": { "lat": 32.803, "lng": 130.707 },
+        "type": "city-center"
+      },
+      {
+        "id": "jasm-tsmc-factory",
+        "name": "JASM / TSMC Factory",
+        "nameJp": "JASM / TSMC工場",
+        "position": { "lat": 32.885, "lng": 130.825 },
+        "type": "factory"
+      },
+      {
+        "id": "kumamoto-airport",
+        "name": "Kumamoto Airport (KMJ)",
+        "nameJp": "熊本空港",
+        "position": { "lat": 32.837, "lng": 130.855 },
+        "type": "airport"
+      }
+    ],
+    "companies": [
+      {
+        "id": "tsmc",
+        "name": "JASM (TSMC)",
+        "nameJp": "JASM株式会社",
+        "position": { "lat": 32.88571594003311, "lng": 130.84227494479052 },
+        "logo": "/companies/JASM.svg",
+        "investmentSize": "$22.5 Billion USD (~¥3 Trillion JPY)",
+        "investmentDetails": [
+          "Japan Government: $8 Billion USD (conditional subsidy)",
+          "TSMC: $12 Billion USD",
+          "Denso: $350 Million USD",
+          "Sony: $500 Million USD",
+          "Toyota: $100–$150 Million USD"
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/JASM+TSMC/@32.8855899,130.8396303,17z",
+        "ref": { "url": "https://pr.tsmc.com/english/news/3105", "label": "TSMC Press Release" },
+        "investorRefs": [
+          { "name": "Denso", "url": "https://www.denso.com/global/en/news/newsroom/2024/20240206-g01/", "label": "Denso Newsroom" },
+          { "name": "Toyota", "url": "https://global.toyota/en/newsroom/corporate/40410568.html", "label": "Toyota Newsroom" }
+        ]
+      },
+      {
+        "id": "sony",
+        "name": "Sony Semiconductor",
+        "nameJp": "ソニーセミコンダクタマニュファクチャリング株式会社",
+        "position": { "lat": 32.89099261407297, "lng": 130.8379041220886 },
+        "logo": "/companies/Sony.svg",
+        "investmentSize": "¥800 Billion JPY",
+        "investmentDetails": [
+          "Sony Factory Investment: ¥800 Billion JPY",
+          "JASM Investment: $500 Million USD"
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/Sony+Semiconductor+Manufacturing+Corporation,+Kumamoto+Technology+Center",
+        "ref": { "url": "https://www.sony-semicon.com/en/news/2024/2024020601.html", "label": "Sony Semiconductor News" }
+      },
+      {
+        "id": "mitsubishi",
+        "name": "Mitsubishi Electric",
+        "nameJp": "三菱電機株式会社",
+        "position": { "lat": 32.89848409344948, "lng": 130.75459677905255 },
+        "logo": "/companies/Mitsubishi_Electric.svg",
+        "investmentSize": "¥100 Billion JPY",
+        "investmentDetails": [
+          "Power semiconductor production expansion"
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/Mitsubishi+Electric/@32.8961173,130.7540685,17z",
+        "ref": { "url": "https://www.mitsubishielectric.com/en/pr/2023/pdf/0314-b.pdf", "label": "Mitsubishi Electric Press Release" }
+      },
+      {
+        "id": "tokyo-electron",
+        "name": "Tokyo Electron Kyushu",
+        "nameJp": "東京エレクトロン九州",
+        "position": { "lat": 32.88883237111829, "lng": 130.83036454842244 },
+        "logo": "/companies/Tokyo_Electron.svg",
+        "investmentSize": "¥30–43 Billion JPY",
+        "investmentDetails": [
+          "Semiconductor manufacturing equipment production"
+        ],
+        "googleMapsUrl": "https://www.google.com/maps/place/Tokyo+Electron+Ltd.+Kyushu+Branch",
+        "ref": { "url": "https://www.tel.com/news/ir/2025/20251015_001.html", "label": "Tokyo Electron IR" }
+      }
+    ]
+  },
+  "risk": {
+    "zones": [
+      {
+        "id": "tsukure-flood-zone",
+        "name": "Flood Risk Area",
+        "nameJp": "浸水想定区域",
+        "depth": "0.5m〜3m",
+        "riskLevel": "medium",
+        "center": { "lat": 32.861697243300384, "lng": 130.81123452832307 },
+        "radiusM": 500,
+        "source": "菊陽町ハザードマップ",
+        "ref": "https://disaportal.gsi.go.jp/",
+        "riskType": "flood"
+      },
+      {
+        "id": "narrow-road-ozu",
+        "name": "Narrow Road Area",
+        "nameJp": "狭隘道路区域",
+        "riskLevel": "high",
+        "center": { "lat": 32.879269819923536, "lng": 130.85648129794654 },
+        "radiusM": 200,
+        "source": "現地調査",
+        "riskType": "narrow-road"
+      }
+    ]
+  }
+}

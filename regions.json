@@ -1,0 +1,196 @@
+{
+  "kikuyo": {
+    "id": "kikuyo",
+    "name": "Kikuyo Town",
+    "nameJp": "菊陽町",
+    "type": "Industrial Hub",
+    "color": "#E85D4C",
+    "position": { "lat": 32.8600, "lng": 130.8300 },
+    "boundary": {
+      "coordinates": [
+        { "lat": 32.8222, "lng": 130.8333 },
+        { "lat": 32.8256, "lng": 130.8256 },
+        { "lat": 32.8333, "lng": 130.8250 },
+        { "lat": 32.8431, "lng": 130.8053 },
+        { "lat": 32.8523, "lng": 130.8000 },
+        { "lat": 32.8667, "lng": 130.7814 },
+        { "lat": 32.8750, "lng": 130.7877 },
+        { "lat": 32.8833, "lng": 130.8236 },
+        { "lat": 32.8957, "lng": 130.8333 },
+        { "lat": 32.8966, "lng": 130.8334 },
+        { "lat": 32.8910, "lng": 130.8490 },
+        { "lat": 32.8704, "lng": 130.8500 },
+        { "lat": 32.8667, "lng": 130.8583 },
+        { "lat": 32.8500, "lng": 130.8636 },
+        { "lat": 32.8442, "lng": 130.8667 },
+        { "lat": 32.8417, "lng": 130.8743 },
+        { "lat": 32.8367, "lng": 130.8667 },
+        { "lat": 32.8351, "lng": 130.8583 },
+        { "lat": 32.8222, "lng": 130.8333 }
+      ]
+    },
+    "stats": {
+      "traffic": {
+        "flowWeekdayEvening": 28500,
+        "unit": "vehicles/day",
+        "level": "high",
+        "ref": { "url": "https://www.mlit.go.jp/en/", "label": "MLIT Road Census" }
+      },
+      "power": {
+        "dailyConsumptionKwh": 1600000,
+        "industrialPct": 87,
+        "residentialPct": 13,
+        "note": "TSMC fab at ~50% capacity uses ~1.2M kWh/day; 900 GWh/year at full capacity",
+        "ref": { "url": "https://www.kyuden.co.jp/company_outline_supply.html", "label": "Kyushu Electric" }
+      },
+      "stationTraffic": {
+        "dailyCommuters": 8500,
+        "primaryStation": "Haramizu",
+        "ref": { "url": "https://www.jrkyushu.co.jp/company/info/data/station.html", "label": "JR Kyushu" }
+      },
+      "employment": {
+        "semiconductorJobs": 1200,
+        "nonSemiconductorJobs": 300,
+        "totalJobs": 1500,
+        "growthYoyPct": 45.2,
+        "ref": { "url": "https://www.pref.kumamoto.jp/soshiki/52/", "label": "Kumamoto Prefecture" }
+      },
+      "realEstate": {
+        "landPricePerTsubo": 350000,
+        "landPriceTrendYoyPct": 32.5,
+        "rentTrendYoyPct": 15.2,
+        "ref": { "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html", "label": "MLIT Land Price" }
+      }
+    }
+  },
+  "koshi": {
+    "id": "koshi",
+    "name": "Koshi City",
+    "nameJp": "合志市",
+    "type": "Mixed Tech/Residential",
+    "color": "#4A90D9",
+    "position": { "lat": 32.9050, "lng": 130.7600 },
+    "boundary": {
+      "coordinates": [
+        { "lat": 32.8970, "lng": 130.7200 },
+        { "lat": 32.9000, "lng": 130.7228 },
+        { "lat": 32.9035, "lng": 130.7224 },
+        { "lat": 32.9105, "lng": 130.7230 },
+        { "lat": 32.9143, "lng": 130.7242 },
+        { "lat": 32.9207, "lng": 130.7262 },
+        { "lat": 32.9250, "lng": 130.7281 },
+        { "lat": 32.9271, "lng": 130.7320 },
+        { "lat": 32.9263, "lng": 130.7333 },
+        { "lat": 32.9248, "lng": 130.7417 },
+        { "lat": 32.9265, "lng": 130.7500 },
+        { "lat": 32.9181, "lng": 130.7750 },
+        { "lat": 32.9121, "lng": 130.7917 },
+        { "lat": 32.9093, "lng": 130.8083 },
+        { "lat": 32.8833, "lng": 130.8236 },
+        { "lat": 32.8750, "lng": 130.7877 },
+        { "lat": 32.8667, "lng": 130.7814 },
+        { "lat": 32.8879, "lng": 130.7250 },
+        { "lat": 32.8917, "lng": 130.7225 },
+        { "lat": 32.8970, "lng": 130.7200 }
+      ]
+    },
+    "stats": {
+      "traffic": {
+        "flowWeekdayEvening": 12769,
+        "unit": "vehicles/day",
+        "level": "medium",
+        "ref": { "url": "https://www.mlit.go.jp/en/", "label": "MLIT Road Census" }
+      },
+      "power": {
+        "dailyConsumptionKwh": 750000,
+        "industrialPct": 47,
+        "residentialPct": 53,
+        "note": "Sony Image Sensor plant + semiconductor suppliers; ~27,500 households",
+        "ref": { "url": "https://www.kyuden.co.jp/company_outline_supply.html", "label": "Kyushu Electric" }
+      },
+      "stationTraffic": {
+        "dailyCommuters": 6200,
+        "primaryStation": "Hikarinomori",
+        "ref": { "url": "https://www.jrkyushu.co.jp/company/info/data/station.html", "label": "JR Kyushu" }
+      },
+      "employment": {
+        "semiconductorJobs": 900,
+        "nonSemiconductorJobs": 600,
+        "totalJobs": 1500,
+        "growthYoyPct": 28.7,
+        "ref": { "url": "https://www.pref.kumamoto.jp/soshiki/52/", "label": "Kumamoto Prefecture" }
+      },
+      "realEstate": {
+        "landPricePerTsubo": 280000,
+        "landPriceTrendYoyPct": 18.5,
+        "rentTrendYoyPct": 9.5,
+        "ref": { "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000000.html", "label": "MLIT Land Price" }
+      }
+    }
+  },
+  "ozu": {
+    "id": "ozu",
+    "name": "Ozu Town",
+    "nameJp": "大津町",
+    "type": "Residential & Logistics",
+    "color": "#5DBB63",
+    "position": { "lat": 32.8800, "lng": 130.8700 },
+    "boundary": {
+      "coordinates": [
+        { "lat": 32.8368, "lng": 130.8750 },
+        { "lat": 32.8410, "lng": 130.8742 },
+        { "lat": 32.8500, "lng": 130.8636 },
+        { "lat": 32.8540, "lng": 130.8644 },
+        { "lat": 32.8645, "lng": 130.8583 },
+        { "lat": 32.8703, "lng": 130.8497 },
+        { "lat": 32.8833, "lng": 130.8536 },
+        { "lat": 32.8900, "lng": 130.8500 },
+        { "lat": 32.9000, "lng": 130.8529 },
+        { "lat": 32.9167, "lng": 130.8387 },
+        { "lat": 32.9210, "lng": 130.8583 },
+        { "lat": 32.9304, "lng": 130.8667 },
+        { "lat": 32.9350, "lng": 130.8833 },
+        { "lat": 32.9300, "lng": 130.9000 },
+        { "lat": 32.9100, "lng": 130.9167 },
+        { "lat": 32.8900, "lng": 130.9200 },
+        { "lat": 32.8700, "lng": 130.9150 },
+        { "lat": 32.8500, "lng": 130.9000 },
+        { "lat": 32.8400, "lng": 130.8850 },
+        { "lat": 32.8368, "lng": 130.8750 }
+      ]
+    },
+    "stats": {
+      "traffic": {
+        "flowWeekdayEvening": 9975,
+        "unit": "vehicles/day",
+        "level": "medium",
+        "ref": { "url": "https://www.mlit.go.jp/road/census/", "label": "MLIT Road Census" }
+      },
+      "power": {
+        "dailyConsumptionKwh": 280000,
+        "industrialPct": 22,
+        "residentialPct": 78,
+        "note": "Primarily residential town with ~16,000 households; logistics centers",
+        "ref": { "url": "https://www.kyuden.co.jp/company_outline_supply.html", "label": "Kyushu Electric" }
+      },
+      "stationTraffic": {
+        "dailyCommuters": 14000,
+        "primaryStation": "Higo-Ozu",
+        "ref": { "url": "https://www.jrkyushu.co.jp/company/info/data/station.html", "label": "JR Kyushu" }
+      },
+      "employment": {
+        "semiconductorJobs": 400,
+        "nonSemiconductorJobs": 800,
+        "totalJobs": 1200,
+        "growthYoyPct": 22.3,
+        "ref": { "url": "https://www.pref.kumamoto.jp/soshiki/52/", "label": "Kumamoto Prefecture" }
+      },
+      "realEstate": {
+        "landPricePerTsubo": 220000,
+        "landPriceTrendYoyPct": 28.4,
+        "rentTrendYoyPct": 12.8,
+        "ref": { "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000000.html", "label": "MLIT Land Price" }
+      }
+    }
+  }
+}

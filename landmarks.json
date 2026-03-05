@@ -1,0 +1,372 @@
+[
+  {
+    "id": "tsmc",
+    "name": "TSMC JASM",
+    "type": "tsmc",
+    "position": { "lat": 32.88571594003311, "lng": 130.84227494479052 },
+    "employees": 1700,
+    "investment": 1290000000000,
+    "technology": "12nm - 28nm",
+    "refs": {
+      "employees": {
+        "url": "https://en.wikipedia.org/wiki/Japan_Advanced_Semiconductor_Manufacturing",
+        "label": "JASM Wikipedia (employment & operations)"
+      },
+      "investment": {
+        "url": "https://pr.tsmc.com/japanese/news/3113",
+        "label": "TSMC Press Release on JASM Investment"
+      },
+      "technology": {
+        "url": "https://en.wikipedia.org/wiki/Japan_Advanced_Semiconductor_Manufacturing",
+        "label": "JASM Wikipedia (technology overview)"
+      }
+    }
+  },
+  {
+    "id": "sony",
+    "name": "Sony Semiconductor",
+    "type": "other",
+    "position": { "lat": 32.89099261407297, "lng": 130.8379041220886 },
+    "employees": 2200,
+    "investment": 120000000000,
+    "technology": "CIS Image Sensors",
+    "refs": {
+      "employees": {
+        "url": "https://www.sony-semicon.com/en/company/group/index.html",
+        "label": "Sony Semiconductor Solutions – Corporate Info"
+      },
+      "investment": {
+        "url": "https://www.sony-semicon.com/en/index.html",
+        "label": "Sony Semiconductor Solutions – Homepage"
+      },
+      "technology": {
+        "url": "https://www.sony-semicon.com/en/index.html",
+        "label": "Sony Semiconductor Solutions – Technology Overview"
+      }
+    }
+  },
+  {
+    "id": "mitsubishi",
+    "name": "Mitsubishi Electric",
+    "type": "other",
+    "position": { "lat": 32.89848409344948, "lng": 130.75459677905255 },
+    "employees": 1500,
+    "investment": 80000000000,
+    "technology": "Power Semiconductors",
+    "refs": {
+      "employees": {
+        "url": "https://www.mitsubishielectric.com/en/",
+        "label": "Mitsubishi Electric – Global Website"
+      },
+      "investment": {
+        "url": "https://www.mitsubishielectric.com/en/",
+        "label": "Mitsubishi Electric – Semiconductors Business"
+      },
+      "technology": {
+        "url": "https://www.mitsubishielectric.com/semiconductors/powerdevices/",
+        "label": "Mitsubishi Electric – Power Semiconductors"
+      }
+    }
+  },
+  {
+    "id": "tokyo-electron",
+    "name": "Tokyo Electron Kyushu",
+    "type": "other",
+    "position": { "lat": 32.88883237111829, "lng": 130.83036454842244 },
+    "employees": 1200,
+    "investment": 100000000000,
+    "technology": "Semiconductor Manufacturing Equipment",
+    "refs": {
+      "employees": {
+        "url": "https://www.tel.com/",
+        "label": "Tokyo Electron – Global Website"
+      },
+      "investment": {
+        "url": "https://www.tel.com/",
+        "label": "Tokyo Electron – Business Overview"
+      },
+      "technology": {
+        "url": "https://www.tel.com/product/",
+        "label": "Tokyo Electron – Products"
+      }
+    }
+  },
+  {
+    "id": "haramizu",
+    "name": "Haramizu Station",
+    "nameJp": "原水駅",
+    "type": "station",
+    "position": { "lat": 32.87071541271004, "lng": 130.8291661179721 },
+    "dailyPassengers": 8500,
+    "line": "JR Hohi Main Line",
+    "passengerRef": {
+      "url": "https://www.jrkyushu.co.jp/company/info/data/station.html",
+      "label": "JR Kyushu Station Passenger Data"
+    }
+  },
+  {
+    "id": "hikarinomori",
+    "name": "Hikarinomori Station",
+    "nameJp": "光の森駅",
+    "type": "station",
+    "position": { "lat": 32.8581645788132, "lng": 130.78674425856488 },
+    "dailyPassengers": 12000,
+    "line": "JR Hohi Main Line",
+    "passengerRef": {
+      "url": "https://www.jrkyushu.co.jp/company/info/data/station.html",
+      "label": "JR Kyushu Station Passenger Data"
+    }
+  },
+  {
+    "id": "higo-ozu",
+    "name": "Higo-Ozu Station",
+    "nameJp": "肥後大津駅",
+    "type": "station",
+    "position": { "lat": 32.877643313351285, "lng": 130.8661699380599 },
+    "dailyPassengers": 14000,
+    "line": "JR Hohi Main Line",
+    "passengerRef": {
+      "url": "https://www.jrkyushu.co.jp/company/info/data/station.html",
+      "label": "JR Kyushu Station Passenger Data"
+    }
+  },
+  {
+    "id": "kumamoto-jr",
+    "name": "Kumamoto Station",
+    "nameJp": "熊本駅",
+    "type": "station",
+    "position": { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+    "dailyPassengers": 38000,
+    "line": "JR Hohi Main Line",
+    "passengerRef": {
+      "url": "https://www.jrkyushu.co.jp/company/info/data/station.html",
+      "label": "JR Kyushu Station Passenger Data"
+    }
+  },
+  {
+    "id": "new-station",
+    "name": "New Station (Planned)",
+    "type": "planned",
+    "position": { "lat": 32.86503374988614, "lng": 130.80826368102453 },
+    "dailyPassengers": null,
+    "line": "JR Hohi Main Line",
+    "plannedRef": {
+      "url": "https://www.jrkyushu.co.jp/company/news/",
+      "label": "JR Kyushu – News & Announcements"
+    }
+  },
+  {
+    "id": "sugimizu",
+    "name": "大津町杉水第1 1号棟",
+    "type": "owned",
+    "position": { "lat": 32.897037324031835, "lng": 130.85079381415977 },
+    "property": {
+      "addressJp": "熊本県菊池郡大津町大字杉水3542-36付近",
+      "mapcode": "29 837 193*24",
+      "lotSizeTsubo": 39.17,
+      "lotSizeSqm": 129.49,
+      "buildingSizeTsubo": 28.91,
+      "buildingSizeSqm": 95.58,
+      "layout": "4LDK+納戸",
+      "price": 25880000,
+      "acquisitionDate": "2025-12",
+      "pdfUrl": "/docs/40183b48-6083-4977-b868-8924435132ec.pdf"
+    },
+    "analysis": {
+      "zone": "core",
+      "riskFlags": [],
+      "landBand": "¥800K-¥1M/tsubo",
+      "rentBand": "¥14K-¥17K/tsubo",
+      "recommendation": {
+        "decision": "Pursue",
+        "product": "RC 1-2LDK"
+      },
+      "refs": {
+        "landPriceData": {
+          "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html",
+          "label": "MLIT Land Price Survey (WebLand)"
+        },
+        "localPlanning": {
+          "url": "https://www.town.ozu.kumamoto.jp/",
+          "label": "Ōzu Town Official Website"
+        }
+      }
+    }
+  },
+  {
+    "id": "kubota",
+    "name": "菊陽町久保田5期 11号棟",
+    "type": "owned",
+    "position": { "lat": 32.85680031366214, "lng": 130.8455236355823 },
+    "property": {
+      "addressJp": "熊本県菊陽町大字久保田字前田1315番18",
+      "mapcode": "菊陽町久保田1424付近",
+      "lotSizeTsubo": 61.01,
+      "lotSizeSqm": 201.71,
+      "buildingSizeTsubo": 34.81,
+      "buildingSizeSqm": 115.10,
+      "layout": "4SLDK",
+      "price": 26980000,
+      "acquisitionDate": "2025-11",
+      "pdfUrl": "/docs/525bb1ea-d533-4323-a216-2a83ecd5ed1e.pdf"
+    },
+    "analysis": {
+      "zone": "core",
+      "riskFlags": [],
+      "landBand": "¥700K-¥900K/tsubo",
+      "rentBand": "¥13K-¥16K/tsubo",
+      "recommendation": {
+        "decision": "Pursue",
+        "product": "3-4LDK houses"
+      },
+      "refs": {
+        "landPriceData": {
+          "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html",
+          "label": "MLIT Land Price Survey (WebLand)"
+        },
+        "localPlanning": {
+          "url": "http://www.town.kikuyo.lg.jp/",
+          "label": "Kikuyō Town Official Website"
+        }
+      }
+    }
+  },
+  {
+    "id": "haramizu-construction",
+    "name": "原水駅前 (Under Construction)",
+    "type": "construction",
+    "position": { "lat": 32.87020433483583, "lng": 130.8289134644177 },
+    "addressJp": "熊本県菊池郡菊陽町原水 駅前北公園付近",
+    "status": "Under Construction",
+    "expectedCompletion": "2026",
+    "analysis": {
+      "zone": "growth",
+      "riskFlags": [],
+      "landBand": "¥650K-¥850K/tsubo",
+      "rentBand": "¥12K-¥15K/tsubo",
+      "recommendation": {
+        "decision": "Pursue",
+        "product": "RC 1-2LDK"
+      },
+      "refs": {
+        "constructionPlanning": {
+          "url": "http://www.town.kikuyo.lg.jp/",
+          "label": "Kikuyō Town Official Website"
+        },
+        "landPriceData": {
+          "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html",
+          "label": "MLIT Land Price Survey (WebLand)"
+        }
+      }
+    }
+  },
+  {
+    "id": "ozu-planning",
+    "name": "大津町 (Land Acquisition)",
+    "type": "planning",
+    "position": { "lat": 32.870975, "lng": 130.839358 },
+    "addressJp": "熊本県菊池郡大津町",
+    "status": "Land Acquisition Planning",
+    "analysis": {
+      "zone": "growth",
+      "riskFlags": ["old-stock"],
+      "landBand": "¥550K-¥750K/tsubo",
+      "rentBand": "¥11K-¥14K/tsubo",
+      "recommendation": {
+        "decision": "Hold",
+        "product": "Mixed use - RC apartments or 3LDK houses"
+      },
+      "refs": {
+        "localPlanning": {
+          "url": "https://www.town.ozu.kumamoto.jp/",
+          "label": "Ōzu Town Official Website"
+        },
+        "landPriceData": {
+          "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html",
+          "label": "MLIT Land Price Survey (WebLand)"
+        }
+      }
+    }
+  },
+  {
+    "id": "ozu-planning-2",
+    "name": "大津町北部 (Land Acquisition)",
+    "type": "planning",
+    "position": { "lat": 32.8989719387616, "lng": 130.8430691826066 },
+    "addressJp": "熊本県菊池郡大津町",
+    "status": "Land Acquisition Planning",
+    "analysis": {
+      "zone": "growth",
+      "riskFlags": [],
+      "landBand": "¥600K-¥800K/tsubo",
+      "rentBand": "¥12K-¥15K/tsubo",
+      "recommendation": {
+        "decision": "Pursue",
+        "product": "RC 1-2LDK or 3LDK houses"
+      },
+      "refs": {
+        "localPlanning": {
+          "url": "https://www.town.ozu.kumamoto.jp/",
+          "label": "Ōzu Town Official Website"
+        },
+        "landPriceData": {
+          "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html",
+          "label": "MLIT Land Price Survey (WebLand)"
+        }
+      }
+    }
+  },
+  {
+    "id": "libwork-land",
+    "name": "LibWork土地 (Land Acquisition)",
+    "type": "planning",
+    "position": { "lat": 32.8712094730489, "lng": 130.83941941144073 },
+    "addressJp": "熊本県菊池郡大津町付近",
+    "status": "Negotiating with LibWork",
+    "description": "7 parcels of land currently owned by LibWork. Under negotiation for acquisition.",
+    "parcels": 7,
+    "currentOwner": "LibWork",
+    "analysis": {
+      "zone": "growth",
+      "riskFlags": [],
+      "landBand": "¥600K-¥800K/tsubo",
+      "rentBand": "¥12K-¥15K/tsubo",
+      "recommendation": {
+        "decision": "Pursue",
+        "product": "TBD pending acquisition"
+      },
+      "refs": {
+        "localPlanning": {
+          "url": "https://www.town.ozu.kumamoto.jp/",
+          "label": "Ōzu Town Official Website"
+        },
+        "landPriceData": {
+          "url": "https://www.mlit.go.jp/en/totikensangyo/totikensangyo_fr4_000001.html",
+          "label": "MLIT Land Price Survey (WebLand)"
+        }
+      }
+    }
+  },
+  {
+    "id": "kumamoto-station-investment",
+    "name": "Kumamoto Station Area",
+    "nameJp": "熊本駅周辺投資エリア",
+    "type": "investment-area",
+    "position": { "lat": 32.790424854882716, "lng": 130.68852505090493 },
+    "description": "10-minute walking radius from Kumamoto Station. Strategic transit hub with high commuter traffic and excellent connectivity to TSMC area via JR Hohi Line.",
+    "radiusM": 800,
+    "nearbyStation": "Kumamoto Station",
+    "nearbyStationId": "kumamoto-jr"
+  },
+  {
+    "id": "hikarinomori-investment",
+    "name": "Hikarinomori Station Area",
+    "nameJp": "光の森駅周辺投資エリア",
+    "type": "investment-area",
+    "position": { "lat": 32.8581645788132, "lng": 130.78674425856488 },
+    "description": "10-minute walking radius from Hikarinomori Station. Growing residential area with strong semiconductor workforce demand and direct rail access to TSMC.",
+    "radiusM": 800,
+    "nearbyStation": "Hikarinomori Station",
+    "nearbyStationId": "hikarinomori"
+  }
+]
