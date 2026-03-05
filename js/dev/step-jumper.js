@@ -6,7 +6,7 @@
 
 import { STEPS } from "../data/index.js";
 import { TIMING, App } from "../app.js";
-import { MapController } from "../map-controller.js";
+import { MapController } from "../map/index.js";
 import { UI } from "../ui.js";
 
 const StepJumper = {

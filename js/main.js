@@ -12,7 +12,7 @@ import {
   CAMERA_FEELINGS,
   CAMERA_STEPS,
   MapController,
-} from "./map-controller.js";
+} from "./map/index.js";
 import { UI } from "./ui.js";
 import { TIMING, App } from "./app.js";
 import { StepJumper } from "./dev/step-jumper.js";

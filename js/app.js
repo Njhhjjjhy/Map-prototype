@@ -3,7 +3,7 @@
  */
 
 import { STEPS, AppData } from "./data/index.js";
-import { CAMERA_STEPS, MapController } from "./map-controller.js";
+import { CAMERA_STEPS, MapController } from "./map/index.js";
 import { UI } from "./ui.js";
 
 /**

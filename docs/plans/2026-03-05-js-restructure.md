@@ -348,9 +348,39 @@ Moved StepJumper (224 lines) and QAReporter (368 lines) from `app.js` into `js/d
 | `js/dev/` (2 files) | 592 | Extracted from app.js |
 | `js/main.js` | 39 | New |
 
-### Phase 4: Split map-controller.js - next
+### Phase 4: Split map-controller.js - done
 
-### Phase 5: Split ui.js - pending
+Replaced `map-controller.js` (7,044 lines) with 13 files in `js/map/`. Used a Python extraction script to programmatically extract method bodies by line ranges, then manually fixed imports and missing inline data properties.
+
+**Approach:** `state.js` defines all shared mutable state. `index.js` composes state + all method objects via `Object.assign` into the `MapController` facade. Methods keep `this.*` references which resolve to the composed object. Sub-modules import constants they need directly from `constants.js`. `UI` and `App` are accessed as globals via `window`.
+
+**Issues found and fixed:**
+- JSDoc comment between methods created `*/,` syntax error in `properties.js`
+- `_railCommuteData` and `_infraPlanMeta` were inline data on the MapController object, missed by initial extraction - added to `state.js`
+- `CINEMATIC_SCALE` was internal-only (not on `window`) - added explicit import in `camera.js`
+- `TIMING.infraStagger` referenced in infrastructure.js - added import from `app.js`
+- Several sub-modules referenced `MAP_COLORS` and `CAMERA_STEPS` without imports - added imports from `constants.js`
+
+**Current state after Phase 4:**
+
+| File | Lines | Contents |
+|------|------:|---------|
+| `js/map/state.js` | 195 | All shared mutable state |
+| `js/map/constants.js` | 285 | MAP_COLORS, CAMERA_FEELINGS, CINEMATIC_SCALE, CAMERA_STEPS |
+| `js/map/core.js` | 453 | init, waitReady, destroy, safe helpers, camera debug |
+| `js/map/camera.js` | 304 | flyToStep, cinematicSpiralTo, forwardReveal, reverseReveal |
+| `js/map/markers.js` | 513 | Marker creation, HTML templates, evidence/data-layer markers |
+| `js/map/airlines.js` | 318 | Airline routes, arc lines, destination markers |
+| `js/map/heartbeat.js` | 170 | Idle drift, marker pulse, line grow, route animation |
+| `js/map/resources.js` | 1,059 | Water, energy, resource arcs, kyushu energy, clearAll |
+| `js/map/zones.js` | 635 | Science park, zone highlights, investment/future zones |
+| `js/map/properties.js` | 420 | Property context lines, training/employment, talent pipeline |
+| `js/map/infrastructure.js` | 1,841 | Roads, government, airport, rail, road extensions |
+| `js/map/data-layers.js` | 368 | Data layer markers, animated route layers, show/hide |
+| `js/map/index.js` | 41 | Facade composing all sub-modules into MapController |
+| **Total** | **6,602** | Was 7,044 in single file |
+
+### Phase 5: Split ui.js - next
 
 ### Phase 6: Split app.js and extract step handlers - pending
 
