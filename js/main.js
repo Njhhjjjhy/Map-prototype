@@ -14,7 +14,9 @@ import {
   MapController,
 } from "./map-controller.js";
 import { UI } from "./ui.js";
-import { TIMING, App, StepJumper, QAReporter } from "./app.js";
+import { TIMING, App } from "./app.js";
+import { StepJumper } from "./dev/step-jumper.js";
+import { QAReporter } from "./dev/qa-reporter.js";
 
 // Expose all globals for inline onclick handlers and cross-module references
 window.STEPS = STEPS;
