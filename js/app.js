@@ -311,7 +311,10 @@ const App = {
       }
     }
     if (layers.includes("sciencePark")) {
-      MapController.showSciencePark({ skipFly: true });
+      MapController.showSciencePark({
+        skipFly: true,
+        skipCircles: step.id === "final",
+      });
     }
     if (layers.includes("futureZones")) {
       MapController.showFutureZones();
