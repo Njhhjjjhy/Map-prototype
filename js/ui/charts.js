@@ -57,6 +57,11 @@ export const methods = {
     )
       return;
 
+    // Determine chart metric: netProfit for land dev, annualRent for BTR
+    const isBTR = fin.scenarios.average.annualRent != null;
+    const chartLabel = isBTR ? "Annual rent" : "Net Profit (5yr)";
+    const metric = isBTR ? "annualRent" : "netProfit";
+
     // Colorblind-safe palette
     const colors = {
       bear: "#6b7280", // Gray
@@ -70,11 +75,11 @@ export const methods = {
         labels: ["Bear", "Average", "Bull"],
         datasets: [
           {
-            label: "Net Profit (5yr)",
+            label: chartLabel,
             data: [
-              fin.scenarios.bear.netProfit,
-              fin.scenarios.average.netProfit,
-              fin.scenarios.bull.netProfit,
+              fin.scenarios.bear[metric] || 0,
+              fin.scenarios.average[metric] || 0,
+              fin.scenarios.bull[metric] || 0,
             ],
             backgroundColor: [colors.bear, colors.average, colors.bull],
             borderRadius: 4,
@@ -89,7 +94,7 @@ export const methods = {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => "¥" + ctx.raw.toLocaleString(),
+              label: (ctx) => "¥" + (ctx.raw || 0).toLocaleString(),
             },
           },
         },
@@ -110,15 +115,15 @@ export const methods = {
     // Add accessible data table
     const tableContainer = document.getElementById("scenario-chart-table");
     if (tableContainer) {
-      const formatYen = (num) => "¥" + num.toLocaleString();
+      const formatYen = (num) => "¥" + (num || 0).toLocaleString();
       tableContainer.innerHTML = this.generateDataTable(
-        ["Scenario", "Net Profit (5yr)"],
+        ["Scenario", chartLabel],
         [
-          ["Bear", formatYen(fin.scenarios.bear.netProfit)],
-          ["Average", formatYen(fin.scenarios.average.netProfit)],
-          ["Bull", formatYen(fin.scenarios.bull.netProfit)],
+          ["Bear", formatYen(fin.scenarios.bear[metric])],
+          ["Average", formatYen(fin.scenarios.average[metric])],
+          ["Bull", formatYen(fin.scenarios.bull[metric])],
         ],
-        "Scenario comparison showing projected net profit over 5 years for bear, average, and bull market conditions",
+        `Scenario comparison showing projected ${chartLabel.toLowerCase()} for bear, average, and bull market conditions`,
       );
     }
   },

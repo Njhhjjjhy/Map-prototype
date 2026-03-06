@@ -1173,7 +1173,7 @@ export const methods = {
    * @param {string} label - zone group label (e.g. "Ozu properties")
    * @param {Array} properties - array of property objects in this zone
    */
-  showZonePropertiesPanel(label, properties) {
+  showZonePropertiesPanel(label, properties, options = {}) {
     const rows = properties
       .map((p) => {
         const typeLabel = p.type || p.subtitle || "";
@@ -1194,12 +1194,20 @@ export const methods = {
       })
       .join("");
 
+    const evidenceBtn = options.evidencePdf
+      ? `<button onclick="UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: 'Evidence report' })" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); padding: var(--space-3) var(--space-6); font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); background: transparent; border: 1px solid var(--color-bg-tertiary); border-radius: var(--radius-full); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);" onmouseenter="this.style.backgroundColor='var(--color-bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          View evidence
+        </button>`
+      : "";
+
     const content = `
       ${panelHeader("Properties", label)}
       <p style="color: var(--color-text-secondary); margin-top: var(--space-3);">${properties.length} ${properties.length === 1 ? "property" : "properties"} in this zone</p>
       <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-6);">
         ${rows}
-      </div>`;
+      </div>
+      ${evidenceBtn}`;
 
     this.showPanel(content);
   },

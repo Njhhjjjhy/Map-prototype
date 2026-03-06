@@ -304,6 +304,8 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
+          summary:
+            "Approximately 6 minutes by car to the Semicon Tech Park (JASM / Sony / Tokyo Electron), with Aso Kumamoto Airport under 10 minutes away. JR Higo-Ozu Station - the planned terminus of the new airport access railway - is the nearest major transit node.",
           basicSettings: {
             propertyName: "Chateau Life Ozu 1",
             address:
@@ -314,6 +316,9 @@ export const properties = [
               "89.10 sqm total (1F: 43.74 sqm, 2F: 45.36 sqm), 2 floors",
             layout: "4LDK, 3 parking spaces",
             availability: "May 2026 onwards",
+            rentBear: "¥160,000/mo",
+            rentAverage: "¥190,000/mo",
+            rentBull: "¥210,000/mo",
           },
           designStrategy: {
             description: "Expat family standard spec",
@@ -363,19 +368,21 @@ export const properties = [
         data: {
           strategy: "BTR (build to rent)",
           acquisitionCost: 45600000,
-          paths: {
-            rental: {
-              label: "Guaranteed rent (Plan B)",
-              monthlyRent: 152000,
-              annualRent: 1824000,
-              yield: 0.04,
-              guaranteePeriod: "5 years",
+          scenarios: {
+            bear: {
+              annualRent: 1920000,
+              irr: 0.042,
+              holdYears: 5,
             },
-            market: {
-              label: "Market rent (Plan A)",
-              monthlyRent: 190000,
+            average: {
               annualRent: 2280000,
-              yield: 0.05,
+              irr: 0.05,
+              holdYears: 5,
+            },
+            bull: {
+              annualRent: 2520000,
+              irr: 0.055,
+              holdYears: 5,
             },
           },
           expenses: {
@@ -441,12 +448,13 @@ export const properties = [
       {
         type: "images",
         data: {
-          exterior: "assets/step-11-images/ozu-exterior.webp",
+          exterior: "assets/step-11-images/ozu-2-exterior.webp",
           interior: [
             "assets/step-11-images/ozu-2-interior-1.webp",
             "assets/step-11-images/ozu-2-interior-2.webp",
             "assets/step-11-images/ozu-2-interior-3.webp",
             "assets/step-11-images/ozu-2-interior-4.webp",
+            "assets/step-11-images/ozu-2-interior-5.webp",
           ],
           site: "",
         },
@@ -454,6 +462,8 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
+          summary:
+            "Same Sugimizu district as Chateau Life Ozu 1, with the same access to the semiconductor corridor and airport. Ozu's tenant profile skews toward supply chain staff and logistics teams who prioritize highway and airport access over factory-gate proximity.",
           basicSettings: {
             propertyName: "Chateau Life Ozu 2",
             address:
@@ -463,6 +473,9 @@ export const properties = [
             buildingArea: "94.81 sqm total, 2 floors",
             layout: "4LDK, 3 parking spaces",
             availability: "July 2026 onwards",
+            rentBear: "¥160,000/mo",
+            rentAverage: "¥190,000/mo",
+            rentBull: "¥210,000/mo",
           },
           designStrategy: {
             description: "Expat family standard spec",
@@ -512,19 +525,21 @@ export const properties = [
         data: {
           strategy: "BTR (build to rent)",
           acquisitionCost: 45600000,
-          paths: {
-            rental: {
-              label: "Guaranteed rent (Plan B)",
-              monthlyRent: 152000,
-              annualRent: 1824000,
-              yield: 0.04,
-              guaranteePeriod: "5 years",
+          scenarios: {
+            bear: {
+              annualRent: 1920000,
+              irr: 0.042,
+              holdYears: 5,
             },
-            market: {
-              label: "Market rent (Plan A)",
-              monthlyRent: 190000,
+            average: {
               annualRent: 2280000,
-              yield: 0.05,
+              irr: 0.05,
+              holdYears: 5,
+            },
+            bull: {
+              annualRent: 2520000,
+              irr: 0.055,
+              holdYears: 5,
             },
           },
           expenses: {
@@ -543,8 +558,7 @@ export const properties = [
           rentalEvidence: {
             title: "AI rent assessment (4LDK/95sqm)",
             type: "pdf",
-            description:
-              "Assessed rent ¥152,000/month guaranteed, ¥190,000/month market estimate",
+            description: "Assessed rent from comparable properties",
             image:
               "assets/use-case-images/evidence-property-rent-evaluation.webp",
           },
@@ -607,6 +621,8 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
+          summary:
+            "5-7 minutes by car to JASM, within the same municipality as the factory. The planned new Kikuyo station and 70-hectare Mitsui Fudosan development zone are the closest major transit and urban development project to this address.",
           basicSettings: {
             propertyName: "Chateau Life Kikuyo 1",
             address:
@@ -617,6 +633,9 @@ export const properties = [
               "115.1 sqm total (1F: 62.93 sqm, 2F: 52.17 sqm), 2 floors",
             layout: "4LDK, 3 parking spaces",
             availability: "June 2026 onwards",
+            rentBear: "¥170,000/mo",
+            rentAverage: "¥190,000/mo",
+            rentBull: "¥210,000/mo",
           },
           designStrategy: {
             description: "Convert to expat standard",
@@ -671,19 +690,21 @@ export const properties = [
         data: {
           strategy: "BTR (build to rent)",
           acquisitionCost: 45600000,
-          paths: {
-            rental: {
-              label: "Guaranteed rent (Plan B)",
-              monthlyRent: 152000,
-              annualRent: 1824000,
-              yield: 0.04,
-              guaranteePeriod: "5 years",
+          scenarios: {
+            bear: {
+              annualRent: 2040000,
+              irr: 0.045,
+              holdYears: 5,
             },
-            market: {
-              label: "Market rent (Plan A)",
-              monthlyRent: 190000,
+            average: {
               annualRent: 2280000,
-              yield: 0.05,
+              irr: 0.05,
+              holdYears: 5,
+            },
+            bull: {
+              annualRent: 2520000,
+              irr: 0.055,
+              holdYears: 5,
             },
           },
           expenses: {
@@ -702,8 +723,7 @@ export const properties = [
           rentalEvidence: {
             title: "AI rent assessment (4LDK/115sqm)",
             type: "pdf",
-            description:
-              "Assessed rent ¥152,000/month guaranteed, ¥190,000/month market estimate",
+            description: "Assessed rent from comparable properties",
             image:
               "assets/use-case-images/evidence-rental-assessment-report.webp",
           },
@@ -766,6 +786,8 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
+          summary:
+            "JASM's official address is Haramizu - 2-4 minutes by car from the factory gate, the closest residential location to the fab in this portfolio. The Haramizu Station land readjustment project and the planned new railway station are both within the immediate area.",
           basicSettings: {
             propertyName: "Haramizu Land 1",
             propertyType: "Land (pre-sale / off-plan)",
@@ -775,6 +797,9 @@ export const properties = [
             buildingArea: "Planned (spec to be confirmed)",
             parking: "4-5 spaces (planned)",
             availability: "6-9 months after contract signing",
+            rentBear: "¥170,000/mo",
+            rentAverage: "¥190,000/mo",
+            rentBull: "¥210,000/mo",
           },
           designStrategy: {
             description: "Three-zone development concept",
@@ -919,6 +944,8 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
+          summary:
+            "Same district as Chateau Life Haramizu 1, with identical proximity to JASM and the planned new station. Two land parcels in the same high-demand zone give the fund flexibility in phasing and exit timing.",
           basicSettings: {
             propertyName: "Haramizu Land 2",
             propertyType: "Land (pre-sale / off-plan)",
@@ -928,6 +955,9 @@ export const properties = [
             buildingArea: "Planned (spec to be confirmed)",
             parking: "3-4 spaces (planned)",
             availability: "6-9 months after contract signing",
+            rentBear: "¥170,000/mo",
+            rentAverage: "¥190,000/mo",
+            rentBull: "¥210,000/mo",
           },
           designStrategy: {
             description: "Three-zone development concept",

@@ -505,16 +505,29 @@ export const methods = {
     }
   },
   _renderTruthEngineCard(property, te) {
-    if (!te || (!te.basicSettings && !te.designStrategy && !te.landStrategy)) {
+    if (
+      !te ||
+      (!te.basicSettings &&
+        !te.designStrategy &&
+        !te.landStrategy &&
+        !te.summary)
+    ) {
       return emptyCard("No truth engine data available.");
     }
     let html = "";
+
+    // Summary paragraph
+    if (te.summary) {
+      html += `<div class="icard icard-standard">
+                <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">${te.summary}</p>
+            </div>`;
+    }
 
     // Basic settings
     if (te.basicSettings) {
       const entries = Object.entries(te.basicSettings);
       html += `<div class="icard icard-standard">
-                <div class="icard-title">Basic settings</div>
+                <div class="icard-title">Overview</div>
                 <div class="icard-detail-list">
                     ${entries
                       .map(
@@ -528,39 +541,6 @@ export const methods = {
             </div>`;
     }
 
-    // Design strategy
-    if (te.designStrategy) {
-      html += `<div class="icard icard-standard">
-                <div class="icard-title">Design strategy</div>
-                ${te.designStrategy.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-3);">${te.designStrategy.description}</p>` : ""}
-                ${
-                  (te.designStrategy.features || []).length
-                    ? `<ul style="margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); color: var(--color-text-secondary);">
-                    ${te.designStrategy.features.map((f) => `<li style="margin-bottom: var(--space-1);">${f}</li>`).join("")}
-                </ul>`
-                    : ""
-                }
-            </div>`;
-    }
-
-    // Land strategy
-    if (te.landStrategy) {
-      html += `<div class="icard icard-standard">
-                <div class="icard-title">Land strategy</div>
-                ${te.landStrategy.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-3);">${te.landStrategy.description}</p>` : ""}
-                ${
-                  (te.landStrategy.risks || []).length
-                    ? `<div style="margin-top: var(--space-2);">
-                    <div style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-weight: var(--font-weight-medium); margin-bottom: var(--space-2);">Risks</div>
-                    <ul style="margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); color: var(--color-text-secondary);">
-                        ${te.landStrategy.risks.map((r) => `<li style="margin-bottom: var(--space-1);">${r}</li>`).join("")}
-                    </ul>
-                </div>`
-                    : ""
-                }
-            </div>`;
-    }
-
     return html;
   },
   _renderFutureOutlookCard(property, fo) {
@@ -568,11 +548,6 @@ export const methods = {
       return emptyCard("No future outlook data available.");
     }
     let html = "";
-    if (fo.description) {
-      html += `<div class="icard icard-compact">
-                <p style="font-size: var(--text-sm); color: var(--color-text-secondary);">${fo.description}</p>
-            </div>`;
-    }
     html += fo.factors
       .map(
         (f) => `<div class="icard icard-standard">
@@ -952,56 +927,9 @@ export const methods = {
         </div>`;
   },
   renderYieldSummaryCard(property) {
-    const fin = this._getFinancialData(property);
-
-    // Paths properties: guaranteed vs market yield
-    if (fin.paths) {
-      const rental = fin.paths.rental || {};
-      const market = fin.paths.market || {};
-      return `<div class="icard icard-standard">
-                <div class="icard-title">Yield summary</div>
-                <div class="icard-yield-row">
-                    <div class="icard-yield-item">
-                        <div class="icard-yield-value">${((rental.yield || 0) * 100).toFixed(1)}%</div>
-                        <div class="icard-yield-label">Guaranteed yield</div>
-                    </div>
-                    <div class="icard-yield-item">
-                        <div class="icard-yield-value">${((market.yield || 0) * 100).toFixed(1)}%</div>
-                        <div class="icard-yield-label">Market yield</div>
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    const scenarios = fin.scenarios || {};
-    const bear = scenarios.bear || {};
-    const avg = scenarios.average || {};
-    const bull = scenarios.bull || {};
-
-    const grossYield = (v) => ((v.noiTicRatio || v.irr || 0) * 100).toFixed(1);
-    const netYield = (v) =>
-      ((v.noiTicRatio || v.irr || 0) * 100 * 0.85).toFixed(1);
-    const irr = (v) => ((v.irr || 0) * 100).toFixed(1);
-
     return `<div class="icard icard-standard">
-            <div class="icard-title">Yield summary</div>
-            <div class="icard-yield-row">
-                <div class="icard-yield-item">
-                    <div class="icard-yield-value">${grossYield(avg)}%</div>
-                    <div class="icard-yield-label">Gross yield</div>
-                    <div class="icard-yield-range">${grossYield(bear)}% - ${grossYield(bull)}%</div>
-                </div>
-                <div class="icard-yield-item">
-                    <div class="icard-yield-value">${netYield(avg)}%</div>
-                    <div class="icard-yield-label">Net yield</div>
-                    <div class="icard-yield-range">${netYield(bear)}% - ${netYield(bull)}%</div>
-                </div>
-                <div class="icard-yield-item">
-                    <div class="icard-yield-value">${irr(avg)}%</div>
-                    <div class="icard-yield-label">IRR</div>
-                    <div class="icard-yield-range">${irr(bear)}% - ${irr(bull)}%</div>
-                </div>
-            </div>
+            <div class="icard-title">Yield</div>
+            <div style="font-size: var(--text-2xl); font-weight: var(--font-weight-semibold); color: var(--color-primary);">5%</div>
         </div>`;
   },
   renderEvidenceDocCard(item) {

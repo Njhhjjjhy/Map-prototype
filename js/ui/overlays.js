@@ -580,6 +580,13 @@ export const methods = {
         else if (e.key === "Escape") this.hideQuickLook();
       };
       document.addEventListener("keydown", this._quickLookKeyHandler);
+    } else if (type === "pdf") {
+      content.innerHTML = `
+                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()" style="position: absolute; top: var(--space-3); right: var(--space-3); z-index: 10;">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
+                </button>
+                <iframe src="${options.src}" style="width: 100%; height: 100%; border: none; border-radius: var(--radius-large);"></iframe>
+            `;
     } else if (type === "doc") {
       content.innerHTML = `
                 <div class="quick-look-doc">
