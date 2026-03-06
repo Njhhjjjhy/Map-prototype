@@ -843,6 +843,7 @@ export const stepHandlers = {
       filter: "kikuyo",
       zoneId: "kikuyo-zone",
       label: "Kikuyo properties",
+      evidencePdf: "assets/pdfs/Kikuyo-evidence-rent-report.pdf",
       camera: {
         center: [130.83, 32.87],
         zoom: 12.5,
@@ -854,6 +855,7 @@ export const stepHandlers = {
       filter: "ozu",
       zoneId: "ozu-zone",
       label: "Ozu properties",
+      evidencePdf: "assets/pdfs/Ozu-evidence-rent-report.pdf",
       camera: {
         center: [130.87, 32.865],
         zoom: 12.7,
@@ -905,7 +907,9 @@ export const stepHandlers = {
     }
 
     // Show zone properties panel for individual drill-down
-    UI.showZonePropertiesPanel(zoneInfo.label, zoneProps);
+    UI.showZonePropertiesPanel(zoneInfo.label, zoneProps, {
+      evidencePdf: zoneInfo.evidencePdf,
+    });
   },
 
   /**

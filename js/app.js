@@ -135,7 +135,6 @@ const App = {
 
     // --- Special pre-step cinematics ---
     if (stepIndex === 9 && prevStep > 0 && prevStep !== 9) {
-      await UI.showMoreHarvestEntry();
       await MapController.elevateToCorridorView();
       await new Promise((r) => setTimeout(r, TIMING.breath));
     }
@@ -488,23 +487,6 @@ const App = {
       return this._renderGovernmentChatbox(n, continueBtnHtml);
     }
 
-    // Step 10 (properties) gets fund stats
-    let fundStats = "";
-    if (step.id === "properties") {
-      const gktk = AppData.gktk;
-      if (gktk) {
-        const irrValue = gktk.stats[3].value;
-        const aumValue = gktk.fundSize;
-        const holdValue = gktk.stats[2].value;
-        fundStats = `
-                    <div class="chatbox-fund-stats">
-                        <div class="chatbox-fund-label">GKTK Fund &middot; ${irrValue} Target IRR</div>
-                        <div class="chatbox-fund-detail">${aumValue} Target AUM &middot; ${holdValue} Hold</div>
-                    </div>
-                `;
-      }
-    }
-
     const navRow = continueBtnHtml
       ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`
       : "";
@@ -512,7 +494,6 @@ const App = {
     return `
             <h3>${n.title}</h3>
             <p>${n.body}</p>
-            ${fundStats}
             ${subItemsHtml}
             ${n.afterItems}
             ${navRow}
