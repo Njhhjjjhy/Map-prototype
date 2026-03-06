@@ -17,6 +17,7 @@ import { UI } from "./ui/index.js";
 import { TIMING, App } from "./app.js";
 import { StepJumper } from "./dev/step-jumper.js";
 import { QAReporter } from "./dev/qa-reporter.js";
+import { CameraExplorer } from "./dev/camera-explorer.js";
 
 // Expose all globals for inline onclick handlers and cross-module references
 window.STEPS = STEPS;
@@ -31,8 +32,10 @@ window.TIMING = TIMING;
 window.App = App;
 window.StepJumper = StepJumper;
 window.QAReporter = QAReporter;
+window.CameraExplorer = CameraExplorer;
 
 // Module scripts are deferred, so the DOM is ready at this point.
 App.init();
 StepJumper.init();
 QAReporter.init();
+CameraExplorer.init();
