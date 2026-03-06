@@ -447,7 +447,7 @@ export const methods = {
           MapController.flyToStep(CAMERA_STEPS.A4_government);
         }
       } else if (layerName === "scienceParkClusters") {
-        MapController.showSciencePark();
+        MapController.showSciencePark({ skipCircles: App.state.qaMode });
       } else if (layerName === "talentPipeline") {
         MapController.showTalentPipeline({ skipFly: App.state.qaMode });
       } else if (layerName === "futureOutlook") {
@@ -464,6 +464,7 @@ export const methods = {
       } else if (isMapLayer) {
         MapController.ensureLayerMarkers(layerName, {
           skipFitBounds: App.state.qaMode,
+          skipCircles: App.state.qaMode,
         });
       } else {
         // Standard data layer

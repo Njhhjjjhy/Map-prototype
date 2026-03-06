@@ -771,6 +771,143 @@ export const methods = {
         `;
   },
 
+  showEmploymentPanel(activeEmployers) {
+    const content = this._buildEmploymentPanelContent(activeEmployers || []);
+    this.showPanel(content);
+  },
+
+  updateEmploymentPanel(activeEmployers) {
+    const content = this._buildEmploymentPanelContent(activeEmployers || []);
+    this.elements.panelContent.innerHTML = content;
+  },
+
+  _buildEmploymentPanelContent(activeEmployers) {
+    const data = AppData.employmentData;
+    if (!data) return "";
+
+    const briefcaseIcon =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>';
+
+    const rowsHtml = (data.companies || [])
+      .map((company) => {
+        const isActive = activeEmployers.includes(company.id);
+        return toggleRow({
+          id: company.id,
+          label: company.name,
+          color: company.color || "#007aff",
+          icon: briefcaseIcon,
+          active: isActive,
+          onclick: `App.toggleEmployer('${company.id}')`,
+        });
+      })
+      .join("");
+
+    let detailHtml = "";
+    if (activeEmployers.length > 0) {
+      const cardsHtml = activeEmployers
+        .map((empId) => {
+          const company = (data.companies || []).find((c) => c.id === empId);
+          if (!company) return "";
+
+          const statsHtml = (company.stats || [])
+            .map(
+              (s) =>
+                `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`,
+            )
+            .join("");
+
+          return evidenceCard({
+            color: company.color || "#007aff",
+            subtitle: company.headlineLabel,
+            title: company.headline,
+            description: company.description,
+            stats: company.stats || [],
+            extra: `${company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : ""}
+              ${company.evidence ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')">View source document</button>` : ""}`,
+          });
+        })
+        .join("");
+
+      detailHtml = `
+        <div style="margin-top: var(--space-6);">
+          <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+            ${cardsHtml}
+          </div>
+        </div>`;
+    }
+
+    return `
+      ${panelHeader("Employment data", "Talent pipeline", data.summary)}
+      <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+        ${rowsHtml}
+      </div>
+      ${detailHtml}
+    `;
+  },
+
+  showUniversitiesPanel(activeUniversities) {
+    const content = this._buildUniversitiesPanelContent(activeUniversities);
+    this.showPanel(content);
+  },
+
+  updateUniversitiesPanel(activeUniversities) {
+    const content = this._buildUniversitiesPanelContent(activeUniversities);
+    this.elements.panelContent.innerHTML = content;
+  },
+
+  _buildUniversitiesPanelContent(activeUniversities) {
+    const institutions = AppData.talentPipeline?.institutions || [];
+
+    const graduationIcon =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg>';
+
+    const rowsHtml = institutions
+      .map((inst) => {
+        const isActive = activeUniversities.includes(inst.id);
+        return toggleRow({
+          id: inst.id,
+          label: inst.name,
+          color: inst.color,
+          icon: graduationIcon,
+          active: isActive,
+          onclick: `App.toggleUniversity('${inst.id}')`,
+        });
+      })
+      .join("");
+
+    let detailHtml = "";
+    if (activeUniversities.length > 0) {
+      const cardsHtml = activeUniversities
+        .map((uniId) => {
+          const inst = institutions.find((i) => i.id === uniId);
+          if (!inst) return "";
+          return evidenceCard({
+            color: inst.color,
+            subtitle: inst.city,
+            title: inst.fullName || inst.name,
+            description: inst.role,
+            stats: inst.details || [],
+          });
+        })
+        .join("");
+
+      detailHtml = `
+        <div style="margin-top: var(--space-6);">
+          <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+            ${cardsHtml}
+          </div>
+        </div>`;
+    }
+
+    return `
+      ${panelHeader("Education and talent pipeline", "Education pipeline", AppData.talentPipeline?.description || "")}
+      <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+        ${rowsHtml}
+      </div>
+      ${detailHtml}
+    `;
+  },
+
   /**
    * Show inspector stage 3 focused on a single institution (step 7 education pipeline).
    * Accepts an institution ID string or institution object.

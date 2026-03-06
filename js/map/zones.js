@@ -3,43 +3,49 @@ import { MAP_COLORS, CAMERA_STEPS } from "./constants.js";
 
 export const methods = {
   showSciencePark(opts = {}) {
-    const circles = [
-      {
-        id: "science-park-circle-tsmc",
-        label: "TSMC Semiconductor Hub",
-        center: [130.825, 32.885],
-        radius: 12000,
-        color: MAP_COLORS.primary,
-      },
-      {
-        id: "science-park-circle-airport",
-        label: "Kumamoto Airport Development Zone",
-        center: [130.85989089814692, 32.841638592865074],
-        radius: 10000,
-        color: "#7C3AED",
-      },
-    ];
+    if (!opts.skipCircles) {
+      const circles = [
+        {
+          id: "science-park-circle-tsmc",
+          label: "TSMC Semiconductor Hub",
+          center: [130.825, 32.885],
+          radius: 12000,
+          color: MAP_COLORS.primary,
+        },
+        {
+          id: "science-park-circle-airport",
+          label: "Kumamoto Airport Development Zone",
+          center: [130.85989089814692, 32.841638592865074],
+          radius: 10000,
+          color: "#7C3AED",
+        },
+      ];
 
-    circles.forEach(({ id, center, radius, color }) => {
-      const geoJson = this._generateCirclePolygon(center, radius);
-      this._safeAddSource(id, { type: "geojson", data: geoJson });
+      circles.forEach(({ id, center, radius, color }) => {
+        const geoJson = this._generateCirclePolygon(center, radius);
+        this._safeAddSource(id, { type: "geojson", data: geoJson });
 
-      this.map.addLayer({
-        id: `${id}-fill`,
-        type: "fill",
-        source: id,
-        paint: { "fill-color": color, "fill-opacity": 0.18 },
+        this.map.addLayer({
+          id: `${id}-fill`,
+          type: "fill",
+          source: id,
+          paint: { "fill-color": color, "fill-opacity": 0.18 },
+        });
+
+        this.map.addLayer({
+          id: `${id}-stroke`,
+          type: "line",
+          source: id,
+          paint: {
+            "line-color": color,
+            "line-width": 2.5,
+            "line-opacity": 0.85,
+          },
+        });
+
+        this._layerGroups.sciencePark.push(`${id}-fill`, `${id}-stroke`, id);
       });
-
-      this.map.addLayer({
-        id: `${id}-stroke`,
-        type: "line",
-        source: id,
-        paint: { "line-color": color, "line-width": 2.5, "line-opacity": 0.85 },
-      });
-
-      this._layerGroups.sciencePark.push(`${id}-fill`, `${id}-stroke`, id);
-    });
+    }
 
     // Fly to center (skip when camera is already positioned by goToStep)
     if (!opts.skipFly) {

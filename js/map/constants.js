@@ -124,11 +124,11 @@ const CAMERA_STEPS = {
     duration: 3000,
   },
   A3_talent: {
-    center: [130.7, 32.5],
-    zoom: 7,
-    pitch: 25,
+    center: [130.5683, 31.5349],
+    zoom: 6.4,
+    pitch: 0,
     bearing: 0,
-    duration: 2500,
+    duration: 2000,
   },
   A4_government: {
     center: [136.0188, 28.8513],
@@ -280,6 +280,5 @@ const CAMERA_STEPS = {
     duration: 2000,
   },
 };
-
 
 export { MAP_COLORS, CAMERA_FEELINGS, CINEMATIC_SCALE, CAMERA_STEPS };

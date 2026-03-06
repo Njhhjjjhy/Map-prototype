@@ -12,6 +12,7 @@ import {
 } from "./resources.js";
 import {
   talentPipeline,
+  employmentData,
   sciencePark,
   scienceParkZonePlans,
   grandAirportData,
@@ -47,6 +48,7 @@ const AppData = {
   siliconIsland,
   kyushuEnergy,
   talentPipeline,
+  employmentData,
   sciencePark,
   scienceParkZonePlans,
   grandAirportData,

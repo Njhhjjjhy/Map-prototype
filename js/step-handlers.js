@@ -728,45 +728,65 @@ export const stepHandlers = {
   // --- Step 6: Education ---
   _handleEducationSubItem(itemId) {
     if (itemId === "universities") {
-      UI.renderInspectorPanel(6, { title: "Talent pipeline" });
-      MapController.showTalentPipeline();
-    } else if (itemId === "training") {
-      const group = UI.findEvidenceGroup("education-pipeline");
-      if (group) {
-        const item = group.items.find((i) => i.id === "training-centers");
-        if (item) {
-          UI.showDisclosureItemDetail(group, item);
-          if (item.coords) {
-            MapController.showTrainingCenterMarker(item);
-            MapController.flyToStep({
-              center: MapController._toMapbox(item.coords),
-              zoom: 12,
-              pitch: 48,
-              bearing: 0,
-              duration: 2000,
-            });
-          }
-        }
-      }
+      // Show university markers with animated arcs
+      MapController.hideTalentPipeline();
+      MapController.hideEmploymentMarkers();
+      this.state.activeUniversities = [];
+      UI.showUniversitiesPanel(this.state.activeUniversities);
+      MapController.showTalentPipeline({ skipFly: true });
     } else if (itemId === "employment") {
-      const group = UI.findEvidenceGroup("education-pipeline");
-      if (group) {
-        const item = group.items.find((i) => i.id === "graduate-numbers");
-        if (item) {
-          UI.showDisclosureItemDetail(group, item);
-          if (item.coords) {
-            MapController.showEmploymentMarker(item);
-            MapController.flyToStep({
-              center: MapController._toMapbox(item.coords),
-              zoom: 12,
-              pitch: 48,
-              bearing: 0,
-              duration: 2000,
-            });
-          }
-        }
+      // Hide university markers, show JASM and TEL markers only
+      MapController.hideTalentPipeline();
+      MapController.showEmploymentMarkers();
+      this.state.activeEmployers = [];
+      UI.showEmploymentPanel(this.state.activeEmployers);
+    }
+  },
+
+  toggleUniversity(universityId) {
+    const idx = this.state.activeUniversities.indexOf(universityId);
+    if (idx >= 0) {
+      this.state.activeUniversities.splice(idx, 1);
+    } else {
+      this.state.activeUniversities.push(universityId);
+
+      // Fly camera to the toggled-on university
+      const institutions = AppData.talentPipeline?.institutions || [];
+      const inst = institutions.find((i) => i.id === universityId);
+      if (inst && inst.coords) {
+        MapController.flyToStep({
+          center: MapController._toMapbox(inst.coords),
+          zoom: 11,
+          pitch: 35,
+          bearing: 0,
+          duration: 1500,
+        });
       }
     }
+    UI.updateUniversitiesPanel(this.state.activeUniversities);
+  },
+
+  toggleEmployer(employerId) {
+    const idx = this.state.activeEmployers.indexOf(employerId);
+    if (idx >= 0) {
+      this.state.activeEmployers.splice(idx, 1);
+    } else {
+      this.state.activeEmployers.push(employerId);
+
+      // Fly camera to the toggled-on employer
+      const companies = AppData.employmentData?.companies || [];
+      const company = companies.find((c) => c.id === employerId);
+      if (company && company.coords) {
+        MapController.flyToStep({
+          center: MapController._toMapbox(company.coords),
+          zoom: 13,
+          pitch: 35,
+          bearing: 0,
+          duration: 1500,
+        });
+      }
+    }
+    UI.updateEmploymentPanel(this.state.activeEmployers);
   },
 
   // --- Step 8: Investment zones ---

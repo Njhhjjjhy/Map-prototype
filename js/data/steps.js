@@ -108,14 +108,13 @@ export const STEPS = [
   {
     id: "education-pipeline",
     index: 6,
-    title: "Education pipeline",
+    title: "Education and talent pipeline",
     subtitle: "Universities, training, and employment",
     cameraKey: "A3_talent",
     layers: ["talentPipeline"],
     panelTabs: ["Education", "Employment"],
     subItems: [
       { id: "universities", label: "Universities", icon: "graduation-cap" },
-      { id: "training", label: "Training centers", icon: "school" },
       { id: "employment", label: "Employment data", icon: "briefcase" },
     ],
   },
@@ -125,12 +124,7 @@ export const STEPS = [
     title: "Future outlook",
     subtitle: "Composite 2030+ vision",
     cameraKey: "B6",
-    layers: [
-      "sciencePark",
-      "futureZones",
-      "infrastructureRoads",
-      "investmentZones",
-    ],
+    layers: [],
     panelTabs: ["Plans", "Timeline"],
     showTimeToggle: true,
     subItems: [],
@@ -168,12 +162,7 @@ export const STEPS = [
     title: "Journey complete",
     subtitle: "Summary and Q&A",
     cameraKey: "complete",
-    layers: [
-      "companies",
-      "investmentZones",
-      "infrastructureRoads",
-      "sciencePark",
-    ],
+    layers: [],
     panelTabs: [],
     subItems: [],
   },
@@ -183,4 +172,3 @@ export const STAGE_TABS = {};
 STEPS.forEach((s) => {
   STAGE_TABS[s.index] = { label: s.subtitle, tabs: s.panelTabs };
 });
-

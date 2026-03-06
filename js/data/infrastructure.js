@@ -19,7 +19,8 @@ export const talentPipeline = {
       city: "Kitakyushu",
       coords: [33.88, 130.84],
       color: "#e74c3c",
-      role: "Established cross-departmental semiconductor human resources center",
+      logo: "assets/Kyutech-logo.svg",
+      role: "Established a cross-departmental semiconductor human resources center to train the next generation of chip engineers.",
       details: [
         { label: "Annual graduates", value: "300+" },
         { label: "Program scope", value: "Cross-departmental" },
@@ -33,7 +34,8 @@ export const talentPipeline = {
       city: "Fukuoka",
       coords: [33.6, 130.42],
       color: "#8e44ad",
-      role: "Established adult semiconductor retraining center",
+      logo: "assets/Kyushu-university-logo.svg",
+      role: "Established an adult semiconductor retraining center for working professionals seeking to transition into the chip industry.",
       details: [
         { label: "Annual intake", value: "500+" },
         { label: "Target audience", value: "Working adults" },
@@ -47,7 +49,8 @@ export const talentPipeline = {
       city: "Oita",
       coords: [33.23, 131.6],
       color: "#2980b9",
-      role: "Established semiconductor core talent retraining center for working professionals",
+      logo: "assets/Oita-university-logo.svg",
+      role: "Established a semiconductor core talent retraining center focused on upskilling working professionals through industry-led partnerships.",
       details: [
         { label: "Program focus", value: "Core talent development" },
         { label: "Target audience", value: "Working professionals" },
@@ -61,7 +64,8 @@ export const talentPipeline = {
       city: "Kumamoto",
       coords: [32.81, 130.73],
       color: "#27ae60",
-      role: "Partnered with JASM (TSMC) on semiconductor research center as industry-academia collaboration",
+      logo: "assets/Kumamoto-university-logo.svg",
+      role: "Partnered with JASM (TSMC) to establish a semiconductor research center as a direct industry-academia collaboration.",
       details: [
         { label: "Industry partner", value: "JASM (TSMC)" },
         { label: "Researchers", value: "400+" },
@@ -75,12 +79,67 @@ export const talentPipeline = {
       city: "Kumamoto",
       coords: [32.83, 130.76],
       color: "#f39c12",
-      role: "Since 2023, all first-year science and engineering students required to take semiconductor introductory courses taught by industry experts",
+      logo: "assets/Prefectural-university-of-kumamoto-logo.svg",
+      role: "Since 2023, all first-year science and engineering students are required to take semiconductor introductory courses taught by industry experts.",
       details: [
         { label: "Mandate start", value: "2023" },
         { label: "Scope", value: "All first-year students" },
         { label: "Instructors", value: "Industry experts" },
       ],
+    },
+  ],
+};
+
+export const employmentData = {
+  summary:
+    "JASM and major semiconductor employers are reshaping Kumamoto's wage landscape, offering salaries significantly above local and national averages to attract talent.",
+  companies: [
+    {
+      id: "jasm",
+      name: "JASM (TSMC)",
+      coords: [32.88565, 130.84237],
+      color: "#e74c3c",
+      headline: "¥280,000/month",
+      headlineLabel: "University graduate salary",
+      description:
+        "JASM offers ¥280,000/month for university graduates, ¥320,000/month for master's degrees, and ¥360,000/month for doctorates. Significantly higher than the local Kumamoto average for graduates (~¥201,000/month).",
+      quote:
+        "JASM's monthly salary is ¥50,000 or more higher than the national average.",
+      quoteSource: "METI, July 2024",
+      stats: [
+        { value: "¥280K", label: "University graduate" },
+        { value: "¥320K", label: "Master's degree" },
+        { value: "¥360K", label: "Doctorate" },
+        { value: "¥201K", label: "Kumamoto average" },
+      ],
+      evidence: {
+        title: "METI semiconductor workforce report",
+        type: "pdf",
+        url: "https://www.meti.go.jp/english/policy/0704_001.pdf",
+        date: "2024-07",
+      },
+    },
+    {
+      id: "tel",
+      name: "Tokyo Electron (TEL)",
+      coords: [32.85, 130.73],
+      color: "#2980b9",
+      headline: "+40%",
+      headlineLabel: "Salary increase for new recruits",
+      description:
+        "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800 (increase of ¥85,500/month).",
+      stats: [
+        { value: "¥304,800", label: "New graduate salary" },
+        { value: "+¥85,500", label: "Monthly increase" },
+        { value: "40%", label: "Salary increase" },
+        { value: "Apr 2024", label: "Effective date" },
+      ],
+      evidence: {
+        title: "TEL quarterly earnings report",
+        type: "pdf",
+        url: "https://www.tel.com/ir/library/report/ll4pka00000000l9-att/fy24q4presentations-e.pdf",
+        date: "2024-Q4",
+      },
     },
   ],
 };
@@ -667,4 +726,3 @@ export const grandAirportData = {
     },
   ],
 };
-
