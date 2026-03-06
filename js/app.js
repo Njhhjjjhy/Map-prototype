@@ -311,10 +311,7 @@ const App = {
       }
     }
     if (layers.includes("sciencePark")) {
-      MapController.showSciencePark({
-        skipFly: true,
-        skipCircles: step.id === "final",
-      });
+      MapController.showSciencePark({ skipFly: true });
     }
     if (layers.includes("futureZones")) {
       MapController.showFutureZones();

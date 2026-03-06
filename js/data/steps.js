@@ -167,12 +167,7 @@ export const STEPS = [
     title: "Journey complete",
     subtitle: "Summary and Q&A",
     cameraKey: "complete",
-    layers: [
-      "companies",
-      "investmentZones",
-      "infrastructureRoads",
-      "sciencePark",
-    ],
+    layers: [],
     panelTabs: [],
     subItems: [],
   },
