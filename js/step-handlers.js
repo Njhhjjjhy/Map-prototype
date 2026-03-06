@@ -91,10 +91,10 @@ export const stepHandlers = {
       case 6: // Education pipeline
         this._handleEducationSubItem(itemId);
         break;
-      case 8: // Investment zones
+      case 7: // Investment zones
         this._handleInvestmentZoneSubItem(itemId);
         break;
-      case 9: // Properties
+      case 8: // Properties
         this._handlePropertySubItem(itemId);
         break;
     }
