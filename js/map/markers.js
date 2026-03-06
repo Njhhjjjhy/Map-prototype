@@ -447,8 +447,8 @@ export const methods = {
 
     // Create markers on demand with bounce entrance
     if (layerName === "sciencePark") {
-      // Create science park circle and marker
-      this.showSciencePark();
+      // Create science park circle and marker (skip circles in QA mode)
+      this.showSciencePark({ skipCircles: opts.skipCircles });
       // Apply bounce entrance to any newly created markers in the group
       this._applyBounceToGroup("sciencePark");
     } else if (layerName === "companies") {
