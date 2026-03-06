@@ -142,6 +142,17 @@ Skip branch creation. Continue working on the user's request. After making chang
 - The commit message body must be exactly the user's prompt text, verbatim, with no rewording or expansion. The title can be a concise summary of the change (e.g. "Add legend to map").
 - NEVER say Co-Authored-By CLAUDE in the commit message. The user is the sole author.
 
+## GitHub CLI Authentication
+
+Before any `gh` operation, check authentication:
+```bash
+gh auth status 2>&1
+```
+If not authenticated, tell the user:
+- "GitHub CLI is not authenticated. Please run `gh auth login` to continue."
+- Wait for the user to confirm they have authenticated before proceeding.
+- Do NOT skip PR creation or any `gh` operations due to auth failure - always prompt the user to authenticate first.
+
 ## Important Rules
 
 - Always use `gh` for GitHub operations (never raw API calls with curl unless gh doesn't support it).
@@ -149,3 +160,5 @@ Skip branch creation. Continue working on the user's request. After making chang
 - Never skip git hooks (no `--no-verify`).
 - Prefer staging specific files over `git add .` or `git add -A`.
 - Always confirm destructive actions (discarding changes, force operations) with the user first.
+- Every user prompt that results in changes must produce a commit that is pushed to the remote branch.
+- The PR must be created after the first user prompt. If `gh` is not authenticated at that point, prompt the user to authenticate, then create the PR once auth succeeds.
