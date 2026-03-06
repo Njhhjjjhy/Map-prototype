@@ -1,2 +1,0 @@
-- In Step 6, when the Science park and grand airport model pops up, the Grand airport concept button is not working, It should show the Grand airport concept dashboard, and the Airport access should be toggled, now it is not.
-- In Step 6, the Grand airport concept dashboard, the Airport access and Road extensions cannot be toggled.
