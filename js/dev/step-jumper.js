@@ -78,9 +78,9 @@ const StepJumper = {
     {
       num: 8,
       name: "Future outlook",
-      codeStep: null,
+      codeStep: 6,
       subItem: null,
-      implemented: false,
+      implemented: true,
     },
     {
       num: 9,
