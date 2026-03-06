@@ -1,5 +1,5 @@
 /**
- * Step definitions for the 12-step journey.
+ * Step definitions for the presentation journey.
  */
 
 export const STEPS = [

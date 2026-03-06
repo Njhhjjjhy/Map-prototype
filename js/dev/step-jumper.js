@@ -1,6 +1,6 @@
 /* ================================
    Step Jumper (dev only)
-   Maps the 13 presentation steps to internal code calls.
+   Maps presentation steps to internal code calls.
    Does NOT modify any existing code or the STEPS array.
    ================================ */
 
@@ -13,7 +13,7 @@ const StepJumper = {
   active: false,
 
   /**
-   * The 13 presentation steps mapped to internal code calls.
+   * Presentation steps mapped to internal code calls.
    * codeStep: which goToStep() index to call (null = special handling)
    * subItem: sub-item to auto-select after goToStep (optional)
    * implemented: false if the step has no code equivalent yet
@@ -70,41 +70,34 @@ const StepJumper = {
     },
     {
       num: 7,
-      name: "Clusters around science park",
-      codeStep: null,
-      subItem: null,
-      implemented: false,
-    },
-    {
-      num: 8,
       name: "Education and talent pipeline",
       codeStep: 6,
       subItem: null,
       implemented: true,
     },
     {
-      num: 9,
+      num: 8,
       name: "Future outlook",
       codeStep: 7,
       subItem: null,
       implemented: true,
     },
     {
-      num: 10,
+      num: 9,
       name: "Investment opportunity zones",
       codeStep: 8,
       subItem: null,
       implemented: true,
     },
     {
-      num: 11,
+      num: 10,
       name: "Investment properties",
       codeStep: 9,
       subItem: null,
       implemented: true,
     },
     {
-      num: 12,
+      num: 11,
       name: "Q&A mode",
       codeStep: 10,
       subItem: null,

@@ -601,6 +601,10 @@ const App = {
         this._renderDevelopmentDashboard();
         break;
 
+      case "education-pipeline":
+        UI.showUniversitiesPanel(this.state.activeUniversities);
+        break;
+
       case "future-outlook":
         UI.showPanel(`
                     ${panelHeader("Future outlook", "2030+ vision", "Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.")}
@@ -608,10 +612,6 @@ const App = {
                     ${evidenceImage("assets/use-case-images/evidence-new-grand-airport.webp", "Grand airport concept")}
                     ${evidenceImage("assets/use-case-images/evidence-kumamoto-future-road-network.webp", "Future road network")}
                 `);
-        break;
-
-      case "education-pipeline":
-        UI.showUniversitiesPanel(this.state.activeUniversities);
         break;
 
       case "investment-zones":
