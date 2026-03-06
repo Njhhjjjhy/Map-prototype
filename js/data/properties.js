@@ -343,8 +343,7 @@ export const properties = [
           factors: [
             {
               title: "Ozu industrial expansion",
-              impact:
-                "120ha new logistics and supply chain facilities by 2027",
+              impact: "120ha new logistics and supply chain facilities by 2027",
             },
             {
               title: "Naka-Kyushu Cross Road",
@@ -414,8 +413,7 @@ export const properties = [
     subArea: "Sugitmizu",
     distanceToJasm: "5.5 km",
     driveTime: "9 min",
-    address:
-      "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
+    address: "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
     camera: {
       center: [130.865, 32.862],
       zoom: 14.0,
@@ -494,8 +492,7 @@ export const properties = [
           factors: [
             {
               title: "Ozu industrial expansion",
-              impact:
-                "120ha new logistics and supply chain facilities by 2027",
+              impact: "120ha new logistics and supply chain facilities by 2027",
             },
             {
               title: "Naka-Kyushu Cross Road",
@@ -1033,5 +1030,4 @@ export const areaStats = {
   ],
 };
 
-export const jasmLocation = [32.874, 130.785];
-
+export const jasmLocation = [32.88565294085959, 130.84237152850676];

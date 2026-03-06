@@ -354,6 +354,31 @@ export const methods = {
     // Set up focus trap
     this.setupFocusTrap(this.elements.galleryModal);
   },
+  showGalleryFromUrl(url, title) {
+    const bodyHtml = `
+            <div class="gallery-header">
+                <h3>${title}</h3>
+            </div>
+            <div class="placeholder-doc">
+                <div class="icon" style="color: var(--color-text-tertiary);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <p style="font-size: var(--text-sm); color: var(--color-text-secondary);">${title}</p>
+                <a href="${url}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); font-size: var(--text-sm); color: var(--color-info); text-decoration: none; font-weight: 500;">
+                    Open source document
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+            </div>
+        `;
+
+    this.elements.galleryBody.innerHTML = bodyHtml;
+    this.elements.galleryModal.classList.remove("hidden");
+    document.getElementById("map-container").classList.add("immersive-active");
+
+    this.lastFocusedElement = document.activeElement;
+    this.elements.galleryClose.focus();
+    this.setupFocusTrap(this.elements.galleryModal);
+  },
   hideGallery() {
     this.elements.galleryModal.classList.add("hidden");
     document

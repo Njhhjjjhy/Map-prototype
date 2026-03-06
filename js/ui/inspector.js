@@ -414,11 +414,17 @@ export const methods = {
     }
   },
   _renderStage3(tabIndex, options = {}) {
-    // Entity-focused view: single institution card
-    if (options.institution) {
-      return this.renderInstitutionCard(options.institution);
+    // Employment data view
+    if (options.view === "employment") {
+      return this.renderEmploymentView();
     }
-    // Combined workforce + universities in a single scrollable view
+    // Entity-focused view: single institution card with pipeline context
+    if (options.institution) {
+      let html = this.renderInstitutionCard(options.institution);
+      html += this.renderPipelineContextCard(options.institution);
+      return html;
+    }
+    // Default: combined workforce + universities overview
     let html = this.renderWorkforceCard();
     html += (AppData.talentPipeline?.institutions || [])
       .map((inst) => this.renderInstitutionCard(inst))
@@ -1145,6 +1151,48 @@ export const methods = {
                 : ""
             }
         </div>`;
+  },
+  renderPipelineContextCard(inst) {
+    if (!inst) return "";
+    return `<div class="icard icard-standard">
+            <div class="icard-source">Pipeline connection</div>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal);">
+                ${inst.fullName || inst.name} feeds directly into the Kumamoto semiconductor corridor, supplying graduates and researchers to JASM and other employers in the cluster.
+            </p>
+        </div>`;
+  },
+  renderEmploymentView() {
+    const data = AppData.employmentData;
+    if (!data)
+      return '<div class="icard icard-hero"><div class="icard-title">Employment data</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No employment data available.</p></div>';
+
+    let html = `<div class="icard icard-hero">
+            <div class="icard-title">Semiconductor employment</div>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal); margin-bottom: var(--space-3);">${data.summary}</p>
+        </div>`;
+
+    (data.companies || []).forEach((company) => {
+      const statsHtml = (company.stats || [])
+        .map(
+          (s) => `<div class="icard-stat">
+                <div class="icard-stat-value">${s.value}</div>
+                <div class="icard-stat-label">${s.label}</div>
+            </div>`,
+        )
+        .join("");
+
+      html += `<div class="icard icard-standard">
+                <div class="icard-source">${company.name}</div>
+                <div class="icard-headline-metric" style="font-size: var(--text-2xl); font-weight: 700; color: var(--color-text-primary); margin: var(--space-2) 0;">${company.headline}</div>
+                <div style="font-size: var(--text-xs); color: var(--color-text-tertiary); margin-bottom: var(--space-3);">${company.headlineLabel}</div>
+                <div class="icard-stats-grid">${statsHtml}</div>
+                <p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal); margin-top: var(--space-3);">${company.description}</p>
+                ${company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : ""}
+                ${company.evidence ? `<button class="icard-evidence-btn" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')">View source document</button>` : ""}
+            </div>`;
+    });
+
+    return html;
   },
   renderDemandCard() {
     const demand = AppData.demandProjections || {};

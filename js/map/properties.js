@@ -71,31 +71,43 @@ export const methods = {
     this._layerGroups.talentPipeline.push("employment-data");
   },
 
-  showTalentPipeline(opts = {}) {
+  async showTalentPipeline(opts = {}) {
     this.hideTalentPipeline();
 
     const pipeline = AppData.talentPipeline;
     if (!pipeline || !pipeline.institutions) return;
 
-    pipeline.institutions.forEach((inst, index) => {
-      const delay = index * 80;
+    const jasmCoords = AppData.jasmLocation || [32.88565, 130.84237];
 
-      // Institution marker with first letter as icon
-      const initial = inst.name.charAt(0);
-      const html = `<div style="
-              width: 32px; height: 32px;
-              background: ${inst.color};
+    // JASM logo marker at the convergence point
+    const jasmHtml = `<div style="
+            width: 48px; height: 48px;
+            background: #ffffff;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        "><img src="assets/Jasm-logo.svg" alt="JASM" style="width: 36px; height: 36px; object-fit: contain;" /></div>`;
+    const { marker: jasmMarker } = this._createMarker(jasmCoords, jasmHtml, {
+      className: "jasm-talent-marker",
+      entrance: "ripple",
+    });
+    this.markers["talent-jasm"] = jasmMarker;
+    this._layerGroups.talentPipeline.push("talent-jasm");
+
+    // Place all university markers first
+    pipeline.institutions.forEach((inst) => {
+      const html = `<div class="talent-marker-icon" style="
+              width: 48px; height: 48px;
+              background: #ffffff;
               border-radius: 50%;
               display: flex; align-items: center; justify-content: center;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+              box-shadow: 0 4px 12px rgba(0,0,0,0.25);
               border: 2px solid white;
-          "><span style="
-              font-family: var(--font-display);
-              font-size: 13px;
-              font-weight: 700;
-              color: #ffffff;
-              line-height: 1;
-          ">${initial}</span></div>`;
+              cursor: pointer;
+              overflow: hidden;
+          "><img src="${inst.logo}" alt="${inst.name}" style="width: 36px; height: 36px; object-fit: contain;" /></div>`;
 
       const { marker, element } = this._createMarker(inst.coords, html, {
         className: "talent-marker-wrapper",
@@ -104,14 +116,11 @@ export const methods = {
 
       if (!marker || !element) return;
 
-      if (delay > 0) {
-        element.style.animationDelay = `${delay}ms`;
-      }
-
-      this._addTooltip(marker, element, `${inst.name} — ${inst.city}`);
+      // Hover-only name label
+      this._addTooltip(marker, element, inst.name);
       element.addEventListener("click", () => {
-        if (typeof UI !== "undefined") {
-          UI.showTalentInspector(inst.id);
+        if (typeof App !== "undefined") {
+          App.toggleUniversity(inst.id);
         }
       });
 
@@ -120,23 +129,41 @@ export const methods = {
       this._layerGroups.talentPipeline.push(id);
     });
 
-    // Draw connection lines from each university to JASM
-    const jasmCoords = AppData.jasmLocation || [32.874, 130.785];
-    const jasmLngLat = this._toMapbox(jasmCoords);
+    // Animate arc lines one by one with staggered overlap
+    const staggerDelay = 400;
+    for (let i = 0; i < pipeline.institutions.length; i++) {
+      const inst = pipeline.institutions[i];
+      if (i > 0) await this._delay(staggerDelay);
+      this._addAnimatedTalentArc(inst.coords, jasmCoords, inst, i);
+    }
+  },
 
-    const lineFeatures = pipeline.institutions.map((inst) => ({
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: [this._toMapbox(inst.coords), jasmLngLat],
-      },
-      properties: { institutionId: inst.id, name: inst.name },
-    }));
+  _addAnimatedTalentArc(origin, destination, inst, index) {
+    const midLat = (origin[0] + destination[0]) / 2;
+    const midLng = (origin[1] + destination[1]) / 2;
 
-    const sourceId = "talent-pipeline-lines";
+    const dLat = destination[0] - origin[0];
+    const dLng = destination[1] - origin[1];
+    const distance = Math.sqrt(dLat * dLat + dLng * dLng);
+    const arcHeight = Math.max(0.15, Math.min(1.0, distance * 0.12));
+
+    const arcMid = [midLat + arcHeight, midLng];
+    const allPoints = this.generateBezierPoints(
+      origin,
+      arcMid,
+      destination,
+      50,
+    );
+
+    const color = inst.color || "rgba(0, 122, 255, 0.6)";
+    const sourceId = `talent-arc-${index}`;
+
     this._safeAddSource(sourceId, {
       type: "geojson",
-      data: { type: "FeatureCollection", features: lineFeatures },
+      data: {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: allPoints.slice(0, 2) },
+      },
     });
 
     this.map.addLayer({
@@ -144,9 +171,9 @@ export const methods = {
       type: "line",
       source: sourceId,
       paint: {
-        "line-color": "rgba(0, 122, 255, 0.35)",
-        "line-width": 1.5,
-        "line-dasharray": [4, 4],
+        "line-color": color,
+        "line-width": 2,
+        "line-opacity": 0.6,
       },
       layout: {
         "line-cap": "round",
@@ -156,16 +183,103 @@ export const methods = {
 
     this._layerGroups.talentPipeline.push(`${sourceId}-line`, sourceId);
 
-    // Fly to Kyushu overview to show all institutions
-    if (!opts.skipFly) {
-      this.flyToStep({
-        center: [130.7, 32.5],
-        zoom: 7,
-        pitch: 25,
-        bearing: 0,
-        duration: 2500,
+    // Progressively extend the line
+    const totalSteps = 15;
+    const stepInterval = 40;
+    let currentStep = 0;
+
+    const drawNext = () => {
+      currentStep++;
+      if (currentStep > totalSteps) return;
+      const src = this.map.getSource(sourceId);
+      if (!src) return;
+
+      const pointCount = Math.round(
+        (currentStep / totalSteps) * allPoints.length,
+      );
+      const pts = allPoints.slice(0, Math.max(2, pointCount));
+      src.setData({
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: pts },
       });
-    }
+
+      if (currentStep < totalSteps) {
+        setTimeout(drawNext, stepInterval);
+      }
+    };
+    setTimeout(drawNext, stepInterval);
+  },
+
+  showEmploymentMarkers() {
+    this.hideEmploymentMarkers();
+
+    const employers = [
+      {
+        id: "emp-jasm",
+        coords: AppData.jasmLocation || [32.88565, 130.84237],
+        logo: "assets/Jasm-logo.svg",
+        name: "JASM (TSMC)",
+        dataId: "jasm",
+      },
+      {
+        id: "emp-tel",
+        coords: [32.85, 130.73],
+        logo: "assets/Tokyo-electron-logo.svg",
+        name: "Tokyo Electron",
+        dataId: "tel",
+      },
+    ];
+
+    employers.forEach((emp, index) => {
+      const html = `<div style="
+              width: 48px; height: 48px;
+              background: #ffffff;
+              border: 2px solid white;
+              border-radius: 50%;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+              display: flex; align-items: center; justify-content: center;
+              overflow: hidden;
+              cursor: pointer;
+          "><img src="${emp.logo}" alt="${emp.name}" style="width: 36px; height: 36px; object-fit: contain;" /></div>`;
+
+      const { marker, element } = this._createMarker(emp.coords, html, {
+        className: "employment-company-marker",
+        entrance: "ripple",
+      });
+
+      if (!marker || !element) return;
+
+      if (index > 0) {
+        element.style.animationDelay = `${index * 100}ms`;
+      }
+
+      this._addTooltip(marker, element, emp.name);
+      element.addEventListener("click", () => {
+        if (typeof App !== "undefined") {
+          App.toggleEmployer(emp.dataId);
+        }
+      });
+
+      this.markers[emp.id] = marker;
+      if (!this._layerGroups.employmentMarkers) {
+        this._layerGroups.employmentMarkers = [];
+      }
+      this._layerGroups.employmentMarkers.push(emp.id);
+    });
+  },
+
+  hideEmploymentMarkers() {
+    const group = this._layerGroups.employmentMarkers || [];
+    group.forEach((id) => {
+      if (this.markers[id]) {
+        const marker = this.markers[id];
+        const el = marker.getElement();
+        marker.remove();
+        if (el && el.parentNode) el.remove();
+        delete this.markers[id];
+      }
+    });
+    this._layerGroups.employmentMarkers = [];
   },
 
   hideTalentPipeline() {
@@ -179,9 +293,15 @@ export const methods = {
         }
         delete this.markers[id];
       }
+      // Remove arc layers and sources
+      if (id.endsWith("-line")) {
+        this._safeRemoveLayer(id);
+      } else if (id.startsWith("talent-arc-")) {
+        this._safeRemoveSource(id);
+      }
     });
 
-    // Remove connection lines layer and source
+    // Legacy cleanup
     this._safeRemoveLayer("talent-pipeline-lines-line");
     this._safeRemoveSource("talent-pipeline-lines");
 

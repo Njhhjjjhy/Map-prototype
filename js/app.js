@@ -50,6 +50,8 @@ const App = {
     activeGovernmentLevels: [], // Track which government levels are toggled on (central, prefectural, local)
     visitedGovernmentLevels: [], // Track which government levels have been viewed (persists across toggles)
     activeInvestmentZones: [], // Track which investment zones are toggled on (kikuyo-zone, ozu-zone, koshi-zone)
+    activeUniversities: [], // Track which universities are toggled on (education step)
+    activeEmployers: [], // Track which employers are toggled on (education step)
     qaMode: false, // Whether Q&A mode is active (post-journey exploration)
   },
 
@@ -117,6 +119,8 @@ const App = {
     this.state.activeEnergyTypes = [];
     this.state.activeGovernmentLevels = [];
     this.state.activeDevelopmentChildren = [];
+    this.state.activeUniversities = [];
+    this.state.activeEmployers = [];
 
     // Step 6: auto-select Science Park group on entry
     if (step.id === "transport-access") {
@@ -331,6 +335,10 @@ const App = {
     }
     if (layers.includes("talentPipeline")) {
       MapController.showTalentPipeline();
+      // Auto-select "universities" sub-item on entry
+      if (!this.state.subItemsExplored.includes("universities")) {
+        this.state.subItemsExplored.push("universities");
+      }
     }
     // Properties step: markers shown on individual selection, not on entry
   },
@@ -342,7 +350,10 @@ const App = {
     const layers = step.layers || [];
 
     if (layers.includes("airlineRoutes")) MapController.hideAirlineRoutes();
-    if (layers.includes("talentPipeline")) MapController.hideTalentPipeline();
+    if (layers.includes("talentPipeline")) {
+      MapController.hideTalentPipeline();
+      MapController.hideEmploymentMarkers();
+    }
     if (layers.includes("infrastructureRoads"))
       MapController.hideInfrastructureRoads();
     if (layers.includes("investmentZones")) MapController.hideInvestmentZones();
@@ -434,7 +445,7 @@ const App = {
         afterItems: "",
       },
       "education-pipeline": {
-        title: "Education pipeline",
+        title: "Education and talent pipeline",
         body: "METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.",
         afterItems: "",
       },
@@ -611,6 +622,10 @@ const App = {
                 `);
         break;
       }
+
+      case "education-pipeline":
+        UI.showUniversitiesPanel(this.state.activeUniversities);
+        break;
 
       case "investment-zones":
         UI.showPanel(`

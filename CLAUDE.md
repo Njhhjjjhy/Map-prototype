@@ -50,6 +50,8 @@ All mandatory constraints. Each rule has one canonical definition here.
 
 **Case rules:** Always sentence case. Only two exceptions: primary CTAs (amber fill) and modal overlay headings use Title Case.
 
+**Evidence card descriptions:** All `evidenceCard` description text must be complete sentences ending with a period. Never use sentence fragments.
+
 **Dark mode:** Not supported. Light mode only. No `prefers-color-scheme` queries.
 
 **Spacing enforcement:**
