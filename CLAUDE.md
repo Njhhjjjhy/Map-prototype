@@ -36,6 +36,10 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Break large tasks into smaller steps to prevent context overflow.
 - If approaching 50%, pause and ask user before continuing.
 
+**Commit messages (feature skill):**
+- The commit body must be the user's prompt text, copied verbatim with no rewording or expansion.
+- Only the commit title line may be a generated summary.
+
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).
 - Check `element.parentNode` exists before calling `.remove()`.
