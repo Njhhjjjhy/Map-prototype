@@ -165,6 +165,13 @@ const CAMERA_STEPS = {
     bearing: 34,
     duration: 2500,
   },
+  B6: {
+    center: [130.83, 32.87],
+    zoom: 11.5,
+    pitch: 50,
+    bearing: -20,
+    duration: 2000,
+  },
   B6_scienceParkAirport: {
     center: [131.1104, 32.7376],
     zoom: 9.8,

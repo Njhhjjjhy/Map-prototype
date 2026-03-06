@@ -119,8 +119,19 @@ export const STEPS = [
     ],
   },
   {
-    id: "investment-zones",
+    id: "future-outlook",
     index: 7,
+    title: "Future outlook",
+    subtitle: "Composite 2030+ vision",
+    cameraKey: "B6",
+    layers: [],
+    panelTabs: ["Plans", "Timeline"],
+    showTimeToggle: true,
+    subItems: [],
+  },
+  {
+    id: "investment-zones",
+    index: 8,
     title: "Investment opportunity zones",
     subtitle: "Three zones in the silicon triangle",
     cameraKey: "corridor",
@@ -134,7 +145,7 @@ export const STEPS = [
   },
   {
     id: "properties",
-    index: 8,
+    index: 9,
     title: "Properties",
     subtitle: "Investment opportunities",
     cameraKey: "corridor",
@@ -147,7 +158,7 @@ export const STEPS = [
   },
   {
     id: "final",
-    index: 9,
+    index: 10,
     title: "Journey complete",
     subtitle: "Summary and Q&A",
     cameraKey: "complete",

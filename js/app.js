@@ -134,7 +134,7 @@ const App = {
     UI.updateJourneyProgress(stepIndex, STEPS.length);
 
     // --- Special pre-step cinematics ---
-    if (stepIndex === 8 && prevStep > 0 && prevStep !== 8) {
+    if (stepIndex === 9 && prevStep > 0 && prevStep !== 9) {
       await UI.showMoreHarvestEntry();
       await MapController.elevateToCorridorView();
       await new Promise((r) => setTimeout(r, TIMING.breath));
@@ -449,6 +449,12 @@ const App = {
         body: "METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.",
         afterItems: "",
       },
+      "future-outlook": {
+        title: "Future outlook",
+        body: "Toggle to <strong>Future View</strong> to see the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
+        afterItems:
+          '<p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">Use the Present/Future toggle in the top-left corner.</p>',
+      },
       "investment-zones": {
         title: "Investment zones",
         body: "Three zones in the silicon triangle, each with a distinct role in the semiconductor ecosystem.",
@@ -597,6 +603,15 @@ const App = {
 
       case "education-pipeline":
         UI.showUniversitiesPanel(this.state.activeUniversities);
+        break;
+
+      case "future-outlook":
+        UI.showPanel(`
+                    ${panelHeader("Future outlook", "2030+ vision", "Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.")}
+                    ${evidenceImage("assets/use-case-images/evidence-science-park.webp", "Science park plan")}
+                    ${evidenceImage("assets/use-case-images/evidence-new-grand-airport.webp", "Grand airport concept")}
+                    ${evidenceImage("assets/use-case-images/evidence-kumamoto-future-road-network.webp", "Future road network")}
+                `);
         break;
 
       case "investment-zones":

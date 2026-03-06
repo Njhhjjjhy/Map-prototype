@@ -939,7 +939,7 @@ export const methods = {
    * Update the journey progress bar for the linear step flow.
    * @param {number} currentStep - Current step (1-based)
    */
-  updateJourneyProgress(currentStep, totalSteps = 9) {
+  updateJourneyProgress(currentStep, totalSteps = 10) {
     let progressBar = document.getElementById("journey-progress");
     if (!progressBar) return;
 
