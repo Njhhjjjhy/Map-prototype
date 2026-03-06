@@ -601,19 +601,7 @@ const App = {
         this._renderDevelopmentDashboard();
         break;
 
-      case "future-outlook": {
-        // Show airport marker on the map for the future outlook
-        const airport = AppData.governmentChain?.levels?.find(
-          (l) => l.id === "grand-airport",
-        );
-        if (airport) MapController.showAirportMarker(airport);
-
-        // Emphasize road extensions for the future vision
-        setTimeout(
-          () => MapController.highlightRoadExtensions(),
-          TIMING.restartDelay,
-        );
-
+      case "future-outlook":
         UI.showPanel(`
                     ${panelHeader("Future outlook", "2030+ vision", "Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.")}
                     ${evidenceImage("assets/use-case-images/evidence-science-park.webp", "Science park plan")}
@@ -621,7 +609,6 @@ const App = {
                     ${evidenceImage("assets/use-case-images/evidence-kumamoto-future-road-network.webp", "Future road network")}
                 `);
         break;
-      }
 
       case "education-pipeline":
         UI.showUniversitiesPanel(this.state.activeUniversities);
