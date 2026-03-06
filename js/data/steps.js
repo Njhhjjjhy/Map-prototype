@@ -124,12 +124,7 @@ export const STEPS = [
     title: "Future outlook",
     subtitle: "Composite 2030+ vision",
     cameraKey: "B6",
-    layers: [
-      "sciencePark",
-      "futureZones",
-      "infrastructureRoads",
-      "investmentZones",
-    ],
+    layers: [],
     panelTabs: ["Plans", "Timeline"],
     showTimeToggle: true,
     subItems: [],
