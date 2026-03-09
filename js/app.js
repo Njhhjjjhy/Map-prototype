@@ -135,6 +135,8 @@ const App = {
 
     // --- Special pre-step cinematics ---
     if (stepIndex === 9 && prevStep > 0 && prevStep !== 9) {
+      // Clear all map layers, markers, and labels so the map is clean on entry
+      MapController.clearAll();
       await MapController.elevateToCorridorView();
       await new Promise((r) => setTimeout(r, TIMING.breath));
     }

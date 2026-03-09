@@ -25,6 +25,7 @@ import {
 import { companies } from "./companies.js";
 import {
   futureZones,
+  corridorZones,
   investmentZones,
   gktk,
   properties,
@@ -57,6 +58,7 @@ const AppData = {
   kumamotoPrefectureBoundary,
   companies,
   futureZones,
+  corridorZones,
   investmentZones,
   gktk,
   properties,

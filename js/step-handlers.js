@@ -898,36 +898,91 @@ export const stepHandlers = {
   // --- Step 8: Investment zones ---
   _handleInvestmentZoneSubItem(itemId) {
     const zoneData = {
-      "kikuyo-zone": {
-        name: "Kikuyo",
-        role: "Factory core / new urban core",
-        description:
-          "Manufacturing nucleus and new urban district. Haramizu station new station area targeted as advanced new urban district integrating residence, commerce, education, and research.",
-        coords: [32.86, 130.83],
+      "central-city-zone": {
+        name: "Central city",
+        details: [
+          ["Product type", "RC mansion condominiums and accommodation"],
+          ["Connection", "Shinkansen 30-minute connection to Hakata"],
+          [
+            "Role",
+            "Kyushu-level business support center, suitable for Japanese corporate senior executive families",
+          ],
+        ],
+        coords: [32.8016, 130.7014],
       },
-      "ozu-zone": {
-        name: "Ozu",
-        role: "Gateway / office and logistics support",
-        description:
-          "Transportation hub with logistics coordination and supplier office locations. Gateway to the semiconductor corridor.",
-        coords: [32.88, 130.87],
+      "middle-zone": {
+        name: "Middle zone",
+        details: [
+          [
+            "Product type",
+            "High-spec detached house rentals or renovations upgraded to expatriate standard",
+          ],
+          [
+            "Opportunity",
+            "Large retail drives lifestyle density but internationalized services (bilingual clinics, international preschools) still being built out",
+          ],
+        ],
+        coords: [32.8364, 130.7575],
       },
-      "koshi-zone": {
-        name: "Koshi",
-        role: "R&D / tools and process innovation",
-        description:
-          "Research and development focus with equipment chain concentration. Home to Tokyo Electron and supporting tool manufacturers.",
-        coords: [32.905, 130.76],
+      "jasm-zone": {
+        name: "JASM",
+        details: [
+          [
+            "Product type",
+            "Corporate RC condominiums and 3-4LDK detached houses",
+          ],
+          [
+            "Target tenants",
+            "Single engineers, long-term secondees, short-to-medium-term secondees",
+          ],
+          [
+            "Two demand waves",
+            "Wave 1 now (construction + early Fab 1 occupants), wave 2 ~2027 (Fab 2 brings higher-income engineers with higher housing quality expectations)",
+          ],
+          [
+            "Supply gap",
+            "Supply catches up to demand around 2028-2029",
+          ],
+        ],
+        coords: [32.8678, 130.8419],
+        showLogo: true,
       },
     };
     const zone = zoneData[itemId];
     if (zone) {
+      const rows = zone.details
+        .map(
+          ([label, value]) =>
+            `<div style="display: flex; flex-direction: column; gap: var(--space-1);">
+              <span style="font-weight: var(--font-weight-semibold); font-size: var(--text-sm); color: var(--color-text-primary);">${label}</span>
+              <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${value}</span>
+            </div>`,
+        )
+        .join("");
+
       UI.showPanel(`
                 <div class="subtitle">Silicon triangle</div>
                 <h2>${zone.name}</h2>
-                <p style="color: var(--color-text-secondary); font-weight: var(--font-weight-medium);">${zone.role}</p>
-                <p style="margin-top: var(--space-3);">${zone.description}</p>
+                <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
+                    ${rows}
+                </div>
             `);
+
+      // Show JASM logo marker on the map
+      if (zone.showLogo) {
+        MapController._removeLayerGroup("properties");
+        const el = document.createElement("div");
+        el.style.cssText =
+          "width: 56px; height: 56px; background: white; border-radius: var(--radius-medium); box-shadow: var(--shadow-medium); display: flex; align-items: center; justify-content: center; padding: 6px;";
+        el.innerHTML =
+          '<img src="assets/Jasm-logo.svg" alt="JASM" style="width: 44px; height: 44px; object-fit: contain;">';
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat(MapController._toMapbox(zone.coords))
+          .addTo(MapController.map);
+        MapController.markers["jasm-logo"] = marker;
+        MapController._layerGroups.investmentZones.push("jasm-logo");
+      }
+
       MapController.flyToStep({
         center: MapController._toMapbox(zone.coords),
         zoom: 13,

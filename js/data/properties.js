@@ -145,6 +145,35 @@ export const futureZones = [
   },
 ];
 
+// Step 9 zones (circle overlays)
+export const corridorZones = [
+  {
+    id: "central-city-zone",
+    name: "Central city",
+    center: [32.8016, 130.7014],
+    radius: 7,
+    color: "rgba(52, 199, 89, 0.15)",
+    strokeColor: "rgba(52, 199, 89, 0.4)",
+  },
+  {
+    id: "middle-zone",
+    name: "Middle zone",
+    center: [32.8364, 130.7575],
+    radius: 7,
+    color: "rgba(255, 149, 0, 0.15)",
+    strokeColor: "rgba(255, 149, 0, 0.4)",
+  },
+  {
+    id: "jasm-zone",
+    name: "JASM",
+    center: [32.8678, 130.8419],
+    radius: 7,
+    color: "rgba(251, 185, 49, 0.15)",
+    strokeColor: "rgba(251, 185, 49, 0.4)",
+  },
+];
+
+// Step 10 zones (polygon boundaries for property drill-down)
 export const investmentZones = [
   {
     id: "kikuyo-zone",

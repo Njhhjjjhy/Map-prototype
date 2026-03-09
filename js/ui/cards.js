@@ -509,7 +509,6 @@ export const methods = {
 
           return `
                     <div class="energy-evidence-card" style="border-left: 3px solid ${zone.strokeColor};">
-                        <div class="panel-bento-label" style="color: ${zone.strokeColor};">${zone.role}</div>
                         <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${zone.name}</div>
                         <div style="display: flex; flex-direction: column; gap: 0;">
                             ${propsListHtml}

@@ -581,7 +581,10 @@ export const methods = {
   },
 
   showInvestmentZones() {
-    AppData.investmentZones.forEach((zone) => {
+    // Step 9 uses corridorZones (circle overlays)
+    const zones = AppData.corridorZones;
+
+    zones.forEach((zone) => {
       const boundaryGeoJson = this._zoneBoundaryToGeoJson(zone);
 
       const sourceId = `inv-zone-${zone.id}`;
@@ -617,7 +620,7 @@ export const methods = {
 
     // Persistent zone labels as a single symbol layer
     const labelSourceId = "inv-zone-labels";
-    const labelFeatures = AppData.investmentZones.map((zone) => ({
+    const labelFeatures = zones.map((zone) => ({
       type: "Feature",
       geometry: {
         type: "Point",

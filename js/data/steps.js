@@ -138,9 +138,9 @@ export const STEPS = [
     layers: ["investmentZones"],
     panelTabs: ["Zones", "Metrics"],
     subItems: [
-      { id: "kikuyo-zone", label: "Kikuyo", icon: "target" },
-      { id: "ozu-zone", label: "Ozu", icon: "target" },
-      { id: "koshi-zone", label: "Koshi", icon: "target" },
+      { id: "central-city-zone", label: "Central city", icon: "target" },
+      { id: "middle-zone", label: "Middle zone", icon: "target" },
+      { id: "jasm-zone", label: "JASM", icon: "target" },
     ],
   },
   {
