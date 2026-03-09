@@ -900,30 +900,73 @@ export const stepHandlers = {
     const zoneData = {
       "central-city-zone": {
         name: "Central city",
-        description:
-          "Product type: RC mansion condominiums and accommodation. Shinkansen 30-minute connection to Hakata. Role: Kyushu-level business support center, suitable for Japanese corporate senior executive families.",
+        details: [
+          ["Product type", "RC mansion condominiums and accommodation"],
+          ["Connection", "Shinkansen 30-minute connection to Hakata"],
+          [
+            "Role",
+            "Kyushu-level business support center, suitable for Japanese corporate senior executive families",
+          ],
+        ],
         coords: [32.8016, 130.7014],
       },
       "middle-zone": {
         name: "Middle zone",
-        description:
-          "Product type: high-spec detached house rentals or renovations upgraded to expatriate standard. Opportunity: large retail drives lifestyle density but internationalized services (bilingual clinics, international preschools) still being built out.",
+        details: [
+          [
+            "Product type",
+            "High-spec detached house rentals or renovations upgraded to expatriate standard",
+          ],
+          [
+            "Opportunity",
+            "Large retail drives lifestyle density but internationalized services (bilingual clinics, international preschools) still being built out",
+          ],
+        ],
         coords: [32.8364, 130.7575],
       },
       "jasm-zone": {
         name: "JASM",
-        description:
-          "Product type: corporate RC condominiums and 3-4LDK detached houses. Target tenants: single engineers, long-term secondees, short-to-medium-term secondees. Two demand waves: wave 1 now (construction + early Fab 1 occupants), wave 2 ~2027 (Fab 2 brings higher-income engineers with higher housing quality expectations). Supply gap conclusion: supply catches up to demand around 2028-2029.",
+        details: [
+          [
+            "Product type",
+            "Corporate RC condominiums and 3-4LDK detached houses",
+          ],
+          [
+            "Target tenants",
+            "Single engineers, long-term secondees, short-to-medium-term secondees",
+          ],
+          [
+            "Two demand waves",
+            "Wave 1 now (construction + early Fab 1 occupants), wave 2 ~2027 (Fab 2 brings higher-income engineers with higher housing quality expectations)",
+          ],
+          [
+            "Supply gap",
+            "Supply catches up to demand around 2028-2029",
+          ],
+        ],
         coords: [32.8678, 130.8419],
         showLogo: true,
       },
     };
     const zone = zoneData[itemId];
     if (zone) {
+      const rows = zone.details
+        .map(
+          ([label, value]) =>
+            `<div class="icard-detail-row">
+              <span class="icard-detail-label">${label}</span>
+              <span class="icard-detail-value">${value}</span>
+            </div>`,
+        )
+        .join("");
+
       UI.showPanel(`
                 <div class="subtitle">Silicon triangle</div>
                 <h2>${zone.name}</h2>
-                <p style="margin-top: var(--space-3);">${zone.description}</p>
+                <div class="icard icard-standard icard-overview" style="margin-top: var(--space-4);">
+                    <div class="icard-title">Overview</div>
+                    <div class="icard-detail-list">${rows}</div>
+                </div>
             `);
 
       // Show JASM logo marker on the map
