@@ -149,10 +149,9 @@ export const investmentZones = [
   {
     id: "central-city-zone",
     name: "Central city",
-    role: "Factory core / new urban core",
-    center: [32.86, 130.83],
-    color: "rgba(232, 93, 76, 0.15)",
-    strokeColor: "rgba(232, 93, 76, 0.4)",
+    center: [32.8016, 130.7014],
+    color: "rgba(52, 199, 89, 0.15)",
+    strokeColor: "rgba(52, 199, 89, 0.4)",
     boundary: [
       [130.8333, 32.8222],
       [130.8256, 32.8256],
@@ -178,10 +177,9 @@ export const investmentZones = [
   {
     id: "middle-zone",
     name: "Middle zone",
-    role: "Gateway / office and logistics support",
-    center: [32.88, 130.87],
-    color: "rgba(93, 187, 99, 0.15)",
-    strokeColor: "rgba(93, 187, 99, 0.4)",
+    center: [32.8364, 130.7575],
+    color: "rgba(255, 149, 0, 0.15)",
+    strokeColor: "rgba(255, 149, 0, 0.4)",
     boundary: [
       [130.875, 32.8368],
       [130.8742, 32.841],
@@ -208,10 +206,9 @@ export const investmentZones = [
   {
     id: "jasm-zone",
     name: "JASM",
-    role: "R&D / tools and process innovation",
-    center: [32.905, 130.76],
-    color: "rgba(74, 144, 217, 0.15)",
-    strokeColor: "rgba(74, 144, 217, 0.4)",
+    center: [32.8678, 130.8419],
+    color: "rgba(251, 185, 49, 0.15)",
+    strokeColor: "rgba(251, 185, 49, 0.4)",
     boundary: [
       [130.72, 32.897],
       [130.7228, 32.9],

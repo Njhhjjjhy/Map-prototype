@@ -900,24 +900,21 @@ export const stepHandlers = {
     const zoneData = {
       "central-city-zone": {
         name: "Central city",
-        role: "Factory core / new urban core",
         description:
           "Manufacturing nucleus and new urban district. Haramizu station new station area targeted as advanced new urban district integrating residence, commerce, education, and research.",
-        coords: [32.86, 130.83],
+        coords: [32.8016, 130.7014],
       },
       "middle-zone": {
         name: "Middle zone",
-        role: "Gateway / office and logistics support",
         description:
           "Transportation hub with logistics coordination and supplier office locations. Gateway to the semiconductor corridor.",
-        coords: [32.88, 130.87],
+        coords: [32.8364, 130.7575],
       },
       "jasm-zone": {
         name: "JASM",
-        role: "R&D / tools and process innovation",
         description:
           "Research and development focus with equipment chain concentration. Home to Tokyo Electron and supporting tool manufacturers.",
-        coords: [32.905, 130.76],
+        coords: [32.8678, 130.8419],
       },
     };
     const zone = zoneData[itemId];
@@ -925,7 +922,6 @@ export const stepHandlers = {
       UI.showPanel(`
                 <div class="subtitle">Silicon triangle</div>
                 <h2>${zone.name}</h2>
-                <p style="color: var(--color-text-secondary); font-weight: var(--font-weight-medium);">${zone.role}</p>
                 <p style="margin-top: var(--space-3);">${zone.description}</p>
             `);
       MapController.flyToStep({
