@@ -196,6 +196,9 @@ export const methods = {
       popup.remove();
     });
 
+    // Store popup on the marker so it can be cleaned up when the marker is removed
+    marker._popup = popup;
+
     return popup;
   },
 

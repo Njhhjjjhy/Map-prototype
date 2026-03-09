@@ -191,6 +191,10 @@ export const methods = {
       // Remove HTML marker AND its DOM element
       if (this.markers[id]) {
         const marker = this.markers[id];
+        // Remove any open tooltip popup before destroying the marker
+        if (marker._popup) {
+          marker._popup.remove();
+        }
         const element = marker.getElement();
         marker.remove();
         // Ensure DOM element is also removed
