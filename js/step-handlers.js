@@ -974,9 +974,9 @@ export const stepHandlers = {
         MapController._removeLayerGroup("properties");
         const el = document.createElement("div");
         el.style.cssText =
-          "width: 80px; height: 80px; background: white; border-radius: var(--radius-medium); box-shadow: var(--shadow-medium); display: flex; align-items: center; justify-content: center; padding: 8px;";
+          "width: 56px; height: 56px; background: white; border-radius: var(--radius-medium); box-shadow: var(--shadow-medium); display: flex; align-items: center; justify-content: center; padding: 6px;";
         el.innerHTML =
-          '<img src="assets/Jasm-logo.svg" alt="JASM" style="width: 100%; height: 100%; object-fit: contain;">';
+          '<img src="assets/Jasm-logo.svg" alt="JASM" style="width: 44px; height: 44px; object-fit: contain;">';
         const marker = new mapboxgl.Marker({ element: el })
           .setLngLat(MapController._toMapbox(zone.coords))
           .addTo(MapController.map);
