@@ -953,9 +953,9 @@ export const stepHandlers = {
       const rows = zone.details
         .map(
           ([label, value]) =>
-            `<div class="icard-detail-row">
-              <span class="icard-detail-label">${label}</span>
-              <span class="icard-detail-value">${value}</span>
+            `<div style="display: flex; flex-direction: column; gap: var(--space-1);">
+              <span style="font-weight: var(--font-weight-semibold); font-size: var(--text-sm); color: var(--color-text-primary);">${label}</span>
+              <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${value}</span>
             </div>`,
         )
         .join("");
@@ -963,9 +963,8 @@ export const stepHandlers = {
       UI.showPanel(`
                 <div class="subtitle">Silicon triangle</div>
                 <h2>${zone.name}</h2>
-                <div class="icard icard-standard icard-overview" style="margin-top: var(--space-4);">
-                    <div class="icard-title">Overview</div>
-                    <div class="icard-detail-list">${rows}</div>
+                <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
+                    ${rows}
                 </div>
             `);
 
