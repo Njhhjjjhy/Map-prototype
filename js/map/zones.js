@@ -500,6 +500,9 @@ export const methods = {
     if (govZone) {
       this.showZonePlanHighlight(govZone, { skipFly: true });
     }
+
+    // 4. Road extension overlays: travel time indicators + IC labels
+    this._showFutureRoadOverlays();
   },
 
   hideFutureZones() {
@@ -513,6 +516,57 @@ export const methods = {
 
     // 3. Government zone plan clusters
     this.hideZonePlanHighlight();
+
+    // 4. Road extension overlays
+    this._hideFutureRoadOverlays();
+  },
+
+  _showFutureRoadOverlays() {
+    this._futureRoadOverlayMarkers = [];
+
+    // Pulsing travel time indicators
+    const travelTimes = [
+      { label: "~10 min", coords: [130.798, 32.814], color: "#007aff" },
+      { label: "~20 min", coords: [130.855, 32.837], color: "#007aff" },
+    ];
+
+    travelTimes.forEach((tt) => {
+      const el = document.createElement("div");
+      el.className = "future-travel-time-indicator";
+      el.innerHTML = `<span class="future-travel-time-text">${tt.label}</span>`;
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat(tt.coords)
+        .addTo(this.map);
+      this._futureRoadOverlayMarkers.push(marker);
+    });
+
+    // Interchange labels
+    const interchanges = [
+      { label: "(仮)西合志IC", coords: [130.755, 32.856] },
+      { label: "(仮)合志IC", coords: [130.785, 32.862] },
+      { label: "(仮)大津西IC", coords: [130.83, 32.858] },
+      { label: "熊本IC", coords: [130.798, 32.808] },
+      { label: "益城熊本空港IC", coords: [130.855, 32.843] },
+    ];
+
+    interchanges.forEach((ic) => {
+      const el = document.createElement("div");
+      el.className = "future-ic-label";
+      el.textContent = ic.label;
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: "top" })
+        .setLngLat(ic.coords)
+        .addTo(this.map);
+      this._futureRoadOverlayMarkers.push(marker);
+    });
+  },
+
+  _hideFutureRoadOverlays() {
+    if (this._futureRoadOverlayMarkers) {
+      this._futureRoadOverlayMarkers.forEach((m) => m.remove());
+      this._futureRoadOverlayMarkers = [];
+    }
   },
 
   showInvestmentZones() {

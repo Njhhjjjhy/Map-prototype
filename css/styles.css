@@ -2642,6 +2642,56 @@ a:focus-visible {
 }
 
 /* ================================
+   FUTURE ROAD OVERLAYS
+   ================================ */
+
+.future-travel-time-indicator {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.future-travel-time-text {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: white;
+  background: var(--color-info);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  box-shadow: var(--shadow-medium);
+  animation: futureTimePulse 2s ease-in-out infinite;
+}
+
+@keyframes futureTimePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(0, 122, 255, 0);
+  }
+}
+
+.future-ic-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-small);
+  white-space: nowrap;
+  box-shadow: var(--shadow-subtle);
+  pointer-events: none;
+  border: 1px solid var(--color-border);
+}
+
+/* ================================
    MUNICIPALITY LABELED MARKERS
    ================================ */
 
