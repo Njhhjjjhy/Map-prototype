@@ -496,7 +496,9 @@ export const methods = {
     this.hideRailwayStations();
     this.hideRoadExtensions();
     this._hideFutureRoadOverlays();
+    this.hideInfrastructureRoads();
     this.hideZonePlanHighlight();
+    this.hideDataLayerMarkers("trafficFlow");
   },
 
   _showFutureRoadOverlays() {

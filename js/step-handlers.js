@@ -348,6 +348,9 @@ export const stepHandlers = {
       } else if (layerName === "futureRoads") {
         MapController.hideRoadExtensions();
         MapController._hideFutureRoadOverlays();
+        MapController.hideInfrastructureRoads();
+      } else if (layerName === "futureTrafficFlow") {
+        MapController.hideDataLayerMarkers("trafficFlow");
       }
     } else {
       this.state.activeFutureLayers.push(layerName);
@@ -366,6 +369,12 @@ export const stepHandlers = {
       } else if (layerName === "futureRoads") {
         MapController.showRoadExtensions();
         MapController._showFutureRoadOverlays();
+        MapController.showInfrastructureRoads({ skipFly: true });
+      } else if (layerName === "futureTrafficFlow") {
+        const trafficData = AppData.dataLayers.trafficFlow;
+        if (trafficData) {
+          MapController.showDataLayerMarkers("trafficFlow", trafficData);
+        }
       }
     }
 
