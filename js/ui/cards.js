@@ -391,6 +391,70 @@ export const methods = {
     }
   },
 
+  // ────────────────────────────────────────────────
+  // Future outlook panel (step 8)
+  // ────────────────────────────────────────────────
+
+  showFutureOutlookPanel(activeLayers) {
+    const content = this._buildFutureOutlookContent(activeLayers || []);
+    this.showPanel(content);
+  },
+
+  updateFutureOutlookPanel(activeLayers) {
+    const content = this._buildFutureOutlookContent(activeLayers);
+    this.elements.panelContent.innerHTML = content;
+  },
+
+  _buildFutureOutlookContent(activeLayers) {
+    const layers = [
+      {
+        key: "futureSciencePark",
+        label: "Science park circles",
+        color: "#007aff",
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>',
+      },
+      {
+        key: "futureAirport",
+        label: "Airport access",
+        color: "#34c759",
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
+      },
+      {
+        key: "futureGovZones",
+        label: "Government zone clusters",
+        color: "#ff3b30",
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
+      },
+      {
+        key: "futureRoads",
+        label: "Roads and interchanges",
+        color: "#ff9500",
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
+      },
+    ];
+
+    const rowsHtml = layers
+      .map((l) => {
+        const isActive = activeLayers.includes(l.key);
+        return toggleRow({
+          id: l.key,
+          label: l.label,
+          color: l.color,
+          icon: l.icon,
+          active: isActive,
+          onclick: `App.toggleFutureLayer('${l.key}')`,
+        });
+      })
+      .join("");
+
+    return `
+      ${panelHeader("Future outlook", "2030+ vision", "Toggle layers to explore the completed state of the semiconductor corridor.")}
+      <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+        ${rowsHtml}
+      </div>
+    `;
+  },
+
   /**
    * Show the power sources panel with 3 toggleable energy types.
    * Called when user clicks the "Power sources" subItem in step 1.

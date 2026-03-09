@@ -316,52 +316,28 @@ export const stepHandlers = {
   // --- Step 5: Science Park + Grand Airport ---
 
   /**
-   * Build and display the future outlook dashboard in the right panel.
-   * Shows 4 toggleable layer rows for the future view.
+   * Show the future outlook dashboard in the right panel.
    */
   _renderFutureOutlookDashboard() {
     if (!this.state.activeFutureLayers) {
-      this.state.activeFutureLayers = {};
+      this.state.activeFutureLayers = [];
     }
-
-    const layers = [
-      { key: "futureSciencePark", label: "Science park circles", color: "#007aff" },
-      { key: "futureAirport", label: "Airport access", color: "#34c759" },
-      { key: "futureGovZones", label: "Government zone clusters", color: "#ff3b30" },
-      { key: "futureRoads", label: "Roads and interchanges", color: "#ff9500" },
-    ];
-
-    const rowsHtml = layers.map((l) => {
-      const isActive = !!this.state.activeFutureLayers[l.key];
-      return toggleRow({
-        id: l.key,
-        label: l.label,
-        color: l.color,
-        active: isActive,
-        onclick: `App.toggleFutureLayer('${l.key}')`,
-      });
-    }).join("");
-
-    UI.showPanel(`
-      ${panelHeader("Future outlook", "2030+ vision", "Toggle layers to explore the completed state of the semiconductor corridor.")}
-      <div style="margin-top: var(--space-4);">
-        ${rowsHtml}
-      </div>
-    `);
+    UI.showFutureOutlookPanel(this.state.activeFutureLayers);
   },
 
   /**
-   * Toggle a future layer on/off and re-render the dashboard.
+   * Toggle a future layer on/off (multi-select).
+   * Called from the future outlook panel toggles.
    */
   toggleFutureLayer(layerName) {
     if (!this.state.activeFutureLayers) {
-      this.state.activeFutureLayers = {};
+      this.state.activeFutureLayers = [];
     }
 
-    const isActive = !!this.state.activeFutureLayers[layerName];
+    const idx = this.state.activeFutureLayers.indexOf(layerName);
 
-    if (isActive) {
-      delete this.state.activeFutureLayers[layerName];
+    if (idx >= 0) {
+      this.state.activeFutureLayers.splice(idx, 1);
       if (layerName === "futureSciencePark") {
         MapController._removeLayerGroup("sciencePark");
       } else if (layerName === "futureAirport") {
@@ -374,7 +350,7 @@ export const stepHandlers = {
         MapController._hideFutureRoadOverlays();
       }
     } else {
-      this.state.activeFutureLayers[layerName] = true;
+      this.state.activeFutureLayers.push(layerName);
       if (layerName === "futureSciencePark") {
         MapController.showSciencePark({ skipFly: true });
       } else if (layerName === "futureAirport") {
@@ -393,7 +369,7 @@ export const stepHandlers = {
       }
     }
 
-    this._renderFutureOutlookDashboard();
+    UI.updateFutureOutlookPanel(this.state.activeFutureLayers);
   },
 
   /**
