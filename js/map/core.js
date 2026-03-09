@@ -291,13 +291,57 @@ export const methods = {
   },
 
   _zoneBoundaryToGeoJson(zone) {
+    if (zone.boundary) {
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [zone.boundary],
+        },
+      };
+    }
+
+    // Generate circle polygon from center + radius (km)
+    const centerLngLat = this._toMapbox(zone.center);
+    const coords = this._circleCoords(centerLngLat, zone.radius || 5, 64);
     return {
       type: "Feature",
       geometry: {
         type: "Polygon",
-        coordinates: [zone.boundary],
+        coordinates: [coords],
       },
     };
+  },
+
+  /**
+   * Generate circle coordinates as an array of [lng, lat] pairs.
+   * @param {number[]} center - [lng, lat]
+   * @param {number} radiusKm - radius in kilometers
+   * @param {number} steps - number of points on the circle
+   * @returns {number[][]} array of [lng, lat] coordinates
+   */
+  _circleCoords(center, radiusKm, steps = 64) {
+    const coords = [];
+    const earthRadius = 6371;
+    const lat = (center[1] * Math.PI) / 180;
+    const lng = (center[0] * Math.PI) / 180;
+    const d = radiusKm / earthRadius;
+
+    for (let i = 0; i <= steps; i++) {
+      const bearing = (2 * Math.PI * i) / steps;
+      const pLat = Math.asin(
+        Math.sin(lat) * Math.cos(d) +
+          Math.cos(lat) * Math.sin(d) * Math.cos(bearing),
+      );
+      const pLng =
+        lng +
+        Math.atan2(
+          Math.sin(bearing) * Math.sin(d) * Math.cos(lat),
+          Math.cos(d) - Math.sin(lat) * Math.sin(pLat),
+        );
+      coords.push([(pLng * 180) / Math.PI, (pLat * 180) / Math.PI]);
+    }
+    return coords;
   },
 
   savePreDataLayerView() {
