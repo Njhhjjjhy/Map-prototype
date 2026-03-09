@@ -898,22 +898,22 @@ export const stepHandlers = {
   // --- Step 8: Investment zones ---
   _handleInvestmentZoneSubItem(itemId) {
     const zoneData = {
-      "kikuyo-zone": {
-        name: "Kikuyo",
+      "central-city-zone": {
+        name: "Central city",
         role: "Factory core / new urban core",
         description:
           "Manufacturing nucleus and new urban district. Haramizu station new station area targeted as advanced new urban district integrating residence, commerce, education, and research.",
         coords: [32.86, 130.83],
       },
-      "ozu-zone": {
-        name: "Ozu",
+      "middle-zone": {
+        name: "Middle zone",
         role: "Gateway / office and logistics support",
         description:
           "Transportation hub with logistics coordination and supplier office locations. Gateway to the semiconductor corridor.",
         coords: [32.88, 130.87],
       },
-      "koshi-zone": {
-        name: "Koshi",
+      "jasm-zone": {
+        name: "JASM",
         role: "R&D / tools and process innovation",
         description:
           "Research and development focus with equipment chain concentration. Home to Tokyo Electron and supporting tool manufacturers.",

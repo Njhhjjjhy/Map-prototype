@@ -147,8 +147,8 @@ export const futureZones = [
 
 export const investmentZones = [
   {
-    id: "kikuyo-zone",
-    name: "Kikuyo",
+    id: "central-city-zone",
+    name: "Central city",
     role: "Factory core / new urban core",
     center: [32.86, 130.83],
     color: "rgba(232, 93, 76, 0.15)",
@@ -176,8 +176,8 @@ export const investmentZones = [
     ],
   },
   {
-    id: "ozu-zone",
-    name: "Ozu",
+    id: "middle-zone",
+    name: "Middle zone",
     role: "Gateway / office and logistics support",
     center: [32.88, 130.87],
     color: "rgba(93, 187, 99, 0.15)",
@@ -206,8 +206,8 @@ export const investmentZones = [
     ],
   },
   {
-    id: "koshi-zone",
-    name: "Koshi",
+    id: "jasm-zone",
+    name: "JASM",
     role: "R&D / tools and process innovation",
     center: [32.905, 130.76],
     color: "rgba(74, 144, 217, 0.15)",
