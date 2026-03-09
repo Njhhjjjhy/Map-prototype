@@ -485,40 +485,18 @@ export const methods = {
   },
 
   showFutureZones() {
-    // 1. Science park and grand airport concept circles
-    this.showSciencePark({ skipFly: true });
-
-    // 2. Grand airport concept elements
-    this.showAirportAccessRoutes();
-    this.showRailwayStations();
-    this.showRoadExtensions();
-
-    // 3. Government zone plan clusters
-    const govZone = AppData.scienceParkZonePlans.find(
-      (z) => z.id === "sp-gov-zone",
-    );
-    if (govZone) {
-      this.showZonePlanHighlight(govZone, { skipFly: true });
-    }
-
-    // 4. Road extension overlays: travel time indicators + IC labels
-    this._showFutureRoadOverlays();
+    // No-op: layers are now toggled individually from the dashboard.
+    // Kept for API compatibility with setTimeView().
   },
 
   hideFutureZones() {
-    // 1. Science park circles
+    // Hide all future layer groups that may be active
     this._removeLayerGroup("sciencePark");
-
-    // 2. Grand airport elements
     this.hideAirportAccessRoutes();
     this.hideRailwayStations();
     this.hideRoadExtensions();
-
-    // 3. Government zone plan clusters
-    this.hideZonePlanHighlight();
-
-    // 4. Road extension overlays
     this._hideFutureRoadOverlays();
+    this.hideZonePlanHighlight();
   },
 
   _showFutureRoadOverlays() {
