@@ -194,9 +194,9 @@ const CAMERA_STEPS = {
     duration: 2000,
   },
   corridor: {
-    center: [131.0329, 32.855],
-    zoom: 10.7,
-    pitch: 54,
+    center: [130.7777, 32.6342],
+    zoom: 9.9,
+    pitch: 35,
     bearing: 0,
     duration: 2000,
   },
