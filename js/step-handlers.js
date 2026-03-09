@@ -907,7 +907,7 @@ export const stepHandlers = {
       "middle-zone": {
         name: "Middle zone",
         description:
-          "Transportation hub with logistics coordination and supplier office locations. Gateway to the semiconductor corridor.",
+          "Product type: high-spec detached house rentals or renovations upgraded to expatriate standard. Opportunity: large retail drives lifestyle density but internationalized services (bilingual clinics, international preschools) still being built out.",
         coords: [32.8364, 130.7575],
       },
       "jasm-zone": {
