@@ -320,6 +320,10 @@ export const stepHandlers = {
    * Shows 4 toggleable layer rows for the future view.
    */
   _renderFutureOutlookDashboard() {
+    if (!this.state.activeFutureLayers) {
+      this.state.activeFutureLayers = {};
+    }
+
     const layers = [
       { key: "futureSciencePark", label: "Science park circles", color: "#007aff" },
       { key: "futureAirport", label: "Airport access", color: "#34c759" },
@@ -328,7 +332,7 @@ export const stepHandlers = {
     ];
 
     const rowsHtml = layers.map((l) => {
-      const isActive = !!UI.activeDataLayers[l.key];
+      const isActive = !!this.state.activeFutureLayers[l.key];
       return toggleRow({
         id: l.key,
         label: l.label,
@@ -347,10 +351,48 @@ export const stepHandlers = {
   },
 
   /**
-   * Toggle a future layer and re-render the future dashboard to sync toggle state.
+   * Toggle a future layer on/off and re-render the dashboard.
    */
   toggleFutureLayer(layerName) {
-    UI.toggleLayer(layerName);
+    if (!this.state.activeFutureLayers) {
+      this.state.activeFutureLayers = {};
+    }
+
+    const isActive = !!this.state.activeFutureLayers[layerName];
+
+    if (isActive) {
+      delete this.state.activeFutureLayers[layerName];
+      if (layerName === "futureSciencePark") {
+        MapController._removeLayerGroup("sciencePark");
+      } else if (layerName === "futureAirport") {
+        MapController.hideAirportAccessRoutes();
+        MapController.hideRailwayStations();
+      } else if (layerName === "futureGovZones") {
+        MapController.hideZonePlanHighlight();
+      } else if (layerName === "futureRoads") {
+        MapController.hideRoadExtensions();
+        MapController._hideFutureRoadOverlays();
+      }
+    } else {
+      this.state.activeFutureLayers[layerName] = true;
+      if (layerName === "futureSciencePark") {
+        MapController.showSciencePark({ skipFly: true });
+      } else if (layerName === "futureAirport") {
+        MapController.showAirportAccessRoutes();
+        MapController.showRailwayStations();
+      } else if (layerName === "futureGovZones") {
+        const govZone = AppData.scienceParkZonePlans.find(
+          (z) => z.id === "sp-gov-zone",
+        );
+        if (govZone) {
+          MapController.showZonePlanHighlight(govZone, { skipFly: true });
+        }
+      } else if (layerName === "futureRoads") {
+        MapController.showRoadExtensions();
+        MapController._showFutureRoadOverlays();
+      }
+    }
+
     this._renderFutureOutlookDashboard();
   },
 

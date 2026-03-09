@@ -281,6 +281,7 @@ const App = {
     if (this.state.futureView) {
       UI.setTimeView("present");
       this.state.futureView = false;
+      this.state.activeFutureLayers = {};
     }
 
     await new Promise((r) => setTimeout(r, TIMING.restartDelay));

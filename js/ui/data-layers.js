@@ -165,28 +165,10 @@ export const methods = {
         label: "Talent pipeline",
       },
       {
-        step: 7,
-        layer: "futureSciencePark",
-        icon: icons.sciencePark,
-        label: "Science park and airport circles",
-      },
-      {
-        step: 7,
-        layer: "futureAirport",
-        icon: icons.airlineRoutes,
-        label: "Airport access",
-      },
-      {
-        step: 7,
-        layer: "futureGovZones",
+        step: 8,
+        layer: "futureOutlook",
         icon: icons.infrastructure,
-        label: "Government zone plan clusters",
-      },
-      {
-        step: 7,
-        layer: "futureRoads",
-        icon: icons.infraPlan,
-        label: "Roads",
+        label: "Future outlook",
       },
       {
         step: 9,
@@ -401,16 +383,9 @@ export const methods = {
         MapController.fadeOutMarkerGroup("sciencePark");
       } else if (layerName === "talentPipeline") {
         MapController.hideTalentPipeline();
-      } else if (layerName === "futureSciencePark") {
-        MapController._removeLayerGroup("sciencePark");
-      } else if (layerName === "futureAirport") {
-        MapController.hideAirportAccessRoutes();
-        MapController.hideRailwayStations();
-      } else if (layerName === "futureGovZones") {
-        MapController.hideZonePlanHighlight();
-      } else if (layerName === "futureRoads") {
-        MapController.hideRoadExtensions();
-        MapController._hideFutureRoadOverlays();
+      } else if (layerName === "futureOutlook") {
+        MapController.hideFutureZones();
+        MapController.hideInfrastructureRoads();
       } else if (layerName === "investmentZones") {
         MapController.hideInvestmentZones();
       } else if (layerName === "properties") {
@@ -475,21 +450,9 @@ export const methods = {
         MapController.showSciencePark({ skipCircles: App.state.qaMode });
       } else if (layerName === "talentPipeline") {
         MapController.showTalentPipeline({ skipFly: App.state.qaMode });
-      } else if (layerName === "futureSciencePark") {
-        MapController.showSciencePark({ skipFly: true });
-      } else if (layerName === "futureAirport") {
-        MapController.showAirportAccessRoutes();
-        MapController.showRailwayStations();
-      } else if (layerName === "futureGovZones") {
-        const govZone = AppData.scienceParkZonePlans.find(
-          (z) => z.id === "sp-gov-zone",
-        );
-        if (govZone) {
-          MapController.showZonePlanHighlight(govZone, { skipFly: true });
-        }
-      } else if (layerName === "futureRoads") {
-        MapController.showRoadExtensions();
-        MapController._showFutureRoadOverlays();
+      } else if (layerName === "futureOutlook") {
+        MapController.showFutureZones();
+        MapController.showInfrastructureRoads({ skipFly: App.state.qaMode });
       } else if (layerName === "investmentZones") {
         MapController.showInvestmentZones();
       } else if (layerName === "properties") {
@@ -580,10 +543,7 @@ export const methods = {
       waterResources: "Water resources",
       scienceParkClusters: "Science park clusters",
       talentPipeline: "Talent pipeline",
-      futureSciencePark: "Science park and airport circles",
-      futureAirport: "Airport access",
-      futureGovZones: "Government zone plan clusters",
-      futureRoads: "Roads",
+      futureOutlook: "Future outlook",
       investmentZones: "Investment zones",
     };
     return names[layerName] || layerName;
