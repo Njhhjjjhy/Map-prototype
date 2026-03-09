@@ -485,99 +485,34 @@ export const methods = {
   },
 
   showFutureZones() {
-    AppData.futureZones.forEach((zone) => {
-      // Use boundary polygon if available, otherwise fall back to circle
-      const zoneGeoJson = zone.boundary
-        ? {
-            type: "Feature",
-            geometry: { type: "Polygon", coordinates: [zone.boundary] },
-          }
-        : this._generateCirclePolygon(this._toMapbox(zone.coords), zone.radius);
+    // 1. Science park and grand airport concept circles
+    this.showSciencePark({ skipFly: true });
 
-      const zoneColor = zone.color || MAP_COLORS.zone;
-      const zoneStroke = zone.strokeColor || zoneColor;
+    // 2. Grand airport concept elements
+    this.showAirportAccessRoutes();
+    this.showRailwayStations();
+    this.showRoadExtensions();
 
-      const sourceId = `future-zone-${zone.id}`;
-      this._safeAddSource(sourceId, { type: "geojson", data: zoneGeoJson });
-
-      this.map.addLayer({
-        id: `${sourceId}-fill`,
-        type: "fill",
-        source: sourceId,
-        paint: {
-          "fill-color": zoneColor,
-          "fill-opacity": 0.2,
-        },
-      });
-
-      this.map.addLayer({
-        id: `${sourceId}-stroke`,
-        type: "line",
-        source: sourceId,
-        paint: {
-          "line-color": zoneStroke,
-          "line-width": 2.5,
-          "line-dasharray": [5, 10],
-        },
-      });
-
-      this._layerGroups.futureZones.push(
-        `${sourceId}-fill`,
-        `${sourceId}-stroke`,
-        sourceId,
-      );
-
-      // Zone marker at center — use per-zone color
-      const markerHtml = this._markerIconHtml("zone", null, zoneColor);
-      const { marker, element } = this._createMarker(zone.coords, markerHtml, {
-        ariaLabel: zone.name + " development zone",
-      });
-
-      this._addTooltip(marker, element, zone.name);
-      element.addEventListener("click", () =>
-        UI.renderInspectorPanel(5, { title: zone.name, zone }),
-      );
-
-      this.markers[zone.id] = marker;
-      this._layerGroups.futureZones.push(zone.id);
-
-      // Cluster satellite markers for facilities within the zone
-      if (zone.facilities) {
-        zone.facilities.forEach((facility, i) => {
-          const dotId = `${zone.id}-facility-${i}`;
-          const dotHtml = `<div style="
-                      display: flex; align-items: center; gap: 4px; white-space: nowrap;
-                  "><div style="
-                      width: 10px; height: 10px;
-                      background: ${zoneColor};
-                      border: 1.5px solid white;
-                      border-radius: 50%;
-                      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                      flex-shrink: 0;
-                  "></div><span style="
-                      font-family: var(--font-display);
-                      font-size: 10px;
-                      font-weight: 500;
-                      color: var(--color-text-secondary);
-                      text-shadow: 0 0 3px white, 0 0 3px white;
-                  ">${facility.label}</span></div>`;
-
-          const { marker: satMarker } = this._createMarker(
-            facility.coords,
-            dotHtml,
-            {
-              className: "zone-facility-marker",
-            },
-          );
-          this.markers[dotId] = satMarker;
-          this._layerGroups.futureZones.push(dotId);
-        });
-      }
-    });
+    // 3. Government zone plan clusters
+    const govZone = AppData.scienceParkZonePlans.find(
+      (z) => z.id === "sp-gov-zone",
+    );
+    if (govZone) {
+      this.showZonePlanHighlight(govZone, { skipFly: true });
+    }
   },
 
   hideFutureZones() {
-    this._removeLayerGroup("futureZones");
+    // 1. Science park circles
+    this._removeLayerGroup("sciencePark");
+
+    // 2. Grand airport elements
+    this.hideAirportAccessRoutes();
+    this.hideRailwayStations();
+    this.hideRoadExtensions();
+
+    // 3. Government zone plan clusters
+    this.hideZonePlanHighlight();
   },
 
   showInvestmentZones() {
