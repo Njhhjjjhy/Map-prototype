@@ -479,8 +479,7 @@ export const methods = {
         // Financials tab
         return (
           this.renderCalculatorCard(property) +
-          this.renderYieldSummaryCard(property) +
-          this.renderCommuteCard(property)
+          this.renderYieldSummaryCard(property)
         );
       }
       case 3: {
@@ -496,7 +495,7 @@ export const methods = {
         return allImages.length
           ? this.renderEvidenceGalleryCard(
               allImages,
-              property.name || "Property gallery",
+              "",
             )
           : emptyCard("No images available.");
       }
@@ -526,13 +525,13 @@ export const methods = {
     // Basic settings
     if (te.basicSettings) {
       const entries = Object.entries(te.basicSettings);
-      html += `<div class="icard icard-standard">
+      html += `<div class="icard icard-standard icard-overview">
                 <div class="icard-title">Overview</div>
                 <div class="icard-detail-list">
                     ${entries
                       .map(
                         ([key, val]) => `<div class="icard-detail-row">
-                        <span class="icard-detail-label">${key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}</span>
+                        <span class="icard-detail-label">${key.replace(/([A-Z])/g, " $1").toLowerCase().replace(/^./, (s) => s.toUpperCase())}</span>
                         <span class="icard-detail-value">${val}</span>
                     </div>`,
                       )
@@ -540,6 +539,9 @@ export const methods = {
                 </div>
             </div>`;
     }
+
+    // Commute to JASM
+    html += this.renderCommuteCard(property);
 
     return html;
   },
@@ -950,7 +952,7 @@ export const methods = {
   renderEvidenceGalleryCard(images, title) {
     const thumbs = (images || []).slice(0, 6);
     return `<div class="icard icard-compact">
-            <div class="icard-title">${title || "Gallery"}</div>
+            ${title ? `<div class="icard-title">${title}</div>` : ""}
             <div class="icard-gallery-grid">
                 ${thumbs.map((src, i) => `<img class="icard-gallery-thumb" src="${src}" alt="${title || "Image"}" data-gallery-index="${i}" loading="lazy" />`).join("")}
             </div>
