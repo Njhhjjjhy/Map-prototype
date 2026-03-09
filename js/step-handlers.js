@@ -901,7 +901,7 @@ export const stepHandlers = {
       "central-city-zone": {
         name: "Central city",
         description:
-          "Manufacturing nucleus and new urban district. Haramizu station new station area targeted as advanced new urban district integrating residence, commerce, education, and research.",
+          "Product type: RC mansion condominiums and accommodation. Shinkansen 30-minute connection to Hakata. Role: Kyushu-level business support center, suitable for Japanese corporate senior executive families.",
         coords: [32.8016, 130.7014],
       },
       "middle-zone": {
