@@ -918,7 +918,6 @@ export const methods = {
       this.elements.futureBtn.classList.add("active");
       this.elements.futureBtn.setAttribute("aria-checked", "true");
       this.hideChatbox();
-      this.showFutureOutlookDashboard();
       MapController.showFutureZones();
       MapController.flyToStep({
         center: [130.7304, 32.7665],
