@@ -1158,14 +1158,14 @@ export const methods = {
     // Clean up previous if any
     this.hideAirportAccessRoutes();
 
-    // 1. "Previously announced" route - dashed blue line
+    // 1. "Previously announced" route - dashed blue line (animated draw)
     const prevCoords = data.previousRoute.map((c) => this._toMapbox(c));
     const prevSourceId = "ga-prev-route";
     this._safeAddSource(prevSourceId, {
       type: "geojson",
       data: {
         type: "Feature",
-        geometry: { type: "LineString", coordinates: prevCoords },
+        geometry: { type: "LineString", coordinates: [prevCoords[0], prevCoords[0]] },
       },
     });
     // Glow
@@ -1199,6 +1199,8 @@ export const methods = {
       `${prevSourceId}-line`,
       prevSourceId,
     );
+    // Animate draw
+    this._animateRoadDraw(prevSourceId, prevCoords, 1200);
 
     // 2. "Newly announced" route - airport-monorail polygon (filled corridor)
     const govZone = (AppData.scienceParkZonePlans || []).find(
@@ -1283,7 +1285,7 @@ export const methods = {
       this._layerGroups.grandAirportAccess.push(id);
     });
 
-    // 4. JR Hohi Line - east-west railway context
+    // 4. JR Hohi Line - east-west railway context (animated draw)
     const railwayData = AppData.grandAirportData?.railway;
     if (railwayData?.jrHohiLine) {
       const hohiCoords = railwayData.jrHohiLine.map((c) => this._toMapbox(c));
@@ -1292,7 +1294,7 @@ export const methods = {
         type: "geojson",
         data: {
           type: "Feature",
-          geometry: { type: "LineString", coordinates: hohiCoords },
+          geometry: { type: "LineString", coordinates: [hohiCoords[0], hohiCoords[0]] },
         },
       });
       // Subtle glow
@@ -1325,6 +1327,10 @@ export const methods = {
         `${hohiSourceId}-line`,
         hohiSourceId,
       );
+      // Animate draw (staggered after prev route)
+      setTimeout(() => {
+        this._animateRoadDraw(hohiSourceId, hohiCoords, 1200);
+      }, 500);
     }
 
     // 5. Line interactions: pulse animation, hover tooltips, click handlers
