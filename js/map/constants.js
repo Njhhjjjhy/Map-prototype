@@ -266,10 +266,10 @@ const CAMERA_STEPS = {
     duration: 2000,
   },
   zones: {
-    center: [130.82, 32.82],
-    zoom: 12.5,
-    pitch: 50,
-    bearing: -15,
+    center: [130.7777, 32.6342],
+    zoom: 9.9,
+    pitch: 35,
+    bearing: 0,
     duration: 2000,
   },
   areaChanges: {
