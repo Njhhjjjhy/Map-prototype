@@ -488,18 +488,14 @@ const App = {
       return this._renderGovernmentChatbox(n, continueBtnHtml);
     }
 
-    // Step 7 (future-outlook) gets a "See the Future" CTA
+    // Step 7 (future-outlook) gets a "See the Future" CTA only
     if (step.id === "future-outlook") {
-      const navRow = continueBtnHtml
-        ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`
-        : "";
       return `
         <h3>${n.title}</h3>
         <p>${n.body}</p>
         <div class="chatbox-options">
           <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">See the Future</button>
         </div>
-        ${navRow}
       `;
     }
 
