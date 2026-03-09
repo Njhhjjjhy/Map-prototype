@@ -913,8 +913,9 @@ export const stepHandlers = {
       "jasm-zone": {
         name: "JASM",
         description:
-          "Research and development focus with equipment chain concentration. Home to Tokyo Electron and supporting tool manufacturers.",
+          "Product type: corporate RC condominiums and 3-4LDK detached houses. Target tenants: single engineers, long-term secondees, short-to-medium-term secondees. Two demand waves: wave 1 now (construction + early Fab 1 occupants), wave 2 ~2027 (Fab 2 brings higher-income engineers with higher housing quality expectations). Supply gap conclusion: supply catches up to demand around 2028-2029.",
         coords: [32.8678, 130.8419],
+        showLogo: true,
       },
     };
     const zone = zoneData[itemId];
@@ -924,6 +925,22 @@ export const stepHandlers = {
                 <h2>${zone.name}</h2>
                 <p style="margin-top: var(--space-3);">${zone.description}</p>
             `);
+
+      // Show JASM logo marker on the map
+      if (zone.showLogo) {
+        MapController._removeLayerGroup("properties");
+        const el = document.createElement("div");
+        el.style.cssText =
+          "width: 80px; height: 80px; background: white; border-radius: var(--radius-medium); box-shadow: var(--shadow-medium); display: flex; align-items: center; justify-content: center; padding: 8px;";
+        el.innerHTML =
+          '<img src="assets/Jasm-logo.svg" alt="JASM" style="width: 100%; height: 100%; object-fit: contain;">';
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat(MapController._toMapbox(zone.coords))
+          .addTo(MapController.map);
+        MapController.markers["jasm-logo"] = marker;
+        MapController._layerGroups.investmentZones.push("jasm-logo");
+      }
+
       MapController.flyToStep({
         center: MapController._toMapbox(zone.coords),
         zoom: 13,
