@@ -456,9 +456,9 @@ const App = {
         afterItems:
           '<p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">Use the Present/Future toggle in the top-left corner.</p>',
       },
-      "investment-zones": {
-        title: "Investment zones",
-        body: "Three zones in the silicon triangle, each with a distinct role in the semiconductor ecosystem.",
+      "future-vision": {
+        title: "Future outlook",
+        body: "See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
         afterItems: "",
       },
       properties: {
@@ -487,6 +487,21 @@ const App = {
     // Step 4 (government-support) gets toggle rows instead of sub-items
     if (step.id === "government-support") {
       return this._renderGovernmentChatbox(n, continueBtnHtml);
+    }
+
+    // Step 8 (future-vision) gets a "See the Future" CTA
+    if (step.id === "future-vision") {
+      const navRow = continueBtnHtml
+        ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`
+        : "";
+      return `
+        <h3>${n.title}</h3>
+        <p>${n.body}</p>
+        <div class="chatbox-options">
+          <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">See the Future</button>
+        </div>
+        ${navRow}
+      `;
     }
 
     const navRow = continueBtnHtml
@@ -597,10 +612,9 @@ const App = {
                 `);
         break;
 
-      case "investment-zones":
+      case "future-vision":
         UI.showPanel(`
-                    ${panelHeader("Silicon triangle", "Investment opportunity zones", "Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details.")}
-                    ${evidenceImage("assets/use-case-images/evidence-tsmc-infrastructure-overview.webp", "TSMC infrastructure overview")}
+                    ${panelHeader("Future outlook", "2030+ vision", "The completed state of the semiconductor corridor: science park expansion, grand airport, road completions, and new stations.")}
                 `);
         break;
 

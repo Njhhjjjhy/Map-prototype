@@ -101,8 +101,7 @@ export const stepHandlers = {
       case 6: // Education pipeline
         this._handleEducationSubItem(itemId);
         break;
-      case 8: // Investment zones
-        this._handleInvestmentZoneSubItem(itemId);
+      case 8: // Future vision (no sub-items)
         break;
       case 9: // Properties
         this._handlePropertySubItem(itemId);
@@ -1284,7 +1283,7 @@ export const stepHandlers = {
       "corporate-investment": "companies",
       "transport-access": "sciencePark",
       "education-pipeline": "talentPipeline",
-      "investment-zones": "investmentZones",
+      "future-vision": null,
       properties: "properties",
     };
     const group = pulseMap[step.id];
