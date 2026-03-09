@@ -40,16 +40,26 @@ export const stepHandlers = {
         this._cleanupDevelopmentMapElements();
         this.state.activeDevelopmentChildren = [];
 
-        // Toggle science park circle and camera based on selected group
         if (groupId === "grand-airport-group") {
           MapController.setScienceParkCircleVisible(false);
-
           // Auto-toggle airport access as the default child
           this.state.activeDevelopmentChildren = ["ga-airport-access"];
           this._showDevelopmentMapElement("ga-airport-access");
         } else if (groupId === "science-park-group") {
           MapController.setScienceParkCircleVisible(true);
         }
+      }
+
+      // Always fly camera when expanding grand airport group
+      const isExpanding = this.state.expandedGroups.includes(groupId);
+      if (groupId === "grand-airport-group" && isExpanding) {
+        MapController.flyToStep({
+          center: [130.7969, 32.7976],
+          zoom: 12.2,
+          pitch: 61,
+          bearing: 25,
+          duration: 2000,
+        });
       }
 
       this._renderDevelopmentDashboard();
@@ -344,14 +354,64 @@ export const stepHandlers = {
         })
         .join("");
 
-      // Evidence cards for all active children
-      let evidenceHtml = "";
-      const activeZones = activeChildren
+      // Build bottom section: Clusters when gov-zone is active, Evidence for other zones
+      const govZoneActive = activeChildren.includes("sp-gov-zone");
+      const otherActiveZones = activeChildren
+        .filter((id) => id !== "sp-gov-zone")
         .map((id) => zones.find((z) => z.id === id))
         .filter(Boolean);
 
-      if (activeZones.length > 0) {
-        const cardsHtml = activeZones
+      let clustersHtml = "";
+      if (govZoneActive) {
+        const govZone = zones.find((z) => z.id === "sp-gov-zone");
+        const clusters = govZone?.industrialZones || [];
+        const infraLines = govZone?.infrastructureLines || [];
+
+        const selectedClusterId = this.state.selectedGovZoneCluster;
+        const selectedInfraId = this.state.selectedGovZoneInfra;
+        const selectedCluster = clusters.find((c) => c.id === selectedClusterId);
+        const selectedInfra = infraLines.find((l) => l.id === selectedInfraId);
+
+        let clustersBodyHtml;
+        if (selectedCluster) {
+          const clusterImageHtml = selectedCluster.image
+            ? `<div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('${selectedCluster.image}', '${selectedCluster.name.replace(/'/g, "\\'")}')">
+                <img src="${selectedCluster.image}" alt="${selectedCluster.name}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+              </div>`
+            : "";
+          clustersBodyHtml = evidenceCard({
+            color: "#ff3b30",
+            subtitle: selectedCluster.direction,
+            title: selectedCluster.name,
+            description: selectedCluster.description || "",
+            stats: selectedCluster.stats || [],
+            extra: clusterImageHtml,
+          });
+        } else if (selectedInfra) {
+          clustersBodyHtml = `
+            <div style="border-left: 3px solid #34c759; padding: var(--space-3) var(--space-4); background: rgba(52, 199, 89, 0.04); border-radius: 0 var(--radius-medium) var(--radius-medium) 0;">
+              <div style="font-size: var(--text-xs); color: #34c759; font-family: var(--font-display); font-weight: var(--font-weight-semibold); letter-spacing: 0.02em; margin-bottom: var(--space-2);">Road infrastructure${selectedInfra.status ? ` · ${selectedInfra.status}` : ""}</div>
+              <div style="font-size: var(--text-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); line-height: 1.4;">${selectedInfra.label}</div>
+              ${selectedInfra.description ? `<div style="font-size: var(--text-xs); color: var(--color-text-secondary); margin-top: var(--space-2); line-height: 1.5;">${selectedInfra.description}</div>` : ""}
+            </div>
+          `;
+        } else {
+          clustersBodyHtml = `
+            <p style="font-size: var(--text-sm); color: var(--color-text-tertiary);">Select a cluster or road on the map to view details.</p>
+          `;
+        }
+
+        clustersHtml = `
+          <div style="margin-top: var(--space-6);">
+            <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Clusters</div>
+            ${clustersBodyHtml}
+          </div>
+        `;
+      }
+
+      let evidenceHtml = "";
+      if (otherActiveZones.length > 0) {
+        const cardsHtml = otherActiveZones
           .map((zone) => {
             const imageHtml = `<div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', '${zone.name.replace(/'/g, "\\'")}')">
                       <img src="assets/use-case-images/evidence-science-park.webp" alt="${zone.name}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
@@ -383,6 +443,7 @@ export const stepHandlers = {
         <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
+        ${clustersHtml}
         ${evidenceHtml}
       `);
     } else if (group === "grand-airport-group") {
@@ -620,15 +681,68 @@ export const stepHandlers = {
    * Each child toggles independently. Activating a science park zone
    * flies the camera to that zone's position.
    */
+  /**
+   * Select a government zone cluster and update the dashboard.
+   * Called from Mapbox GL fill layer click handlers.
+   */
+  selectGovZoneCluster(clusterId) {
+    this.state.selectedGovZoneCluster = clusterId;
+    this.state.selectedGovZoneInfra = null;
+    MapController.setGovZoneClusterHighlight(clusterId);
+
+    // Sweep camera to the cluster's overhead position
+    const govZone = (AppData.scienceParkZonePlans || []).find(
+      (z) => z.id === "sp-gov-zone",
+    );
+    const cluster = govZone?.industrialZones?.find((iz) => iz.id === clusterId);
+    if (cluster?.camera) {
+      MapController.flyToStep(cluster.camera);
+    }
+
+    this._renderDevelopmentDashboard();
+  },
+
+  /**
+   * Select a government zone infrastructure item (road, etc.) and update the dashboard.
+   * Called from Mapbox GL line layer click handlers.
+   */
+  selectGovZoneInfra(infraId) {
+    this.state.selectedGovZoneInfra = infraId;
+    this.state.selectedGovZoneCluster = null;
+    MapController.setGovZoneClusterHighlight(null);
+    this._renderDevelopmentDashboard();
+  },
+
   toggleDevelopmentChild(childId) {
     const active = this.state.activeDevelopmentChildren;
     const idx = active.indexOf(childId);
 
     if (idx !== -1) {
-      // Turn off this child
+      // Turn off this child; clear selections when gov-zone is deactivated
+      if (childId === "sp-gov-zone") {
+        this.state.selectedGovZoneCluster = null;
+        this.state.selectedGovZoneInfra = null;
+        MapController.setGovZoneClusterHighlight(null);
+      }
       active.splice(idx, 1);
       this._removeDevelopmentMapElement(childId);
     } else {
+      // Science-park zone plans are mutually exclusive - deactivate siblings
+      const spZoneIds = (AppData.scienceParkZonePlans || []).map((z) => z.id);
+      if (spZoneIds.includes(childId)) {
+        const spActive = active.filter((id) => spZoneIds.includes(id));
+        spActive.forEach((id) => {
+          if (id === "sp-gov-zone") {
+            this.state.selectedGovZoneCluster = null;
+            this.state.selectedGovZoneInfra = null;
+            MapController.setGovZoneClusterHighlight(null);
+          }
+          const i = active.indexOf(id);
+          if (i !== -1) active.splice(i, 1);
+          this._removeDevelopmentMapElement(id);
+        });
+      }
+
       // Grand-airport children are mutually exclusive - deactivate siblings
       if (childId.startsWith("ga-")) {
         const gaChildren = active.filter((id) => id.startsWith("ga-"));
@@ -693,15 +807,7 @@ export const stepHandlers = {
       (z) => z.id === childId,
     );
     if (zonePlan) {
-      const sourceId = `zone-plan-${zonePlan.id}`;
-      MapController._safeRemoveLayer(`${sourceId}-fill`);
-      MapController._safeRemoveLayer(`${sourceId}-stroke`);
-      MapController._safeRemoveSource(sourceId);
-      const group = MapController._layerGroups.zonePlanHighlight;
-      [`${sourceId}-fill`, `${sourceId}-stroke`, sourceId].forEach((id) => {
-        const i = group.indexOf(id);
-        if (i !== -1) group.splice(i, 1);
-      });
+      MapController.hideZonePlanHighlight();
       return;
     }
 

@@ -1222,7 +1222,7 @@ export const methods = {
       type: "fill",
       source: newSourceId,
       paint: {
-        "fill-color": "#ff3b30",
+        "fill-color": "#007aff",
         "fill-opacity": 0.2,
       },
     });
@@ -1232,7 +1232,7 @@ export const methods = {
       type: "line",
       source: newSourceId,
       paint: {
-        "line-color": "#ff3b30",
+        "line-color": "#007aff",
         "line-width": 2,
         "line-opacity": 0.8,
       },
@@ -1524,14 +1524,17 @@ export const methods = {
     );
 
     // 2. Station markers (elevated style, tooltip on hover, click for detail)
-    const trainIconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M2 16h20"/><path d="M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`;
+    const stationIcons = {
+      "train-front": `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`,
+      station: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>`,
+    };
 
     data.stations.forEach((station) => {
-      const isPlanned = station.type === "planned";
-      const color = isPlanned ? "#ff9500" : "#6e7073";
+      const color = station.color;
+      const iconSvg = stationIcons[station.icon] || stationIcons["train-front"];
       const id = `ga-station-${station.id}`;
 
-      const html = this._elevatedMarkerHtml(trainIconSvg, color, 36);
+      const html = this._elevatedMarkerHtml(iconSvg, color, 36);
 
       const { marker, element } = this._createMarker(station.coords, html, {
         className: "ga-station-marker",
@@ -1648,7 +1651,7 @@ export const methods = {
         layout: { "line-cap": "round", "line-join": "round" },
       });
 
-      // Main dashed line
+      // Main line
       this.map.addLayer({
         id: `${sourceId}-line`,
         type: "line",
@@ -1657,7 +1660,6 @@ export const methods = {
           "line-color": color,
           "line-width": 4,
           "line-opacity": 0.9,
-          "line-dasharray": [6, 4],
         },
         layout: { "line-cap": "round", "line-join": "round" },
       });
@@ -1731,11 +1733,6 @@ export const methods = {
       }, delay);
     });
 
-    // Start breathing pulse after all roads finish drawing
-    const totalDrawTime = roads.length * stagger + drawDuration + 200;
-    this._roadPulseTimeout = setTimeout(() => {
-      this._startRoadPulse(roads);
-    }, totalDrawTime);
   },
 
   _animateRoadDraw(sourceId, allCoords, duration) {
