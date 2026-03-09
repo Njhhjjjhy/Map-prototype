@@ -281,7 +281,9 @@ a:focus-visible {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
-  white-space: nowrap;
+  max-width: 200px;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .mapbox-tooltip .mapboxgl-popup-tip {
@@ -2719,7 +2721,8 @@ a:focus-visible {
 }
 
 .gov-company-dot-wrapper {
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: default;
 }
 
 .gov-company-dot {
@@ -2748,6 +2751,41 @@ a:focus-visible {
   text-shadow:
     0 0 3px white,
     0 0 3px white;
+}
+
+/* ================================
+   GOVERNMENT ZONE CLUSTER — INTERACTIVE DOT MARKERS
+   ================================ */
+
+.gov-cluster-marker-wrapper {
+  cursor: pointer;
+}
+
+.gov-cluster-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 59, 48, 0.55);
+  border: 2px solid rgba(255, 59, 48, 0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+  animation: markerEmerge var(--duration-normal) var(--easing-decelerate) both;
+}
+
+.gov-cluster-marker-wrapper:hover .gov-cluster-dot {
+  transform: scale(1.4);
+  background: rgba(255, 59, 48, 0.75);
+}
+
+.gov-cluster-marker-wrapper.selected .gov-cluster-dot {
+  background: #ff3b30;
+  border-color: #ff3b30;
+  box-shadow:
+    0 0 0 4px rgba(255, 59, 48, 0.25),
+    0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 /* ================================
@@ -7231,6 +7269,8 @@ button.layer-item {
   left: 48px; /* right of toggle button */
   z-index: 500;
   width: 280px;
+  max-height: calc(100vh - 236px - 16px);
+  overflow-y: auto;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-large);

@@ -142,9 +142,23 @@ export const methods = {
   _showGovZoneClusters(zone) {
     const group = this._layerGroups.zonePlanHighlight;
 
-    // Render each industrial zone as a circle polygon
-    zone.industrialZones.forEach((iz, index) => {
+    // Shared hover popup for all cluster fills and road hover
+    this._govZonePopup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: [0, -4],
+      className: "mapbox-tooltip",
+    });
+    this._govZoneEventCleanups = this._govZoneEventCleanups || [];
+
+    // Store cluster IDs so setGovZoneClusterHighlight can address them by fill layer name
+    this._govZoneClusterIds = zone.industrialZones.map((iz) => iz.id);
+
+    // Render each industrial zone as a clickable circle polygon
+    zone.industrialZones.forEach((iz) => {
       const sourceId = `gov-zone-${iz.id}`;
+      const fillId = `${sourceId}-fill`;
+      const strokeId = `${sourceId}-stroke`;
       const circleGeoJson = this._generateCirclePolygon(
         this._toMapbox(iz.coords),
         iz.radius,
@@ -154,17 +168,14 @@ export const methods = {
       this._safeAddSource(sourceId, { type: "geojson", data: circleGeoJson });
 
       this.map.addLayer({
-        id: `${sourceId}-fill`,
+        id: fillId,
         type: "fill",
         source: sourceId,
-        paint: {
-          "fill-color": iz.color,
-          "fill-opacity": 1,
-        },
+        paint: { "fill-color": iz.color, "fill-opacity": 1 },
       });
 
       this.map.addLayer({
-        id: `${sourceId}-stroke`,
+        id: strokeId,
         type: "line",
         source: sourceId,
         paint: {
@@ -174,101 +185,154 @@ export const methods = {
         },
       });
 
-      group.push(`${sourceId}-fill`, `${sourceId}-stroke`, sourceId);
+      group.push(fillId, strokeId, sourceId);
 
-      // Labeled marker at center of each zone
-      const labelHtml = `<div class="gov-zone-label">
-      <span class="gov-zone-label-text">${iz.name}</span>
-      ${iz.subtitle ? `<span class="gov-zone-label-sub">${iz.subtitle}</span>` : ""}
-    </div>`;
+      // Hover: show tooltip with cluster name
+      const tooltipText = iz.name;
+      const popup = this._govZonePopup;
 
-      const markerId = `gov-zone-marker-${iz.id}`;
-      const { marker } = this._createMarker(iz.coords, labelHtml, {
-        className: "gov-zone-label-wrapper",
-        ariaLabel: iz.name,
-      });
+      const enterFn = (e) => {
+        popup.setLngLat(e.lngLat).setText(tooltipText).addTo(this.map);
+        this.map.getCanvas().style.cursor = "pointer";
+      };
+      const moveFn = (e) => popup.setLngLat(e.lngLat);
+      const leaveFn = () => {
+        popup.remove();
+        this.map.getCanvas().style.cursor = "";
+      };
+      const clickFn = () => App.selectGovZoneCluster(iz.id);
 
-      if (marker) {
-        this.markers[markerId] = marker;
-        group.push(markerId);
-      }
+      this.map.on("mouseenter", fillId, enterFn);
+      this.map.on("mousemove", fillId, moveFn);
+      this.map.on("mouseleave", fillId, leaveFn);
+      this.map.on("click", fillId, clickFn);
+
+      this._govZoneEventCleanups.push(
+        () => { this.map.off("mouseenter", fillId, enterFn); popup.remove(); },
+        () => this.map.off("mousemove", fillId, moveFn),
+        () => this.map.off("mouseleave", fillId, leaveFn),
+        () => this.map.off("click", fillId, clickFn),
+      );
     });
 
-    // Render company dot markers
+    // Render company logo markers (non-interactive visual labels)
     if (zone.companyDots) {
       zone.companyDots.forEach((dot) => {
-        const dotHtml = `<div class="gov-company-dot" style="--dot-color: ${dot.color};">
-        <div class="gov-company-dot-circle"></div>
-        <span class="gov-company-dot-label">${dot.label}</span>
-      </div>`;
+        const logoHtml = dot.logo
+          ? `<div style="
+              width: 36px; height: 36px;
+              background: #ffffff;
+              border: 2px solid rgba(0,0,0,0.1);
+              border-radius: 50%;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+              display: flex; align-items: center; justify-content: center;
+              overflow: hidden;
+            "><img src="${dot.logo}" alt="${dot.label}" style="width: 26px; height: 26px; object-fit: contain;"></div>`
+          : `<div class="gov-company-dot"><div class="gov-company-dot-circle" style="--dot-color: #1a2744;"></div><span class="gov-company-dot-label">${dot.label}</span></div>`;
 
         const markerId = `gov-dot-${dot.id}`;
-        const { marker } = this._createMarker(dot.coords, dotHtml, {
+        const { marker, element } = this._createMarker(dot.coords, logoHtml, {
           className: "gov-company-dot-wrapper",
           ariaLabel: dot.label,
         });
 
         if (marker) {
+          this._addTooltip(marker, element, dot.label, [0, -8]);
           this.markers[markerId] = marker;
           group.push(markerId);
         }
       });
     }
 
+    // Start faint looping pulse on all cluster fills
+    this._startGovZoneClusterPulse(zone.industrialZones.map((iz) => iz.id));
+
     // Render infrastructure lines and point markers
     if (zone.infrastructureLines) {
+      // Road layers must sit beneath cluster fills — insert before the first cluster fill layer
+      const firstClusterFillId = zone.industrialZones?.[0]?.id
+        ? `gov-zone-${zone.industrialZones[0].id}-fill`
+        : null;
+      const beforeCluster =
+        firstClusterFillId && this.map.getLayer(firstClusterFillId)
+          ? firstClusterFillId
+          : undefined;
+
       zone.infrastructureLines
         .filter((infra) => infra.id !== "airport-monorail")
         .forEach((infra) => {
           if (infra.type === "line") {
-            // Draw a line between two points
+            // Build full coordinates from path array or from/to pair
+            const fullCoords = infra.path
+              ? infra.path.map(([lat, lng]) => [lng, lat])
+              : [
+                  [infra.from[1], infra.from[0]],
+                  [infra.to[1], infra.to[0]],
+                ];
+            const startCoord = fullCoords[0];
+
             const sourceId = `gov-infra-${infra.id}`;
+
+            // Identical pattern to showInfraPlan: start at first coord, grow via rAF
             this._safeAddSource(sourceId, {
               type: "geojson",
               data: {
                 type: "Feature",
                 geometry: {
                   type: "LineString",
-                  coordinates: [
-                    [infra.from[1], infra.from[0]],
-                    [infra.to[1], infra.to[0]],
-                  ],
+                  coordinates: [startCoord, startCoord],
                 },
               },
             });
 
-            this.map.addLayer({
-              id: `${sourceId}-line`,
-              type: "line",
-              source: sourceId,
-              paint: {
-                "line-color": infra.color,
-                "line-width": 3,
-                "line-dasharray": [6, 4],
-                "line-opacity": 0.8,
+            const lineLayer = `${sourceId}-line`;
+            // Insert beneath the cluster fill layers
+            this.map.addLayer(
+              {
+                id: lineLayer,
+                type: "line",
+                source: sourceId,
+                paint: {
+                  "line-color": infra.color,
+                  "line-width": 4,
+                  "line-opacity": 0.9,
+                },
+                layout: { "line-cap": "round", "line-join": "round" },
               },
-              layout: { "line-cap": "round", "line-join": "round" },
-            });
+              beforeCluster,
+            );
 
-            group.push(`${sourceId}-line`, sourceId);
+            group.push(lineLayer, sourceId);
 
-            // Label marker at midpoint
-            const midCoords = [
-              (infra.from[0] + infra.to[0]) / 2,
-              (infra.from[1] + infra.to[1]) / 2,
-            ];
-            const labelHtml = `<div class="gov-zone-label">
-          <span class="gov-zone-label-text">${infra.label}</span>
-        </div>`;
-            const markerId = `gov-infra-marker-${infra.id}`;
-            const { marker } = this._createMarker(midCoords, labelHtml, {
-              className: "gov-zone-label-wrapper",
-              ariaLabel: infra.label,
-            });
-            if (marker) {
-              this.markers[markerId] = marker;
-              group.push(markerId);
-            }
+            // Grow slowly (8 s) with a small delay so the clusters settle first
+            this._startLineGrow(sourceId, fullCoords, 8000, 300);
+
+            // Hover tooltip and click on the visible line layer
+            const roadEnterFn = (e) => {
+              this._govZonePopup
+                .setLngLat(e.lngLat)
+                .setText(infra.label)
+                .addTo(this.map);
+              this.map.getCanvas().style.cursor = "pointer";
+            };
+            const roadMoveFn = (e) => this._govZonePopup.setLngLat(e.lngLat);
+            const roadLeaveFn = () => {
+              this._govZonePopup.remove();
+              this.map.getCanvas().style.cursor = "";
+            };
+            const roadClickFn = () => App.selectGovZoneInfra(infra.id);
+
+            this.map.on("mouseenter", lineLayer, roadEnterFn);
+            this.map.on("mousemove", lineLayer, roadMoveFn);
+            this.map.on("mouseleave", lineLayer, roadLeaveFn);
+            this.map.on("click", lineLayer, roadClickFn);
+
+            this._govZoneEventCleanups.push(
+              () => this.map.off("mouseenter", lineLayer, roadEnterFn),
+              () => this.map.off("mousemove", lineLayer, roadMoveFn),
+              () => this.map.off("mouseleave", lineLayer, roadLeaveFn),
+              () => this.map.off("click", lineLayer, roadClickFn),
+            );
           } else if (infra.type === "polygon") {
             // Draw a filled polygon outline (e.g. monorail corridor)
             const sourceId = `gov-infra-${infra.id}`;
@@ -342,6 +406,26 @@ export const methods = {
   },
 
   hideZonePlanHighlight() {
+    // Stop any running line-grow animations on infra roads
+    if (this._lineGrowAnimations) {
+      Object.keys(this._lineGrowAnimations).forEach((id) => {
+        if (id.startsWith("gov-infra-")) this._stopLineGrow(id);
+      });
+    }
+
+    // Clean up Mapbox GL event listeners attached to cluster fill/road layers
+    if (this._govZoneEventCleanups) {
+      this._govZoneEventCleanups.forEach((fn) => { try { fn(); } catch (_) {} });
+      this._govZoneEventCleanups = [];
+    }
+    if (this._govZonePopup) {
+      this._govZonePopup.remove();
+      this._govZonePopup = null;
+    }
+    this._stopGovZoneClusterPulse();
+    this._govZoneClusterIds = null;
+    this._govZoneSelectedClusterId = null;
+
     const group = this._layerGroups.zonePlanHighlight;
     group.forEach((id) => {
       // Remove DOM markers
@@ -358,6 +442,46 @@ export const methods = {
       this._safeRemoveSource(id);
     });
     this._layerGroups.zonePlanHighlight = [];
+  },
+
+  setGovZoneClusterHighlight(clusterId) {
+    this._govZoneSelectedClusterId = clusterId;
+    if (!this._govZoneClusterIds || !this.map) return;
+    this._govZoneClusterIds.forEach((id) => {
+      const fillId = `gov-zone-${id}-fill`;
+      if (this.map.getLayer(fillId)) {
+        this.map.setPaintProperty(
+          fillId,
+          "fill-opacity",
+          id === clusterId ? 1.0 : 0.45,
+        );
+      }
+    });
+  },
+
+  _startGovZoneClusterPulse(clusterIds) {
+    this._stopGovZoneClusterPulse();
+    let phase = 0;
+    this._govZoneClusterPulseTimer = setInterval(() => {
+      if (!this.map) return;
+      phase += 0.2;
+      // Sharp pulse waveform: spends most time near base, briefly spikes to peak
+      const t = Math.pow((Math.sin(phase) + 1) / 2, 3);
+      const opacity = 0.25 + 0.75 * t;
+      clusterIds.forEach((id) => {
+        const fillId = `gov-zone-${id}-fill`;
+        if (this.map.getLayer(fillId)) {
+          this.map.setPaintProperty(fillId, "fill-opacity", opacity);
+        }
+      });
+    }, 50);
+  },
+
+  _stopGovZoneClusterPulse() {
+    if (this._govZoneClusterPulseTimer) {
+      clearInterval(this._govZoneClusterPulseTimer);
+      this._govZoneClusterPulseTimer = null;
+    }
   },
 
   showFutureZones() {
