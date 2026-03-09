@@ -53,8 +53,13 @@ Skip branch creation. Continue working on the user's request. After making chang
    ```bash
    git checkout -b feature/<branch_name>
    ```
-3. Wait for the user's first prompt describing the changes they want.
-4. After making the requested changes:
+3. Immediately check for uncommitted changes:
+   ```bash
+   git status --porcelain
+   ```
+   - **If changes exist:** Do not wait for a follow-up prompt. Stage and commit all changed files now, using the `/feature <branch_name>` invocation as the commit message body. Then push and create the PR.
+   - **If no changes exist:** Wait for the user's first prompt describing what they want built. After making those changes, proceed to step 4.
+4. Stage, commit, push, and create PR:
    - Stage relevant files (prefer explicit file names over `git add .`).
    - Commit with the user's prompt as the commit message.
    - Push the branch to remote:
