@@ -292,7 +292,7 @@ export const scienceParkZonePlans = [
         id: "jasm",
         label: "JASM",
         logo: "assets/Jasm-logo.svg",
-        coords: [32.8859, 130.8429],
+        coords: [32.88662326612072, 130.84268461365443],
       },
       {
         id: "sck",
@@ -549,19 +549,6 @@ export const grandAirportData = {
         stats: [
           { value: "120 ha", label: "Planned area" },
           { value: "2027", label: "Target completion" },
-        ],
-      },
-      {
-        id: "jasm-landmark",
-        name: "JASM",
-        coords: [32.874, 130.785],
-        icon: "factory",
-        color: "#ff3b30",
-        description:
-          "Japan Advanced Semiconductor Manufacturing, the TSMC joint venture. The anchor tenant driving infrastructure investment across the corridor.",
-        stats: [
-          { value: "$8.6B", label: "Total investment" },
-          { value: "3,400+", label: "Direct employees" },
         ],
       },
       {

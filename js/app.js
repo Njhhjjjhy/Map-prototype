@@ -281,6 +281,7 @@ const App = {
     if (this.state.futureView) {
       UI.setTimeView("present");
       this.state.futureView = false;
+      this.state.activeFutureLayers = [];
     }
 
     await new Promise((r) => setTimeout(r, TIMING.restartDelay));
@@ -452,9 +453,8 @@ const App = {
       },
       "future-outlook": {
         title: "Future outlook",
-        body: "Toggle to <strong>Future View</strong> to see the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
-        afterItems:
-          '<p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">Use the Present/Future toggle in the top-left corner.</p>',
+        body: "See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
+        afterItems: "",
       },
       "investment-zones": {
         title: "Investment zones",
@@ -487,6 +487,17 @@ const App = {
     // Step 4 (government-support) gets toggle rows instead of sub-items
     if (step.id === "government-support") {
       return this._renderGovernmentChatbox(n, continueBtnHtml);
+    }
+
+    // Step 7 (future-outlook) gets a "See the Future" CTA only
+    if (step.id === "future-outlook") {
+      return `
+        <h3>${n.title}</h3>
+        <p>${n.body}</p>
+        <div class="chatbox-options">
+          <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">See the Future</button>
+        </div>
+      `;
     }
 
     const navRow = continueBtnHtml
@@ -589,12 +600,7 @@ const App = {
         break;
 
       case "future-outlook":
-        UI.showPanel(`
-                    ${panelHeader("Future outlook", "2030+ vision", "Under the science park and grand airport plan, this is a comprehensive long-term urbanization plan.")}
-                    ${evidenceImage("assets/use-case-images/evidence-science-park.webp", "Science park plan")}
-                    ${evidenceImage("assets/use-case-images/evidence-new-grand-airport.webp", "Grand airport concept")}
-                    ${evidenceImage("assets/use-case-images/evidence-kumamoto-future-road-network.webp", "Future road network")}
-                `);
+        this._renderFutureOutlookDashboard();
         break;
 
       case "investment-zones":

@@ -316,6 +316,72 @@ export const stepHandlers = {
   // --- Step 5: Science Park + Grand Airport ---
 
   /**
+   * Show the future outlook dashboard in the right panel.
+   */
+  _renderFutureOutlookDashboard() {
+    if (!this.state.activeFutureLayers) {
+      this.state.activeFutureLayers = [];
+    }
+    UI.showFutureOutlookPanel(this.state.activeFutureLayers);
+  },
+
+  /**
+   * Toggle a future layer on/off (multi-select).
+   * Called from the future outlook panel toggles.
+   */
+  toggleFutureLayer(layerName) {
+    if (!this.state.activeFutureLayers) {
+      this.state.activeFutureLayers = [];
+    }
+
+    const idx = this.state.activeFutureLayers.indexOf(layerName);
+
+    if (idx >= 0) {
+      this.state.activeFutureLayers.splice(idx, 1);
+      if (layerName === "futureSciencePark") {
+        MapController._removeLayerGroup("sciencePark");
+      } else if (layerName === "futureAirport") {
+        MapController.hideAirportAccessRoutes();
+        MapController.hideRailwayStations();
+      } else if (layerName === "futureGovZones") {
+        MapController.hideZonePlanHighlight();
+      } else if (layerName === "futureRoads") {
+        MapController.hideRoadExtensions();
+        MapController._hideFutureRoadOverlays();
+        MapController.hideInfrastructureRoads();
+      } else if (layerName === "futureTrafficFlow") {
+        MapController.hideDataLayerMarkers("trafficFlow");
+      }
+    } else {
+      this.state.activeFutureLayers.push(layerName);
+      if (layerName === "futureSciencePark") {
+        MapController.showSciencePark({ skipFly: true });
+      } else if (layerName === "futureAirport") {
+        MapController.showAirportAccessRoutes();
+        MapController.showRailwayStations();
+      } else if (layerName === "futureGovZones") {
+        const govZone = AppData.scienceParkZonePlans.find(
+          (z) => z.id === "sp-gov-zone",
+        );
+        if (govZone) {
+          MapController.showZonePlanHighlight(govZone, { skipFly: true });
+        }
+      } else if (layerName === "futureRoads") {
+        MapController.showRoadExtensions();
+        MapController._showFutureRoadOverlays();
+        MapController.showInfrastructureRoads({ skipFly: true });
+      } else if (layerName === "futureTrafficFlow") {
+        const trafficData = AppData.dataLayers.trafficFlow;
+        if (trafficData) {
+          MapController.showDataLayerMarkers("trafficFlow", trafficData);
+        }
+      }
+    }
+
+    UI.updateFutureOutlookPanel(this.state.activeFutureLayers);
+  },
+
+  /**
    * Build and display the development dashboard panel.
    * Shows parent overview + toggle rows for children + evidence for active child.
    * Called when a parent group is selected or a child is toggled.

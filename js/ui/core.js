@@ -917,13 +917,24 @@ export const methods = {
       this.elements.presentBtn.setAttribute("aria-checked", "false");
       this.elements.futureBtn.classList.add("active");
       this.elements.futureBtn.setAttribute("aria-checked", "true");
+      this.hideChatbox();
+      App._renderFutureOutlookDashboard();
       MapController.showFutureZones();
+      MapController.flyToStep({
+        center: [130.7304, 32.7665],
+        zoom: 10.3,
+        pitch: 41,
+        bearing: 47,
+        duration: 2000,
+      });
+      App.state.futureView = true;
     } else {
       this.elements.futureBtn.classList.remove("active");
       this.elements.futureBtn.setAttribute("aria-checked", "false");
       this.elements.presentBtn.classList.add("active");
       this.elements.presentBtn.setAttribute("aria-checked", "true");
       MapController.hideFutureZones();
+      App.state.futureView = false;
     }
   },
 

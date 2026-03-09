@@ -485,99 +485,68 @@ export const methods = {
   },
 
   showFutureZones() {
-    AppData.futureZones.forEach((zone) => {
-      // Use boundary polygon if available, otherwise fall back to circle
-      const zoneGeoJson = zone.boundary
-        ? {
-            type: "Feature",
-            geometry: { type: "Polygon", coordinates: [zone.boundary] },
-          }
-        : this._generateCirclePolygon(this._toMapbox(zone.coords), zone.radius);
-
-      const zoneColor = zone.color || MAP_COLORS.zone;
-      const zoneStroke = zone.strokeColor || zoneColor;
-
-      const sourceId = `future-zone-${zone.id}`;
-      this._safeAddSource(sourceId, { type: "geojson", data: zoneGeoJson });
-
-      this.map.addLayer({
-        id: `${sourceId}-fill`,
-        type: "fill",
-        source: sourceId,
-        paint: {
-          "fill-color": zoneColor,
-          "fill-opacity": 0.2,
-        },
-      });
-
-      this.map.addLayer({
-        id: `${sourceId}-stroke`,
-        type: "line",
-        source: sourceId,
-        paint: {
-          "line-color": zoneStroke,
-          "line-width": 2.5,
-          "line-dasharray": [5, 10],
-        },
-      });
-
-      this._layerGroups.futureZones.push(
-        `${sourceId}-fill`,
-        `${sourceId}-stroke`,
-        sourceId,
-      );
-
-      // Zone marker at center — use per-zone color
-      const markerHtml = this._markerIconHtml("zone", null, zoneColor);
-      const { marker, element } = this._createMarker(zone.coords, markerHtml, {
-        ariaLabel: zone.name + " development zone",
-      });
-
-      this._addTooltip(marker, element, zone.name);
-      element.addEventListener("click", () =>
-        UI.renderInspectorPanel(5, { title: zone.name, zone }),
-      );
-
-      this.markers[zone.id] = marker;
-      this._layerGroups.futureZones.push(zone.id);
-
-      // Cluster satellite markers for facilities within the zone
-      if (zone.facilities) {
-        zone.facilities.forEach((facility, i) => {
-          const dotId = `${zone.id}-facility-${i}`;
-          const dotHtml = `<div style="
-                      display: flex; align-items: center; gap: 4px; white-space: nowrap;
-                  "><div style="
-                      width: 10px; height: 10px;
-                      background: ${zoneColor};
-                      border: 1.5px solid white;
-                      border-radius: 50%;
-                      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                      flex-shrink: 0;
-                  "></div><span style="
-                      font-family: var(--font-display);
-                      font-size: 10px;
-                      font-weight: 500;
-                      color: var(--color-text-secondary);
-                      text-shadow: 0 0 3px white, 0 0 3px white;
-                  ">${facility.label}</span></div>`;
-
-          const { marker: satMarker } = this._createMarker(
-            facility.coords,
-            dotHtml,
-            {
-              className: "zone-facility-marker",
-            },
-          );
-          this.markers[dotId] = satMarker;
-          this._layerGroups.futureZones.push(dotId);
-        });
-      }
-    });
+    // No-op: layers are now toggled individually from the dashboard.
+    // Kept for API compatibility with setTimeView().
   },
 
   hideFutureZones() {
-    this._removeLayerGroup("futureZones");
+    // Hide all future layer groups that may be active
+    this._removeLayerGroup("sciencePark");
+    this.hideAirportAccessRoutes();
+    this.hideRailwayStations();
+    this.hideRoadExtensions();
+    this._hideFutureRoadOverlays();
+    this.hideInfrastructureRoads();
+    this.hideZonePlanHighlight();
+    this.hideDataLayerMarkers("trafficFlow");
+  },
+
+  _showFutureRoadOverlays() {
+    this._futureRoadOverlayMarkers = [];
+
+    // Pulsing travel time indicators
+    const travelTimes = [
+      { label: "~10 min", coords: [130.798, 32.814], color: "#007aff" },
+      { label: "~20 min", coords: [130.855, 32.837], color: "#007aff" },
+    ];
+
+    travelTimes.forEach((tt) => {
+      const el = document.createElement("div");
+      el.className = "future-travel-time-indicator";
+      el.innerHTML = `<span class="future-travel-time-text">${tt.label}</span>`;
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat(tt.coords)
+        .addTo(this.map);
+      this._futureRoadOverlayMarkers.push(marker);
+    });
+
+    // Interchange labels
+    const interchanges = [
+      { label: "(仮)西合志IC", coords: [130.755, 32.856] },
+      { label: "(仮)合志IC", coords: [130.785, 32.862] },
+      { label: "(仮)大津西IC", coords: [130.83, 32.858] },
+      { label: "熊本IC", coords: [130.798, 32.808] },
+      { label: "益城熊本空港IC", coords: [130.855, 32.843] },
+    ];
+
+    interchanges.forEach((ic) => {
+      const el = document.createElement("div");
+      el.className = "future-ic-label";
+      el.textContent = ic.label;
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: "top" })
+        .setLngLat(ic.coords)
+        .addTo(this.map);
+      this._futureRoadOverlayMarkers.push(marker);
+    });
+  },
+
+  _hideFutureRoadOverlays() {
+    if (this._futureRoadOverlayMarkers) {
+      this._futureRoadOverlayMarkers.forEach((m) => m.remove());
+      this._futureRoadOverlayMarkers = [];
+    }
   },
 
   showInvestmentZones() {
