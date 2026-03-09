@@ -292,11 +292,13 @@ export const properties = [
       {
         type: "images",
         data: {
-          exterior: "assets/step-11-images/ozu-exterior.webp",
+          exterior: "assets/step-11-images/ozu-1-exterior.webp",
           interior: [
+            "assets/step-11-images/ozu-1-interior-1.webp",
             "assets/step-11-images/ozu-1-interior-2.webp",
             "assets/step-11-images/ozu-1-interior-3.webp",
             "assets/step-11-images/ozu-1-interior-4.webp",
+            "assets/step-11-images/ozu-1-interior-5.webp",
           ],
           site: "",
         },
@@ -304,8 +306,6 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
-          summary:
-            "Approximately 6 minutes by car to the Semicon Tech Park (JASM / Sony / Tokyo Electron), with Aso Kumamoto Airport under 10 minutes away. JR Higo-Ozu Station - the planned terminus of the new airport access railway - is the nearest major transit node.",
           basicSettings: {
             propertyName: "Chateau Life Ozu 1",
             address:
@@ -462,8 +462,6 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
-          summary:
-            "Same Sugimizu district as Chateau Life Ozu 1, with the same access to the semiconductor corridor and airport. Ozu's tenant profile skews toward supply chain staff and logistics teams who prioritize highway and airport access over factory-gate proximity.",
           basicSettings: {
             propertyName: "Chateau Life Ozu 2",
             address:
@@ -614,6 +612,8 @@ export const properties = [
             "assets/step-11-images/kikuyo-interior-1.webp",
             "assets/step-11-images/kikuyo-interior-2.webp",
             "assets/step-11-images/kikuyo-interior-3.webp",
+            "assets/step-11-images/kikuyo-interior-4.webp",
+            "assets/step-11-images/kikuyo-interior-5.webp",
           ],
           site: "",
         },
@@ -621,8 +621,6 @@ export const properties = [
       {
         type: "truth-engine",
         data: {
-          summary:
-            "5-7 minutes by car to JASM, within the same municipality as the factory. The planned new Kikuyo station and 70-hectare Mitsui Fudosan development zone are the closest major transit and urban development project to this address.",
           basicSettings: {
             propertyName: "Chateau Life Kikuyo 1",
             address:
@@ -774,20 +772,20 @@ export const properties = [
       {
         type: "images",
         data: {
-          exterior: "assets/step-11-images/haramizu-1-exterior-1.webp",
+          exterior: "assets/step-11-images/haramizu-1-exterior.webp",
           interior: [
             "assets/step-11-images/haramizu-1-interior-1.webp",
             "assets/step-11-images/haramizu-1-interior-2.webp",
             "assets/step-11-images/haramizu-1-interior-3.webp",
+            "assets/step-11-images/haramizu-1-interior-4.webp",
+            "assets/step-11-images/haramizu-1-interior-5.webp",
           ],
-          site: "assets/step-11-images/haramizu-1-exterior-2.webp",
+          site: "assets/step-11-images/haramizu-1-site.webp",
         },
       },
       {
         type: "truth-engine",
         data: {
-          summary:
-            "JASM's official address is Haramizu - 2-4 minutes by car from the factory gate, the closest residential location to the fab in this portfolio. The Haramizu Station land readjustment project and the planned new railway station are both within the immediate area.",
           basicSettings: {
             propertyName: "Haramizu Land 1",
             propertyType: "Land (pre-sale / off-plan)",
@@ -932,20 +930,20 @@ export const properties = [
       {
         type: "images",
         data: {
-          exterior: "assets/step-11-images/haramizu-2-exterior-1.webp",
+          exterior: "assets/step-11-images/haramizu-2-exterior.webp",
           interior: [
             "assets/step-11-images/haramizu-2-interior-1.webp",
             "assets/step-11-images/haramizu-2-interior-2.webp",
             "assets/step-11-images/haramizu-2-interior-3.webp",
+            "assets/step-11-images/haramizu-2-interior-4.webp",
+            "assets/step-11-images/haramizu-2-interior-5.webp",
           ],
-          site: "assets/step-11-images/haramizu-2-exterior-2.webp",
+          site: "assets/step-11-images/haramizu-2-site.webp",
         },
       },
       {
         type: "truth-engine",
         data: {
-          summary:
-            "Same district as Chateau Life Haramizu 1, with identical proximity to JASM and the planned new station. Two land parcels in the same high-demand zone give the fund flexibility in phasing and exit timing.",
           basicSettings: {
             propertyName: "Haramizu Land 2",
             propertyType: "Land (pre-sale / off-plan)",

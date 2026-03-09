@@ -4206,6 +4206,18 @@ button.layer-item {
   -webkit-backdrop-filter: none;
 }
 
+/* Quick Look: PDF modal variant */
+#property-quick-look.quick-look--pdf #quick-look-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+#property-quick-look.quick-look--pdf #quick-look-content {
+  width: 80vw;
+  height: 85vh;
+}
+
 /* ================================
    EVIDENCE PREVIEW OVERLAY
    ================================ */
@@ -6094,7 +6106,6 @@ button.layer-item {
 .icard-detail-list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--color-border);
 }
 
 .icard-detail-row {
@@ -6104,6 +6115,10 @@ button.layer-item {
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border);
   gap: var(--space-4);
+}
+
+.icard-detail-row:last-child {
+  border-bottom: none;
 }
 
 .icard-detail-label {
@@ -6119,6 +6134,11 @@ button.layer-item {
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
   text-align: right;
+}
+
+.icard-overview .icard-title,
+.icard-overview .icard-detail-value {
+  font-family: var(--font-body);
 }
 
 /* ================================
