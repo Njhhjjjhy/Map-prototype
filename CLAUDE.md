@@ -36,9 +36,11 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Break large tasks into smaller steps to prevent context overflow.
 - If approaching 50%, pause and ask user before continuing.
 
-**Commit messages (feature skill):**
-- The commit body must be the user's prompt text, copied verbatim with no rewording or expansion.
+**Feature branch commits:**
+- On a feature branch, every change Claude makes must be immediately committed and pushed. Never leave changes uncommitted.
+- The commit body must be the user's raw prompt text, copied verbatim with no rewording or expansion.
 - Only the commit title line may be a generated summary.
+- After branch creation, immediately check `git status`. If uncommitted changes already exist, commit and push them right away using the `/feature <name>` invocation as the commit body. Do not wait for a follow-up prompt.
 
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).
