@@ -40,7 +40,7 @@ All mandatory constraints. Each rule has one canonical definition here.
 - On a feature branch, every change Claude makes must be immediately committed and pushed. Never leave changes uncommitted.
 - The commit body must be the user's raw prompt text, copied verbatim with no rewording or expansion.
 - Only the commit title line may be a generated summary.
-- After branch creation, immediately check `git status`. If uncommitted changes already exist, commit and push them right away using the `/feature <name>` invocation as the commit body. Do not wait for a follow-up prompt.
+- When `/feature <name>` is invoked on master, check for uncommitted changes BEFORE creating the branch. If changes exist, present exactly two options: (1) drop the changes, (2) save them to a separate feature branch with a commit, PR, and merge to master, then create the requested branch. Never silently carry uncommitted master changes into a new branch.
 
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).

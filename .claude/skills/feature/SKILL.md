@@ -45,21 +45,34 @@ Skip branch creation. Continue working on the user's request. After making chang
 
 ### Starting a new feature (on `master` or after cleanup)
 
-1. Ensure master is up to date:
-   ```bash
-   git checkout master && git pull origin master
-   ```
-2. Create and switch to the feature branch:
-   ```bash
-   git checkout -b feature/<branch_name>
-   ```
-3. Immediately check for uncommitted changes:
+1. **Before doing anything, check for uncommitted changes on master:**
    ```bash
    git status --porcelain
    ```
-   - **If changes exist:** Do not wait for a follow-up prompt. Stage and commit all changed files now, using the `/feature <branch_name>` invocation as the commit message body. Then push and create the PR.
-   - **If no changes exist:** Wait for the user's first prompt describing what they want built. After making those changes, proceed to step 4.
-4. Stage, commit, push, and create PR:
+   - **If changes exist:** Stop. Present exactly two options to the user:
+     > "You have uncommitted changes on master. Choose:
+     > 1. Drop the changes and start `feature/<branch_name>` on a clean master.
+     > 2. Save these changes first: I will create a separate feature branch, commit them, create a PR, merge it to master, then start `feature/<branch_name>`."
+
+     Wait for the user's choice before doing anything else.
+     - If option 1: run `git restore .` to discard all changes, then proceed to step 2.
+     - If option 2: prompt the user for a branch name for the save branch, then:
+       1. `git checkout -b feature/<save_branch_name>`
+       2. Stage and commit all changed files (use `/feature <branch_name>` as the commit body).
+       3. Push, create PR, wait for PR to be merged (ask user to confirm merge), then `git checkout master && git pull origin master`.
+       4. Continue to step 2 to create the originally requested feature branch.
+   - **If no changes exist:** Proceed directly to step 2.
+
+2. Ensure master is up to date:
+   ```bash
+   git pull origin master
+   ```
+3. Create and switch to the feature branch:
+   ```bash
+   git checkout -b feature/<branch_name>
+   ```
+4. Wait for the user's first prompt describing what they want built. After making those changes, proceed to step 5.
+5. Stage, commit, push, and create PR:
    - Stage relevant files (prefer explicit file names over `git add .`).
    - Commit with the user's prompt as the commit message.
    - Push the branch to remote:
