@@ -458,7 +458,22 @@ export const methods = {
       <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
         ${rowsHtml}
       </div>
+      <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showFutureOutlookEvidence()">View evidence</button>
     `;
+  },
+
+  showFutureOutlookEvidence() {
+    this.showQuickLook({
+      type: "gallery",
+      images: [
+        "assets/use-case-images/evidence-10-minute-ring-road-2.webp",
+        "assets/use-case-images/evidence-10-minute-ring-road-3.webp",
+        "assets/use-case-images/evidence-new-grand-airport.webp",
+        "assets/use-case-images/evidence-science-park.webp",
+        "assets/use-case-images/evidence-kumamoto-future-road-network.webp",
+      ],
+      title: "Future outlook evidence",
+    });
   },
 
   /**
