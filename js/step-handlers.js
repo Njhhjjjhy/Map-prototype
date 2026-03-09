@@ -316,6 +316,45 @@ export const stepHandlers = {
   // --- Step 5: Science Park + Grand Airport ---
 
   /**
+   * Build and display the future outlook dashboard in the right panel.
+   * Shows 4 toggleable layer rows for the future view.
+   */
+  _renderFutureOutlookDashboard() {
+    const layers = [
+      { key: "futureSciencePark", label: "Science park circles", color: "#007aff" },
+      { key: "futureAirport", label: "Airport access", color: "#34c759" },
+      { key: "futureGovZones", label: "Government zone clusters", color: "#ff3b30" },
+      { key: "futureRoads", label: "Roads and interchanges", color: "#ff9500" },
+    ];
+
+    const rowsHtml = layers.map((l) => {
+      const isActive = !!UI.activeDataLayers[l.key];
+      return toggleRow({
+        id: l.key,
+        label: l.label,
+        color: l.color,
+        active: isActive,
+        onclick: `App.toggleFutureLayer('${l.key}')`,
+      });
+    }).join("");
+
+    UI.showPanel(`
+      ${panelHeader("Future outlook", "2030+ vision", "Toggle layers to explore the completed state of the semiconductor corridor.")}
+      <div style="margin-top: var(--space-4);">
+        ${rowsHtml}
+      </div>
+    `);
+  },
+
+  /**
+   * Toggle a future layer and re-render the future dashboard to sync toggle state.
+   */
+  toggleFutureLayer(layerName) {
+    UI.toggleLayer(layerName);
+    this._renderFutureOutlookDashboard();
+  },
+
+  /**
    * Build and display the development dashboard panel.
    * Shows parent overview + toggle rows for children + evidence for active child.
    * Called when a parent group is selected or a child is toggled.
