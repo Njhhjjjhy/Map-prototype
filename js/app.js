@@ -452,9 +452,8 @@ const App = {
       },
       "future-outlook": {
         title: "Future outlook",
-        body: "Toggle to <strong>Future View</strong> to see the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
-        afterItems:
-          '<p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">Use the Present/Future toggle in the top-left corner.</p>',
+        body: "See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
+        afterItems: "",
       },
       "investment-zones": {
         title: "Investment zones",
@@ -487,6 +486,21 @@ const App = {
     // Step 4 (government-support) gets toggle rows instead of sub-items
     if (step.id === "government-support") {
       return this._renderGovernmentChatbox(n, continueBtnHtml);
+    }
+
+    // Step 7 (future-outlook) gets a "See the Future" CTA
+    if (step.id === "future-outlook") {
+      const navRow = continueBtnHtml
+        ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`
+        : "";
+      return `
+        <h3>${n.title}</h3>
+        <p>${n.body}</p>
+        <div class="chatbox-options">
+          <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">See the Future</button>
+        </div>
+        ${navRow}
+      `;
     }
 
     const navRow = continueBtnHtml
