@@ -200,13 +200,6 @@ const CAMERA_STEPS = {
     bearing: 0,
     duration: 2000,
   },
-  futureVision: {
-    center: [130.7756, 32.7271],
-    zoom: 10.8,
-    pitch: 34,
-    bearing: -3,
-    duration: 2000,
-  },
   complete: {
     center: [130.78, 32.84],
     zoom: 11,

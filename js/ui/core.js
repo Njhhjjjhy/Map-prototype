@@ -918,14 +918,12 @@ export const methods = {
       this.elements.futureBtn.classList.add("active");
       this.elements.futureBtn.setAttribute("aria-checked", "true");
       MapController.showFutureZones();
-      App.state.futureView = true;
     } else {
       this.elements.futureBtn.classList.remove("active");
       this.elements.futureBtn.setAttribute("aria-checked", "false");
       this.elements.presentBtn.classList.add("active");
       this.elements.presentBtn.setAttribute("aria-checked", "true");
       MapController.hideFutureZones();
-      App.state.futureView = false;
     }
   },
 
