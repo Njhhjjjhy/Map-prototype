@@ -798,20 +798,13 @@ export const methods = {
                     `;
           }
 
-          // Add "View evidence" button for central government tier
-          let tierExtra = subItemsHtml;
-          if (tier.id === "central") {
-            tierExtra += `
-                        <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showQuickLook({ type: 'pdf', src: 'assets/pdfs/2040-vision-plan.pdf', title: '2040 vision plan' })">View evidence</button>`;
-          }
-
           return evidenceCard({
             color: tier.color,
             subtitle: tier.tierLabel,
             title: tier.name,
             description: tier.description,
             stats: tier.stats,
-            extra: tierExtra,
+            extra: subItemsHtml,
           });
         })
         .join("");
@@ -842,6 +835,10 @@ export const methods = {
             "Commitment details"
           : "Active commitments";
 
+      const centralEvidenceBtn = activeLevels.includes("central")
+        ? `<button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showQuickLook({ type: 'pdf', src: 'assets/pdfs/2040-vision-plan.pdf', title: '2040 vision plan' })">View evidence</button>`
+        : "";
+
       detailHtml = `
                 <div style="margin-top: var(--space-6);">
                     <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${sectionHeading}</div>
@@ -849,6 +846,7 @@ export const methods = {
                     <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
                         ${cardsHtml}
                     </div>
+                    ${centralEvidenceBtn}
                 </div>
             `;
     }
