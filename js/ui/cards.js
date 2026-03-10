@@ -798,13 +798,20 @@ export const methods = {
                     `;
           }
 
+          // Add "View evidence" button for central government tier
+          let tierExtra = subItemsHtml;
+          if (tier.id === "central") {
+            tierExtra += `
+                        <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showQuickLook({ type: 'pdf', src: 'assets/pdfs/2040-vision-plan.pdf', title: '2040 vision plan' })">View evidence</button>`;
+          }
+
           return evidenceCard({
             color: tier.color,
             subtitle: tier.tierLabel,
             title: tier.name,
             description: tier.description,
             stats: tier.stats,
-            extra: subItemsHtml,
+            extra: tierExtra,
           });
         })
         .join("");

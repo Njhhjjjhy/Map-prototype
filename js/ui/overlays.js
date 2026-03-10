@@ -523,6 +523,7 @@ export const methods = {
     const quickLook = document.getElementById("property-quick-look");
     if (quickLook) {
       quickLook.classList.add("hidden");
+      quickLook.classList.remove("evidence-lightbox", "quick-look--pdf");
     }
 
     // Remove focus trap
