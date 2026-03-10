@@ -309,6 +309,11 @@ export const methods = {
   },
 
   showPropertyContextLines(property) {
+    // Clean up hover listeners from previous lines
+    if (this._contextLineHoverCleanup) {
+      this._contextLineHoverCleanup();
+      this._contextLineHoverCleanup = null;
+    }
     // Synchronous cleanup (skip fade-out animation when replacing lines immediately)
     this._removeLayerGroup("propertyContextLines");
 
@@ -392,28 +397,37 @@ export const methods = {
       layout: { "line-cap": "round", "line-join": "round" },
     });
 
-    // Label layer along lines
-    this.map.addLayer({
-      id: `${sourceId}-labels`,
-      type: "symbol",
-      source: sourceId,
-      layout: {
-        "symbol-placement": "line-center",
-        "text-field": ["get", "label"],
-        "text-size": 12,
-        "text-font": ["DIN Pro Medium", "Arial Unicode MS Regular"],
-        "text-anchor": "center",
-        "text-offset": [0, -1.2],
-        "text-allow-overlap": true,
-        "text-ignore-placement": true,
-      },
-      paint: {
-        "text-color": ["get", "color"],
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 2,
-        "text-opacity": ["number", ["feature-state", "textOpacity"], 0],
-      },
+    // Hover tooltip on lines (same pattern as icon/logo hovers)
+    const lineLayerId = `${sourceId}-line`;
+    const lineTooltip = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: [0, -12],
+      className: "mapbox-tooltip",
     });
+
+    const onLineMouseMove = (e) => {
+      if (!e.features || !e.features.length) return;
+      this.map.getCanvas().style.cursor = "pointer";
+      const label = e.features[0].properties.label;
+      lineTooltip.setLngLat(e.lngLat).setText(label).addTo(this.map);
+    };
+    const onLineMouseLeave = () => {
+      this.map.getCanvas().style.cursor = "";
+      lineTooltip.remove();
+    };
+
+    this.map.on("mousemove", lineLayerId, onLineMouseMove);
+    this.map.on("mouseleave", lineLayerId, onLineMouseLeave);
+
+    // Store cleanup references for hover listeners
+    this._contextLineHoverCleanup = () => {
+      lineTooltip.remove();
+      if (this.map) {
+        this.map.off("mousemove", lineLayerId, onLineMouseMove);
+        this.map.off("mouseleave", lineLayerId, onLineMouseLeave);
+      }
+    };
 
     // Stagger line appearance
     features.forEach((feature, index) => {
@@ -421,14 +435,14 @@ export const methods = {
         if (!this.map || !this.map.getSource(sourceId)) return;
         this.map.setFeatureState(
           { source: sourceId, id: index },
-          { opacity: 0.2, textOpacity: 0 },
+          { opacity: 0.2 },
         );
         // Fade in over two frames
         setTimeout(() => {
           if (!this.map || !this.map.getSource(sourceId)) return;
           this.map.setFeatureState(
             { source: sourceId, id: index },
-            { opacity: 0.7, textOpacity: 1 },
+            { opacity: 0.7 },
           );
         }, 150);
       }, index * 200);
@@ -437,7 +451,6 @@ export const methods = {
     this._layerGroups.propertyContextLines.push(
       `${sourceId}-glow`,
       `${sourceId}-line`,
-      `${sourceId}-labels`,
       sourceId,
     );
 
@@ -516,6 +529,12 @@ export const methods = {
   },
 
   removePropertyContextLines() {
+    // Clean up hover listeners
+    if (this._contextLineHoverCleanup) {
+      this._contextLineHoverCleanup();
+      this._contextLineHoverCleanup = null;
+    }
+
     const sourceId = "property-context-lines";
     if (!this.map || !this.map.getSource(sourceId)) {
       // Nothing to remove - just clear the tracking array in case of stale entries
@@ -528,7 +547,7 @@ export const methods = {
       features.features.forEach((_, i) => {
         this.map.setFeatureState(
           { source: sourceId, id: i },
-          { opacity: 0, textOpacity: 0 },
+          { opacity: 0 },
         );
       });
     }
