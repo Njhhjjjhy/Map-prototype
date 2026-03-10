@@ -947,7 +947,7 @@ export const methods = {
           <h3>Future outlook</h3>
           <p>See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.</p>
           <div class="chatbox-options">
-            <button class="chatbox-continue" onclick="App.goToStep(9)">Continue</button>
+            <button class="chatbox-continue primary" onclick="App.goToStep(9)">Continue</button>
           </div>
         `;
         this.showChatbox(content, { skipHistory: true });
