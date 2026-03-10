@@ -364,9 +364,6 @@ export const methods = {
     this._galleryItemIndex = 0;
 
     const bodyHtml = `
-      <div class="gallery-header">
-        <h3>${title}</h3>
-      </div>
       <div class="gallery-items-viewport">
         <button class="gallery-items-chevron gallery-items-prev" aria-label="Previous item">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
