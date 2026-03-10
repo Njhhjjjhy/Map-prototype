@@ -334,7 +334,7 @@ export const methods = {
       jasm: `JASM - ${conn.jasm.time}`,
       station: `${conn.station.name} - ${conn.station.time}`,
       airport: `Airport - ${conn.airport.time}`,
-      road: conn.road.name,
+      road: `${conn.road.name} - ${conn.road.time}`,
     };
 
     const features = [];

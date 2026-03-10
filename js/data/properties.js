@@ -314,7 +314,13 @@ export const properties = [
         distance: "8.2 km",
         time: "14 min",
       },
-      road: { id: "ozu-road", name: "Ozu Road", coords: [32.88, 130.87] },
+      road: {
+        id: "ozu-road",
+        name: "Ozu Road",
+        coords: [32.88, 130.87],
+        distance: "1.2 km",
+        time: "3 min",
+      },
     },
 
     cards: [
@@ -470,7 +476,13 @@ export const properties = [
         distance: "8.5 km",
         time: "15 min",
       },
-      road: { id: "ozu-road", name: "Ozu Road", coords: [32.88, 130.87] },
+      road: {
+        id: "ozu-road",
+        name: "Ozu Road",
+        coords: [32.88, 130.87],
+        distance: "1.4 km",
+        time: "3 min",
+      },
     },
 
     cards: [
@@ -629,6 +641,8 @@ export const properties = [
         id: "ozu-kumamoto-road",
         name: "Ozu-Kumamoto Road",
         coords: [32.87, 130.82],
+        distance: "3.8 km",
+        time: "6 min",
       },
     },
 
@@ -794,6 +808,8 @@ export const properties = [
         id: "ozu-kumamoto-road",
         name: "Ozu-Kumamoto Road",
         coords: [32.87, 130.82],
+        distance: "4.1 km",
+        time: "7 min",
       },
     },
 
@@ -952,6 +968,8 @@ export const properties = [
         id: "ozu-kumamoto-road",
         name: "Ozu-Kumamoto Road",
         coords: [32.87, 130.82],
+        distance: "3.5 km",
+        time: "6 min",
       },
     },
 
