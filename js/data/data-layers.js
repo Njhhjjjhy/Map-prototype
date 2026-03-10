@@ -49,7 +49,7 @@ export const airlineRoutes = {
       country: "Taiwan",
       region: "Taiwan",
       status: "active",
-      flightTime: "1h 40m",
+      flightTime: "2h 15m",
       airlines: ["Starlux Airlines", "China Airlines"],
       significance: "TSMC headquarters connection",
       description: "Direct service to Taiwan's main international gateway.",
