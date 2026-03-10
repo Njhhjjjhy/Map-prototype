@@ -24,10 +24,22 @@ export const resources = {
       { value: "60%", label: "Lower than Tokyo rates" },
     ],
     evidence: {
-      title: "Kumamoto water resources report",
+      title: "TSMC ESG evidence",
       type: "pdf",
       description:
         "Official government report on groundwater sustainability and industrial allocation",
+      items: [
+        {
+          type: "image",
+          src: "assets/TSMC-esg-1.webp",
+          title: "TSMC ESG report overview",
+        },
+        {
+          type: "pdf",
+          src: "assets/pdfs/2024-TSMC-esg-report.pdf",
+          title: "2024 TSMC ESG report",
+        },
+      ],
     },
     // Evidence markers proving water quality
     evidenceMarkers: [

@@ -354,6 +354,96 @@ export const methods = {
     // Set up focus trap
     this.setupFocusTrap(this.elements.galleryModal);
   },
+  /**
+   * Show gallery with multiple navigable items (images and PDFs).
+   * @param {string} title - Gallery heading
+   * @param {Array} items - Array of {type, src, title}
+   */
+  showGalleryItems(title, items) {
+    this._galleryItems = items;
+    this._galleryItemIndex = 0;
+
+    const bodyHtml = `
+      <div class="gallery-header">
+        <h3>${title}</h3>
+      </div>
+      <div class="gallery-items-viewport">
+        <button class="gallery-items-chevron gallery-items-prev" aria-label="Previous item">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="gallery-items-content"></div>
+        <button class="gallery-items-chevron gallery-items-next" aria-label="Next item">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="gallery-items-counter"></div>
+    `;
+
+    this.elements.galleryBody.innerHTML = bodyHtml;
+    this._renderGalleryItem(0);
+
+    // Bind chevron clicks
+    this.elements.galleryBody
+      .querySelector(".gallery-items-prev")
+      .addEventListener("click", () => {
+        if (this._galleryItemIndex > 0) {
+          this._galleryItemIndex--;
+          this._renderGalleryItem(this._galleryItemIndex);
+        }
+      });
+    this.elements.galleryBody
+      .querySelector(".gallery-items-next")
+      .addEventListener("click", () => {
+        if (this._galleryItemIndex < this._galleryItems.length - 1) {
+          this._galleryItemIndex++;
+          this._renderGalleryItem(this._galleryItemIndex);
+        }
+      });
+
+    this.elements.galleryModal.classList.remove("hidden");
+    document.getElementById("map-container").classList.add("immersive-active");
+
+    this.lastFocusedElement = document.activeElement;
+    this.elements.galleryClose.focus();
+    this.setupFocusTrap(this.elements.galleryModal);
+  },
+
+  /**
+   * Render a single gallery item by index into the viewport.
+   */
+  _renderGalleryItem(index) {
+    const item = this._galleryItems[index];
+    const container = this.elements.galleryBody.querySelector(
+      ".gallery-items-content",
+    );
+    const counter = this.elements.galleryBody.querySelector(
+      ".gallery-items-counter",
+    );
+    const prevBtn = this.elements.galleryBody.querySelector(
+      ".gallery-items-prev",
+    );
+    const nextBtn = this.elements.galleryBody.querySelector(
+      ".gallery-items-next",
+    );
+
+    if (item.type === "image") {
+      container.innerHTML = `
+        <img src="${item.src}" alt="${item.title}" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: var(--radius-medium);">
+      `;
+    } else if (item.type === "pdf") {
+      container.innerHTML = `
+        <iframe src="${item.src}" title="${item.title}" style="width: 100%; height: 70vh; border: none; border-radius: var(--radius-medium);"></iframe>
+      `;
+    }
+
+    // Update counter
+    counter.textContent = `${index + 1} of ${this._galleryItems.length}`;
+
+    // Update chevron visibility
+    prevBtn.classList.toggle("hidden", index === 0);
+    nextBtn.classList.toggle("hidden", index === this._galleryItems.length - 1);
+  },
+
   showGalleryFromUrl(url, title) {
     const bodyHtml = `
             <div class="gallery-header">

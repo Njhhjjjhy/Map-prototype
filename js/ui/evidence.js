@@ -78,14 +78,18 @@ export const methods = {
     }
 
     if (evidence) {
-      const img =
-        evidence.image || (evidence.images && evidence.images[0]) || null;
-      this.showGallery(
-        evidence.title,
-        evidence.type,
-        evidence.description,
-        img,
-      );
+      if (evidence.items && evidence.items.length > 0) {
+        this.showGalleryItems(evidence.title, evidence.items);
+      } else {
+        const img =
+          evidence.image || (evidence.images && evidence.images[0]) || null;
+        this.showGallery(
+          evidence.title,
+          evidence.type,
+          evidence.description,
+          img,
+        );
+      }
     }
   },
 

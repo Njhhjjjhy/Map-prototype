@@ -2337,6 +2337,56 @@ a:focus-visible {
   font-size: var(--text-base);
 }
 
+/* Gallery items navigation (multi-item evidence viewer) */
+.gallery-items-viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 200px;
+}
+
+.gallery-items-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.gallery-items-chevron {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.gallery-items-chevron:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.gallery-items-chevron.hidden {
+  visibility: hidden;
+}
+
+.gallery-items-counter {
+  text-align: center;
+  margin-top: var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
 /* ================================
    MAP MARKERS & OVERLAYS
    ================================ */
