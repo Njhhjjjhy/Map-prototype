@@ -920,14 +920,38 @@ export const methods = {
       this.hideChatbox();
       App._renderFutureOutlookDashboard();
       MapController.showFutureZones();
+
+      // Toggle on science park circles
+      if (!App.state.activeFutureLayers) {
+        App.state.activeFutureLayers = [];
+      }
+      if (!App.state.activeFutureLayers.includes("futureSciencePark")) {
+        App.state.activeFutureLayers.push("futureSciencePark");
+        MapController.showSciencePark({ skipFly: true });
+        this.updateFutureOutlookPanel(App.state.activeFutureLayers);
+      }
+
+      const flightDuration = 2000;
       MapController.flyToStep({
         center: [130.7304, 32.7665],
         zoom: 10.3,
         pitch: 41,
         bearing: 47,
-        duration: 2000,
+        duration: flightDuration,
       });
       App.state.futureView = true;
+
+      // Re-show chatbox with Continue button after camera flight completes
+      setTimeout(() => {
+        const content = `
+          <h3>Future outlook</h3>
+          <p>See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.</p>
+          <div class="chatbox-options">
+            <button class="chatbox-continue primary" onclick="App.goToStep(9)">Continue</button>
+          </div>
+        `;
+        this.showChatbox(content, { skipHistory: true });
+      }, flightDuration + 300);
     } else {
       this.elements.futureBtn.classList.remove("active");
       this.elements.futureBtn.setAttribute("aria-checked", "false");
