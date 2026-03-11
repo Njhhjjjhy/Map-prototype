@@ -953,7 +953,7 @@ export const methods = {
         </div>`;
   },
   renderEvidenceGalleryCard(images, title) {
-    const thumbs = (images || []).slice(0, 6);
+    const thumbs = images || [];
     return `<div class="icard icard-compact">
             ${title ? `<div class="icard-title">${title}</div>` : ""}
             <div class="icard-gallery-grid">
