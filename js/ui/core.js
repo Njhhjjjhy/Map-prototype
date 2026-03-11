@@ -622,12 +622,11 @@ export const methods = {
   },
 
   /**
-   * Show or hide the home button based on whether we're at the panel root
+   * Show or hide the home button. Visible whenever a home function is set.
    */
   _updateHomeButton() {
     if (!this.elements.panelHome) return;
-    const showHome = this._panelHomeFn && !this._panelAtHome;
-    this.elements.panelHome.classList.toggle("hidden", !showHome);
+    this.elements.panelHome.classList.toggle("hidden", !this._panelHomeFn);
   },
 
   /**
@@ -698,8 +697,10 @@ export const methods = {
       this.cancelDrillDown();
     }
 
-    // Clear panel history when closing
+    // Clear panel history and home state when closing
     this.clearPanelHistory();
+    this._panelHomeFn = null;
+    this._updateHomeButton();
 
     // Wait for animation to complete, then remove visible
     const animationDuration = TIMING.fast; // matches --duration-fast
