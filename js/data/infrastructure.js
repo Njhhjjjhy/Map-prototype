@@ -616,6 +616,18 @@ export const grandAirportData = {
           { value: "1914", label: "Established" },
         ],
       },
+      {
+        id: "airport-connection",
+        sourceId: "ga-access-airport-road",
+        name: "Airport connection road",
+        color: "#007aff",
+        description:
+          "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes.",
+        stats: [
+          { value: "~7 km", label: "Length" },
+          { value: "20-min access", label: "Airport target" },
+        ],
+      },
     ],
   },
 

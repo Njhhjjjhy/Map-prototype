@@ -1333,6 +1333,56 @@ export const methods = {
       }, 500);
     }
 
+    // 4b. Airport connection road (same road shown in Road extensions)
+    const airportRoad = AppData.grandAirportData?.roadExtensions?.find(
+      (r) => r.id === "airport-connection",
+    );
+    if (airportRoad) {
+      const arCoords = airportRoad.coords.map((c) => this._toMapbox(c));
+      const arSourceId = "ga-access-airport-road";
+      this._safeAddSource(arSourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [arCoords[0], arCoords[0]],
+          },
+        },
+      });
+      this.map.addLayer({
+        id: `${arSourceId}-glow`,
+        type: "line",
+        source: arSourceId,
+        paint: {
+          "line-color": airportRoad.color,
+          "line-width": 10,
+          "line-opacity": 0.2,
+          "line-blur": 6,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+      this.map.addLayer({
+        id: `${arSourceId}-line`,
+        type: "line",
+        source: arSourceId,
+        paint: {
+          "line-color": airportRoad.color,
+          "line-width": 4,
+          "line-opacity": 0.9,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+      this._layerGroups.grandAirportAccess.push(
+        `${arSourceId}-glow`,
+        `${arSourceId}-line`,
+        arSourceId,
+      );
+      setTimeout(() => {
+        this._animateRoadDraw(arSourceId, arCoords, 1200);
+      }, 800);
+    }
+
     // 5. Line interactions: pulse animation, hover tooltips, click handlers
     const routesMeta = data.routes || [];
     const lineConfigs = [
@@ -1354,6 +1404,12 @@ export const methods = {
         glowId: "ga-access-hohi-line-glow",
         baseWidth: 2.5,
         routeId: "hohi-line",
+      },
+      {
+        lineId: "ga-access-airport-road-line",
+        glowId: "ga-access-airport-road-glow",
+        baseWidth: 4,
+        routeId: "airport-connection",
       },
     ];
 
