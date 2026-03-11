@@ -631,6 +631,10 @@ const App = {
         // Steps with sub-items: panel shows on sub-item click
         break;
     }
+
+    // Store home function so the panel home button can reset to this view
+    const stepRef = step;
+    UI.setPanelHome(() => this._renderStepPanel(stepRef));
   },
 
   // ================================

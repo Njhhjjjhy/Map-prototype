@@ -1464,6 +1464,51 @@ a:focus-visible {
   flex-shrink: 0;
 }
 
+/* Panel home button (appears in toolbar when navigated away from root) */
+#panel-home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-standard);
+  color: var(--color-text-secondary);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#panel-home.hidden {
+  display: none;
+}
+
+#panel-home:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-medium);
+}
+
+#panel-home:active {
+  background: var(--color-bg-tertiary);
+  box-shadow: var(--shadow-subtle);
+}
+
+#panel-home:focus-visible {
+  outline: 3px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+#panel-home svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 #panel-content {
   flex: 1;
   overflow-y: auto;

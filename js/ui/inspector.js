@@ -32,6 +32,9 @@ export const methods = {
     setTimeout(() => {
       this.renderInspectorPanel(7, { title: "Kumamoto corridor" });
       this.dashboardPanelOpen = true;
+      this.setPanelHome(() => {
+        this.renderInspectorPanel(7, { title: "Kumamoto corridor" });
+      });
     }, 300);
 
     setTimeout(() => {
