@@ -37,7 +37,7 @@ i18next.init({
  * @param {string} key - English source text (doubles as translation key)
  * @returns {string} Translated string
  */
-export const t = (key) => i18next.t(key);
+export const t = (key, opts) => i18next.t(key, opts);
 
 /**
  * Access the underlying i18next instance (for advanced use cases

@@ -469,7 +469,7 @@ const App = {
       },
       properties: {
         title: t("Investment properties"),
-        body: t(`${AppData.properties.length} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.`),
+        body: t("{{count}} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.", { count: AppData.properties.length }),
         afterItems: "",
       },
       final: {

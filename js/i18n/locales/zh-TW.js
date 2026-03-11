@@ -1891,6 +1891,10 @@ export default {
   "Start Journey": "開始導覽",
   "2d": "2D",
 
+  // --- Interpolated strings ---
+  "{{count}} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.":
+    "半導體廊道內共 {{count}} 處物件。平均 <strong>12 分鐘車程</strong>即達 JASM。點擊任一琥珀色標記查看完整財務分析。",
+
   // --- CSS/code false positives to skip ---
   "ga-airport-access": "ga-airport-access",
   "button, a, input, select, textarea": "button, a, input, select, textarea",
