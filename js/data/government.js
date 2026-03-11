@@ -2,88 +2,95 @@
  * Government data: commitment chain, tiers, prefecture boundary.
  */
 
+import { t } from "../i18n/index.js";
+
 export const governmentChain = {
-  intro: "Every level of government is aligned behind this corridor.",
+  intro: t("Every level of government is aligned behind this corridor."),
   levels: [
     {
       id: "national",
-      name: "Japan National Government",
+      name: t("Japan National Government"),
       coords: [32.87, 130.7],
-      subtitle: "Strategic semiconductor policy",
+      subtitle: t("Strategic semiconductor policy"),
       type: "commitment",
-      description:
-        "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.",
+      description: t(
+        "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto."
+      ),
       stats: [
-        { value: "¥10B", label: "Direct commitment" },
-        { value: "2021", label: "Policy announced" },
-        { value: "Critical", label: "Infrastructure status" },
-        { value: "50%", label: "JASM subsidy" },
+        { value: "¥10B", label: t("Direct commitment") },
+        { value: "2021", label: t("Policy announced") },
+        { value: "Critical", label: t("Infrastructure status") },
+        { value: "50%", label: t("JASM subsidy") },
       ],
     },
     {
       id: "prefecture",
-      name: "Kumamoto Prefecture",
+      name: t("Kumamoto Prefecture"),
       coords: [32.79, 130.74],
-      subtitle: "Regional coordination",
+      subtitle: t("Regional coordination"),
       type: "commitment",
-      description:
-        "Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region.",
+      description: t(
+        "Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region."
+      ),
       stats: [
-        { value: "¥480B", label: "Infrastructure budget" },
-        { value: "12", label: "Priority projects" },
-        { value: "30%", label: "Permit time reduction" },
-        { value: "2040", label: "Master plan horizon" },
+        { value: "¥480B", label: t("Infrastructure budget") },
+        { value: "12", label: t("Priority projects") },
+        { value: "30%", label: t("Permit time reduction") },
+        { value: "2040", label: t("Master plan horizon") },
       ],
     },
     {
       id: "kikuyo-city",
-      name: "Kikuyo Town",
+      name: t("Kikuyo Town"),
       coords: [32.88, 130.83],
-      subtitle: "Local development plan",
+      subtitle: t("Local development plan"),
       type: "commitment",
-      description:
-        "Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.",
+      description: t(
+        "Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families."
+      ),
       stats: [
-        { value: "2,500", label: "Housing units" },
-        { value: "¥180B", label: "Infrastructure" },
-        { value: "2028", label: "Phase 1 complete" },
-        { value: "+45%", label: "Population target" },
+        { value: "2,500", label: t("Housing units") },
+        { value: "¥180B", label: t("Infrastructure") },
+        { value: "2028", label: t("Phase 1 complete") },
+        { value: "+45%", label: t("Population target") },
       ],
     },
     {
       id: "ozu-city",
-      name: "Ozu Town",
+      name: t("Ozu Town"),
       coords: [32.86, 130.87],
-      subtitle: "Industrial expansion",
+      subtitle: t("Industrial expansion"),
       type: "commitment",
-      description:
-        "Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain.",
+      description: t(
+        "Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain."
+      ),
       stats: [
-        { value: "120ha", label: "Industrial land" },
-        { value: "¥95B", label: "Investment" },
-        { value: "2027", label: "Phase 1" },
-        { value: "3,000", label: "Jobs projected" },
+        { value: "120ha", label: t("Industrial land") },
+        { value: "¥95B", label: t("Investment") },
+        { value: "2027", label: t("Phase 1") },
+        { value: "3,000", label: t("Jobs projected") },
       ],
     },
     {
       id: "grand-airport",
-      name: "Grand airport concept",
+      name: t("Grand airport concept"),
       coords: [32.84, 130.86],
-      subtitle: "New grand airport vision",
+      subtitle: t("New grand airport vision"),
       type: "concept",
-      description:
-        'A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station. The "New Grand Airport Vision" is a 10-year plan with four strategic pillars to position Kumamoto Airport as a gateway for the semiconductor ecosystem.',
+      description: t(
+        'A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station. The "New Grand Airport Vision" is a 10-year plan with four strategic pillars to position Kumamoto Airport as a gateway for the semiconductor ecosystem.'
+      ),
       stats: [
-        { value: "6.8km", label: "New rail link" },
-        { value: "¥41B", label: "Rail investment" },
-        { value: "44min", label: "Station to airport" },
-        { value: "4 pillars", label: "Strategic plan" },
+        { value: "6.8km", label: t("New rail link") },
+        { value: "¥41B", label: t("Rail investment") },
+        { value: "44min", label: t("Station to airport") },
+        { value: "4 pillars", label: t("Strategic plan") },
       ],
       pillars: [
-        "Enhance domestic and international route network",
-        "Improve ground transportation and airport access",
-        "Strengthen cargo and logistics capabilities",
-        "Develop airport area as regional gateway hub",
+        t("Enhance domestic and international route network"),
+        t("Improve ground transportation and airport access"),
+        t("Strengthen cargo and logistics capabilities"),
+        t("Develop airport area as regional gateway hub"),
       ],
     },
   ],
@@ -92,72 +99,76 @@ export const governmentChain = {
 export const governmentTiers = [
   {
     id: "central",
-    tier: "Central government",
-    tierLabel: "National Policy",
+    tier: t("Central government"),
+    tierLabel: t("National Policy"),
     color: "#007aff",
-    name: "Japan National Government",
+    name: t("Japan National Government"),
     coords: [32.87, 130.7],
     tokyoCoords: [35.6762, 139.6503],
-    description:
-      "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.",
+    description: t(
+      "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto."
+    ),
     commitment: "¥10B",
-    commitmentLabel: "Direct Investment",
+    commitmentLabel: t("Direct Investment"),
     stats: [
-      { value: "¥10B", label: "Direct commitment" },
-      { value: "2021", label: "Policy announced" },
-      { value: "Critical", label: "Infrastructure status" },
-      { value: "50%", label: "JASM subsidy" },
+      { value: "¥10B", label: t("Direct commitment") },
+      { value: "2021", label: t("Policy announced") },
+      { value: "Critical", label: t("Infrastructure status") },
+      { value: "50%", label: t("JASM subsidy") },
     ],
   },
   {
     id: "prefectural",
-    tier: "Prefectural government",
-    tierLabel: "Regional Coordination",
+    tier: t("Prefectural government"),
+    tierLabel: t("Regional Coordination"),
     color: "#34c759",
-    name: "Kumamoto Prefecture",
+    name: t("Kumamoto Prefecture"),
     coords: [32.79, 130.74],
-    description:
-      "Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region.",
+    description: t(
+      "Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region."
+    ),
     commitment: "¥480B",
-    commitmentLabel: "Infrastructure Budget",
+    commitmentLabel: t("Infrastructure Budget"),
     stats: [
-      { value: "¥480B", label: "Infrastructure budget" },
-      { value: "12", label: "Priority projects" },
-      { value: "30%", label: "Permit time reduction" },
-      { value: "2040", label: "Master plan horizon" },
+      { value: "¥480B", label: t("Infrastructure budget") },
+      { value: "12", label: t("Priority projects") },
+      { value: "30%", label: t("Permit time reduction") },
+      { value: "2040", label: t("Master plan horizon") },
     ],
   },
   {
     id: "local",
-    tier: "Local municipalities",
-    tierLabel: "Implementation",
+    tier: t("Local municipalities"),
+    tierLabel: t("Implementation"),
     color: "#ff9500",
-    name: "Local Municipalities",
+    name: t("Local Municipalities"),
     coords: [32.87, 130.85],
-    description:
-      "Three key local initiatives directly supporting the semiconductor corridor workforce and infrastructure.",
+    description: t(
+      "Three key local initiatives directly supporting the semiconductor corridor workforce and infrastructure."
+    ),
     commitment: "¥322B",
-    commitmentLabel: "Combined Investment",
+    commitmentLabel: t("Combined Investment"),
     stats: [
-      { value: "¥322B", label: "Combined investment" },
-      { value: "3", label: "Key municipalities" },
-      { value: "2028", label: "Phase 1 targets" },
-      { value: "5,500+", label: "Housing + jobs" },
+      { value: "¥322B", label: t("Combined investment") },
+      { value: "3", label: t("Key municipalities") },
+      { value: "2028", label: t("Phase 1 targets") },
+      { value: "5,500+", label: t("Housing + jobs") },
     ],
     subItems: [
       {
         id: "kikuyo-city",
-        name: "Kikuyo Town",
-        subtitle: "Residential and commercial",
+        name: t("Kikuyo Town"),
+        subtitle: t("Residential and commercial"),
         coords: [32.88, 130.83],
         commitment: "¥180B",
-        description:
-          "Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.",
+        description: t(
+          "Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families."
+        ),
         stats: [
-          { value: "2,500", label: "Housing units" },
-          { value: "¥180B", label: "Infrastructure" },
-          { value: "2028", label: "Phase 1 complete" },
-          { value: "+45%", label: "Population target" },
+          { value: "2,500", label: t("Housing units") },
+          { value: "¥180B", label: t("Infrastructure") },
+          { value: "2028", label: t("Phase 1 complete") },
+          { value: "+45%", label: t("Population target") },
         ],
         boundary: [
           [130.8333, 32.8222],
@@ -183,17 +194,18 @@ export const governmentTiers = [
       },
       {
         id: "ozu-city",
-        name: "Ozu Town",
-        subtitle: "Industrial expansion",
+        name: t("Ozu Town"),
+        subtitle: t("Industrial expansion"),
         coords: [32.86, 130.87],
         commitment: "¥95B",
-        description:
-          "Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain.",
+        description: t(
+          "Ozu designated 120 hectares for industrial and logistics use, supporting the semiconductor supply chain."
+        ),
         stats: [
-          { value: "120ha", label: "Industrial land" },
-          { value: "¥95B", label: "Investment" },
-          { value: "2027", label: "Phase 1" },
-          { value: "3,000", label: "Jobs projected" },
+          { value: "120ha", label: t("Industrial land") },
+          { value: "¥95B", label: t("Investment") },
+          { value: "2027", label: t("Phase 1") },
+          { value: "3,000", label: t("Jobs projected") },
         ],
         boundary: [
           [130.875, 32.8368],
@@ -220,17 +232,18 @@ export const governmentTiers = [
       },
       {
         id: "koshi-town",
-        name: "Koshi Town",
-        subtitle: "TEL R&D hub and high-end rentals",
+        name: t("Koshi Town"),
+        subtitle: t("TEL R&D hub and high-end rentals"),
         coords: [32.884, 130.771],
         commitment: "¥47B",
-        description:
-          "Tokyo Electron (TEL) is building a major R&D hub in Fukuhara, Koshi Town. The ~27,000 sqm facility represents ~¥47 billion in investment, focused on coating, developing, and cleaning equipment R&D. This drives demand for high-income R&D engineers seeking family-size 2-3LDK mid-to-high-end rentals.",
+        description: t(
+          "Tokyo Electron (TEL) is building a major R&D hub in Fukuhara, Koshi Town. The ~27,000 sqm facility represents ~¥47 billion in investment, focused on coating, developing, and cleaning equipment R&D. This drives demand for high-income R&D engineers seeking family-size 2-3LDK mid-to-high-end rentals."
+        ),
         stats: [
-          { value: "~27,000sqm", label: "Facility size" },
-          { value: "¥47B", label: "Investment" },
-          { value: "TEL", label: "Tokyo Electron" },
-          { value: "2-3LDK", label: "Rental demand" },
+          { value: "~27,000sqm", label: t("Facility size") },
+          { value: "¥47B", label: t("Investment") },
+          { value: "TEL", label: t("Tokyo Electron") },
+          { value: "2-3LDK", label: t("Rental demand") },
         ],
         boundary: [
           [130.72, 32.897],
@@ -289,4 +302,3 @@ export const kumamotoPrefectureBoundary = {
     ],
   },
 };
-

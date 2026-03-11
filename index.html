@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-TW">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>Kumamoto Investment Opportunities</title>
+    <title>熊本投資機會</title>
 
     <!-- Google Fonts: REM + Noto Sans JP -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,7 +27,7 @@
   </head>
   <body>
     <!-- Skip Link for keyboard users -->
-    <a href="#map-container" class="skip-link">Skip to main content</a>
+    <a href="#map-container" class="skip-link">跳至主要內容</a>
 
     <!-- Start screen removed - map loads directly -->
     <div id="start-screen" style="display: none"></div>
@@ -39,7 +39,7 @@
         <div
           id="map"
           role="application"
-          aria-label="Interactive map of Kumamoto investment region"
+          aria-label="熊本投資區域互動地圖"
         ></div>
         <!-- Screen reader announcements for map interactions -->
         <div
@@ -55,7 +55,7 @@
           class="hidden"
           role="progressbar"
           aria-valuemin="1"
-          aria-label="Journey progress"
+          aria-label="旅程進度"
         ></nav>
 
         <!-- Time Toggle -->
@@ -63,7 +63,7 @@
           id="time-toggle"
           class="hidden"
           role="radiogroup"
-          aria-label="Map time view"
+          aria-label="地圖時間檢視"
         >
           <button
             id="present-btn"
@@ -71,7 +71,7 @@
             role="radio"
             aria-checked="true"
           >
-            Present
+            現在
           </button>
           <button
             id="future-btn"
@@ -79,7 +79,7 @@
             role="radio"
             aria-checked="false"
           >
-            Future
+            未來
           </button>
         </div>
 
@@ -88,12 +88,12 @@
           id="chatbox"
           class="hidden"
           role="region"
-          aria-label="Journey guide"
+          aria-label="旅程導覽"
           aria-live="polite"
         >
           <button
             id="chatbox-back"
-            aria-label="Go back"
+            aria-label="返回"
             onclick="App.prevStep()"
             disabled
           >
@@ -111,7 +111,7 @@
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
-          <button id="chatbox-close" aria-label="Close chatbox">
+          <button id="chatbox-close" aria-label="關閉對話框">
             <svg
               aria-hidden="true"
               width="16"
@@ -137,7 +137,7 @@
         <button
           id="layers-toggle"
           class="hidden"
-          aria-label="Toggle map layers"
+          aria-label="切換地圖圖層"
           aria-expanded="false"
         >
           <svg
@@ -158,7 +158,7 @@
         </button>
 
         <!-- Floating action button to reopen chatbox/AI chat -->
-        <button id="chat-fab" class="hidden" aria-label="Reopen guide">
+        <button id="chat-fab" class="hidden" aria-label="重新開啟導覽">
           <svg
             aria-hidden="true"
             width="24"
@@ -181,9 +181,9 @@
           id="data-layers"
           class="hidden"
           role="region"
-          aria-label="Data layers"
+          aria-label="資料圖層"
         >
-          <div class="layers-title">Data layers</div>
+          <div class="layers-title">資料圖層</div>
           <div class="layer-items" id="data-layer-items">
             <!-- Populated by JS - includes both map layers and data layers -->
           </div>
@@ -505,7 +505,7 @@
         <button
           id="panel-toggle"
           class="hidden"
-          aria-label="Toggle dashboard"
+          aria-label="切換儀表板"
           aria-expanded="false"
         >
           <svg
@@ -532,10 +532,10 @@
         id="right-panel"
         class="hidden"
         role="complementary"
-        aria-label="Dashboard"
+        aria-label="儀表板"
       >
         <div class="panel-toolbar">
-          <button id="panel-home" class="hidden" aria-label="Go to dashboard home">
+          <button id="panel-home" class="hidden" aria-label="回到儀表板首頁">
             <svg
               aria-hidden="true"
               width="24"
@@ -551,7 +551,7 @@
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </button>
-          <button id="panel-close" aria-label="Close dashboard">
+          <button id="panel-close" aria-label="關閉儀表板">
             <svg
               aria-hidden="true"
               width="24"
@@ -582,7 +582,7 @@
     >
       <div id="gallery-overlay"></div>
       <div id="gallery-content">
-        <button id="gallery-close" aria-label="Close gallery">
+        <button id="gallery-close" aria-label="關閉圖庫">
           <svg
             aria-hidden="true"
             width="20"
@@ -598,7 +598,7 @@
             <line x1="2" y1="2" x2="14" y2="14"></line>
           </svg>
         </button>
-        <h2 id="gallery-title" class="sr-only">Document viewer</h2>
+        <h2 id="gallery-title" class="sr-only">文件檢視器</h2>
         <div id="gallery-body"></div>
       </div>
     </div>
@@ -609,7 +609,7 @@
       class="hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Property image expanded view"
+      aria-label="物件圖片放大檢視"
     >
       <div
         id="quick-look-overlay"
@@ -618,7 +618,7 @@
       <div id="quick-look-content">
         <button
           id="quick-look-close"
-          aria-label="Close image"
+          aria-label="關閉圖片"
           onclick="UI.hidePropertyImageQuickLook()"
         >
           <svg
@@ -646,7 +646,7 @@
       class="hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Evidence preview"
+      aria-label="佐證資料預覽"
     >
       <div
         id="evidence-preview-overlay"
@@ -655,7 +655,7 @@
       <div id="evidence-preview-content">
         <button
           id="evidence-preview-close"
-          aria-label="Close preview"
+          aria-label="關閉預覽"
           onclick="UI.hideEvidencePreview()"
         >
           <svg
@@ -679,9 +679,9 @@
 
     <!-- Hold-to-Confirm Splash Screen (appears at step B6) -->
     <!-- AI Chat (appears after journey completion) -->
-    <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
+    <div id="ai-chat" class="hidden" role="region" aria-label="AI 助理">
       <div class="ai-chat-toolbar">
-        <button id="ai-chat-back" class="hidden" aria-label="Go back" onclick="UI.hideAIChat(); App.prevStep()">
+        <button id="ai-chat-back" class="hidden" aria-label="返回" onclick="UI.hideAIChat(); App.prevStep()">
           <svg
             aria-hidden="true"
             width="16"
@@ -696,7 +696,7 @@
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <button id="ai-chat-close" aria-label="Close chat">
+        <button id="ai-chat-close" aria-label="關閉聊天">
           <svg
             aria-hidden="true"
             width="16"
@@ -718,21 +718,21 @@
       <div id="ai-chat-recap" class="hidden"></div>
 
       <div class="ai-chat-header" id="ai-chat-header">
-        <h3>Ask Me Anything About Kumamoto</h3>
+        <h3>關於熊本，有任何問題都可以問我</h3>
       </div>
 
       <div class="ai-chat-suggestions" id="ai-chat-suggestions">
         <button
           class="ai-chat-chip"
-          data-question="What are the risks of investing here?"
+          data-question="投資這裡有哪些風險？"
         >
-          What are the risks?
+          有哪些風險？
         </button>
         <button
           class="ai-chat-chip"
-          data-question="How do I start investing in Kumamoto?"
+          data-question="如何開始投資熊本？"
         >
-          How do I invest?
+          如何投資？
         </button>
       </div>
 
@@ -745,11 +745,11 @@
           type="text"
           id="ai-chat-input"
           class="ai-chat-input"
-          placeholder="Ask about Kumamoto..."
+          placeholder="詢問關於熊本的問題..."
           autocomplete="off"
-          aria-label="Type your question"
+          aria-label="輸入您的問題"
         />
-        <button type="submit" class="ai-chat-send" aria-label="Send message">
+        <button type="submit" class="ai-chat-send" aria-label="傳送訊息">
           <svg
             aria-hidden="true"
             width="20"
@@ -782,7 +782,7 @@
               <line x1="12" x2="12" y1="15" y2="3" />
             </svg>
           </span>
-          Download summary
+          下載摘要
         </button>
       </div>
     </div>
@@ -795,6 +795,23 @@
     <script>
       window.MAPBOX_ACCESS_TOKEN =
         "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+    </script>
+
+    <!-- Language toggle (top-right) -->
+    <button id="lang-toggle" aria-label="切換語言">EN</button>
+    <script>
+      (function () {
+        const btn = document.getElementById("lang-toggle");
+        const current = localStorage.getItem("app-lang") || "zh-TW";
+        // Update HTML lang attribute and button label to reflect current state
+        document.documentElement.lang = current;
+        btn.textContent = current === "zh-TW" ? "EN" : "中文";
+        btn.addEventListener("click", function () {
+          const next = current === "zh-TW" ? "en" : "zh-TW";
+          localStorage.setItem("app-lang", next);
+          location.reload();
+        });
+      })();
     </script>
 
     <!-- App JS (ES modules) -->

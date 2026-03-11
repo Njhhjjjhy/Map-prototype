@@ -1,5 +1,6 @@
 import { STEPS, STAGE_TABS, AppData } from "../data/index.js";
 import { TIMING } from "../app.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   init() {
@@ -341,12 +342,12 @@ export const methods = {
                 <path d="M5 3v4"></path><path d="M19 17v4"></path>
                 <path d="M3 5h4"></path><path d="M17 19h4"></path>
             </svg>`;
-      fab.setAttribute("aria-label", "Reopen AI chat");
+      fab.setAttribute("aria-label", t("Reopen AI chat"));
     } else {
       fab.innerHTML = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>`;
-      fab.setAttribute("aria-label", "Reopen guide");
+      fab.setAttribute("aria-label", t("Reopen guide"));
     }
 
     fab.classList.remove("hidden");
@@ -590,7 +591,7 @@ export const methods = {
     // Announce dashboard opening to screen readers
     const titleEl = this.elements.panelContent.querySelector("h2");
     if (titleEl) {
-      this.announceToScreenReader("Dashboard opened: " + titleEl.textContent);
+      this.announceToScreenReader(t("Dashboard opened: ") + titleEl.textContent);
     }
   },
 
@@ -619,7 +620,7 @@ export const methods = {
     if (hasHistory) {
       const backBtn = document.createElement("button");
       backBtn.className = "panel-back-btn";
-      backBtn.setAttribute("aria-label", "Go back");
+      backBtn.setAttribute("aria-label", t("Go back"));
       backBtn.onclick = () => this.navigateBack();
       backBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
       toolbar.insertBefore(backBtn, toolbar.firstChild);
@@ -721,7 +722,7 @@ export const methods = {
     const panel = this.elements.rightPanel;
     // Add closing class for exit animation (uses accelerate easing)
     panel.classList.add("closing");
-    this.announceToScreenReader("Dashboard closed");
+    this.announceToScreenReader(t("Dashboard closed"));
 
     // If drill-down is active, cancel and reverse (to corridor or 2D map)
     // In corridor mode, only reverse if an actual drill-down is in progress
@@ -840,9 +841,9 @@ export const methods = {
    */
   getConfidenceInfo(scenario) {
     const confidenceLevels = {
-      bear: { level: "High", variance: 0.05 },
-      average: { level: "Medium", variance: 0.1 },
-      bull: { level: "Low", variance: 0.15 },
+      bear: { level: t("High"), variance: 0.05 },
+      average: { level: t("Medium"), variance: 0.1 },
+      bull: { level: t("Low"), variance: 0.15 },
     };
     return confidenceLevels[scenario] || confidenceLevels.average;
   },
@@ -878,9 +879,9 @@ export const methods = {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    return "Just now";
+    if (days > 0) return `${days} ${days > 1 ? t("days ago") : t("day ago")}`;
+    if (hours > 0) return `${hours} ${hours > 1 ? t("hours ago") : t("hour ago")}`;
+    return t("Just now");
   },
 
   /**
@@ -971,11 +972,11 @@ export const methods = {
    */
   getTypeLabel(type) {
     const labels = {
-      pdf: "Document",
-      image: "Gallery",
-      web: "Source",
+      pdf: t("Document"),
+      image: t("Gallery"),
+      web: t("Source"),
     };
-    return labels[type] || "Evidence";
+    return labels[type] || t("Evidence");
   },
 
   // ================================
@@ -1030,10 +1031,10 @@ export const methods = {
       // Re-show chatbox with Continue button after camera flight completes
       setTimeout(() => {
         const content = `
-          <h3>Future outlook</h3>
-          <p>See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.</p>
+          <h3>${t("Future outlook")}</h3>
+          <p>${t("See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.")}</p>
           <div class="chatbox-options">
-            <button class="chatbox-continue primary" onclick="App.goToStep(9)">Continue</button>
+            <button class="chatbox-continue primary" onclick="App.goToStep(9)">${t("Continue")}</button>
           </div>
         `;
         this.showChatbox(content, { skipHistory: true });
@@ -1068,7 +1069,7 @@ export const methods = {
     progressBar.setAttribute("aria-valuemax", totalSteps);
     progressBar.setAttribute(
       "aria-label",
-      `Step ${currentStep} of ${totalSteps}`,
+      `${t("Step")} ${currentStep} ${t("of")} ${totalSteps}`,
     );
 
     let html = "";

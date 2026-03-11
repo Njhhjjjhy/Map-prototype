@@ -2,118 +2,124 @@
  * Infrastructure data: talent pipeline, science park, zone plans, grand airport.
  */
 
+import { t } from "../i18n/index.js";
+
 export const talentPipeline = {
-  description:
-    "The Kyushu Semiconductor Human Resources Development Alliance, led by METI, coordinates talent cultivation across the region to ensure a steady pipeline of semiconductor engineers and technicians.",
+  description: t(
+    "The Kyushu Semiconductor Human Resources Development Alliance, led by METI, coordinates talent cultivation across the region to ensure a steady pipeline of semiconductor engineers and technicians."
+  ),
   government: {
     id: "meti",
-    name: "Ministry of Economy, Trade and Industry",
-    role: "Leads the Kyushu Semiconductor Human Resources Development Alliance",
-    goals: "Strengthen talent cultivation and supply chain stability",
+    name: t("Ministry of Economy, Trade and Industry"),
+    role: t("Leads the Kyushu Semiconductor Human Resources Development Alliance"),
+    goals: t("Strengthen talent cultivation and supply chain stability"),
   },
   institutions: [
     {
       id: "kyutech",
-      name: "Kyutech",
-      fullName: "Kyushu Institute of Technology",
-      city: "Kitakyushu",
+      name: t("Kyutech"),
+      fullName: t("Kyushu Institute of Technology"),
+      city: t("Kitakyushu"),
       coords: [33.88, 130.84],
       color: "#e74c3c",
       logo: "assets/Kyutech-logo.svg",
-      role: "Established a cross-departmental semiconductor human resources center to train the next generation of chip engineers.",
+      role: t("Established a cross-departmental semiconductor human resources center to train the next generation of chip engineers."),
       details: [
-        { label: "Annual graduates", value: "300+" },
-        { label: "Program scope", value: "Cross-departmental" },
-        { label: "Core strength", value: "Research" },
+        { label: t("Annual graduates"), value: "300+" },
+        { label: t("Program scope"), value: t("Cross-departmental") },
+        { label: t("Core strength"), value: t("Research") },
       ],
     },
     {
       id: "kyushu-university",
-      name: "Kyushu University",
-      fullName: "Kyushu University",
-      city: "Fukuoka",
+      name: t("Kyushu University"),
+      fullName: t("Kyushu University"),
+      city: t("Fukuoka"),
       coords: [33.6, 130.42],
       color: "#8e44ad",
       logo: "assets/Kyushu-university-logo.svg",
-      role: "Established an adult semiconductor retraining center for working professionals seeking to transition into the chip industry.",
+      role: t("Established an adult semiconductor retraining center for working professionals seeking to transition into the chip industry."),
       details: [
-        { label: "Annual intake", value: "500+" },
-        { label: "Target audience", value: "Working adults" },
-        { label: "University rank", value: "Top 5 in Japan" },
+        { label: t("Annual intake"), value: "500+" },
+        { label: t("Target audience"), value: t("Working adults") },
+        { label: t("University rank"), value: t("Top 5 in Japan") },
       ],
     },
     {
       id: "oita-university",
-      name: "Oita University",
-      fullName: "Oita University",
-      city: "Oita",
+      name: t("Oita University"),
+      fullName: t("Oita University"),
+      city: t("Oita"),
       coords: [33.23, 131.6],
       color: "#2980b9",
       logo: "assets/Oita-university-logo.svg",
-      role: "Established a semiconductor core talent retraining center focused on upskilling working professionals through industry-led partnerships.",
+      role: t("Established a semiconductor core talent retraining center focused on upskilling working professionals through industry-led partnerships."),
       details: [
-        { label: "Program focus", value: "Core talent development" },
-        { label: "Target audience", value: "Working professionals" },
-        { label: "Partnership model", value: "Industry-led" },
+        { label: t("Program focus"), value: t("Core talent development") },
+        { label: t("Target audience"), value: t("Working professionals") },
+        { label: t("Partnership model"), value: t("Industry-led") },
       ],
     },
     {
       id: "kumamoto-university",
-      name: "Kumamoto University",
-      fullName: "Kumamoto University",
-      city: "Kumamoto",
+      name: t("Kumamoto University"),
+      fullName: t("Kumamoto University"),
+      city: t("Kumamoto"),
       coords: [32.81, 130.73],
       color: "#27ae60",
       logo: "assets/Kumamoto-university-logo.svg",
-      role: "Partnered with JASM (TSMC) to establish a semiconductor research center as a direct industry-academia collaboration.",
+      role: t("Partnered with JASM (TSMC) to establish a semiconductor research center as a direct industry-academia collaboration."),
       details: [
-        { label: "Industry partner", value: "JASM (TSMC)" },
-        { label: "Researchers", value: "400+" },
-        { label: "Model", value: "Industry-academia" },
+        { label: t("Industry partner"), value: "JASM (TSMC)" },
+        { label: t("Researchers"), value: "400+" },
+        { label: t("Model"), value: t("Industry-academia") },
       ],
     },
     {
       id: "prefectural-kumamoto",
-      name: "Prefectural University of Kumamoto",
-      fullName: "Prefectural University of Kumamoto",
-      city: "Kumamoto",
+      name: t("Prefectural University of Kumamoto"),
+      fullName: t("Prefectural University of Kumamoto"),
+      city: t("Kumamoto"),
       coords: [32.83, 130.76],
       color: "#f39c12",
       logo: "assets/Prefectural-university-of-kumamoto-logo.svg",
-      role: "Since 2023, all first-year science and engineering students are required to take semiconductor introductory courses taught by industry experts.",
+      role: t("Since 2023, all first-year science and engineering students are required to take semiconductor introductory courses taught by industry experts."),
       details: [
-        { label: "Mandate start", value: "2023" },
-        { label: "Scope", value: "All first-year students" },
-        { label: "Instructors", value: "Industry experts" },
+        { label: t("Mandate start"), value: "2023" },
+        { label: t("Scope"), value: t("All first-year students") },
+        { label: t("Instructors"), value: t("Industry experts") },
       ],
     },
   ],
 };
 
 export const employmentData = {
-  summary:
-    "JASM and major semiconductor employers are reshaping Kumamoto's wage landscape, offering salaries significantly above local and national averages to attract talent.",
+  summary: t(
+    "JASM and major semiconductor employers are reshaping Kumamoto's wage landscape, offering salaries significantly above local and national averages to attract talent."
+  ),
   companies: [
     {
       id: "jasm",
-      name: "JASM (TSMC)",
+      name: t("JASM (TSMC)"),
       coords: [32.88565, 130.84237],
       color: "#e74c3c",
       headline: "¥280,000/month",
-      headlineLabel: "University graduate salary",
-      description:
-        "JASM offers ¥280,000/month for university graduates, ¥320,000/month for master's degrees, and ¥360,000/month for doctorates. Significantly higher than the local Kumamoto average for graduates (~¥201,000/month).",
-      quote:
-        "JASM's monthly salary is ¥50,000 or more higher than the national average.",
-      quoteSource: "METI, July 2024",
+      headlineLabel: t("University graduate salary"),
+      description: t(
+        "JASM offers ¥280,000/month for university graduates, ¥320,000/month for master's degrees, and ¥360,000/month for doctorates. Significantly higher than the local Kumamoto average for graduates (~¥201,000/month)."
+      ),
+      quote: t(
+        "JASM's monthly salary is ¥50,000 or more higher than the national average."
+      ),
+      quoteSource: t("METI, July 2024"),
       stats: [
-        { value: "¥280K", label: "University graduate" },
-        { value: "¥320K", label: "Master's degree" },
-        { value: "¥360K", label: "Doctorate" },
-        { value: "¥201K", label: "Kumamoto average" },
+        { value: "¥280K", label: t("University graduate") },
+        { value: "¥320K", label: t("Master's degree") },
+        { value: "¥360K", label: t("Doctorate") },
+        { value: "¥201K", label: t("Kumamoto average") },
       ],
       evidence: {
-        title: "METI semiconductor workforce report",
+        title: t("METI semiconductor workforce report"),
         type: "pdf",
         url: "https://www.meti.go.jp/english/policy/0704_001.pdf",
         date: "2024-07",
@@ -121,21 +127,22 @@ export const employmentData = {
     },
     {
       id: "tel",
-      name: "Tokyo Electron (TEL)",
+      name: t("Tokyo Electron (TEL)"),
       coords: [32.85, 130.73],
       color: "#2980b9",
       headline: "+40%",
-      headlineLabel: "Salary increase for new recruits",
-      description:
-        "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800 (increase of ¥85,500/month).",
+      headlineLabel: t("Salary increase for new recruits"),
+      description: t(
+        "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800 (increase of ¥85,500/month)."
+      ),
       stats: [
-        { value: "¥304,800", label: "New graduate salary" },
-        { value: "+¥85,500", label: "Monthly increase" },
-        { value: "40%", label: "Salary increase" },
-        { value: "Apr 2024", label: "Effective date" },
+        { value: "¥304,800", label: t("New graduate salary") },
+        { value: "+¥85,500", label: t("Monthly increase") },
+        { value: "40%", label: t("Salary increase") },
+        { value: "Apr 2024", label: t("Effective date") },
       ],
       evidence: {
-        title: "TEL quarterly earnings report",
+        title: t("TEL quarterly earnings report"),
         type: "pdf",
         url: "https://www.tel.com/ir/library/report/ll4pka00000000l9-att/fy24q4presentations-e.pdf",
         date: "2024-Q4",
@@ -147,29 +154,31 @@ export const employmentData = {
 export const sciencePark = {
   center: [32.87, 130.78],
   radius: 15000, // meters
-  name: "Kumamoto Science Park Corridor",
-  subtitle: "Government development zone",
-  description:
-    "The Kumamoto Prefectural Government has designated this area as a special semiconductor development zone, offering tax incentives, streamlined permitting, and infrastructure investments totaling ¥4.8 trillion.",
+  name: t("Kumamoto Science Park Corridor"),
+  subtitle: t("Government development zone"),
+  description: t(
+    "The Kumamoto Prefectural Government has designated this area as a special semiconductor development zone, offering tax incentives, streamlined permitting, and infrastructure investments totaling ¥4.8 trillion."
+  ),
   stats: [
-    { value: "¥4.8T", label: "Government investment" },
-    { value: "2040", label: "Completion target" },
-    { value: "50,000", label: "Projected new jobs" },
-    { value: "12", label: "Major facilities planned" },
+    { value: "¥4.8T", label: t("Government investment") },
+    { value: "2040", label: t("Completion target") },
+    { value: "50,000", label: t("Projected new jobs") },
+    { value: "12", label: t("Major facilities planned") },
   ],
   evidence: {
-    title: "Kumamoto Science Park master plan",
+    title: t("Kumamoto Science Park master plan"),
     type: "pdf",
-    description: "Official development roadmap and zoning documentation",
+    description: t("Official development roadmap and zoning documentation"),
   },
 };
 
 export const scienceParkZonePlans = [
   {
     id: "sp-gov-zone",
-    name: "Government zone plan",
-    description:
-      "The prefectural government designated a special semiconductor zone within the Science Park boundary. This zone provides tax incentives, streamlined permitting, and dedicated infrastructure for semiconductor-related industries.",
+    name: t("Government zone plan"),
+    description: t(
+      "The prefectural government designated a special semiconductor zone within the Science Park boundary. This zone provides tax incentives, streamlined permitting, and dedicated infrastructure for semiconductor-related industries."
+    ),
     coords: [32.88, 130.82],
     polygon: null,
     color: "rgba(255, 59, 48, 0.12)",
@@ -182,105 +191,105 @@ export const scienceParkZonePlans = [
       duration: 2000,
     },
     stats: [
-      { value: "560ha", label: "Designated area" },
-      { value: "¥1.2T", label: "Public investment" },
-      { value: "2025", label: "Zoning enacted" },
-      { value: "15", label: "Incentive programs" },
+      { value: "560ha", label: t("Designated area") },
+      { value: "¥1.2T", label: t("Public investment") },
+      { value: "2025", label: t("Zoning enacted") },
+      { value: "15", label: t("Incentive programs") },
     ],
     // Industrial park zones from reference map (red circles)
     industrialZones: [
       {
         id: "semiconductor-cluster-west",
-        name: "Semiconductor cluster area",
-        subtitle: "Kochi municipal / Kikuyo Town industrial park",
-        direction: "West of JASM",
+        name: t("Semiconductor cluster area"),
+        subtitle: t("Kochi municipal / Kikuyo Town industrial park"),
+        direction: t("West of JASM"),
         coords: [32.8913, 130.8362],
         radius: 565,
         color: "rgba(255, 80, 80, 0.35)",
         strokeColor: "rgba(255, 60, 60, 0.6)",
-        description: "The broader Semicon Techno Park zone straddling the Fukuhara–Haramizu boundary, west of JASM along Route 30 and the Kikuyo bypass. Includes Semicon Techno Park, Koshi Industrial Park, and Haramizu Industrial Park.",
+        description: t("The broader Semicon Techno Park zone straddling the Fukuhara–Haramizu boundary, west of JASM along Route 30 and the Kikuyo bypass. Includes Semicon Techno Park, Koshi Industrial Park, and Haramizu Industrial Park."),
         stats: [
-          { value: "6+", label: "Industrial parks" },
-          { value: "FY2025", label: "Phase 1 open" },
+          { value: "6+", label: t("Industrial parks") },
+          { value: "FY2025", label: t("Phase 1 open") },
         ],
         image: "assets/use-case-images/evidence-semiconductor-clusters.webp",
         camera: { center: [130.8362, 32.8913], zoom: 13.1, pitch: 0, bearing: 0, duration: 2000 },
       },
       {
         id: "kumamoto-prefecture-park-north",
-        name: "Kumamoto Prefecture industrial park",
-        subtitle: "Kikuchi City",
-        direction: "North of JASM",
+        name: t("Kumamoto Prefecture industrial park"),
+        subtitle: t("Kikuchi City"),
+        direction: t("North of JASM"),
         coords: [32.9172, 130.8323],
         radius: 565,
         color: "rgba(255, 80, 80, 0.35)",
         strokeColor: "rgba(255, 60, 60, 0.6)",
-        description: "Prefecture-operated industrial park north of JASM, part of the distributed Science Park framework.",
+        description: t("Prefecture-operated industrial park north of JASM, part of the distributed Science Park framework."),
         stats: [
-          { value: "25ha", label: "Site area" },
-          { value: "FY2026", label: "Opening" },
+          { value: "25ha", label: t("Site area") },
+          { value: "FY2026", label: t("Opening") },
         ],
         image: "assets/use-case-images/evidence-industrial-park-locations.webp",
         camera: { center: [130.8323, 32.9172], zoom: 13.1, pitch: 0, bearing: 0, duration: 2000 },
       },
       {
         id: "kyokushikawabe-northeast",
-        name: "Kyokushikawabe zone",
-        direction: "Northeast of JASM",
+        name: t("Kyokushikawabe zone"),
+        direction: t("Northeast of JASM"),
         coords: [32.9090, 130.8365],
         radius: 565,
         color: "rgba(255, 80, 80, 0.35)",
         strokeColor: "rgba(255, 60, 60, 0.6)",
-        description: "Kumamoto North Industrial Park northeast of JASM, forming part of the wider semiconductor corridor expansion across Kumamoto Prefecture.",
+        description: t("Kumamoto North Industrial Park northeast of JASM, forming part of the wider semiconductor corridor expansion across Kumamoto Prefecture."),
         stats: [],
         image: "assets/use-case-images/evidence-industrial-park-locations.webp",
         camera: { center: [130.8365, 32.9090], zoom: 13.1, pitch: 0, bearing: 0, duration: 2000 },
       },
       {
         id: "ozu-industrial-east",
-        name: "Ozu town-operated industrial zone",
-        direction: "East of JASM",
+        name: t("Ozu town-operated industrial zone"),
+        direction: t("East of JASM"),
         coords: [32.8870, 130.8720],
         radius: 565,
         color: "rgba(255, 80, 80, 0.35)",
         strokeColor: "rgba(255, 60, 60, 0.6)",
-        description: "Industrial corridor east of JASM including Honda Kumamoto Factory and Ozu South Industrial Park.",
+        description: t("Industrial corridor east of JASM including Honda Kumamoto Factory and Ozu South Industrial Park."),
         stats: [
-          { value: "120ha", label: "Industrial land" },
-          { value: "¥95B", label: "Investment" },
-          { value: "2032", label: "Phase 1" },
-          { value: "3,000", label: "Jobs" },
+          { value: "120ha", label: t("Industrial land") },
+          { value: "¥95B", label: t("Investment") },
+          { value: "2032", label: t("Phase 1") },
+          { value: "3,000", label: t("Jobs") },
         ],
         image: "assets/use-case-images/evidence-semiconductor-clusters.webp",
         camera: { center: [130.8720, 32.8870], zoom: 13.1, pitch: 0, bearing: 0, duration: 2000 },
       },
       {
         id: "airport-area-southeast",
-        name: "Kumamoto airport area",
-        direction: "Southeast of JASM",
+        name: t("Kumamoto airport area"),
+        direction: t("Southeast of JASM"),
         coords: [32.8350, 130.8590],
         radius: 565,
         color: "rgba(255, 80, 80, 0.35)",
         strokeColor: "rgba(255, 60, 60, 0.6)",
-        description: "Aso Kumamoto Airport and surrounding development zone, southeast of JASM.",
+        description: t("Aso Kumamoto Airport and surrounding development zone, southeast of JASM."),
         stats: [],
         image: null,
         camera: { center: [130.8590, 32.8350], zoom: 13.1, pitch: 0, bearing: 0, duration: 2000 },
       },
       {
         id: "kikuyo-rezoned-southwest",
-        name: "Kikuyo town rezoned development district",
-        direction: "Southwest of JASM",
+        name: t("Kikuyo town rezoned development district"),
+        direction: t("Southwest of JASM"),
         coords: [32.8720, 130.8350],
         radius: 565,
         color: "rgba(255, 80, 80, 0.35)",
         strokeColor: "rgba(255, 60, 60, 0.6)",
-        description: "Planned land readjustment and rezoning area in the Kubota–Tsukure district of Kikuyo, southwest of JASM.",
+        description: t("Planned land readjustment and rezoning area in the Kubota–Tsukure district of Kikuyo, southwest of JASM."),
         stats: [
-          { value: "320ha", label: "Rezoned area" },
-          { value: "8,000", label: "Housing units" },
-          { value: "¥280B", label: "Municipal budget" },
-          { value: "2035", label: "Target" },
+          { value: "320ha", label: t("Rezoned area") },
+          { value: "8,000", label: t("Housing units") },
+          { value: "¥280B", label: t("Municipal budget") },
+          { value: "2035", label: t("Target") },
         ],
         image: "assets/use-case-images/evidence-science-park.webp",
         camera: { center: [130.8350, 32.8720], zoom: 13.1, pitch: 0, bearing: 0, duration: 2000 },
@@ -290,13 +299,13 @@ export const scienceParkZonePlans = [
     companyDots: [
       {
         id: "jasm",
-        label: "JASM",
+        label: t("JASM"),
         logo: "assets/Jasm-logo.svg",
         coords: [32.88662326612072, 130.84268461365443],
       },
       {
         id: "sck",
-        label: "Sony Semiconductor Kumamoto",
+        label: t("Sony Semiconductor Kumamoto"),
         logo: "assets/Sony-logo.svg",
         coords: [32.8908, 130.8384],
       },
@@ -305,11 +314,11 @@ export const scienceParkZonePlans = [
     infrastructureLines: [
       {
         id: "higo-ozu-access-road",
-        label: "Higo-Ozu airport access road",
+        label: t("Higo-Ozu airport access road"),
         type: "line",
         color: "#34c759",
-        description: "New access road connecting Kumamoto Airport to the Ozu development corridor and the semiconductor park.",
-        status: "Under planning",
+        description: t("New access road connecting Kumamoto Airport to the Ozu development corridor and the semiconductor park."),
+        status: t("Under planning"),
         path: [
           [32.8373, 130.8552],
           [32.843,  130.857 ],
@@ -321,7 +330,7 @@ export const scienceParkZonePlans = [
       },
       {
         id: "airport-monorail",
-        label: "Kumamoto airport monorail",
+        label: t("Kumamoto airport monorail"),
         type: "polygon",
         color: "rgba(0, 122, 255, 0.25)",
         strokeColor: "#007aff",
@@ -405,9 +414,10 @@ export const scienceParkZonePlans = [
   },
   {
     id: "sp-kikuyo-plan",
-    name: "Kikuyo long-term plan",
-    description:
-      "Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, medical, and support services planned for semiconductor workers and their families.",
+    name: t("Kikuyo long-term plan"),
+    description: t(
+      "Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, medical, and support services planned for semiconductor workers and their families."
+    ),
     coords: [32.88, 130.83],
     polygon: [
       [130.8333, 32.8222],
@@ -439,17 +449,18 @@ export const scienceParkZonePlans = [
       bearing: 14,
     },
     stats: [
-      { value: "320ha", label: "Rezoned area" },
-      { value: "8,000", label: "New housing units" },
-      { value: "2035", label: "Target completion" },
-      { value: "¥280B", label: "Municipal budget" },
+      { value: "320ha", label: t("Rezoned area") },
+      { value: "8,000", label: t("New housing units") },
+      { value: "2035", label: t("Target completion") },
+      { value: "¥280B", label: t("Municipal budget") },
     ],
   },
   {
     id: "sp-ozu-plan",
-    name: "Ozu long-term plan",
-    description:
-      "Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain. 120 hectares designated for industrial and logistics use.",
+    name: t("Ozu long-term plan"),
+    description: t(
+      "Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain. 120 hectares designated for industrial and logistics use."
+    ),
     coords: [32.86, 130.87],
     polygon: [
       [130.875, 32.8368],
@@ -482,10 +493,10 @@ export const scienceParkZonePlans = [
       bearing: 0,
     },
     stats: [
-      { value: "120ha", label: "Industrial parcels" },
-      { value: "¥150B", label: "Infrastructure spend" },
-      { value: "2032", label: "Phase 1 complete" },
-      { value: "3,500", label: "Logistics jobs" },
+      { value: "120ha", label: t("Industrial parcels") },
+      { value: "¥150B", label: t("Infrastructure spend") },
+      { value: "2032", label: t("Phase 1 complete") },
+      { value: "3,500", label: t("Logistics jobs") },
     ],
   },
 ];
@@ -514,67 +525,72 @@ export const grandAirportData = {
     landmarks: [
       {
         id: "airport",
-        name: "Aso Kumamoto Airport",
+        name: t("Aso Kumamoto Airport"),
         coords: [32.8373, 130.8552],
         icon: "plane",
         color: "#007aff",
-        description:
-          "Kumamoto's primary airport handling 3.5 million passengers annually. The proposed rail link will cut travel time to the semiconductor corridor to under 15 minutes.",
+        description: t(
+          "Kumamoto's primary airport handling 3.5 million passengers annually. The proposed rail link will cut travel time to the semiconductor corridor to under 15 minutes."
+        ),
         stats: [
-          { value: "3.5M", label: "Annual passengers" },
-          { value: "15 min", label: "Proposed rail time to JASM" },
+          { value: "3.5M", label: t("Annual passengers") },
+          { value: "15 min", label: t("Proposed rail time to JASM") },
         ],
       },
       {
         id: "higo-ozu",
-        name: "Higo-Ozu Station",
+        name: t("Higo-Ozu Station"),
         coords: [32.8773, 130.8668],
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Key JR Hohi Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor.",
+        description: t(
+          "Key JR Hohi Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor."
+        ),
         stats: [
-          { value: "JR Hohi", label: "Railway line" },
-          { value: "44 min", label: "To Kumamoto Station" },
+          { value: "JR Hohi", label: t("Railway line") },
+          { value: "44 min", label: t("To Kumamoto Station") },
         ],
       },
       {
         id: "semicon-tech-park",
-        name: "Semiconductor Tech Park",
+        name: t("Semiconductor Tech Park"),
         coords: [32.876, 130.8],
         icon: "cpu",
         color: "#5856D6",
-        description:
-          "A dedicated technology park for semiconductor-related R&D and manufacturing support facilities, anchoring the northern end of the corridor.",
+        description: t(
+          "A dedicated technology park for semiconductor-related R&D and manufacturing support facilities, anchoring the northern end of the corridor."
+        ),
         stats: [
-          { value: "120 ha", label: "Planned area" },
-          { value: "2027", label: "Target completion" },
+          { value: "120 ha", label: t("Planned area") },
+          { value: "2027", label: t("Target completion") },
         ],
       },
       {
         id: "new-kikuyo-landmark",
-        name: "New Kikuyo Station",
+        name: t("New Kikuyo Station"),
         coords: [32.88, 130.81],
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Planned new station on the JR Hohi Line serving the semiconductor corridor workforce. Will reduce commute times for thousands of employees.",
+        description: t(
+          "Planned new station on the JR Hohi Line serving the semiconductor corridor workforce. Will reduce commute times for thousands of employees."
+        ),
         stats: [
-          { value: "2028", label: "Planned opening" },
-          { value: "6,000+", label: "Projected daily riders" },
+          { value: "2028", label: t("Planned opening") },
+          { value: "6,000+", label: t("Projected daily riders") },
         ],
       },
       {
         id: "techno-research",
-        name: "Techno Research Park",
+        name: t("Techno Research Park"),
         coords: [32.855, 130.86],
         icon: "microscope",
         color: "#5856D6",
-        description:
-          "Established research park housing semiconductor testing and advanced materials labs. Benefits directly from improved airport and rail connectivity.",
+        description: t(
+          "Established research park housing semiconductor testing and advanced materials labs. Benefits directly from improved airport and rail connectivity."
+        ),
         stats: [
-          { value: "50+", label: "Research tenants" },
-          { value: "1996", label: "Established" },
+          { value: "50+", label: t("Research tenants") },
+          { value: "1996", label: t("Established") },
         ],
       },
     ],
@@ -583,49 +599,53 @@ export const grandAirportData = {
       {
         id: "prev-route",
         sourceId: "ga-prev-route",
-        name: "Previously announced route",
+        name: t("Previously announced route"),
         color: "#007aff",
-        description:
-          "The initial proposed alignment for the airport access railway, following a direct path from Aso Kumamoto Airport to Higo-Ozu Station.",
+        description: t(
+          "The initial proposed alignment for the airport access railway, following a direct path from Aso Kumamoto Airport to Higo-Ozu Station."
+        ),
         stats: [
-          { value: "6.8 km", label: "Estimated length" },
-          { value: "Direct", label: "Alignment type" },
+          { value: "6.8 km", label: t("Estimated length") },
+          { value: "Direct", label: t("Alignment type") },
         ],
       },
       {
         id: "new-route",
         sourceId: "ga-new-route",
-        name: "Newly announced route",
+        name: t("Newly announced route"),
         color: "#007aff",
-        description:
-          "The revised route announced in 2024, sweeping east to better serve the Techno Research Park area before connecting to Higo-Ozu Station.",
+        description: t(
+          "The revised route announced in 2024, sweeping east to better serve the Techno Research Park area before connecting to Higo-Ozu Station."
+        ),
         stats: [
-          { value: "8.2 km", label: "Estimated length" },
-          { value: "Curved", label: "Alignment type" },
+          { value: "8.2 km", label: t("Estimated length") },
+          { value: "Curved", label: t("Alignment type") },
         ],
       },
       {
         id: "hohi-line",
         sourceId: "ga-access-hohi-line",
-        name: "JR Hohi Line",
+        name: t("JR Hohi Line"),
         color: "#6e7073",
-        description:
-          "The existing east-west JR railway connecting Kumamoto City to Oita Prefecture. The airport access railway will join this line at Higo-Ozu Station.",
+        description: t(
+          "The existing east-west JR railway connecting Kumamoto City to Oita Prefecture. The airport access railway will join this line at Higo-Ozu Station."
+        ),
         stats: [
-          { value: "148 km", label: "Total length" },
-          { value: "1914", label: "Established" },
+          { value: "148 km", label: t("Total length") },
+          { value: "1914", label: t("Established") },
         ],
       },
       {
         id: "airport-connection",
         sourceId: "ga-access-airport-road",
-        name: "Airport connection road",
+        name: t("Airport connection road"),
         color: "#007aff",
-        description:
-          "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes.",
+        description: t(
+          "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes."
+        ),
         stats: [
-          { value: "~7 km", label: "Length" },
-          { value: "20-min access", label: "Airport target" },
+          { value: "~7 km", label: t("Length") },
+          { value: "20-min access", label: t("Airport target") },
         ],
       },
     ],
@@ -652,72 +672,77 @@ export const grandAirportData = {
     stations: [
       {
         id: "kumamoto",
-        name: "Kumamoto station",
+        name: t("Kumamoto station"),
         coords: [32.7904, 130.6885],
         type: "existing",
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Major terminal station and starting point of the JR Hohi Main Line. Principal rail hub for Kumamoto Prefecture with shinkansen connections.",
+        description: t(
+          "Major terminal station and starting point of the JR Hohi Main Line. Principal rail hub for Kumamoto Prefecture with shinkansen connections."
+        ),
         stats: [
-          { value: "JR Hohi", label: "Railway line" },
-          { value: "32,000+", label: "Daily riders" },
+          { value: "JR Hohi", label: t("Railway line") },
+          { value: "32,000+", label: t("Daily riders") },
         ],
       },
       {
         id: "sanrigi",
-        name: "Sanrigi station",
+        name: t("Sanrigi station"),
         coords: [32.8618, 130.7970],
         type: "existing",
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Station on the JR Hohi Main Line in the Kikuyo area, serving the growing residential district near the semiconductor corridor.",
+        description: t(
+          "Station on the JR Hohi Main Line in the Kikuyo area, serving the growing residential district near the semiconductor corridor."
+        ),
         stats: [
-          { value: "JR Hohi", label: "Railway line" },
-          { value: "1,200", label: "Daily riders" },
+          { value: "JR Hohi", label: t("Railway line") },
+          { value: "1,200", label: t("Daily riders") },
         ],
       },
       {
         id: "proposed-new",
-        name: "Proposed new station",
+        name: t("Proposed new station"),
         coords: [32.865, 130.819],
         type: "proposed",
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Planning-stage concept for a new station on the JR Hohi Main Line between Sanrigi and Haramizu, intended to serve the semiconductor corridor workforce directly.",
+        description: t(
+          "Planning-stage concept for a new station on the JR Hohi Main Line between Sanrigi and Haramizu, intended to serve the semiconductor corridor workforce directly."
+        ),
         stats: [
-          { value: "Concept", label: "Status" },
-          { value: "6,000+", label: "Projected daily riders" },
+          { value: "Concept", label: t("Status") },
+          { value: "6,000+", label: t("Projected daily riders") },
         ],
       },
       {
         id: "haramizu",
-        name: "Haramizu station",
+        name: t("Haramizu station"),
         coords: [32.8706, 130.8291],
         type: "existing",
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Existing station on the JR Hohi Main Line east of the semiconductor corridor. Serves as a key access point for the Kikuyo residential area.",
+        description: t(
+          "Existing station on the JR Hohi Main Line east of the semiconductor corridor. Serves as a key access point for the Kikuyo residential area."
+        ),
         stats: [
-          { value: "JR Hohi", label: "Railway line" },
-          { value: "850", label: "Daily riders" },
+          { value: "JR Hohi", label: t("Railway line") },
+          { value: "850", label: t("Daily riders") },
         ],
       },
       {
         id: "higo-ozu",
-        name: "Higo-Ozu station",
+        name: t("Higo-Ozu station"),
         coords: [32.8774, 130.8662],
         type: "existing",
         icon: "train-front",
         color: "#ff9500",
-        description:
-          "Key JR Hohi Main Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor.",
+        description: t(
+          "Key JR Hohi Main Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor."
+        ),
         stats: [
-          { value: "JR Hohi", label: "Railway line" },
-          { value: "44 min", label: "To Kumamoto Station" },
+          { value: "JR Hohi", label: t("Railway line") },
+          { value: "44 min", label: t("To Kumamoto Station") },
         ],
       },
     ],
@@ -755,7 +780,7 @@ export const grandAirportData = {
   roadExtensions: [
     {
       id: "airport-connection",
-      name: "Airport connection road",
+      name: t("Airport connection road"),
       type: "new",
       color: "#007aff",
       coords: [
@@ -766,17 +791,18 @@ export const grandAirportData = {
         [32.835, 130.848],
         [32.837, 130.855],
       ],
-      description:
-        "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes, supporting semiconductor industry logistics and business travel.",
+      description: t(
+        "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes, supporting semiconductor industry logistics and business travel."
+      ),
       stats: [
-        { value: "New", label: "Road type" },
-        { value: "~7 km", label: "Length" },
-        { value: "20-min access", label: "Airport target" },
+        { value: "New", label: t("Road type") },
+        { value: "~7 km", label: t("Length") },
+        { value: "20-min access", label: t("Airport target") },
       ],
     },
     {
       id: "ring-road-connector",
-      name: "Kumamoto ring road connector",
+      name: t("Kumamoto ring road connector"),
       type: "new",
       color: "#e63f5a",
       coords: [
@@ -787,12 +813,13 @@ export const grandAirportData = {
         [32.8783, 130.8685], // Ozu West IC
         [32.8917, 130.8962], // Ozu IC (end)
       ],
-      description:
-        "Planned high-standard road running from Kumamoto North Junction westward to Ozu interchange. Part of the Kumamoto ring road network linking the semiconductor corridor to the expressway system.",
+      description: t(
+        "Planned high-standard road running from Kumamoto North Junction westward to Ozu interchange. Part of the Kumamoto ring road network linking the semiconductor corridor to the expressway system."
+      ),
       stats: [
-        { value: "New", label: "Road type" },
-        { value: "~20 km", label: "Length" },
-        { value: "Ring road", label: "Concept" },
+        { value: "New", label: t("Road type") },
+        { value: "~20 km", label: t("Length") },
+        { value: "Ring road", label: t("Concept") },
       ],
     },
   ],
@@ -802,7 +829,7 @@ export const grandAirportData = {
     lines: [
       {
         id: "northern-connecting",
-        name: "Northern connecting road",
+        name: t("Northern connecting road"),
         coords: [
           [32.855, 130.67], [32.8554, 130.6702], [32.8558, 130.6704],
           [32.8564, 130.6707], [32.8571, 130.6711], [32.858, 130.6715],
@@ -835,7 +862,7 @@ export const grandAirportData = {
       },
       {
         id: "eastern-connecting",
-        name: "Eastern connecting road",
+        name: t("Eastern connecting road"),
         coords: [
           [32.85, 130.82], [32.8496, 130.8202], [32.8492, 130.8204],
           [32.8486, 130.8207], [32.8479, 130.8211], [32.847, 130.8215],
@@ -865,7 +892,7 @@ export const grandAirportData = {
       },
       {
         id: "southern-connecting",
-        name: "Southern connecting road",
+        name: t("Southern connecting road"),
         coords: [
           [32.755, 130.74], [32.755, 130.7396], [32.755, 130.7391],
           [32.755, 130.7384], [32.755, 130.7374], [32.755, 130.7361],
@@ -895,10 +922,10 @@ export const grandAirportData = {
       },
     ],
     circles: [
-      { id: "city-hall", name: "Kumamoto City Hall", coords: [32.8031, 130.7079] },
-      { id: "prefectural-office", name: "Kumamoto Prefectural Office", coords: [32.7898, 130.7415] },
-      { id: "kumamoto-ic", name: "Kumamoto IC", coords: [32.8346, 130.7794] },
-      { id: "mashiki", name: "Mashiki area", coords: [32.8080, 130.8050] },
+      { id: "city-hall", name: t("Kumamoto City Hall"), coords: [32.8031, 130.7079] },
+      { id: "prefectural-office", name: t("Kumamoto Prefectural Office"), coords: [32.7898, 130.7415] },
+      { id: "kumamoto-ic", name: t("Kumamoto IC"), coords: [32.8346, 130.7794] },
+      { id: "mashiki", name: t("Mashiki area"), coords: [32.8080, 130.8050] },
     ],
   },
 };

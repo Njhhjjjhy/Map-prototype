@@ -12,6 +12,7 @@ import {
   continueBtn,
   SVG_ARROW_RIGHT,
 } from "./shared/templates.js";
+import { t } from "./i18n/index.js";
 
 /**
  * Shared timing constants - semantic names for setTimeout values.
@@ -85,9 +86,9 @@ const App = {
 
     // Show chatbox with initial content
     UI.showChatbox(`
-            <h3>Kumamoto investment guide</h3>
-            <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-            ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
+            <h3>${t("Kumamoto investment guide")}</h3>
+            <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
+            ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
         `);
   },
 
@@ -221,9 +222,9 @@ const App = {
 
       // Restore initial welcome chatbox with Start Journey CTA
       UI.showChatbox(`
-                <h3>Kumamoto investment guide</h3>
-                <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-                ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
+                <h3>${t("Kumamoto investment guide")}</h3>
+                <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
+                ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
             `);
 
       MapController.startHeartbeat();
@@ -424,55 +425,55 @@ const App = {
     // Step-specific narratives
     const narratives = {
       resources: {
-        title: "Resources",
-        body: "Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both in surplus.",
+        title: t("Resources"),
+        body: t("Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both in surplus."),
         afterItems: "",
       },
       "strategic-location": {
-        title: "Strategic location",
-        body: "Seoul and Taipei are both just <strong>1 hour 40 minutes</strong> by direct flight from Kumamoto. Busan is 1h 25m. Every major semiconductor hub in Asia is under 3 hours away.",
+        title: t("Strategic location"),
+        body: t("Seoul and Taipei are both just <strong>1 hour 40 minutes</strong> by direct flight from Kumamoto. Busan is 1h 25m. Every major semiconductor hub in Asia is under 3 hours away."),
         afterItems:
-          '<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">Click destinations on the map to see route details.</p>',
+          t('<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">Click destinations on the map to see route details.</p>'),
       },
       "government-support": {
-        title: "Government support",
-        body: "<strong>4+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors.",
+        title: t("Government support"),
+        body: t("<strong>4+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors."),
         afterItems:
-          '<p style="margin-top: var(--space-2);">Click tier markers to see commitment details.</p>',
+          t('<p style="margin-top: var(--space-2);">Click tier markers to see commitment details.</p>'),
       },
       "corporate-investment": {
-        title: "Corporate investment",
-        body: "TSMC committed <strong>2.16 trillion yen</strong> for two fabs. Sony, SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron all announced expansions. <strong>Seven major players</strong>, all converging on Kumamoto.",
+        title: t("Corporate investment"),
+        body: t("TSMC committed <strong>2.16 trillion yen</strong> for two fabs. Sony, SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron all announced expansions. <strong>Seven major players</strong>, all converging on Kumamoto."),
         afterItems:
-          '<p style="margin-top: var(--space-2);">Click company markers to see investment scale.</p>',
+          t('<p style="margin-top: var(--space-2);">Click company markers to see investment scale.</p>'),
       },
       "transport-access": {
-        title: "Science park and grand airport",
-        body: "Kumamoto Science Park anchors a semiconductor corridor backed by <strong>¥4.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia.",
+        title: t("Science park and grand airport"),
+        body: t("Kumamoto Science Park anchors a semiconductor corridor backed by <strong>¥4.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia."),
         afterItems: "",
       },
       "education-pipeline": {
-        title: "Education and talent pipeline",
-        body: "METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.",
+        title: t("Education and talent pipeline"),
+        body: t("METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline."),
         afterItems: "",
       },
       "future-outlook": {
-        title: "Future outlook",
-        body: "See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
+        title: t("Future outlook"),
+        body: t("See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations."),
         afterItems: "",
       },
       "investment-zones": {
-        title: "Investment zones",
-        body: "Three zones in the silicon triangle, each with a distinct role in the semiconductor ecosystem.",
+        title: t("Investment zones"),
+        body: t("Three zones in the silicon triangle, each with a distinct role in the semiconductor ecosystem."),
         afterItems: "",
       },
       properties: {
-        title: "Investment properties",
-        body: `${AppData.properties.length} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.`,
+        title: t("Investment properties"),
+        body: t(`${AppData.properties.length} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.`),
         afterItems: "",
       },
       final: {
-        title: "Journey complete",
+        title: t("Journey complete"),
         body: "",
         afterItems: "",
       },
@@ -500,7 +501,7 @@ const App = {
         <h3>${n.title}</h3>
         <p>${n.body}</p>
         <div class="chatbox-options">
-          <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">See the Future</button>
+          <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">${t("See the Future")}</button>
         </div>
       `;
     }
@@ -655,9 +656,9 @@ const App = {
       UI.showChatbox(content);
     } else {
       UI.showChatbox(`
-                <h3>Kumamoto investment guide</h3>
-                <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-                ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
+                <h3>${t("Kumamoto investment guide")}</h3>
+                <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
+                ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
             `);
     }
   },

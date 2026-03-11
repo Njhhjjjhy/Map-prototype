@@ -1,6 +1,7 @@
 import { AppData } from "../data/index.js";
 import { TIMING } from "../app.js";
 import { panelHeader, statGrid, dataAttribution } from "../shared/templates.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   destroyChart(chartId) {
@@ -28,7 +29,7 @@ export const methods = {
 
     return `
             <details class="chart-data-table">
-                <summary>View data as table</summary>
+                <summary>${t("View data as table")}</summary>
                 <table>
                     <caption class="sr-only">${caption}</caption>
                     <thead><tr>${headerHtml}</tr></thead>
@@ -59,7 +60,7 @@ export const methods = {
 
     // Determine chart metric: netProfit for land dev, annualRent for BTR
     const isBTR = fin.scenarios.average.annualRent != null;
-    const chartLabel = isBTR ? "Annual rent" : "Net Profit (5yr)";
+    const chartLabel = isBTR ? t("Annual rent") : t("Net Profit (5yr)");
     const metric = isBTR ? "annualRent" : "netProfit";
 
     // Colorblind-safe palette
@@ -72,7 +73,7 @@ export const methods = {
     this.charts["scenario"] = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: ["Bear", "Average", "Bull"],
+        labels: [t("Bear"), t("Average"), t("Bull")],
         datasets: [
           {
             label: chartLabel,
@@ -117,13 +118,13 @@ export const methods = {
     if (tableContainer) {
       const formatYen = (num) => "¥" + (num || 0).toLocaleString();
       tableContainer.innerHTML = this.generateDataTable(
-        ["Scenario", chartLabel],
+        [t("Scenario"), chartLabel],
         [
-          ["Bear", formatYen(fin.scenarios.bear[metric])],
-          ["Average", formatYen(fin.scenarios.average[metric])],
-          ["Bull", formatYen(fin.scenarios.bull[metric])],
+          [t("Bear"), formatYen(fin.scenarios.bear[metric])],
+          [t("Average"), formatYen(fin.scenarios.average[metric])],
+          [t("Bull"), formatYen(fin.scenarios.bull[metric])],
         ],
-        `Scenario comparison showing projected ${chartLabel.toLowerCase()} for bear, average, and bull market conditions`,
+        t("Scenario comparison showing projected returns for bear, average, and bull market conditions"),
       );
     }
   },
@@ -150,7 +151,7 @@ export const methods = {
         labels: years,
         datasets: [
           {
-            label: "Annual appreciation",
+            label: t("Annual appreciation"),
             data: values,
             borderColor: "#2563eb",
             backgroundColor: "rgba(37, 99, 235, 0.1)",
@@ -168,7 +169,7 @@ export const methods = {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => ctx.raw + "% appreciation",
+              label: (ctx) => ctx.raw + "% " + t("appreciation"),
             },
           },
         },
@@ -191,9 +192,9 @@ export const methods = {
     const tableContainer = document.getElementById("trend-chart-table");
     if (tableContainer) {
       tableContainer.innerHTML = this.generateDataTable(
-        ["Year", "Appreciation"],
+        [t("Year"), t("Appreciation")],
         stats.trackRecord.map((r) => [r.year, r.appreciation]),
-        "Historical property appreciation rates in the Kumamoto semiconductor corridor",
+        t("Historical property appreciation rates in the Kumamoto semiconductor corridor"),
       );
     }
   },
@@ -209,12 +210,14 @@ export const methods = {
     const ctx = canvas.getContext("2d");
 
     // Sort companies by investment amount (descending)
+    const isInvestmentLabel = (label) =>
+      label.includes("investment") ||
+      label.includes("Investment") ||
+      label.includes("投資");
+
     const companies = [...AppData.companies].sort((a, b) => {
       const getAmount = (stats) => {
-        const inv = stats.find(
-          (s) =>
-            s.label.includes("investment") || s.label.includes("Investment"),
-        );
+        const inv = stats.find((s) => isInvestmentLabel(s.label));
         if (!inv) return 0;
         const val = inv.value
           .replace("¥", "")
@@ -227,9 +230,7 @@ export const methods = {
 
     const labels = companies.map((c) => c.name.split(" ")[0]); // Short names
     const investments = companies.map((c) => {
-      const inv = c.stats.find(
-        (s) => s.label.includes("investment") || s.label.includes("Investment"),
-      );
+      const inv = c.stats.find((s) => isInvestmentLabel(s.label));
       if (!inv) return 0;
       const val = inv.value.replace("¥", "");
       if (val.includes("T")) return parseFloat(val) * 1000;
@@ -253,7 +254,7 @@ export const methods = {
         labels: labels,
         datasets: [
           {
-            label: "Investment (¥B)",
+            label: t("Investment") + " (¥B)",
             data: investments,
             backgroundColor: colors,
             borderRadius: 4,
@@ -298,9 +299,9 @@ export const methods = {
       const formatInvestment = (val) =>
         val >= 1000 ? "¥" + (val / 1000).toFixed(1) + "T" : "¥" + val + "B";
       tableContainer.innerHTML = this.generateDataTable(
-        ["Company", "Investment"],
+        [t("Company"), t("Investment")],
         labels.map((label, i) => [label, formatInvestment(investments[i])]),
-        "Corporate investment comparison in the Kumamoto semiconductor corridor",
+        t("Corporate investment comparison in the Kumamoto semiconductor corridor"),
       );
     }
   },
@@ -325,10 +326,10 @@ export const methods = {
       .join("");
 
     const content = `
-            ${panelHeader("Growth drivers", "Truth engine", "Key factors driving future value appreciation for this property:")}
+            ${panelHeader(t("Growth drivers"), t("Truth engine"), t("Key factors driving future value appreciation for this property:"))}
             ${driversHtml}
             <button class="panel-btn primary" onclick="UI.showPerformanceCalculator()">
-                Performance calculator
+                ${t("Performance calculator")}
             </button>
         `;
 
@@ -368,60 +369,60 @@ export const methods = {
     const confidence = this.getConfidenceInfo(scenario);
 
     const content = `
-            ${panelHeader("Financial projection", "Performance calculator")}
+            ${panelHeader(t("Financial projection"), t("Performance calculator"))}
 
             <div class="calculator-section">
-                <h4>Scenario comparison</h4>
+                <h4>${t("Scenario comparison")}</h4>
                 <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
-                    <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios: Bear case ${formatYen(fin.scenarios.bear.netProfit)}, Average case ${formatYen(fin.scenarios.average.netProfit)}, Bull case ${formatYen(fin.scenarios.bull.netProfit)}"></canvas>
+                    <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios")}: ${t("Bear")} ${formatYen(fin.scenarios.bear.netProfit)}, ${t("Average")} ${formatYen(fin.scenarios.average.netProfit)}, ${t("Bull")} ${formatYen(fin.scenarios.bull.netProfit)}"></canvas>
                 </div>
                 <div id="scenario-chart-table"></div>
 
-                <h4>Details: <span class="scenario-label">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} Case</span></h4>
+                <h4>${t("Details")}: <span class="scenario-label">${t(scenario.charAt(0).toUpperCase() + scenario.slice(1))} ${t("Case")}</span></h4>
                 <div class="scenario-toggle">
                     <button class="scenario-btn ${scenario === "bear" ? "active" : ""}" onclick="UI.updateCalculator(UI.currentProperty, 'bear')">
-                        <span class="scenario-icon" aria-hidden="true">▼</span> Bear
+                        <span class="scenario-icon" aria-hidden="true">▼</span> ${t("Bear")}
                     </button>
                     <button class="scenario-btn ${scenario === "average" ? "active" : ""}" onclick="UI.updateCalculator(UI.currentProperty, 'average')">
-                        <span class="scenario-icon" aria-hidden="true">—</span> Average
+                        <span class="scenario-icon" aria-hidden="true">—</span> ${t("Average")}
                     </button>
                     <button class="scenario-btn ${scenario === "bull" ? "active" : ""}" onclick="UI.updateCalculator(UI.currentProperty, 'bull')">
-                        <span class="scenario-icon" aria-hidden="true">▲</span> Bull
+                        <span class="scenario-icon" aria-hidden="true">▲</span> ${t("Bull")}
                     </button>
                 </div>
 
                 <div class="calc-row">
-                    <span class="calc-label">Appreciation rate</span>
+                    <span class="calc-label">${t("Appreciation rate")}</span>
                     <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Est. selling price (5yr)</span>
+                    <span class="calc-label">${t("Est. selling price (5yr)")}</span>
                     <div class="calc-value-with-confidence">
                         <span class="calc-value">${sellingPriceInfo.display}</span>
-                        <span class="confidence-range" title="${confidence.level} confidence">
-                            Range: ${sellingPriceInfo.range}
+                        <span class="confidence-range" title="${t(confidence.level)} ${t("confidence")}">
+                            ${t("Range")}: ${sellingPriceInfo.range}
                             <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
                         </span>
                     </div>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Rental yield</span>
+                    <span class="calc-label">${t("Rental yield")}</span>
                     <span class="calc-value">${formatPercent(data.noiTicRatio || data.irr || 0)}</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Annual rental income</span>
+                    <span class="calc-label">${t("Annual rental income")}</span>
                     <span class="calc-value">${formatYen(data.annualRent)}</span>
                 </div>
                 <div class="calc-row">
-                    <span class="calc-label">Applicable taxes</span>
+                    <span class="calc-label">${t("Applicable taxes")}</span>
                     <span class="calc-value negative">${formatYen(data.taxes)}</span>
                 </div>
                 <div class="calc-row total">
-                    <span class="calc-label">Net profit (5yr)</span>
+                    <span class="calc-label">${t("Net profit (5yr)")}</span>
                     <div class="calc-value-with-confidence">
                         <span class="calc-value positive">${formatYenSigned(data.netProfit)}</span>
-                        <span class="confidence-range" title="${confidence.level} confidence">
-                            Range: ${netProfitInfo.range}
+                        <span class="confidence-range" title="${t(confidence.level)} ${t("confidence")}">
+                            ${t("Range")}: ${netProfitInfo.range}
                             <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
                         </span>
                     </div>
@@ -429,16 +430,16 @@ export const methods = {
             </div>
 
             <div class="data-attribution">
-                <p class="data-timestamp">Sample data &middot; Q1 2026</p>
-                <p>Price data from Kumamoto Land Registry (Jan 2026)</p>
-                <p>Rental estimates based on local property managers</p>
+                <p class="data-timestamp">${t("Sample data")} &middot; Q1 2026</p>
+                <p>${t("Price data from Kumamoto Land Registry (Jan 2026)")}</p>
+                <p>${t("Rental estimates based on local property managers")}</p>
             </div>
 
             <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
-                View rental report
+                ${t("View rental report")}
             </button>
             <button class="panel-btn" onclick="UI.showAreaStats()">
-                Area statistics
+                ${t("Area statistics")}
             </button>
         `;
 
@@ -455,27 +456,27 @@ export const methods = {
     const stats = AppData.areaStats;
 
     const content = `
-            ${panelHeader("Market overview", "Area statistics")}
+            ${panelHeader(t("Market overview"), t("Area statistics"))}
 
             ${statGrid([
               {
                 value: stats.avgAppreciation,
-                label: "Avg. annual appreciation",
+                label: t("Avg. annual appreciation"),
               },
-              { value: stats.avgRentalYield, label: "Avg. rental yield" },
-              { value: stats.occupancyRate, label: "Occupancy rate" },
+              { value: stats.avgRentalYield, label: t("Avg. rental yield") },
+              { value: stats.occupancyRate, label: t("Occupancy rate") },
             ])}
 
             <div class="calculator-section">
-                <h4>Appreciation trend</h4>
+                <h4>${t("Appreciation trend")}</h4>
                 <div class="chart-container" style="height: 160px; margin: 16px 0;">
-                    <canvas id="trend-chart" role="img" aria-label="Line chart showing appreciation trend: 2022 at 6.2%, 2023 at 9.1%, 2024 at 11.3% - showing accelerating growth"></canvas>
+                    <canvas id="trend-chart" role="img" aria-label="${t("Line chart showing appreciation trend")}: 2022 6.2%, 2023 9.1%, 2024 11.3%"></canvas>
                 </div>
                 <div id="trend-chart-table"></div>
-                <p class="chart-caption">Year-over-year property appreciation in the Kumamoto semiconductor corridor.</p>
+                <p class="chart-caption">${t("Year-over-year property appreciation in the Kumamoto semiconductor corridor.")}</p>
             </div>
 
-            ${dataAttribution("Data from Kumamoto Prefecture Real Estate Association")}
+            ${dataAttribution(t("Data from Kumamoto Prefecture Real Estate Association"))}
         `;
 
     this.showPanel(content);

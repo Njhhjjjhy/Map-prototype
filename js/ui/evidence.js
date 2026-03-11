@@ -6,6 +6,7 @@ import {
   disclosureTriangle,
   SVG_CHEVRON_RIGHT,
 } from "../shared/templates.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   showEvidencePreview(groupId, itemId) {
@@ -28,7 +29,7 @@ export const methods = {
                         <polyline points="14 2 14 8 20 8"></polyline>
                     </svg>
                     <h3>${item.title}</h3>
-                    <p>No preview available</p>
+                    <p>${t("No preview available")}</p>
                 </div>
             `;
     }
@@ -138,7 +139,7 @@ export const methods = {
                         ${this.getLucideIcon(group.icon)}
                     </span>
                     <span class="disclosure-title">${group.title}</span>
-                    <span class="disclosure-badge">${itemCount} item${itemCount !== 1 ? "s" : ""}</span>
+                    <span class="disclosure-badge">${itemCount} ${itemCount !== 1 ? t("items") : t("item")}</span>
                 </button>
                 <div class="disclosure-content"
                      id="disclosure-content-${group.id}"
@@ -213,7 +214,7 @@ export const methods = {
             <p>${item.description}</p>
             ${statsHtml}
             <button class="panel-btn primary" onclick="UI.showGallery('${item.title}', '${item.type}', '${item.description.replace(/'/g, "\\'")}', ${item.image ? "'" + item.image + "'" : "null"})">
-                View ${this.getTypeLabel(item.type)}
+                ${t("View")} ${this.getTypeLabel(item.type)}
             </button>
         `;
 
@@ -252,7 +253,7 @@ export const methods = {
       .join("");
 
     const content = `
-            ${panelHeader("Evidence library", "Supporting documents", "Explore detailed evidence and documentation for each category.")}
+            ${panelHeader(t("Evidence library"), t("Supporting documents"), t("Explore detailed evidence and documentation for each category."))}
             ${groupsHtml}
         `;
 

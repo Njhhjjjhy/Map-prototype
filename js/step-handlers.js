@@ -1,6 +1,7 @@
 import { STEPS, AppData } from "./data/index.js";
 import { CAMERA_STEPS, MAP_COLORS, MapController } from "./map/index.js";
 import { UI } from "./ui/index.js";
+import { t } from "./i18n/index.js";
 import {
   panelHeader,
   bentoStats,
@@ -299,7 +300,7 @@ export const stepHandlers = {
     return `
             <h3>${narrative.title}</h3>
             <p>${narrative.body}</p>
-            <div class="chatbox-options" role="group" aria-label="Government levels">
+            <div class="chatbox-options" role="group" aria-label="${t("Government levels")}">
                 ${items}
             </div>
             ${narrative.afterItems}
@@ -456,20 +457,20 @@ export const stepHandlers = {
         } else if (selectedInfra) {
           clustersBodyHtml = `
             <div style="border-left: 3px solid #34c759; padding: var(--space-3) var(--space-4); background: rgba(52, 199, 89, 0.04); border-radius: 0 var(--radius-medium) var(--radius-medium) 0;">
-              <div style="font-size: var(--text-xs); color: #34c759; font-family: var(--font-display); font-weight: var(--font-weight-semibold); letter-spacing: 0.02em; margin-bottom: var(--space-2);">Road infrastructure${selectedInfra.status ? ` · ${selectedInfra.status}` : ""}</div>
+              <div style="font-size: var(--text-xs); color: #34c759; font-family: var(--font-display); font-weight: var(--font-weight-semibold); letter-spacing: 0.02em; margin-bottom: var(--space-2);">${t("Road infrastructure")}${selectedInfra.status ? ` · ${selectedInfra.status}` : ""}</div>
               <div style="font-size: var(--text-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); line-height: 1.4;">${selectedInfra.label}</div>
               ${selectedInfra.description ? `<div style="font-size: var(--text-xs); color: var(--color-text-secondary); margin-top: var(--space-2); line-height: 1.5;">${selectedInfra.description}</div>` : ""}
             </div>
           `;
         } else {
           clustersBodyHtml = `
-            <p style="font-size: var(--text-sm); color: var(--color-text-tertiary);">Select a cluster or road on the map to view details.</p>
+            <p style="font-size: var(--text-sm); color: var(--color-text-tertiary);">${t("Select a cluster or road on the map to view details.")}</p>
           `;
         }
 
         clustersHtml = `
           <div style="margin-top: var(--space-6);">
-            <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Clusters</div>
+            <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Clusters")}</div>
             ${clustersBodyHtml}
           </div>
         `;
@@ -485,7 +486,7 @@ export const stepHandlers = {
 
             return evidenceCard({
               color: zone.strokeColor,
-              subtitle: "Development zone",
+              subtitle: t("Development zone"),
               title: zone.name,
               description: zone.description,
               stats: zone.stats,
@@ -496,7 +497,7 @@ export const stepHandlers = {
 
         evidenceHtml = `
           <div style="margin-top: var(--space-6);">
-              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Evidence</div>
+              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Evidence")}</div>
               <div style="display: flex; flex-direction: column; gap: var(--space-4);">
                   ${cardsHtml}
               </div>
@@ -505,7 +506,7 @@ export const stepHandlers = {
       }
 
       UI.showPanel(`
-        ${panelHeader("Development zones", "Science park", sp.description)}
+        ${panelHeader(t("Development zones"), t("Science park"), sp.description)}
         <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
@@ -520,25 +521,25 @@ export const stepHandlers = {
       const airportChildren = [
         {
           id: "ga-airport-access",
-          label: "Airport access",
+          label: t("Airport access"),
           color: "#007aff",
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
         },
         {
           id: "ga-railway-stations",
-          label: "New railway stations",
+          label: t("New railway stations"),
           color: "#ff9500",
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M2 16h20"/><path d="M4 16l-2 6h20l-2-6"/><path d="M9.5 11a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/><path d="M15.5 11a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/></svg>',
         },
         {
           id: "ga-road-extensions",
-          label: "Road extensions",
+          label: t("Road extensions"),
           color: "#34c759",
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
         },
         {
           id: "ga-ten-twenty-concept",
-          label: "10-20 minute concept",
+          label: t("10-20 minute concept"),
           color: "#FF69B4",
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
         },
@@ -595,7 +596,7 @@ export const stepHandlers = {
 
         evidenceHtml = `
           <div style="margin-top: var(--space-6);">
-              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Evidence</div>
+              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Evidence")}</div>
               <div style="display: flex; flex-direction: column; gap: var(--space-4);">
                   ${cardsHtml}
               </div>
@@ -604,7 +605,7 @@ export const stepHandlers = {
       }
 
       UI.showPanel(`
-        ${panelHeader("Development zones", "Grand airport concept", airport?.description || "A proposed expansion of Aso Kumamoto Airport to serve as a regional semiconductor logistics hub.")}
+        ${panelHeader(t("Development zones"), t("Grand airport concept"), airport?.description || t("A proposed expansion of Aso Kumamoto Airport to serve as a regional semiconductor logistics hub."))}
         <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
@@ -619,54 +620,54 @@ export const stepHandlers = {
   _getAirportChildEvidence(childId, airport) {
     if (childId === "ga-airport-access") {
       return {
-        subtitle: "Grand airport concept",
-        title: "Airport access",
+        subtitle: t("Grand airport concept"),
+        title: t("Airport access"),
         description:
           airport?.description ||
-          "Airport access infrastructure connecting the semiconductor corridor to Aso Kumamoto Airport.",
+          t("Airport access infrastructure connecting the semiconductor corridor to Aso Kumamoto Airport."),
         stats: airport?.stats || [],
         images: [
           {
             src: "assets/use-case-images/evidence-airport-master-plan.webp",
-            alt: "Airport master plan",
+            alt: t("Airport master plan"),
           },
         ],
       };
     }
     if (childId === "ga-railway-stations") {
       return {
-        subtitle: "Grand airport concept",
-        title: "New railway stations",
+        subtitle: t("Grand airport concept"),
+        title: t("New railway stations"),
         description:
-          "A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station.",
+          t("A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station."),
         stats: airport?.stats || [],
         images: [
           {
             src: "assets/use-case-images/evidence-airport-to-city-railway.webp",
-            alt: "Airport to city railway",
+            alt: t("Airport to city railway"),
           },
           {
             src: "assets/use-case-images/evidence-new-railway-system.webp",
-            alt: "New railway system",
+            alt: t("New railway system"),
           },
         ],
       };
     }
     if (childId === "ga-road-extensions") {
       return {
-        subtitle: "Grand airport concept",
-        title: "Road extensions",
+        subtitle: t("Grand airport concept"),
+        title: t("Road extensions"),
         description:
-          'The "10-minute ring" concept connects the airport, industrial parks, and residential zones at approximately 10-minute drive intervals, creating an integrated urban corridor.',
+          t('The "10-minute ring" concept connects the airport, industrial parks, and residential zones at approximately 10-minute drive intervals, creating an integrated urban corridor.'),
         stats: [],
         images: [
           {
             src: "assets/use-case-images/evidence-kumamoto-future-road-network.webp",
-            alt: "Future road network",
+            alt: t("Future road network"),
           },
           {
             src: "assets/use-case-images/evidence-10-minute-ring-road-2.webp",
-            alt: "10-minute ring road",
+            alt: t("10-minute ring road"),
           },
         ],
       };
@@ -685,7 +686,7 @@ export const stepHandlers = {
     const statsHtml = lm.stats?.length ? bentoStats(lm.stats) : "";
 
     UI.showPanel(`
-      <div class="subtitle" style="color: ${lm.color};">Airport access</div>
+      <div class="subtitle" style="color: ${lm.color};">${t("Airport access")}</div>
       <h2>${lm.name}</h2>
       <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${lm.description || ""}</p>
       ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
@@ -703,7 +704,7 @@ export const stepHandlers = {
     const statsHtml = route.stats?.length ? bentoStats(route.stats) : "";
 
     UI.showPanel(`
-      <div class="subtitle" style="color: ${route.color};">Airport access</div>
+      <div class="subtitle" style="color: ${route.color};">${t("Airport access")}</div>
       <h2>${route.name}</h2>
       <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${route.description || ""}</p>
       ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
@@ -722,7 +723,7 @@ export const stepHandlers = {
     const statsHtml = road.stats?.length ? bentoStats(road.stats) : "";
 
     UI.showPanel(`
-      <div class="subtitle" style="color: ${color};">Road extensions</div>
+      <div class="subtitle" style="color: ${color};">${t("Road extensions")}</div>
       <h2>${road.name}</h2>
       <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${road.description || ""}</p>
       ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
@@ -744,7 +745,7 @@ export const stepHandlers = {
     const statsHtml = station.stats?.length ? bentoStats(station.stats) : "";
 
     UI.showPanel(`
-      <div class="subtitle" style="color: ${color};">New railway stations</div>
+      <div class="subtitle" style="color: ${color};">${t("New railway stations")}</div>
       <h2>${station.name}</h2>
       <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${station.description || ""}</p>
       ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
@@ -954,49 +955,49 @@ export const stepHandlers = {
   _handleInvestmentZoneSubItem(itemId) {
     const zoneData = {
       "central-city-zone": {
-        name: "Central city",
+        name: t("Central city"),
         details: [
-          ["Product type", "RC mansion condominiums and accommodation"],
-          ["Connection", "Shinkansen 30-minute connection to Hakata"],
+          [t("Product type"), t("RC mansion condominiums and accommodation")],
+          [t("Connection"), t("Shinkansen 30-minute connection to Hakata")],
           [
-            "Role",
-            "Kyushu-level business support center, suitable for Japanese corporate senior executive families",
+            t("Role"),
+            t("Kyushu-level business support center, suitable for Japanese corporate senior executive families"),
           ],
         ],
         coords: [32.8016, 130.7014],
       },
       "middle-zone": {
-        name: "Middle zone",
+        name: t("Middle zone"),
         details: [
           [
-            "Product type",
-            "High-spec detached house rentals or renovations upgraded to expatriate standard",
+            t("Product type"),
+            t("High-spec detached house rentals or renovations upgraded to expatriate standard"),
           ],
           [
-            "Opportunity",
-            "Large retail drives lifestyle density but internationalized services (bilingual clinics, international preschools) still being built out",
+            t("Opportunity"),
+            t("Large retail drives lifestyle density but internationalized services (bilingual clinics, international preschools) still being built out"),
           ],
         ],
         coords: [32.8364, 130.7575],
       },
       "jasm-zone": {
-        name: "JASM",
+        name: t("JASM"),
         details: [
           [
-            "Product type",
-            "Corporate RC condominiums and 3-4LDK detached houses",
+            t("Product type"),
+            t("Corporate RC condominiums and 3-4LDK detached houses"),
           ],
           [
-            "Target tenants",
-            "Single engineers, long-term secondees, short-to-medium-term secondees",
+            t("Target tenants"),
+            t("Single engineers, long-term secondees, short-to-medium-term secondees"),
           ],
           [
-            "Two demand waves",
-            "Wave 1 now (construction + early Fab 1 occupants), wave 2 ~2027 (Fab 2 brings higher-income engineers with higher housing quality expectations)",
+            t("Two demand waves"),
+            t("Wave 1 now (construction + early Fab 1 occupants), wave 2 ~2027 (Fab 2 brings higher-income engineers with higher housing quality expectations)"),
           ],
           [
-            "Supply gap",
-            "Supply catches up to demand around 2028-2029",
+            t("Supply gap"),
+            t("Supply catches up to demand around 2028-2029"),
           ],
         ],
         coords: [32.8678, 130.8419],
@@ -1016,7 +1017,7 @@ export const stepHandlers = {
         .join("");
 
       UI.showPanel(`
-                <div class="subtitle">Silicon triangle</div>
+                <div class="subtitle">${t("Silicon triangle")}</div>
                 <h2>${zone.name}</h2>
                 <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
                     ${rows}
@@ -1058,7 +1059,7 @@ export const stepHandlers = {
     "kikuyo-properties": {
       filter: "kikuyo",
       zoneId: "kikuyo-zone",
-      label: "Kikuyo properties",
+      label: t("Kikuyo properties"),
       evidencePdf: "assets/pdfs/Kikuyo-evidence-rent-report.pdf",
       camera: {
         center: [130.83, 32.87],
@@ -1070,7 +1071,7 @@ export const stepHandlers = {
     "ozu-properties": {
       filter: "ozu",
       zoneId: "ozu-zone",
-      label: "Ozu properties",
+      label: t("Ozu properties"),
       evidencePdf: "assets/pdfs/Ozu-evidence-rent-report.pdf",
       camera: {
         center: [130.87, 32.865],
@@ -1199,27 +1200,27 @@ export const stepHandlers = {
 
     return `
             <div class="journey-recap">
-                <h3>Journey complete</h3>
+                <h3>${t("Journey complete")}</h3>
                 <div class="journey-recap-checklist">
                     <div class="journey-recap-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        Natural advantages verified
+                        ${t("Natural advantages verified")}
                     </div>
                     <div class="journey-recap-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        4T+ yen government commitment
+                        ${t("4T+ yen government commitment")}
                     </div>
                     <div class="journey-recap-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        ${propCount} investment properties
+                        ${propCount} ${t("investment properties")}
                     </div>
                 </div>
                 <div class="journey-recap-headline">
-                    <div class="journey-recap-headline-label">Combined 5-year return</div>
+                    <div class="journey-recap-headline-label">${t("Combined 5-year return")}</div>
                     <div class="journey-recap-headline-value">${formatYen(totalNetProfit)}</div>
-                    <div class="journey-recap-headline-detail">across the portfolio</div>
+                    <div class="journey-recap-headline-detail">${t("across the portfolio")}</div>
                 </div>
-                ${continueBtn("App.enterQAMode()", "Enter Q&amp;A")}
+                ${continueBtn("App.enterQAMode()", t("Enter Q&amp;A"))}
             </div>
         `;
   },
@@ -1297,10 +1298,10 @@ export const stepHandlers = {
     const groupHtml = UI.generateDisclosureGroup(group);
 
     const content = `
-            ${panelHeader("Supporting evidence", group.title, "Select an item below to view detailed documentation.")}
+            ${panelHeader(t("Supporting evidence"), group.title, t("Select an item below to view detailed documentation."))}
             ${groupHtml}
             <button class="panel-btn" onclick="UI.showEvidenceListPanel()">
-                View all evidence
+                ${t("View all evidence")}
             </button>
         `;
 
@@ -1356,9 +1357,9 @@ export const stepHandlers = {
       UI.showChatbox(content);
     } else {
       UI.showChatbox(`
-                <h3>Kumamoto investment guide</h3>
-                <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-                ${continueBtn("App.goToStep(1)", "Start Journey", { arrow: true })}
+                <h3>${t("Kumamoto investment guide")}</h3>
+                <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
+                ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
             `);
     }
   },

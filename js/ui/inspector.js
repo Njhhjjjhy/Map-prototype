@@ -1,6 +1,7 @@
 import { STEPS, STAGE_TABS, AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
 import { icardStats, icard, emptyCard } from "../shared/templates.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   async startDashboardMode() {
@@ -30,10 +31,10 @@ export const methods = {
 
     // Open inspector panel at stage 8 (real estate overview)
     setTimeout(() => {
-      this.renderInspectorPanel(7, { title: "Kumamoto corridor" });
+      this.renderInspectorPanel(7, { title: t("Kumamoto corridor") });
       this.dashboardPanelOpen = true;
       this.setPanelHome(() => {
-        this.renderInspectorPanel(7, { title: "Kumamoto corridor" });
+        this.renderInspectorPanel(7, { title: t("Kumamoto corridor") });
       });
     }, 300);
 
@@ -63,7 +64,7 @@ export const methods = {
 
     const stage = this.inspectorStage || 8;
     this.renderInspectorPanel(stage, {
-      title: this.inspectorTitle || "Kumamoto corridor",
+      title: this.inspectorTitle || t("Kumamoto corridor"),
     });
   },
 
@@ -157,12 +158,12 @@ export const methods = {
     const { marker: spMarker, element: spElement } =
       MapController._createMarker(sp.center, spHtml, {
         entrance: "none",
-        ariaLabel: "Kumamoto Science Park",
+        ariaLabel: t("Kumamoto Science Park"),
       });
 
-    MapController._addTooltip(spMarker, spElement, "Kumamoto Science Park");
+    MapController._addTooltip(spMarker, spElement, t("Kumamoto Science Park"));
     spElement.addEventListener("click", () => {
-      UI.renderInspectorPanel(4, { title: "Kumamoto Science Park" });
+      UI.renderInspectorPanel(4, { title: t("Kumamoto Science Park") });
     });
 
     MapController.markers["science-park"] = spMarker;
@@ -232,11 +233,11 @@ export const methods = {
       const prevIdx = (currentIdx - 1 + props.length) % props.length;
       const nextIdx = (currentIdx + 1) % props.length;
       navArrowsHtml = `<div class="inspector-nav-arrows">
-        <button class="inspector-nav-btn" data-nav-property="${props[prevIdx].id}" aria-label="Previous property">
+        <button class="inspector-nav-btn" data-nav-property="${props[prevIdx].id}" aria-label="${t("Previous property")}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
         <span class="inspector-nav-label">${currentIdx + 1} / ${props.length}</span>
-        <button class="inspector-nav-btn" data-nav-property="${props[nextIdx].id}" aria-label="Next property">
+        <button class="inspector-nav-btn" data-nav-property="${props[nextIdx].id}" aria-label="${t("Next property")}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
         </button>
       </div>`;
@@ -385,8 +386,8 @@ export const methods = {
   },
   _renderStage1(tabIndex) {
     let html = `<div class="icard icard-standard">
-            <div class="icard-title">Resources and location</div>
-            <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-top: var(--space-2);">Kumamoto's natural advantages: water, power, and strategic position in the semiconductor supply chain.</p>
+            <div class="icard-title">${t("Resources and location")}</div>
+            <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-top: var(--space-2);">${t("Kumamoto's natural advantages: water, power, and strategic position in the semiconductor supply chain.")}</p>
         </div>`;
     return html;
   },
@@ -405,7 +406,7 @@ export const methods = {
                         </div>
                     </div>`;
         });
-        return html || emptyCard("No government data available.");
+        return html || emptyCard(t("No government data available."));
       }
       case 1: {
         // Investment tab: corporate companies
@@ -453,7 +454,7 @@ export const methods = {
       case 1:
         return this.renderTimelineCard(
           this._gatherTimelineItems("infrastructure"),
-          "Infrastructure timeline",
+          t("Infrastructure timeline"),
         );
       case 2:
         return this._renderEvidenceForGroup("government-zones");
@@ -500,7 +501,7 @@ export const methods = {
               allImages,
               "",
             )
-          : emptyCard("No images available.");
+          : emptyCard(t("No images available."));
       }
       default:
         return "";
@@ -514,7 +515,7 @@ export const methods = {
         !te.landStrategy &&
         !te.summary)
     ) {
-      return emptyCard("No truth engine data available.");
+      return emptyCard(t("No truth engine data available."));
     }
     let html = "";
 
@@ -529,7 +530,7 @@ export const methods = {
     if (te.basicSettings) {
       const entries = Object.entries(te.basicSettings);
       html += `<div class="icard icard-standard icard-overview">
-                <div class="icard-title">Overview</div>
+                <div class="icard-title">${t("Overview")}</div>
                 <div class="icard-detail-list">
                     ${entries
                       .map(
@@ -550,7 +551,7 @@ export const methods = {
   },
   _renderFutureOutlookCard(property, fo) {
     if (!fo || !fo.factors?.length) {
-      return emptyCard("No future outlook data available.");
+      return emptyCard(t("No future outlook data available."));
     }
     let html = "";
     html += fo.factors
@@ -615,16 +616,16 @@ export const methods = {
             { title: road.name },
             `<div class="icard-stats-grid">
                             ${icardStats([
-                              { value: road.status, label: "Status" },
+                              { value: road.status, label: t("Status") },
                               {
                                 value: road.commuteImpact,
-                                label: "Commute saved",
+                                label: t("Commute saved"),
                               },
                               {
                                 value: road.completionDate,
-                                label: "Completion",
+                                label: t("Completion"),
                               },
-                              { value: road.budget, label: "Budget" },
+                              { value: road.budget, label: t("Budget") },
                             ])}
                         </div>`,
           );
@@ -634,12 +635,12 @@ export const methods = {
       case 1:
         return this.renderTimelineCard(
           this._gatherTimelineItems("history"),
-          "Event history",
+          t("Event history"),
         );
       case 2: {
         let html = this.renderTimelineCard(
           this._gatherTimelineItems("mitigation"),
-          "Mitigation investments",
+          t("Mitigation investments"),
         );
         html += this._renderEvidenceForGroup("transportation-network");
         return html;
@@ -660,19 +661,19 @@ export const methods = {
         }
         const stats = AppData.areaStats || {};
         html += `<div class="icard icard-standard">
-                    <div class="icard-title">Area statistics</div>
+                    <div class="icard-title">${t("Area statistics")}</div>
                     <div class="icard-yield-row">
                         <div class="icard-yield-item">
                             <div class="icard-yield-value">${stats.avgAppreciation || "n/a"}</div>
-                            <div class="icard-yield-label">Avg appreciation</div>
+                            <div class="icard-yield-label">${t("Avg appreciation")}</div>
                         </div>
                         <div class="icard-yield-item">
                             <div class="icard-yield-value">${stats.avgRentalYield || "n/a"}</div>
-                            <div class="icard-yield-label">Avg rental yield</div>
+                            <div class="icard-yield-label">${t("Avg rental yield")}</div>
                         </div>
                         <div class="icard-yield-item">
                             <div class="icard-yield-value">${stats.occupancyRate || "n/a"}</div>
-                            <div class="icard-yield-label">Occupancy rate</div>
+                            <div class="icard-yield-label">${t("Occupancy rate")}</div>
                         </div>
                     </div>
                 </div>`;
@@ -691,7 +692,7 @@ export const methods = {
   _renderEvidenceForGroup(groupId) {
     const group = AppData.evidenceGroups?.[groupId];
     if (!group || !group.items?.length) {
-      return emptyCard("No evidence documents available.");
+      return emptyCard(t("No evidence documents available."));
     }
     return group.items.map((item) => this.renderEvidenceDocCard(item)).join("");
   },
@@ -713,32 +714,32 @@ export const methods = {
       return [
         {
           date: "2016",
-          title: "Kumamoto earthquake",
-          meta: "M7.3, significant infrastructure damage",
+          title: t("Kumamoto earthquake"),
+          meta: t("M7.3, significant infrastructure damage"),
           status: "Past",
         },
         {
           date: "2021",
-          title: "TSMC Japan announced",
-          meta: "National semiconductor strategy launched",
+          title: t("TSMC Japan announced"),
+          meta: t("National semiconductor strategy launched"),
           status: "Past",
         },
         {
           date: "2022",
-          title: "JASM construction begins",
-          meta: "Phase 1 groundbreaking",
+          title: t("JASM construction begins"),
+          meta: t("Phase 1 groundbreaking"),
           status: "Past",
         },
         {
           date: "2024",
-          title: "JASM Phase 1 operational",
-          meta: "First wafers produced",
+          title: t("JASM Phase 1 operational"),
+          meta: t("First wafers produced"),
           status: "Past",
         },
         {
           date: "2025",
-          title: "Phase 2 construction",
-          meta: "Second fab under construction",
+          title: t("Phase 2 construction"),
+          meta: t("Second fab under construction"),
           status: "Current",
         },
       ];
@@ -848,16 +849,16 @@ export const methods = {
       const market = fin.paths.market || {};
       rows = [
         {
-          label: "Monthly rent",
+          label: t("Monthly rent"),
           value: this.formatYen(rental.monthlyRent || 0) + "/mo",
         },
         {
-          label: "Guaranteed yield",
+          label: t("Guaranteed yield"),
           value: ((rental.yield || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
         {
-          label: "Market yield",
+          label: t("Market yield"),
           value: ((market.yield || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
@@ -866,12 +867,12 @@ export const methods = {
       // BTR property: show rent + yield (no absolute costs or exit prices)
       rows = [
         {
-          label: "Monthly rent",
+          label: t("Monthly rent"),
           value: this.formatYen(Math.round((sc.annualRent || 0) / 12)) + "/mo",
         },
-        { label: "Annual rent", value: this.formatYen(sc.annualRent || 0) },
+        { label: t("Annual rent"), value: this.formatYen(sc.annualRent || 0) },
         {
-          label: "Rental yield",
+          label: t("Rental yield"),
           value:
             totalCost > 0
               ? ((sc.annualRent / totalCost) * 100).toFixed(1) + "%"
@@ -879,7 +880,7 @@ export const methods = {
           highlight: true,
         },
         {
-          label: "IRR",
+          label: t("IRR"),
           value: ((sc.irr || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
@@ -888,7 +889,7 @@ export const methods = {
       // Land development: show IRR only (no absolute values)
       rows = [
         {
-          label: "IRR",
+          label: t("IRR"),
           value: ((sc.irr || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
@@ -909,20 +910,20 @@ export const methods = {
 
     return `<div class="icard icard-hero icard-calculator">
             <div class="icard-calculator-header">
-                <div class="icard-title">Return calculator</div>
+                <div class="icard-title">${t("Return calculator")}</div>
             </div>
             ${
               hasScenarios
                 ? `<div class="icard-calculator-controls">
                 <div class="icard-scenario-toggle">
-                    <button class="icard-scenario-btn${scenario === "bear" ? " active" : ""}" data-scenario="bear">Bear</button>
-                    <button class="icard-scenario-btn${scenario === "average" ? " active" : ""}" data-scenario="average">Avg</button>
-                    <button class="icard-scenario-btn${scenario === "bull" ? " active" : ""}" data-scenario="bull">Bull</button>
+                    <button class="icard-scenario-btn${scenario === "bear" ? " active" : ""}" data-scenario="bear">${t("Bear")}</button>
+                    <button class="icard-scenario-btn${scenario === "average" ? " active" : ""}" data-scenario="average">${t("Avg")}</button>
+                    <button class="icard-scenario-btn${scenario === "bull" ? " active" : ""}" data-scenario="bull">${t("Bull")}</button>
                 </div>
             </div>
             <div class="icard-chart-section">
                 <div class="chart-container" style="height: 120px;">
-                    <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios: Bear, Average, and Bull net profit"></canvas>
+                    <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios: Bear, Average, and Bull net profit")}"></canvas>
                 </div>
                 <div id="scenario-chart-table"></div>
             </div>`
@@ -933,7 +934,7 @@ export const methods = {
   },
   renderYieldSummaryCard(property) {
     return `<div class="icard icard-standard">
-            <div class="icard-title">Yield</div>
+            <div class="icard-title">${t("Yield")}</div>
             <div style="font-size: var(--text-2xl); font-weight: var(--font-weight-semibold); color: var(--color-primary);">5%</div>
         </div>`;
   },
@@ -945,7 +946,7 @@ export const methods = {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                 </div>
                 <div class="icard-evidence-info">
-                    <div class="icard-evidence-title">${item.title || "Document"}</div>
+                    <div class="icard-evidence-title">${item.title || t("Document")}</div>
                     ${meta ? `<div class="icard-evidence-meta">${meta}</div>` : ""}
                 </div>
                 ${item.viewed ? '<span class="icard-evidence-viewed">&#10003;</span>' : ""}
@@ -957,7 +958,7 @@ export const methods = {
     return `<div class="icard icard-compact">
             ${title ? `<div class="icard-title">${title}</div>` : ""}
             <div class="icard-gallery-grid">
-                ${thumbs.map((src, i) => `<img class="icard-gallery-thumb" src="${src}" alt="${title || "Image"}" data-gallery-index="${i}" loading="lazy" />`).join("")}
+                ${thumbs.map((src, i) => `<img class="icard-gallery-thumb" src="${src}" alt="${title || t("Image")}" data-gallery-index="${i}" loading="lazy" />`).join("")}
             </div>
         </div>`;
   },
@@ -979,11 +980,11 @@ export const methods = {
   },
   renderTimelineCard(items, title) {
     if (!items || !items.length) {
-      return `<div class="icard icard-hero"><div class="icard-title">${title || "Timeline"}</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No timeline data available.</p></div>`;
+      return `<div class="icard icard-hero"><div class="icard-title">${title || t("Timeline")}</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">${t("No timeline data available.")}</p></div>`;
     }
     const now = new Date().getFullYear();
     return `<div class="icard icard-hero">
-            <div class="icard-title">${title || "Timeline"}</div>
+            <div class="icard-title">${title || t("Timeline")}</div>
             <div class="icard-timeline">
                 ${items
                   .map((item) => {
@@ -1004,14 +1005,14 @@ export const methods = {
   },
   renderCommuteCard(property) {
     return icard(
-      { title: "Commute to JASM" },
+      { title: t("Commute to JASM") },
       `<div class="icard-stats-grid">
                 ${icardStats([
                   {
                     value: property.distanceToJasm || "n/a",
-                    label: "Distance",
+                    label: t("Distance"),
                   },
-                  { value: property.driveTime || "n/a", label: "Drive time" },
+                  { value: property.driveTime || "n/a", label: t("Drive time") },
                 ])}
             </div>`,
     );
@@ -1021,7 +1022,7 @@ export const methods = {
     return `<div class="icard icard-standard">
             <div class="icard-risk-header">
                 <span class="icard-risk-severity ${level}"></span>
-                <span class="icard-risk-type">${risk.type || "Risk"} - ${risk.risk || "Moderate"}</span>
+                <span class="icard-risk-type">${risk.type || t("Risk")} - ${risk.risk || t("Moderate")}</span>
             </div>
             <div class="icard-title">${risk.name || ""}</div>
             ${risk.mitigation ? `<div class="icard-risk-description">${risk.mitigation}</div>` : ""}
@@ -1032,7 +1033,7 @@ export const methods = {
     const stats = zone.stats || [];
     return `<div class="icard icard-hero">
             ${zone.subtitle ? `<div class="icard-source">${zone.subtitle}</div>` : ""}
-            <div class="icard-title">${zone.name || "Zone profile"}</div>
+            <div class="icard-title">${zone.name || t("Zone profile")}</div>
             <div class="icard-stats-grid">
                 ${icardStats(stats)}
             </div>
@@ -1043,7 +1044,7 @@ export const methods = {
     const pipeline = AppData.talentPipeline || {};
     const institutions = pipeline.institutions || [];
     return `<div class="icard icard-hero">
-            <div class="icard-title">Semiconductor talent pipeline</div>
+            <div class="icard-title">${t("Semiconductor talent pipeline")}</div>
             ${pipeline.description ? `<p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal); margin-bottom: var(--space-3);">${pipeline.description}</p>` : ""}
             <div class="icard-workforce-institutions">
                 ${institutions
@@ -1088,19 +1089,19 @@ export const methods = {
   renderPipelineContextCard(inst) {
     if (!inst) return "";
     return `<div class="icard icard-standard">
-            <div class="icard-source">Pipeline connection</div>
+            <div class="icard-source">${t("Pipeline connection")}</div>
             <p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal);">
-                ${inst.fullName || inst.name} feeds directly into the Kumamoto semiconductor corridor, supplying graduates and researchers to JASM and other employers in the cluster.
+                ${inst.fullName || inst.name} ${t("feeds directly into the Kumamoto semiconductor corridor, supplying graduates and researchers to JASM and other employers in the cluster.")}
             </p>
         </div>`;
   },
   renderEmploymentView() {
     const data = AppData.employmentData;
     if (!data)
-      return '<div class="icard icard-hero"><div class="icard-title">Employment data</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No employment data available.</p></div>';
+      return '<div class="icard icard-hero"><div class="icard-title">' + t("Employment data") + '</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">' + t("No employment data available.") + '</p></div>';
 
     let html = `<div class="icard icard-hero">
-            <div class="icard-title">Semiconductor employment</div>
+            <div class="icard-title">${t("Semiconductor employment")}</div>
             <p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal); margin-bottom: var(--space-3);">${data.summary}</p>
         </div>`;
 
@@ -1121,7 +1122,7 @@ export const methods = {
                 <div class="icard-stats-grid">${statsHtml}</div>
                 <p style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--line-height-normal); margin-top: var(--space-3);">${company.description}</p>
                 ${company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : ""}
-                ${company.evidence ? `<button class="icard-evidence-btn" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')">View source document</button>` : ""}
+                ${company.evidence ? `<button class="icard-evidence-btn" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')">${t("View source document")}</button>` : ""}
             </div>`;
     });
 
@@ -1131,11 +1132,11 @@ export const methods = {
     const demand = AppData.demandProjections || {};
     const forecast = demand.rentalDemandForecast || [];
     if (!forecast.length) {
-      return '<div class="icard icard-hero"><div class="icard-title">Rental demand forecast</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">No forecast data available.</p></div>';
+      return '<div class="icard icard-hero"><div class="icard-title">' + t("Rental demand forecast") + '</div><p style="color: var(--color-text-tertiary); font-size: var(--text-sm);">' + t("No forecast data available.") + '</p></div>';
     }
     const maxUnits = Math.max(...forecast.map((f) => f.units || 0), 1);
     return `<div class="icard icard-hero">
-            <div class="icard-title">Rental demand forecast</div>
+            <div class="icard-title">${t("Rental demand forecast")}</div>
             <div class="icard-demand-rows">
                 ${forecast
                   .map((f) => {
@@ -1159,11 +1160,11 @@ export const methods = {
     const yieldVal = rental.yield || avg.noiTicRatio || avg.irr || 0;
     return `<div class="icard-sticky-summary">
             <div>
-                <div class="icard-sticky-label">Rental yield</div>
+                <div class="icard-sticky-label">${t("Rental yield")}</div>
                 <div class="icard-sticky-value">${(yieldVal * 100).toFixed(1)}%</div>
             </div>
             <div style="text-align: right;">
-                <div class="icard-sticky-label">Projected annual income</div>
+                <div class="icard-sticky-label">${t("Projected annual income")}</div>
                 <div class="icard-sticky-value">${this.formatYen(annualIncome)}</div>
             </div>
         </div>`;
@@ -1175,7 +1176,7 @@ export const methods = {
             <div style="display: flex; gap: var(--space-3);">
                 ${thumb ? `<img style="width: 64px; height: 48px; border-radius: var(--radius-small); object-fit: cover; flex-shrink: 0;" src="${thumb}" alt="${property.name || ""}" loading="lazy" />` : ""}
                 <div>
-                    <div class="icard-title" style="margin-bottom: var(--space-1);">${property.name || "Property"}</div>
+                    <div class="icard-title" style="margin-bottom: var(--space-1);">${property.name || t("Property")}</div>
                     <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${property.distanceToJasm || ""} ${property.driveTime ? "- " + property.driveTime : ""}</div>
                 </div>
             </div>
@@ -1233,7 +1234,7 @@ export const methods = {
           type: "gallery",
           images: allImgs,
           startIndex: idx,
-          title: "Gallery",
+          title: t("Gallery"),
         });
       });
     });
@@ -1260,7 +1261,7 @@ export const methods = {
         if (!evidenceId) return;
         const titleEl = card.querySelector(".icard-evidence-title");
         const metaEl = card.querySelector(".icard-evidence-meta");
-        const title = titleEl?.textContent || "Document";
+        const title = titleEl?.textContent || t("Document");
         const source = metaEl?.textContent || "";
 
         // Look up evidence item to get its image
@@ -1317,19 +1318,19 @@ export const methods = {
       const market = fin.paths.market || {};
       const rows = [
         {
-          label: "Monthly rent",
+          label: t("Monthly rent"),
           value: this.formatYen(rental.monthlyRent || 0) + "/mo",
         },
-        { label: "Annual rent", value: this.formatYen(rental.annualRent || 0) },
+        { label: t("Annual rent"), value: this.formatYen(rental.annualRent || 0) },
         {
-          label: "Rental yield",
+          label: t("Rental yield"),
           value: ((rental.yield || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
       ];
       if (market.yield) {
         rows.push({
-          label: "Market yield",
+          label: t("Market yield"),
           value: ((market.yield || 0) * 100).toFixed(1) + "%",
           highlight: true,
         });
@@ -1346,10 +1347,10 @@ export const methods = {
       const scenarios = fin.scenarios || {};
       const sc = scenarios[scenario] || {};
       const rows = [
-        { label: "Annual rent", value: this.formatYen(sc.annualRent || 0) },
-        { label: "NOI", value: this.formatYen(sc.noi || 0) },
+        { label: t("Annual rent"), value: this.formatYen(sc.annualRent || 0) },
+        { label: t("NOI"), value: this.formatYen(sc.noi || 0) },
         {
-          label: "IRR",
+          label: t("IRR"),
           value: ((sc.irr || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },

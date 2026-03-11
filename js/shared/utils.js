@@ -1,3 +1,5 @@
+import { t } from "../i18n/index.js";
+
 /**
  * Shared utility functions used across app, UI, and map modules.
  */
@@ -63,9 +65,9 @@ export function formatRelativeTime(date) {
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(hours / 24);
 
-  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  return "Just now";
+  if (days > 0) return `${days} ${t("days ago")}`;
+  if (hours > 0) return `${hours} ${t("hours ago")}`;
+  return t("Just now");
 }
 
 /**

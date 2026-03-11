@@ -1,27 +1,29 @@
 /**
  * Property and investment zone data.
  */
+import { t } from "../i18n/index.js";
 
 export const futureZones = [
   {
     id: "kikuyo",
-    name: "Kikuyo Development Zone",
+    name: t("Kikuyo Development Zone"),
     coords: [32.88, 130.83],
     color: "#5856D6",
     strokeColor: "#5856D6",
-    subtitle: "Residential & commercial",
-    description:
-      "Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, and support services for semiconductor workers.",
+    subtitle: t("Residential & commercial"),
+    description: t(
+      "Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, and support services for semiconductor workers."
+    ),
     stats: [
-      { value: "2,500", label: "Housing units planned" },
-      { value: "¥180B", label: "Infrastructure budget" },
-      { value: "2028", label: "Phase 1 complete" },
-      { value: "15min", label: "To JASM" },
+      { value: "2,500", label: t("Housing units planned") },
+      { value: "¥180B", label: t("Infrastructure budget") },
+      { value: "2028", label: t("Phase 1 complete") },
+      { value: "15min", label: t("To JASM") },
     ],
     evidence: {
-      title: "Kikuyo Town development plan",
+      title: t("Kikuyo Town development plan"),
       type: "pdf",
-      description: "Official rezoning and infrastructure roadmap",
+      description: t("Official rezoning and infrastructure roadmap"),
     },
     boundary: [
       [130.8333, 32.8222],
@@ -45,31 +47,32 @@ export const futureZones = [
       [130.8333, 32.8222],
     ],
     facilities: [
-      { label: "Housing", coords: [32.885, 130.825] },
-      { label: "Retail hub", coords: [32.876, 130.835] },
-      { label: "School", coords: [32.882, 130.838] },
-      { label: "Medical", coords: [32.878, 130.822] },
+      { label: t("Housing"), coords: [32.885, 130.825] },
+      { label: t("Retail hub"), coords: [32.876, 130.835] },
+      { label: t("School"), coords: [32.882, 130.838] },
+      { label: t("Medical"), coords: [32.878, 130.822] },
     ],
   },
   {
     id: "ozu",
-    name: "Ozu Industrial Expansion",
+    name: t("Ozu Industrial Expansion"),
     coords: [32.86, 130.87],
     color: "#30B0C7",
     strokeColor: "#30B0C7",
-    subtitle: "Industrial & logistics",
-    description:
-      "Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain.",
+    subtitle: t("Industrial & logistics"),
+    description: t(
+      "Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain."
+    ),
     stats: [
-      { value: "120ha", label: "Industrial land" },
-      { value: "¥95B", label: "Investment" },
-      { value: "2027", label: "Available" },
-      { value: "3,000", label: "Jobs projected" },
+      { value: "120ha", label: t("Industrial land") },
+      { value: "¥95B", label: t("Investment") },
+      { value: "2027", label: t("Available") },
+      { value: "3,000", label: t("Jobs projected") },
     ],
     evidence: {
-      title: "Ozu industrial zone plan",
+      title: t("Ozu industrial zone plan"),
       type: "pdf",
-      description: "Industrial development documentation",
+      description: t("Industrial development documentation"),
     },
     boundary: [
       [130.875, 32.8368],
@@ -94,30 +97,31 @@ export const futureZones = [
       [130.875, 32.8368],
     ],
     facilities: [
-      { label: "Logistics", coords: [32.864, 130.875] },
-      { label: "Warehouse", coords: [32.856, 130.866] },
-      { label: "Supplier park", coords: [32.862, 130.878] },
+      { label: t("Logistics"), coords: [32.864, 130.875] },
+      { label: t("Warehouse"), coords: [32.856, 130.866] },
+      { label: t("Supplier park"), coords: [32.862, 130.878] },
     ],
   },
   {
     id: "koshi",
-    name: "Koshi R&D Corridor",
+    name: t("Koshi R&D Corridor"),
     coords: [32.905, 130.76],
     color: "#4A90D9",
     strokeColor: "#4A90D9",
-    subtitle: "R&D and innovation",
-    description:
-      "Koshi City is emerging as an R&D hub with Tokyo Electron's new facility and supporting tech infrastructure for the semiconductor corridor.",
+    subtitle: t("R&D and innovation"),
+    description: t(
+      "Koshi City is emerging as an R&D hub with Tokyo Electron's new facility and supporting tech infrastructure for the semiconductor corridor."
+    ),
     stats: [
-      { value: "¥47B", label: "TEL investment" },
-      { value: "~27,000sqm", label: "R&D facility" },
-      { value: "2028", label: "Phase 1 complete" },
-      { value: "1,500", label: "R&D jobs" },
+      { value: "¥47B", label: t("TEL investment") },
+      { value: "~27,000sqm", label: t("R&D facility") },
+      { value: "2028", label: t("Phase 1 complete") },
+      { value: "1,500", label: t("R&D jobs") },
     ],
     evidence: {
-      title: "Koshi City development plan",
+      title: t("Koshi City development plan"),
       type: "pdf",
-      description: "R&D corridor expansion documentation",
+      description: t("R&D corridor expansion documentation"),
     },
     boundary: [
       [130.72, 32.897],
@@ -149,7 +153,7 @@ export const futureZones = [
 export const corridorZones = [
   {
     id: "central-city-zone",
-    name: "Central city",
+    name: t("Central city"),
     center: [32.8016, 130.7014],
     radius: 7,
     color: "rgba(52, 199, 89, 0.15)",
@@ -157,7 +161,7 @@ export const corridorZones = [
   },
   {
     id: "middle-zone",
-    name: "Middle zone",
+    name: t("Middle zone"),
     center: [32.8364, 130.7575],
     radius: 7,
     color: "rgba(255, 149, 0, 0.15)",
@@ -165,7 +169,7 @@ export const corridorZones = [
   },
   {
     id: "jasm-zone",
-    name: "JASM",
+    name: t("JASM"),
     center: [32.8678, 130.8419],
     radius: 7,
     color: "rgba(251, 185, 49, 0.15)",
@@ -177,8 +181,8 @@ export const corridorZones = [
 export const investmentZones = [
   {
     id: "kikuyo-zone",
-    name: "Kikuyo",
-    role: "Factory core / new urban core",
+    name: t("Kikuyo"),
+    role: t("Factory core / new urban core"),
     center: [32.86, 130.83],
     color: "rgba(232, 93, 76, 0.15)",
     strokeColor: "rgba(232, 93, 76, 0.4)",
@@ -206,8 +210,8 @@ export const investmentZones = [
   },
   {
     id: "ozu-zone",
-    name: "Ozu",
-    role: "Gateway / office and logistics support",
+    name: t("Ozu"),
+    role: t("Gateway / office and logistics support"),
     center: [32.88, 130.87],
     color: "rgba(93, 187, 99, 0.15)",
     strokeColor: "rgba(93, 187, 99, 0.4)",
@@ -236,8 +240,8 @@ export const investmentZones = [
   },
   {
     id: "koshi-zone",
-    name: "Koshi",
-    role: "R&D / tools and process innovation",
+    name: t("Koshi"),
+    role: t("R&D / tools and process innovation"),
     center: [32.905, 130.76],
     color: "rgba(74, 144, 217, 0.15)",
     strokeColor: "rgba(74, 144, 217, 0.4)",
@@ -267,27 +271,27 @@ export const investmentZones = [
 ];
 
 export const gktk = {
-  name: "GKTK Fund",
-  fullName: "Greater Kumamoto Technology Corridor Fund",
+  name: t("GKTK Fund"),
+  fullName: t("Greater Kumamoto Technology Corridor Fund"),
   fundSize: "¥2.5B",
-  fundSizeNote: "Target AUM",
-  strategy: "Real estate investment in the semiconductor corridor",
+  fundSizeNote: t("Target AUM"),
+  strategy: t("Real estate investment in the semiconductor corridor"),
   vintage: "2025",
   stats: [
-    { value: "¥2.5B", label: "Fund size" },
-    { value: "2025", label: "Vintage" },
-    { value: "5-7yr", label: "Hold period" },
-    { value: "12-18%", label: "Target IRR" },
+    { value: "¥2.5B", label: t("Fund size") },
+    { value: "2025", label: t("Vintage") },
+    { value: "5-7yr", label: t("Hold period") },
+    { value: "12-18%", label: t("Target IRR") },
   ],
 };
 
 export const properties = [
   {
     id: "ozu-1",
-    name: "Chateau Life Ozu 1",
+    name: t("Chateau Life Ozu 1"),
     coords: [32.865, 130.87],
-    subtitle: "New construction (BTR)",
-    type: "Build to rent",
+    subtitle: t("New construction (BTR)"),
+    type: t("Build to rent"),
     zone: "Ozu",
     subArea: "Sugitmizu",
     distanceToJasm: "5.2 km",
@@ -304,7 +308,7 @@ export const properties = [
       jasm: { coords: [32.874, 130.785], distance: "5.2 km", time: "8 min" },
       station: {
         id: "haramizu-station",
-        name: "Haramizu station",
+        name: t("Haramizu station"),
         coords: [32.8698, 130.823],
         distance: "4.8 km",
         time: "7 min",
@@ -316,7 +320,7 @@ export const properties = [
       },
       road: {
         id: "ozu-road",
-        name: "Ozu Road",
+        name: t("Ozu Road"),
         coords: [32.88, 130.87],
         distance: "1.2 km",
         time: "3 min",
@@ -344,36 +348,38 @@ export const properties = [
         type: "truth-engine",
         data: {
           basicSettings: {
-            propertyName: "Chateau Life Ozu 1",
+            propertyName: t("Chateau Life Ozu 1"),
             address:
               "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
-            propertyType: "Detached house (single-family)",
-            landArea: "117.62 sqm (approx. 35.6 tsubo)",
-            buildingArea:
-              "89.10 sqm total (1F: 43.74 sqm, 2F: 45.36 sqm), 2 floors",
-            layout: "4LDK, 3 parking spaces",
-            availability: "May 2026 onwards",
+            propertyType: t("Detached house (single-family)"),
+            landArea: t("117.62 sqm (approx. 35.6 tsubo)"),
+            buildingArea: t(
+              "89.10 sqm total (1F: 43.74 sqm, 2F: 45.36 sqm), 2 floors"
+            ),
+            layout: t("4LDK, 3 parking spaces"),
+            availability: t("May 2026 onwards"),
             rentBear: "¥160,000/mo",
             rentAverage: "¥190,000/mo",
             rentBull: "¥210,000/mo",
           },
           designStrategy: {
-            description: "Expat family standard spec",
+            description: t("Expat family standard spec"),
             features: [
-              "Large living/dining",
-              "Dishwasher, floor heating, high insulation",
-              "Ample storage, EV charging prep",
-              "Standardized facade and modular floor plans",
-              "Compressed construction period and cost volatility",
+              t("Large living/dining"),
+              t("Dishwasher, floor heating, high insulation"),
+              t("Ample storage, EV charging prep"),
+              t("Standardized facade and modular floor plans"),
+              t("Compressed construction period and cost volatility"),
             ],
           },
           landStrategy: {
-            description:
-              "Three-factor balance: school district + living amenities + commute",
+            description: t(
+              "Three-factor balance: school district + living amenities + commute"
+            ),
             risks: [
-              "Fragmented land",
-              "Site preparation costs",
-              "Drainage/foundation improvement costs uncertain",
+              t("Fragmented land"),
+              t("Site preparation costs"),
+              t("Drainage/foundation improvement costs uncertain"),
             ],
           },
         },
@@ -381,21 +387,25 @@ export const properties = [
       {
         type: "future-outlook",
         data: {
-          description: "Area development plans affecting Ozu 1",
+          description: t("Area development plans affecting Ozu 1"),
           factors: [
             {
-              title: "Ozu industrial expansion",
-              impact: "120ha new logistics and supply chain facilities by 2027",
+              title: t("Ozu industrial expansion"),
+              impact: t(
+                "120ha new logistics and supply chain facilities by 2027"
+              ),
             },
             {
-              title: "Naka-Kyushu Cross Road",
-              impact:
-                "Ozu-Kumamoto Road segment under construction, expressway link through corridor",
+              title: t("Naka-Kyushu Cross Road"),
+              impact: t(
+                "Ozu-Kumamoto Road segment under construction, expressway link through corridor"
+              ),
             },
             {
-              title: "Science park expansion",
-              impact:
-                "Government commitment extends development corridor southward",
+              title: t("Science park expansion"),
+              impact: t(
+                "Government commitment extends development corridor southward"
+              ),
             },
           ],
         },
@@ -403,7 +413,7 @@ export const properties = [
       {
         type: "financial",
         data: {
-          strategy: "BTR (build to rent)",
+          strategy: t("BTR (build to rent)"),
           acquisitionCost: 45600000,
           scenarios: {
             bear: {
@@ -436,10 +446,11 @@ export const properties = [
             monthlyRepayment: 120818,
           },
           rentalEvidence: {
-            title: "AI rent assessment (4LDK/89sqm)",
+            title: t("AI rent assessment (4LDK/89sqm)"),
             type: "pdf",
-            description:
-              "Assessed rent ¥160,000/month from comparable properties",
+            description: t(
+              "Assessed rent ¥160,000/month from comparable properties"
+            ),
             image:
               "assets/use-case-images/evidence-property-rent-evaluation.webp",
           },
@@ -449,10 +460,10 @@ export const properties = [
   },
   {
     id: "ozu-2",
-    name: "Chateau Life Ozu 2",
+    name: t("Chateau Life Ozu 2"),
     coords: [32.862, 130.865],
-    subtitle: "New construction (BTR)",
-    type: "Build to rent",
+    subtitle: t("New construction (BTR)"),
+    type: t("Build to rent"),
     zone: "Ozu",
     subArea: "Sugitmizu",
     distanceToJasm: "5.5 km",
@@ -468,7 +479,7 @@ export const properties = [
       jasm: { coords: [32.874, 130.785], distance: "5.5 km", time: "9 min" },
       station: {
         id: "haramizu-station",
-        name: "Haramizu station",
+        name: t("Haramizu station"),
         coords: [32.8698, 130.823],
         distance: "4.5 km",
         time: "6 min",
@@ -480,7 +491,7 @@ export const properties = [
       },
       road: {
         id: "ozu-road",
-        name: "Ozu Road",
+        name: t("Ozu Road"),
         coords: [32.88, 130.87],
         distance: "1.4 km",
         time: "3 min",
@@ -508,35 +519,36 @@ export const properties = [
         type: "truth-engine",
         data: {
           basicSettings: {
-            propertyName: "Chateau Life Ozu 2",
+            propertyName: t("Chateau Life Ozu 2"),
             address:
               "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
-            propertyType: "Detached house (single-family)",
-            landArea: "200.7 sqm (approx. 60.7 tsubo)",
-            buildingArea: "94.81 sqm total, 2 floors",
-            layout: "4LDK, 3 parking spaces",
-            availability: "July 2026 onwards",
+            propertyType: t("Detached house (single-family)"),
+            landArea: t("200.7 sqm (approx. 60.7 tsubo)"),
+            buildingArea: t("94.81 sqm total, 2 floors"),
+            layout: t("4LDK, 3 parking spaces"),
+            availability: t("July 2026 onwards"),
             rentBear: "¥160,000/mo",
             rentAverage: "¥190,000/mo",
             rentBull: "¥210,000/mo",
           },
           designStrategy: {
-            description: "Expat family standard spec",
+            description: t("Expat family standard spec"),
             features: [
-              "Large living/dining",
-              "Dishwasher, floor heating, high insulation",
-              "Ample storage, EV charging prep",
-              "Standardized facade and modular floor plans",
-              "Compressed construction period and cost volatility",
+              t("Large living/dining"),
+              t("Dishwasher, floor heating, high insulation"),
+              t("Ample storage, EV charging prep"),
+              t("Standardized facade and modular floor plans"),
+              t("Compressed construction period and cost volatility"),
             ],
           },
           landStrategy: {
-            description:
-              "Three-factor balance: school district + living amenities + commute",
+            description: t(
+              "Three-factor balance: school district + living amenities + commute"
+            ),
             risks: [
-              "Fragmented land",
-              "Site preparation costs",
-              "Drainage/foundation improvement costs uncertain",
+              t("Fragmented land"),
+              t("Site preparation costs"),
+              t("Drainage/foundation improvement costs uncertain"),
             ],
           },
         },
@@ -544,21 +556,25 @@ export const properties = [
       {
         type: "future-outlook",
         data: {
-          description: "Area development plans affecting Ozu 2",
+          description: t("Area development plans affecting Ozu 2"),
           factors: [
             {
-              title: "Ozu industrial expansion",
-              impact: "120ha new logistics and supply chain facilities by 2027",
+              title: t("Ozu industrial expansion"),
+              impact: t(
+                "120ha new logistics and supply chain facilities by 2027"
+              ),
             },
             {
-              title: "Naka-Kyushu Cross Road",
-              impact:
-                "Ozu-Kumamoto Road segment under construction, expressway link through corridor",
+              title: t("Naka-Kyushu Cross Road"),
+              impact: t(
+                "Ozu-Kumamoto Road segment under construction, expressway link through corridor"
+              ),
             },
             {
-              title: "Science park expansion",
-              impact:
-                "Government commitment extends development corridor southward",
+              title: t("Science park expansion"),
+              impact: t(
+                "Government commitment extends development corridor southward"
+              ),
             },
           ],
         },
@@ -566,7 +582,7 @@ export const properties = [
       {
         type: "financial",
         data: {
-          strategy: "BTR (build to rent)",
+          strategy: t("BTR (build to rent)"),
           acquisitionCost: 45600000,
           scenarios: {
             bear: {
@@ -599,9 +615,9 @@ export const properties = [
             monthlyRepayment: 120818,
           },
           rentalEvidence: {
-            title: "AI rent assessment (4LDK/95sqm)",
+            title: t("AI rent assessment (4LDK/95sqm)"),
             type: "pdf",
-            description: "Assessed rent from comparable properties",
+            description: t("Assessed rent from comparable properties"),
             image:
               "assets/use-case-images/evidence-property-rent-evaluation.webp",
           },
@@ -611,10 +627,10 @@ export const properties = [
   },
   {
     id: "kikuyo-1",
-    name: "Chateau Life Kikuyo 1",
+    name: t("Chateau Life Kikuyo 1"),
     coords: [32.88, 130.825],
-    subtitle: "Renovation opportunity",
-    type: "Buy-renovate-rent/sell",
+    subtitle: t("Renovation opportunity"),
+    type: t("Buy-renovate-rent/sell"),
     zone: "Kikuyo",
     subArea: "Kubota",
     distanceToJasm: "6.8 km",
@@ -631,7 +647,7 @@ export const properties = [
       jasm: { coords: [32.874, 130.785], distance: "6.8 km", time: "10 min" },
       station: {
         id: "kikuyo-station",
-        name: "Kikuyo station",
+        name: t("Kikuyo station"),
         coords: [32.88, 130.81],
         distance: "1.2 km",
         time: "2 min",
@@ -643,7 +659,7 @@ export const properties = [
       },
       road: {
         id: "ozu-kumamoto-road",
-        name: "Ozu-Kumamoto Road",
+        name: t("Ozu-Kumamoto Road"),
         coords: [32.87, 130.82],
         distance: "3.8 km",
         time: "6 min",
@@ -671,36 +687,38 @@ export const properties = [
         type: "truth-engine",
         data: {
           basicSettings: {
-            propertyName: "Chateau Life Kikuyo 1",
+            propertyName: t("Chateau Life Kikuyo 1"),
             address:
               "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto",
-            propertyType: "Detached house (single-family)",
-            landArea: "201.6 sqm (approx. 60.98 tsubo)",
-            buildingArea:
-              "115.1 sqm total (1F: 62.93 sqm, 2F: 52.17 sqm), 2 floors",
-            layout: "4LDK, 3 parking spaces",
-            availability: "June 2026 onwards",
+            propertyType: t("Detached house (single-family)"),
+            landArea: t("201.6 sqm (approx. 60.98 tsubo)"),
+            buildingArea: t(
+              "115.1 sqm total (1F: 62.93 sqm, 2F: 52.17 sqm), 2 floors"
+            ),
+            layout: t("4LDK, 3 parking spaces"),
+            availability: t("June 2026 onwards"),
             rentBear: "¥170,000/mo",
             rentAverage: "¥190,000/mo",
             rentBull: "¥210,000/mo",
           },
           designStrategy: {
-            description: "Convert to expat standard",
+            description: t("Convert to expat standard"),
             features: [
-              "Insulation and window upgrades",
-              "Traffic flow reorganization",
-              "Kitchen and bath quality improvement",
-              "Storage optimization",
-              "Lighting and moisture control",
+              t("Insulation and window upgrades"),
+              t("Traffic flow reorganization"),
+              t("Kitchen and bath quality improvement"),
+              t("Storage optimization"),
+              t("Lighting and moisture control"),
             ],
           },
           landStrategy: {
-            description:
-              "Advantages: property tax and acquisition cost controllable, fast turnaround, can replicate across multiple small properties",
+            description: t(
+              "Advantages: property tax and acquisition cost controllable, fast turnaround, can replicate across multiple small properties"
+            ),
             risks: [
-              "Hidden construction issues (leaks, termites, foundation)",
-              "Resale market depth uncertainty",
-              "Renovation cost overrun risk",
+              t("Hidden construction issues (leaks, termites, foundation)"),
+              t("Resale market depth uncertainty"),
+              t("Renovation cost overrun risk"),
             ],
           },
         },
@@ -708,26 +726,31 @@ export const properties = [
       {
         type: "future-outlook",
         data: {
-          description: "Area development plans affecting Kikuyo 1",
+          description: t("Area development plans affecting Kikuyo 1"),
           factors: [
             {
-              title: "Kikuyo Station expansion",
-              impact:
-                "New train station with direct Kumamoto City line, completion 2026",
+              title: t("Kikuyo Station expansion"),
+              impact: t(
+                "New train station with direct Kumamoto City line, completion 2026"
+              ),
             },
             {
-              title: "International school",
-              impact:
-                "English-language school for TSMC engineer families, +8% rental premium",
+              title: t("International school"),
+              impact: t(
+                "English-language school for TSMC engineer families, +8% rental premium"
+              ),
             },
             {
-              title: "JASM Phase 2",
-              impact:
-                "Second fab adding 3,000 employees, +25% rental demand by 2027",
+              title: t("JASM Phase 2"),
+              impact: t(
+                "Second fab adding 3,000 employees, +25% rental demand by 2027"
+              ),
             },
             {
-              title: "Haramizu 70ha development",
-              impact: "Adjacent new urban core drives area transformation",
+              title: t("Haramizu 70ha development"),
+              impact: t(
+                "Adjacent new urban core drives area transformation"
+              ),
             },
           ],
         },
@@ -735,7 +758,7 @@ export const properties = [
       {
         type: "financial",
         data: {
-          strategy: "BTR (build to rent)",
+          strategy: t("BTR (build to rent)"),
           acquisitionCost: 45600000,
           scenarios: {
             bear: {
@@ -768,9 +791,9 @@ export const properties = [
             monthlyRepayment: 120818,
           },
           rentalEvidence: {
-            title: "AI rent assessment (4LDK/115sqm)",
+            title: t("AI rent assessment (4LDK/115sqm)"),
             type: "pdf",
-            description: "Assessed rent from comparable properties",
+            description: t("Assessed rent from comparable properties"),
             image:
               "assets/use-case-images/evidence-rental-assessment-report.webp",
           },
@@ -780,10 +803,10 @@ export const properties = [
   },
   {
     id: "haramizu-1",
-    name: "Chateau Life Haramizu 1",
+    name: t("Chateau Life Haramizu 1"),
     coords: [32.8698, 130.823],
-    subtitle: "Land development",
-    type: "Land acquisition",
+    subtitle: t("Land development"),
+    type: t("Land acquisition"),
     zone: "Kikuyo",
     subArea: "Haramizu",
     distanceToJasm: "4.5 km",
@@ -800,7 +823,7 @@ export const properties = [
       jasm: { coords: [32.874, 130.785], distance: "4.5 km", time: "7 min" },
       station: {
         id: "haramizu-station",
-        name: "Haramizu station",
+        name: t("Haramizu station"),
         coords: [32.8698, 130.823],
         distance: "0 km",
         time: "adjacent",
@@ -812,7 +835,7 @@ export const properties = [
       },
       road: {
         id: "ozu-kumamoto-road",
-        name: "Ozu-Kumamoto Road",
+        name: t("Ozu-Kumamoto Road"),
         coords: [32.87, 130.82],
         distance: "4.1 km",
         time: "7 min",
@@ -837,34 +860,35 @@ export const properties = [
         type: "truth-engine",
         data: {
           basicSettings: {
-            propertyName: "Haramizu Land 1",
-            propertyType: "Land (pre-sale / off-plan)",
+            propertyName: t("Haramizu Land 1"),
+            propertyType: t("Land (pre-sale / off-plan)"),
             address:
               "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
-            landArea: "210.86 sqm (approx. 63.78 tsubo)",
-            buildingArea: "Planned (spec to be confirmed)",
-            parking: "4-5 spaces (planned)",
-            availability: "6-9 months after contract signing",
+            landArea: t("210.86 sqm (approx. 63.78 tsubo)"),
+            buildingArea: t("Planned (spec to be confirmed)"),
+            parking: t("4-5 spaces (planned)"),
+            availability: t("6-9 months after contract signing"),
             rentBear: "¥170,000/mo",
             rentAverage: "¥190,000/mo",
             rentBull: "¥210,000/mo",
           },
           designStrategy: {
-            description: "Three-zone development concept",
+            description: t("Three-zone development concept"),
             features: [
-              "Vibrancy zone: station-front retail, F&B, international-friendly services",
-              "Knowledge cluster: R&D offices, co-working, university satellite campus",
-              "Live-work zone: mid-high density condos, serviced apartments for engineers",
-              "Facility introduction: residential, apartments, hotels, university campus",
+              t("Vibrancy zone: station-front retail, F&B, international-friendly services"),
+              t("Knowledge cluster: R&D offices, co-working, university satellite campus"),
+              t("Live-work zone: mid-high density condos, serviced apartments for engineers"),
+              t("Facility introduction: residential, apartments, hotels, university campus"),
             ],
           },
           landStrategy: {
-            description:
-              "Long-term city-level project, not single housing development. JR Kyushu new station between Mitsuriki and Haramizu creates transport anchor.",
+            description: t(
+              "Long-term city-level project, not single housing development. JR Kyushu new station between Mitsuriki and Haramizu creates transport anchor."
+            ),
             risks: [
-              "Land readjustment timeline uncertainty",
-              "Zoning finalization dependent on municipal process",
-              "Higher upfront capital requirement than renovation path",
+              t("Land readjustment timeline uncertainty"),
+              t("Zoning finalization dependent on municipal process"),
+              t("Higher upfront capital requirement than renovation path"),
             ],
           },
         },
@@ -872,28 +896,33 @@ export const properties = [
       {
         type: "future-outlook",
         data: {
-          description:
-            "70-hectare new urban core with national development partners",
+          description: t(
+            "70-hectare new urban core with national development partners"
+          ),
           factors: [
             {
-              title: "New JR station",
-              impact:
-                "JR Kyushu confirmed new station between Mitsuriki and Haramizu, direct rail to Kumamoto City",
+              title: t("New JR station"),
+              impact: t(
+                "JR Kyushu confirmed new station between Mitsuriki and Haramizu, direct rail to Kumamoto City"
+              ),
             },
             {
-              title: "Mitsui Fudosan partnership",
-              impact:
-                "Japan largest developer selected for long-term vision implementation",
+              title: t("Mitsui Fudosan partnership"),
+              impact: t(
+                "Japan largest developer selected for long-term vision implementation"
+              ),
             },
             {
-              title: "Foreign consultation counter",
-              impact:
-                "Kikuyo Town established bilingual support (Chinese/English) for international residents",
+              title: t("Foreign consultation counter"),
+              impact: t(
+                "Kikuyo Town established bilingual support (Chinese/English) for international residents"
+              ),
             },
             {
-              title: "Science park adjacency",
-              impact:
-                "Direct proximity to semiconductor cluster drives sustained demand",
+              title: t("Science park adjacency"),
+              impact: t(
+                "Direct proximity to semiconductor cluster drives sustained demand"
+              ),
             },
           ],
         },
@@ -901,7 +930,7 @@ export const properties = [
       {
         type: "financial",
         data: {
-          strategy: "Land acquisition and hold/develop",
+          strategy: t("Land acquisition and hold/develop"),
           landAcquisitionCost: 38000000,
           developmentBudget: 52000000,
           totalInvestment: 90000000,
@@ -926,10 +955,11 @@ export const properties = [
             },
           },
           rentalEvidence: {
-            title: "Real estate investment analysis",
+            title: t("Real estate investment analysis"),
             type: "pdf",
-            description:
-              "Comprehensive land value and development ROI projections",
+            description: t(
+              "Comprehensive land value and development ROI projections"
+            ),
             image:
               "assets/use-case-images/evidence-real-estate-investment-analysis.webp",
           },
@@ -939,10 +969,10 @@ export const properties = [
   },
   {
     id: "haramizu-2",
-    name: "Chateau Life Haramizu 2",
+    name: t("Chateau Life Haramizu 2"),
     coords: [32.871, 130.826],
-    subtitle: "Land development",
-    type: "Land acquisition",
+    subtitle: t("Land development"),
+    type: t("Land acquisition"),
     zone: "Kikuyo",
     subArea: "Haramizu",
     distanceToJasm: "4.3 km",
@@ -959,7 +989,7 @@ export const properties = [
       jasm: { coords: [32.874, 130.785], distance: "4.3 km", time: "7 min" },
       station: {
         id: "haramizu-station",
-        name: "Haramizu station",
+        name: t("Haramizu station"),
         coords: [32.8698, 130.823],
         distance: "0.2 km",
         time: "1 min",
@@ -971,7 +1001,7 @@ export const properties = [
       },
       road: {
         id: "ozu-kumamoto-road",
-        name: "Ozu-Kumamoto Road",
+        name: t("Ozu-Kumamoto Road"),
         coords: [32.87, 130.82],
         distance: "3.5 km",
         time: "6 min",
@@ -996,34 +1026,35 @@ export const properties = [
         type: "truth-engine",
         data: {
           basicSettings: {
-            propertyName: "Haramizu Land 2",
-            propertyType: "Land (pre-sale / off-plan)",
+            propertyName: t("Haramizu Land 2"),
+            propertyType: t("Land (pre-sale / off-plan)"),
             address:
               "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
-            landArea: "224.88 sqm (approx. 68.02 tsubo)",
-            buildingArea: "Planned (spec to be confirmed)",
-            parking: "3-4 spaces (planned)",
-            availability: "6-9 months after contract signing",
+            landArea: t("224.88 sqm (approx. 68.02 tsubo)"),
+            buildingArea: t("Planned (spec to be confirmed)"),
+            parking: t("3-4 spaces (planned)"),
+            availability: t("6-9 months after contract signing"),
             rentBear: "¥170,000/mo",
             rentAverage: "¥190,000/mo",
             rentBull: "¥210,000/mo",
           },
           designStrategy: {
-            description: "Three-zone development concept",
+            description: t("Three-zone development concept"),
             features: [
-              "Vibrancy zone: station-front retail, F&B, international-friendly services",
-              "Knowledge cluster: R&D offices, co-working, university satellite campus",
-              "Live-work zone: mid-high density condos, serviced apartments for engineers",
-              "Facility introduction: residential, apartments, hotels, university campus",
+              t("Vibrancy zone: station-front retail, F&B, international-friendly services"),
+              t("Knowledge cluster: R&D offices, co-working, university satellite campus"),
+              t("Live-work zone: mid-high density condos, serviced apartments for engineers"),
+              t("Facility introduction: residential, apartments, hotels, university campus"),
             ],
           },
           landStrategy: {
-            description:
-              "Long-term city-level project, not single housing development. JR Kyushu new station between Mitsuriki and Haramizu creates transport anchor.",
+            description: t(
+              "Long-term city-level project, not single housing development. JR Kyushu new station between Mitsuriki and Haramizu creates transport anchor."
+            ),
             risks: [
-              "Land readjustment timeline uncertainty",
-              "Zoning finalization dependent on municipal process",
-              "Higher upfront capital requirement than renovation path",
+              t("Land readjustment timeline uncertainty"),
+              t("Zoning finalization dependent on municipal process"),
+              t("Higher upfront capital requirement than renovation path"),
             ],
           },
         },
@@ -1031,28 +1062,33 @@ export const properties = [
       {
         type: "future-outlook",
         data: {
-          description:
-            "70-hectare new urban core with national development partners",
+          description: t(
+            "70-hectare new urban core with national development partners"
+          ),
           factors: [
             {
-              title: "New JR station",
-              impact:
-                "JR Kyushu confirmed new station between Mitsuriki and Haramizu, direct rail to Kumamoto City",
+              title: t("New JR station"),
+              impact: t(
+                "JR Kyushu confirmed new station between Mitsuriki and Haramizu, direct rail to Kumamoto City"
+              ),
             },
             {
-              title: "Mitsui Fudosan partnership",
-              impact:
-                "Japan largest developer selected for long-term vision implementation",
+              title: t("Mitsui Fudosan partnership"),
+              impact: t(
+                "Japan largest developer selected for long-term vision implementation"
+              ),
             },
             {
-              title: "Foreign consultation counter",
-              impact:
-                "Kikuyo Town established bilingual support (Chinese/English) for international residents",
+              title: t("Foreign consultation counter"),
+              impact: t(
+                "Kikuyo Town established bilingual support (Chinese/English) for international residents"
+              ),
             },
             {
-              title: "Science park adjacency",
-              impact:
-                "Direct proximity to semiconductor cluster drives sustained demand",
+              title: t("Science park adjacency"),
+              impact: t(
+                "Direct proximity to semiconductor cluster drives sustained demand"
+              ),
             },
           ],
         },
@@ -1060,7 +1096,7 @@ export const properties = [
       {
         type: "financial",
         data: {
-          strategy: "Land acquisition and hold/develop",
+          strategy: t("Land acquisition and hold/develop"),
           landAcquisitionCost: 40000000,
           developmentBudget: 55000000,
           totalInvestment: 95000000,
@@ -1085,10 +1121,11 @@ export const properties = [
             },
           },
           rentalEvidence: {
-            title: "Real estate investment analysis",
+            title: t("Real estate investment analysis"),
             type: "pdf",
-            description:
-              "Comprehensive land value and development ROI projections",
+            description: t(
+              "Comprehensive land value and development ROI projections"
+            ),
             image:
               "assets/use-case-images/evidence-real-estate-investment-analysis.webp",
           },

@@ -1,5 +1,6 @@
 import { TIMING } from "../app.js";
 import { AppData } from "../data/index.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   initAIChat() {
@@ -87,10 +88,10 @@ export const methods = {
     const suggestions = document.getElementById("ai-chat-suggestions");
     suggestions.classList.remove("hidden");
     suggestions.innerHTML = `
-      <button class="ai-chat-chip" data-question="What about Kumamoto's water quality and supply?">Water quality?</button>
-      <button class="ai-chat-chip" data-question="How strong is government support for the semiconductor corridor?">Government support?</button>
-      <button class="ai-chat-chip" data-question="What are the projected property returns in Kumamoto?">Property returns?</button>
-      <button class="ai-chat-chip" data-question="Tell me about the talent pipeline and workforce availability.">Talent pipeline?</button>
+      <button class="ai-chat-chip" data-question="${t("What about Kumamoto's water quality and supply?")}">${t("Water quality?")}</button>
+      <button class="ai-chat-chip" data-question="${t("How strong is government support for the semiconductor corridor?")}">${t("Government support?")}</button>
+      <button class="ai-chat-chip" data-question="${t("What are the projected property returns in Kumamoto?")}">${t("Property returns?")}</button>
+      <button class="ai-chat-chip" data-question="${t("Tell me about the talent pipeline and workforce availability.")}">${t("Talent pipeline?")}</button>
     `;
 
     // Clear previous messages
@@ -173,10 +174,10 @@ export const methods = {
     // Replace suggestions with Q&A topics
     suggestions.classList.remove("hidden");
     suggestions.innerHTML = `
-      <button class="ai-chat-chip" data-question="What about Kumamoto's water quality and supply?">Water quality?</button>
-      <button class="ai-chat-chip" data-question="How strong is government support for the semiconductor corridor?">Government support?</button>
-      <button class="ai-chat-chip" data-question="What are the projected property returns in Kumamoto?">Property returns?</button>
-      <button class="ai-chat-chip" data-question="Tell me about the talent pipeline and workforce availability.">Talent pipeline?</button>
+      <button class="ai-chat-chip" data-question="${t("What about Kumamoto's water quality and supply?")}">${t("Water quality?")}</button>
+      <button class="ai-chat-chip" data-question="${t("How strong is government support for the semiconductor corridor?")}">${t("Government support?")}</button>
+      <button class="ai-chat-chip" data-question="${t("What are the projected property returns in Kumamoto?")}">${t("Property returns?")}</button>
+      <button class="ai-chat-chip" data-question="${t("Tell me about the talent pipeline and workforce availability.")}">${t("Talent pipeline?")}</button>
     `;
 
     // Show download summary as border button in CTAs area
@@ -281,17 +282,17 @@ export const methods = {
     const q = question.toLowerCase();
     let response = "";
     const timestamp =
-      '<div class="ai-data-timestamp">Based on Q3 2024 data</div>';
+      `<div class="ai-data-timestamp">${t("Based on Q3 2024 data")}</div>`;
 
     // Risk questions
     if (q.includes("risk")) {
       response =
-        "Key risks to consider:<br><br><strong>Natural disaster:</strong> The 2016 Kumamoto earthquake caused significant damage. Seismic building codes have since been upgraded.<br><br><strong>Construction delays:</strong> TSMC's second fab timeline could shift, affecting demand projections.<br><br><strong>Currency exposure:</strong> Yen-denominated assets carry FX risk for international investors.<br><br><strong>Liquidity:</strong> Regional Japanese real estate is less liquid than metro markets.<br><br>However, the ¥4T+ government commitment and TSMC's operational first fab provide strong downside protection.";
+        `${t("Key risks to consider:")}<br><br><strong>${t("Natural disaster:")}</strong> ${t("The 2016 Kumamoto earthquake caused significant damage. Seismic building codes have since been upgraded.")}<br><br><strong>${t("Construction delays:")}</strong> ${t("TSMC's second fab timeline could shift, affecting demand projections.")}<br><br><strong>${t("Currency exposure:")}</strong> ${t("Yen-denominated assets carry FX risk for international investors.")}<br><br><strong>${t("Liquidity:")}</strong> ${t("Regional Japanese real estate is less liquid than metro markets.")}<br><br>${t("However, the ¥4T+ government commitment and TSMC's operational first fab provide strong downside protection.")}`;
     }
     // How to invest
     else if (q.includes("how") && q.includes("invest")) {
       response =
-        "The GKTK Fund offers a structured entry point:<br><br>1. <strong>Schedule a consultation</strong> with our Kumamoto specialists<br>2. Review the fund prospectus and individual property details<br>3. Complete KYC and accreditation verification<br>4. Fund commitment with quarterly capital calls<br><br>Minimum investment starts at ¥50M. Would you like to schedule a call with an advisor?";
+        `${t("The GKTK Fund offers a structured entry point:")}<br><br>1. <strong>${t("Schedule a consultation")}</strong> ${t("with our Kumamoto specialists")}<br>2. ${t("Review the fund prospectus and individual property details")}<br>3. ${t("Complete KYC and accreditation verification")}<br>4. ${t("Fund commitment with quarterly capital calls")}<br><br>${t("Minimum investment starts at ¥50M. Would you like to schedule a call with an advisor?")}`;
     }
     // Semiconductor industry questions
     else if (
@@ -300,7 +301,7 @@ export const methods = {
       q.includes("chip")
     ) {
       response =
-        "Japan committed ¥3.9 trillion to rebuild domestic chip production as part of national economic security strategy.<br><br>TSMC's Kumamoto fab is the centerpiece—bringing cutting-edge manufacturing back to Japan.";
+        `${t("Japan committed ¥3.9 trillion to rebuild domestic chip production as part of national economic security strategy.")}<br><br>${t("TSMC's Kumamoto fab is the centerpiece - bringing cutting-edge manufacturing back to Japan.")}`;
     }
     // Kumamoto as hub
     else if (
@@ -308,12 +309,12 @@ export const methods = {
       (q.includes("chosen") || q.includes("hub") || q.includes("why"))
     ) {
       response =
-        "Kumamoto was selected for three reasons: ultra-pure water from the Aso aquifer, reliable power infrastructure, and an existing semiconductor ecosystem with Sony's facility.<br><br>These natural advantages were decisive for chip fabrication requirements.";
+        `${t("Kumamoto was selected for three reasons: ultra-pure water from the Aso aquifer, reliable power infrastructure, and an existing semiconductor ecosystem with Sony's facility.")}<br><br>${t("These natural advantages were decisive for chip fabrication requirements.")}`;
     }
     // TSMC / JASM
     else if (q.includes("tsmc") || q.includes("jasm")) {
       response =
-        "JASM is TSMC's joint venture with Sony and Denso. The first fab began production in 2024 with 22/28nm chips.<br><br>A second fab for 6nm chips is under construction—¥2 trillion total investment creating 3,400+ jobs.";
+        `${t("JASM is TSMC's joint venture with Sony and Denso. The first fab began production in 2024 with 22/28nm chips.")}<br><br>${t("A second fab for 6nm chips is under construction - ¥2 trillion total investment creating 3,400+ jobs.")}`;
     }
     // Land prices
     else if (
@@ -322,7 +323,7 @@ export const methods = {
       q.includes("property")
     ) {
       response =
-        "Land prices have appreciated 15-25% annually since TSMC's announcement.<br><br>Kikuyo and Ozu areas see the strongest growth. Residential land near JASM has roughly doubled since 2021.";
+        `${t("Land prices have appreciated 15-25% annually since TSMC's announcement.")}<br><br>${t("Kikuyo and Ozu areas see the strongest growth. Residential land near JASM has roughly doubled since 2021.")}`;
     }
     // Traffic
     else if (
@@ -331,7 +332,7 @@ export const methods = {
       q.includes("transport")
     ) {
       response =
-        "Traffic congestion has increased with JASM construction. The prefecture is investing ¥50 billion in infrastructure upgrades.<br><br>New expressway connections and the planned Kumamoto Airport rail link will reduce commute times.";
+        `${t("Traffic congestion has increased with JASM construction. The prefecture is investing ¥50 billion in infrastructure upgrades.")}<br><br>${t("New expressway connections and the planned Kumamoto Airport rail link will reduce commute times.")}`;
     }
     // Investment / returns
     else if (
@@ -341,12 +342,12 @@ export const methods = {
       q.includes("yield")
     ) {
       response =
-        "Properties show 4-6% gross rental yields with projected appreciation of 8-15% annually through 2030.<br><br>Properties within 15 minutes of JASM command premium rents from engineers and technicians.";
+        `${t("Properties show 4-6% gross rental yields with projected appreciation of 8-15% annually through 2030.")}<br><br>${t("Properties within 15 minutes of JASM command premium rents from engineers and technicians.")}`;
     }
     // Default response
     else {
       response =
-        "The Kumamoto corridor is experiencing unprecedented transformation with over ¥4 trillion in committed investment.<br><br>I can help with land prices, infrastructure plans, or specific investment opportunities.";
+        `${t("The Kumamoto corridor is experiencing unprecedented transformation with over ¥4 trillion in committed investment.")}<br><br>${t("I can help with land prices, infrastructure plans, or specific investment opportunities.")}`;
     }
 
     return response + timestamp;
@@ -356,13 +357,13 @@ export const methods = {
    * Exit path: Schedule a call
    */
   scheduleCall() {
-    this.addChatMessage("I'd like to schedule a call with an advisor.", "user");
+    this.addChatMessage(t("I'd like to schedule a call with an advisor."), "user");
     this.showTypingIndicator();
 
     setTimeout(() => {
       this.hideTypingIndicator();
       this.addChatMessage(
-        "I'll connect you with one of our investment advisors. They'll reach out within 24 hours to discuss your specific interests.<br><br><strong>What's the best way to reach you?</strong>",
+        `${t("I'll connect you with one of our investment advisors. They'll reach out within 24 hours to discuss your specific interests.")}<br><br><strong>${t("What's the best way to reach you?")}</strong>`,
         "assistant",
       );
     }, 800);
@@ -390,7 +391,7 @@ export const methods = {
                             <line x1="12" x2="12" y1="15" y2="3"/>
                         </svg>
                     </span>
-                    Download summary
+                    ${t("Download summary")}
                 </button>
             </div>
         `;
@@ -401,7 +402,7 @@ export const methods = {
    */
   downloadSummary() {
     this.addChatMessage(
-      "I'd like to download a summary of this presentation.",
+      t("I'd like to download a summary of this presentation."),
       "user",
     );
     this.showTypingIndicator();
@@ -445,7 +446,7 @@ export const methods = {
   <html lang="en">
   <head>
   <meta charset="UTF-8">
-  <title>Kumamoto investment summary</title>
+  <title>${t("Kumamoto investment summary")}</title>
   <style>
   body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1e1f20; }
   h1 { font-size: 28px; margin-bottom: 8px; }
@@ -462,35 +463,35 @@ export const methods = {
   </style>
   </head>
   <body>
-  <h1>Kumamoto investment summary</h1>
-  <p class="subtitle">Greater Kumamoto Technology Corridor — presentation summary</p>
+  <h1>${t("Kumamoto investment summary")}</h1>
+  <p class="subtitle">${t("Greater Kumamoto Technology Corridor - presentation summary")}</p>
 
-  <h2>Fund overview</h2>
+  <h2>${t("Fund overview")}</h2>
   <div class="stat-grid">
   ${(gktk.stats || []).map((s) => `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
   </div>
 
-  <h2>Science Park corridor</h2>
+  <h2>${t("Science Park corridor")}</h2>
   <p>${sciencePark.description || ""}</p>
   <div class="stat-grid">
   ${(sciencePark.stats || []).map((s) => `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join("")}
   </div>
 
-  <h2>Corporate partners</h2>
+  <h2>${t("Corporate partners")}</h2>
   <table>
-  <thead><tr><th>Company</th><th>Sector</th><th>Investment</th><th>Employees</th></tr></thead>
+  <thead><tr><th>${t("Company")}</th><th>${t("Sector")}</th><th>${t("Investment")}</th><th>${t("Employees")}</th></tr></thead>
   <tbody>${companiesHtml}</tbody>
   </table>
 
-  <h2>Investment properties</h2>
+  <h2>${t("Investment properties")}</h2>
   <table>
-  <thead><tr><th>Property</th><th>Type</th><th>Drive to JASM</th><th>Floor Area</th></tr></thead>
+  <thead><tr><th>${t("Property")}</th><th>${t("Type")}</th><th>${t("Drive to JASM")}</th><th>${t("Floor area")}</th></tr></thead>
   <tbody>${propertiesHtml}</tbody>
   </table>
 
   <div class="footer">
-  <p>Generated on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
-  <p>This summary is for informational purposes only and does not constitute investment advice.</p>
+  <p>${t("Generated on")} ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+  <p>${t("This summary is for informational purposes only and does not constitute investment advice.")}</p>
   </div>
   </body>
   </html>`;
@@ -507,7 +508,7 @@ export const methods = {
       URL.revokeObjectURL(url);
 
       this.addChatMessage(
-        "Your summary has been downloaded. It includes the fund overview, corporate partners, and property details we reviewed.",
+        t("Your summary has been downloaded. It includes the fund overview, corporate partners, and property details we reviewed."),
         "assistant",
       );
     }, 800);

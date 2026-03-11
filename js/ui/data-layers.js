@@ -5,6 +5,7 @@ import {
   statGrid,
   disclosureTriangle,
 } from "../shared/templates.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   showDataLayers(stepIndex) {
@@ -105,7 +106,7 @@ export const methods = {
     const layerBtn = (layer, icon, label) => `
             <button type="button" class="layer-item" data-layer="${layer}"
                     role="switch" aria-checked="false" onclick="UI.toggleLayer('${layer}')"
-                    title="Toggle ${label.toLowerCase()} on the map">
+                    title="${t("Toggle")} ${label.toLowerCase()} ${t("on the map")}">
                 <span class="layer-checkbox" aria-hidden="true"></span>
                 <span class="layer-icon" aria-hidden="true">${icon}</span>
                 <span class="layer-label">${label}</span>
@@ -119,79 +120,79 @@ export const methods = {
         step: 1,
         layer: "waterResources",
         icon: icons.riskyArea,
-        label: "Water resources",
+        label: t("Water resources"),
       },
       {
         step: 1,
         layer: "electricity",
         icon: icons.electricity,
-        label: "Power resources",
+        label: t("Power resources"),
       },
       {
         step: 2,
         layer: "airlineRoutes",
         icon: icons.airlineRoutes,
-        label: "Strategic location",
+        label: t("Strategic location"),
       },
       {
         step: 3,
         layer: "governmentChain",
         icon: icons.infrastructure,
-        label: "Government support",
+        label: t("Government support"),
       },
       {
         step: 4,
         layer: "companies",
         icon: icons.companies,
-        label: "Corporate investment",
+        label: t("Corporate investment"),
       },
       {
         step: 5,
         layer: "sciencePark",
         icon: icons.sciencePark,
-        label: "Science park & airport concept",
+        label: t("Science park & airport concept"),
       },
       {
         step: 6,
         layer: "talentPipeline",
         icon: icons.employment,
-        label: "Education and talent pipeline",
+        label: t("Education and talent pipeline"),
       },
       {
         step: 7,
         layer: "futureOutlook",
         icon: icons.infrastructure,
-        label: "Future outlook",
+        label: t("Future outlook"),
       },
       {
         step: 8,
         layer: "railCommute",
         icon: icons.railCommute,
-        label: "Rail commute",
+        label: t("Rail commute"),
       },
       {
         step: 9,
         layer: "infraPlan",
         icon: icons.infraPlan,
-        label: "Infrastructure plan",
+        label: t("Infrastructure plan"),
       },
       {
         step: 10,
         layer: "investmentZones",
         icon: icons.realEstate,
-        label: "Property investment zones",
+        label: t("Property investment zones"),
       },
       {
         step: 10,
         layer: "properties",
         icon: icons.properties,
-        label: "Investment properties",
+        label: t("Investment properties"),
       },
     ];
 
     let html = "";
     if (stepIndex === "initial") {
-      html = layerBtn("waterResources", icons.riskyArea, "Water resources");
+      html = layerBtn("waterResources", icons.riskyArea, t("Water resources"));
     } else if (stepIndex === "dashboard" || stepIndex === "qa") {
       // Dashboard / Q&A: show all available layers
       html = LAYER_SEQUENCE.map((item) =>
@@ -397,7 +398,7 @@ export const methods = {
         MapController.fadeOutDataLayerMarkersAnimated(layerName);
       }
 
-      this.announceToScreenReader(`${displayName} layer hidden`);
+      this.announceToScreenReader(`${displayName} ${t("layer hidden")}`);
       this._handleDataLayerDashboard(layerName);
     } else {
       // Activate
@@ -471,7 +472,7 @@ export const methods = {
         }
       }
 
-      this.announceToScreenReader(`${displayName} layer shown`);
+      this.announceToScreenReader(`${displayName} ${t("layer shown")}`);
       this._handleDataLayerDashboard(layerName);
     }
   },
@@ -482,10 +483,10 @@ export const methods = {
   showWaterResourcesEvidence() {
     const water = AppData.resources.water;
     const content = `
-            ${panelHeader("JASM ESG report", "Water resources", water.description)}
-            <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', 'JASM ESG report - green power and sustainability section')">
+            ${panelHeader(t("JASM ESG report"), t("Water resources"), water.description)}
+            <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', '${t("JASM ESG report - green power and sustainability section")}')">
                 <img src="assets/use-case-images/evidence-renewable-energy.webp"
-                     alt="JASM ESG report - green power and sustainability section"
+                     alt="${t("JASM ESG report - green power and sustainability section")}"
                      style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
             </div>
             <div class="panel-bento-stats" style="margin-top: var(--space-4);">
@@ -510,9 +511,9 @@ export const methods = {
    */
   showWaterEvidenceFullView() {
     this.showGallery(
-      "JASM ESG report",
+      t("JASM ESG report"),
       "image",
-      "Green power and sustainability section",
+      t("Green power and sustainability section"),
       "assets/use-case-images/evidence-renewable-energy.webp",
     );
   },
@@ -522,24 +523,24 @@ export const methods = {
    */
   getLayerDisplayName(layerName) {
     const names = {
-      properties: "Investment properties",
-      companies: "Corporate sites",
-      sciencePark: "Science park",
-      baseMap: "Base map",
-      trafficFlow: "Traffic flow",
-      railCommute: "Rail commute",
-      infraPlan: "Infrastructure plan",
-      electricity: "Electricity usage",
-      employment: "Employment",
-      infrastructure: "Infrastructure roads",
-      realEstate: "Real estate",
-      riskyArea: "Risky area",
-      airlineRoutes: "Strategic location",
-      governmentChain: "Government support",
-      waterResources: "Water resources",
-      talentPipeline: "Education and talent pipeline",
-      futureOutlook: "Future outlook",
-      investmentZones: "Investment opportunity zones",
+      properties: t("Investment properties"),
+      companies: t("Corporate sites"),
+      sciencePark: t("Science park"),
+      baseMap: t("Base map"),
+      trafficFlow: t("Traffic flow"),
+      railCommute: t("Rail commute"),
+      infraPlan: t("Infrastructure plan"),
+      electricity: t("Electricity usage"),
+      employment: t("Employment"),
+      infrastructure: t("Infrastructure roads"),
+      realEstate: t("Real estate"),
+      riskyArea: t("Risky area"),
+      airlineRoutes: t("Strategic location"),
+      governmentChain: t("Government support"),
+      waterResources: t("Water resources"),
+      talentPipeline: t("Education and talent pipeline"),
+      futureOutlook: t("Future outlook"),
+      investmentZones: t("Investment opportunity zones"),
     };
     return names[layerName] || layerName;
   },
@@ -555,7 +556,7 @@ export const methods = {
     const markersListHtml = layerData.markers
       ? `
             <div class="data-layer-markers-list">
-                <h4>Locations</h4>
+                <h4>${t("Locations")}</h4>
                 ${layerData.markers
                   .map(
                     (marker) => `
@@ -585,7 +586,7 @@ export const methods = {
         wind: "#5ac8fa",
         nuclear: "#ff3b30",
       };
-      const labelMap = { solar: "Solar", wind: "Wind", nuclear: "Nuclear" };
+      const labelMap = { solar: t("Solar"), wind: t("Wind"), nuclear: t("Nuclear") };
 
       const renderEnergyGroup = (type, facilities) => {
         const groupId = `datalayer-energy-${type}`;
@@ -615,7 +616,7 @@ export const methods = {
 
       kyushuEnergyHtml = `
                 <div style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-bg-tertiary);">
-                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Kyushu energy facilities</h4>
+                    <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Kyushu energy facilities")}</h4>
                     ${renderEnergyGroup("solar", energy.solar)}
                     ${renderEnergyGroup("wind", energy.wind)}
                     ${renderEnergyGroup("nuclear", energy.nuclear)}
@@ -624,7 +625,7 @@ export const methods = {
     }
 
     const content = `
-            ${panelHeader("Data layer", layerData.name, layerData.description)}
+            ${panelHeader(t("Data layer"), layerData.name, layerData.description)}
             ${statsHtml}
             ${markersListHtml}
             ${kyushuEnergyHtml}
@@ -720,7 +721,7 @@ export const methods = {
     });
 
     const content = `
-            ${panelHeader("Data layers", "Active layers")}
+            ${panelHeader(t("Data layers"), t("Active layers"))}
             <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
                 ${sectionsHtml}
             </div>
@@ -759,8 +760,8 @@ export const methods = {
     const bodyHtml = this._getQATabContent(this._qaActiveTab);
 
     const content = `
-      <div class="subtitle">Q&amp;A mode</div>
-      <h2>Layer details</h2>
+      <div class="subtitle">${t("Q&A mode")}</div>
+      <h2>${t("Layer details")}</h2>
       <div class="qa-panel-tabs">${tabsHtml}</div>
       <div class="qa-tab-body">${bodyHtml}</div>
     `;
@@ -791,8 +792,8 @@ export const methods = {
       const water = AppData.resources.water;
       return `
         <p>${water.description}</p>
-        <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', 'JASM ESG report')">
-          <img src="assets/use-case-images/evidence-renewable-energy.webp" alt="JASM ESG report" style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
+        <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', '${t("JASM ESG report")}')">
+          <img src="assets/use-case-images/evidence-renewable-energy.webp" alt="${t("JASM ESG report")}" style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
         </div>
         <div class="panel-bento-stats" style="margin-top: var(--space-4);">
           ${water.stats.map((s) => `<div class="panel-bento-stat"><div class="panel-bento-stat-value">${s.value}</div><div class="panel-bento-stat-label">${s.label}</div></div>`).join("")}
@@ -815,10 +816,10 @@ export const methods = {
             .join("")
         : "";
       return `
-        <p>Direct flights from ${routes.origin.name} (${routes.origin.code}) connect Kumamoto to major semiconductor hubs across Asia.</p>
+        <p>${t("Direct flights from")} ${routes.origin.name} (${routes.origin.code}) ${t("connect Kumamoto to major semiconductor hubs across Asia.")}</p>
         <div class="panel-bento-stats" style="margin-top: var(--space-4);">
-          <div class="panel-bento-stat"><div class="panel-bento-stat-value">${activeCount}</div><div class="panel-bento-stat-label">Active routes</div></div>
-          <div class="panel-bento-stat"><div class="panel-bento-stat-value">${routes.destinations ? routes.destinations.length : 0}</div><div class="panel-bento-stat-label">Total destinations</div></div>
+          <div class="panel-bento-stat"><div class="panel-bento-stat-value">${activeCount}</div><div class="panel-bento-stat-label">${t("Active routes")}</div></div>
+          <div class="panel-bento-stat"><div class="panel-bento-stat-value">${routes.destinations ? routes.destinations.length : 0}</div><div class="panel-bento-stat-label">${t("Total destinations")}</div></div>
         </div>
         <div class="data-layer-markers-list" style="margin-top: var(--space-4);">${destList}</div>
       `;
@@ -844,14 +845,14 @@ export const methods = {
     // Corporate investment - chart
     if (layerKey === "companies") {
       return `
-        <p>Total corporate investment in the Kumamoto semiconductor corridor.</p>
+        <p>${t("Total corporate investment in the Kumamoto semiconductor corridor.")}</p>
         <div class="chart-container" style="height: 280px; margin: var(--space-6) 0;">
-          <canvas id="investment-chart" role="img" aria-label="Corporate investment comparison chart"></canvas>
+          <canvas id="investment-chart" role="img" aria-label="${t("Corporate investment comparison chart")}"></canvas>
         </div>
         <div id="investment-chart-table"></div>
         ${statGrid([
-          { value: "¥2.6T+", label: "Total investment" },
-          { value: "9,600+", label: "Direct jobs" },
+          { value: "¥2.6T+", label: t("Total investment") },
+          { value: "9,600+", label: t("Direct jobs") },
         ])}
       `;
     }
@@ -865,7 +866,7 @@ export const methods = {
         )
         .join("");
       return `
-        <p>Investment properties in the Kumamoto corridor.</p>
+        <p>${t("Investment properties in the Kumamoto corridor.")}</p>
         <div class="data-layer-markers-list" style="margin-top: var(--space-4);">${list}</div>
       `;
     }
@@ -886,7 +887,7 @@ export const methods = {
       `;
     }
 
-    return `<p>No details available for this layer.</p>`;
+    return `<p>${t("No details available for this layer.")}</p>`;
   },
 
   /**

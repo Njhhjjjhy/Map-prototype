@@ -1,5 +1,6 @@
 import { AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   _ensureTransitionOverlay() {
@@ -12,32 +13,32 @@ export const methods = {
     overlay.innerHTML = `
             <img class="transition-img transition-img-a" src="" alt="">
             <img class="transition-img transition-img-b" src="" alt="">
-            <button class="transition-back-to-map" aria-label="Back to map">
+            <button class="transition-back-to-map" aria-label="${t("Back to map")}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                Back to map
+                ${t("Back to map")}
             </button>
             <div class="transition-label">
                 <span class="transition-name"></span>
                 <span class="transition-type"></span>
             </div>
             <div class="transition-property-nav hidden">
-                <button class="transition-prop-prev" aria-label="Previous property">
+                <button class="transition-prop-prev" aria-label="${t("Previous property")}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     <span class="transition-prop-prev-label"></span>
                 </button>
-                <button class="transition-prop-next" aria-label="Next property">
+                <button class="transition-prop-next" aria-label="${t("Next property")}">
                     <span class="transition-prop-next-label"></span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
                 </button>
             </div>
             <div class="transition-gallery-nav hidden">
-                <button class="transition-prev" aria-label="Previous image">
+                <button class="transition-prev" aria-label="${t("Previous image")}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                 </button>
                 <span class="transition-counter"></span>
-                <button class="transition-next" aria-label="Next image">
+                <button class="transition-next" aria-label="${t("Next image")}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 6 15 12 9 18"></polyline>
                     </svg>
@@ -137,7 +138,7 @@ export const methods = {
     const overlay = document.getElementById("transition-overlay");
     const src = this._drillDownImages[this._drillDownImageIndex];
     const name = this._drillDown?.property?.name || "";
-    this._crossfadeTransitionImage(overlay, src, `${name} view`);
+    this._crossfadeTransitionImage(overlay, src, `${name} ${t("view")}`);
     this._updateGalleryCounter(overlay);
   },
 
@@ -151,7 +152,7 @@ export const methods = {
     const overlay = document.getElementById("transition-overlay");
     const src = this._drillDownImages[this._drillDownImageIndex];
     const name = this._drillDown?.property?.name || "";
-    this._crossfadeTransitionImage(overlay, src, `${name} view`);
+    this._crossfadeTransitionImage(overlay, src, `${name} ${t("view")}`);
     this._updateGalleryCounter(overlay);
   },
 
@@ -278,7 +279,7 @@ export const methods = {
     this._setTransitionImage(
       overlay,
       exteriorSrc,
-      `${newProperty.name} exterior`,
+      `${newProperty.name} ${t("exterior")}`,
     );
     this._setTransitionLabel(overlay, newProperty.name, newProperty.subtitle);
 
@@ -337,7 +338,7 @@ export const methods = {
                     <div class="icon" style="color: var(--color-text-tertiary);">${icons[type] || icons.pdf}</div>
                     <p>${description}</p>
                     <p style="margin-top: var(--space-6); font-size: var(--text-sm); color: var(--color-text-tertiary);">
-                        Document preview not yet available.
+                        ${t("Document preview not yet available.")}
                     </p>
                 </div>
             `;
@@ -365,11 +366,11 @@ export const methods = {
 
     const bodyHtml = `
       <div class="gallery-items-viewport">
-        <button class="gallery-items-chevron gallery-items-prev" aria-label="Previous item">
+        <button class="gallery-items-chevron gallery-items-prev" aria-label="${t("Previous item")}">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="gallery-items-content"></div>
-        <button class="gallery-items-chevron gallery-items-next" aria-label="Next item">
+        <button class="gallery-items-chevron gallery-items-next" aria-label="${t("Next item")}">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
@@ -434,7 +435,7 @@ export const methods = {
     }
 
     // Update counter
-    counter.textContent = `${index + 1} of ${this._galleryItems.length}`;
+    counter.textContent = `${index + 1} ${t("of")} ${this._galleryItems.length}`;
 
     // Update chevron visibility
     prevBtn.classList.toggle("hidden", index === 0);
@@ -452,7 +453,7 @@ export const methods = {
                 </div>
                 <p style="font-size: var(--text-sm); color: var(--color-text-secondary);">${title}</p>
                 <a href="${url}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); font-size: var(--text-sm); color: var(--color-info); text-decoration: none; font-weight: 500;">
-                    Open source document
+                    ${t("Open source document")}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </a>
             </div>
@@ -595,7 +596,7 @@ export const methods = {
       overlay.className = "moreharvest-entry";
       overlay.innerHTML = `
                 <img class="moreharvest-entry-logo" src="assets/Assets4-white.svg" alt="MoreHarvest" draggable="false">
-                <div class="moreharvest-entry-tagline">Japanese property investment made easy.</div>
+                <div class="moreharvest-entry-tagline">${t("Japanese property investment made easy.")}</div>
             `;
       document.body.appendChild(overlay);
 
@@ -638,7 +639,7 @@ export const methods = {
 
     if (type === "image") {
       content.innerHTML = `
-                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                <button id="quick-look-close" aria-label="${t("Close")}" onclick="UI.hideQuickLook()">
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
                 </button>
                 <img id="quick-look-image" src="${options.src || ""}" alt="${options.title || ""}" />
@@ -650,14 +651,14 @@ export const methods = {
       quickLook.dataset.galleryIndex = idx;
       const src = images[idx] || "";
       content.innerHTML = `
-                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                <button id="quick-look-close" aria-label="${t("Close")}" onclick="UI.hideQuickLook()">
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
                 </button>
-                <button id="quick-look-prev" aria-label="Previous" onclick="UI._quickLookNav(-1)">
+                <button id="quick-look-prev" aria-label="${t("Previous")}" onclick="UI._quickLookNav(-1)">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </button>
                 <img id="quick-look-image" src="${src}" alt="${options.title || ""}" />
-                <button id="quick-look-next" aria-label="Next" onclick="UI._quickLookNav(1)">
+                <button id="quick-look-next" aria-label="${t("Next")}" onclick="UI._quickLookNav(1)">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
                 <div style="position: absolute; bottom: var(--space-3); left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: var(--text-xs);">${idx + 1} / ${images.length}</div>
@@ -671,7 +672,7 @@ export const methods = {
     } else if (type === "pdf") {
       quickLook.classList.add("quick-look--pdf");
       content.innerHTML = `
-                <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()" style="position: absolute; top: var(--space-3); right: var(--space-3); z-index: 10;">
+                <button id="quick-look-close" aria-label="${t("Close")}" onclick="UI.hideQuickLook()" style="position: absolute; top: var(--space-3); right: var(--space-3); z-index: 10;">
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
                 </button>
                 <iframe src="${options.src}" style="width: 100%; height: 100%; border: none; border-radius: var(--radius-large);"></iframe>
@@ -679,7 +680,7 @@ export const methods = {
     } else if (type === "doc") {
       content.innerHTML = `
                 <div class="quick-look-doc">
-                    <button id="quick-look-close" aria-label="Close" onclick="UI.hideQuickLook()">
+                    <button id="quick-look-close" aria-label="${t("Close")}" onclick="UI.hideQuickLook()">
                         <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="14"></line><line x1="2" y1="2" x2="14" y2="14"></line></svg>
                     </button>
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -689,7 +690,7 @@ export const methods = {
                         <line x1="16" y1="17" x2="8" y2="17"></line>
                         <polyline points="10 9 9 9 8 9"></polyline>
                     </svg>
-                    <h3>${options.title || "Document"}</h3>
+                    <h3>${options.title || t("Document")}</h3>
                     ${options.source ? `<p>${options.source}</p>` : ""}
                 </div>
             `;

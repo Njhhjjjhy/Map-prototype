@@ -8,6 +8,7 @@ import { STEPS } from "../data/index.js";
 import { TIMING, App } from "../app.js";
 import { MapController } from "../map/index.js";
 import { UI } from "../ui/index.js";
+import { t } from "../i18n/index.js";
 
 const StepJumper = {
   active: false,
@@ -21,84 +22,84 @@ const StepJumper = {
   steps: [
     {
       num: 0,
-      name: "Entry into map",
+      name: t("Entry into map"),
       codeStep: null,
       subItem: null,
       implemented: true,
     },
     {
       num: 1,
-      name: "Water resources",
+      name: t("Water resources"),
       codeStep: 1,
       subItem: "water",
       implemented: true,
     },
     {
       num: 2,
-      name: "Power resources",
+      name: t("Power resources"),
       codeStep: 1,
       subItem: "power",
       implemented: true,
     },
     {
       num: 3,
-      name: "Strategic location",
+      name: t("Strategic location"),
       codeStep: 2,
       subItem: null,
       implemented: true,
     },
     {
       num: 4,
-      name: "Government support",
+      name: t("Government support"),
       codeStep: 3,
       subItem: null,
       implemented: true,
     },
     {
       num: 5,
-      name: "Corporate investment",
+      name: t("Corporate investment"),
       codeStep: 4,
       subItem: null,
       implemented: true,
     },
     {
       num: 6,
-      name: "Science park and grand airport",
+      name: t("Science park and grand airport"),
       codeStep: 5,
       subItem: null,
       implemented: true,
     },
     {
       num: 7,
-      name: "Education and talent pipeline",
+      name: t("Education and talent pipeline"),
       codeStep: 6,
       subItem: null,
       implemented: true,
     },
     {
       num: 8,
-      name: "Future outlook",
+      name: t("Future outlook"),
       codeStep: 7,
       subItem: null,
       implemented: true,
     },
     {
       num: 9,
-      name: "Investment opportunity zones",
+      name: t("Investment opportunity zones"),
       codeStep: 8,
       subItem: null,
       implemented: true,
     },
     {
       num: 10,
-      name: "Investment properties",
+      name: t("Investment properties"),
       codeStep: 9,
       subItem: null,
       implemented: true,
     },
     {
       num: 11,
-      name: "Q&A mode",
+      name: t("Q&A mode"),
       codeStep: 10,
       subItem: null,
       implemented: true,
@@ -109,6 +110,10 @@ const StepJumper = {
     const toggle = document.getElementById("step-jumper-toggle");
     const panel = document.getElementById("step-jumper");
     if (!toggle || !panel) return;
+
+    // Translate static HTML attributes
+    toggle.title = t("Step jumper");
+    toggle.setAttribute("aria-label", t("Toggle step jumper"));
 
     // Populate the list
     const list = panel.querySelector(".step-jumper-list");
@@ -150,9 +155,9 @@ const StepJumper = {
       App.state.activeProperty = null;
       UI.updateJourneyProgress(0, STEPS.length);
       UI.showChatbox(`
-        <h3>Kumamoto investment guide</h3>
-        <p>Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.</p>
-        <button class="chatbox-continue primary" onclick="App.goToStep(1)">Start Journey <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        <h3>${t("Kumamoto investment guide")}</h3>
+        <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
+        <button class="chatbox-continue primary" onclick="App.goToStep(1)">${t("Start Journey")} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
       `);
       MapController.startHeartbeat();
       this._highlightCurrent();

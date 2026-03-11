@@ -9,26 +9,27 @@ import {
   dataAttribution,
   connectionItem,
 } from "../shared/templates.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   showInvestmentOverview() {
     const content = `
-            ${panelHeader("Corporate investment", "Investment comparison", "Total corporate investment in the Kumamoto semiconductor corridor.")}
+            ${panelHeader(t("Corporate investment"), t("Investment comparison"), t("Total corporate investment in the Kumamoto semiconductor corridor."))}
             <div class="chart-container" style="height: 280px; margin: 24px 0;">
-                <canvas id="investment-chart" role="img" aria-label="Bar chart comparing corporate investments across seven companies in the Kumamoto corridor"></canvas>
+                <canvas id="investment-chart" role="img" aria-label="${t("Bar chart comparing corporate investments across seven companies in the Kumamoto corridor")}"></canvas>
             </div>
             <div id="investment-chart-table"></div>
             <div class="stat-grid">
                 <div class="stat-item">
                     <div class="stat-value">¥2.6T+</div>
-                    <div class="stat-label">Total investment</div>
+                    <div class="stat-label">${t("Total investment")}</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">9,600+</div>
-                    <div class="stat-label">Direct jobs</div>
+                    <div class="stat-label">${t("Direct jobs")}</div>
                 </div>
             </div>
-            ${dataAttribution("Investment data from official company announcements")}
+            ${dataAttribution(t("Investment data from official company announcements"))}
         `;
 
     this.showPanel(content);
@@ -90,7 +91,7 @@ export const methods = {
 
       energyMixHtml = `
                 <div style="margin-top: var(--space-4);">
-                    <div class="panel-bento-label" style="margin-bottom: var(--space-2);">Energy mix</div>
+                    <div class="panel-bento-label" style="margin-bottom: var(--space-2);">${t("Energy mix")}</div>
                     <p>${resource.energyMix.description}</p>
                     <div style="margin-top: var(--space-4);">
                         ${resource.energyMix.sources
@@ -116,7 +117,7 @@ export const methods = {
             ${energyMixHtml}
             <div style="margin-top: var(--space-6);">
                 <button class="panel-bento-btn secondary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                    View evidence
+                    ${t("View evidence")}
                 </button>
             </div>
         `;
@@ -150,7 +151,7 @@ export const methods = {
                 ${statsHtml}
             </div>
             <div style="margin-top: var(--space-6);">
-                <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Development zones</div>
+                <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Development zones")}</div>
                 <div style="display: flex; flex-direction: column; gap: var(--space-3);">
                     ${zonesHtml}
                 </div>
@@ -184,15 +185,15 @@ export const methods = {
 
     const totalCommitment = "¥4T+";
     this.showPanel(`
-            ${panelHeader("Government commitment", "National to local alignment")}
+            ${panelHeader(t("Government commitment"), t("National to local alignment"))}
             <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
                 <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${totalCommitment}</span>
-                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">Combined commitment</span>
+                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${t("Combined commitment")}</span>
             </div>
             <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
                 ${tierCards}
             </div>
-            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">Click any tier for details.</p>
+            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">${t("Click any tier for details.")}</p>
         `);
   },
 
@@ -205,7 +206,7 @@ export const methods = {
     if (tier.subItems && tier.subItems.length > 0) {
       subItemsHtml = `
                 <div style="margin-top: var(--space-4);">
-                    <div style="font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin-bottom: var(--space-3);">Key initiatives</div>
+                    <div style="font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin-bottom: var(--space-3);">${t("Key initiatives")}</div>
                     ${tier.subItems
                       .map(
                         (sub) => `
@@ -224,7 +225,7 @@ export const methods = {
     }
 
     const content = `
-            ${panelHeader(tier.tierLabel || "Government tier", tier.name)}
+            ${panelHeader(tier.tierLabel || t("Government tier"), tier.name)}
             <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
                 <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: ${tier.color || "var(--color-primary)"};">${tier.commitment}</span>
                 <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${tier.commitmentLabel || ""}</span>
@@ -243,16 +244,16 @@ export const methods = {
    */
   showRoadDetailPanel(road) {
     const content = `
-            ${panelHeader("Infrastructure plan", road.name)}
+            ${panelHeader(t("Infrastructure plan"), road.name)}
             <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
                 <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${road.commuteImpact}</span>
-                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">commute saved</span>
+                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${t("commute saved")}</span>
             </div>
             <div class="stat-grid" style="margin-top: var(--space-4);">
-                <div class="stat-item"><div class="stat-value">${road.driveToJasm || "-"}</div><div class="stat-label">Drive to JASM</div></div>
-                <div class="stat-item"><div class="stat-value">${road.status}</div><div class="stat-label">Status</div></div>
-                <div class="stat-item"><div class="stat-value">${road.completionDate}</div><div class="stat-label">Completion</div></div>
-                <div class="stat-item"><div class="stat-value">${road.budget}</div><div class="stat-label">Budget</div></div>
+                <div class="stat-item"><div class="stat-value">${road.driveToJasm || "-"}</div><div class="stat-label">${t("Drive to JASM")}</div></div>
+                <div class="stat-item"><div class="stat-value">${road.status}</div><div class="stat-label">${t("Status")}</div></div>
+                <div class="stat-item"><div class="stat-value">${road.completionDate}</div><div class="stat-label">${t("Completion")}</div></div>
+                <div class="stat-item"><div class="stat-value">${road.budget}</div><div class="stat-label">${t("Budget")}</div></div>
             </div>
             <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${road.description}</p>
             ${
@@ -260,7 +261,7 @@ export const methods = {
                 ? `
                 <button class="button-secondary" style="margin-top: var(--space-6); width: 100%;" onclick="UI.openEvidenceDocument('${road.documentLink}')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    View source document
+                    ${t("View source document")}
                 </button>
             `
                 : ""
@@ -283,12 +284,12 @@ export const methods = {
     const evidenceHtml = company.evidence
       ? `
             <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.openEvidenceDocument('${company.evidence.title}')">
-                View source document
+                ${t("View source document")}
             </button>`
       : "";
 
     const content = `
-            ${panelHeader("Corporate investment", company.name)}
+            ${panelHeader(t("Corporate investment"), company.name)}
             ${company.subtitle ? `<p style="margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-text-tertiary);">${company.subtitle}</p>` : ""}
             ${statsHtml}
             <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${company.description || ""}</p>
@@ -304,12 +305,12 @@ export const methods = {
    */
   showWaterEvidencePanel(evidence) {
     const content = `
-            ${panelHeader("Water quality evidence", evidence.name)}
+            ${panelHeader(t("Water quality evidence"), evidence.name)}
             <p class="panel-subtitle" style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">${evidence.subtitle}</p>
             <p style="margin-bottom: var(--space-4);">${evidence.description}</p>
             ${statGrid(evidence.stats)}
             <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
-                Major manufacturers chose Kumamoto for water quality - proof the resource meets industrial standards.
+                ${t("Major manufacturers chose Kumamoto for water quality - proof the resource meets industrial standards.")}
             </p>
         `;
 
@@ -323,9 +324,9 @@ export const methods = {
    */
   showEnergyStationPanel(station, type) {
     const typeLabels = {
-      solar: "Solar power",
-      wind: "Wind energy",
-      nuclear: "Nuclear power",
+      solar: t("Solar power"),
+      wind: t("Wind energy"),
+      nuclear: t("Nuclear power"),
     };
     const typeColors = {
       solar: "#ff9500",
@@ -351,15 +352,15 @@ export const methods = {
             <div class="stat-grid">
                 <div class="stat-item">
                     <div class="stat-value">${station.capacity}</div>
-                    <div class="stat-label">Capacity</div>
+                    <div class="stat-label">${t("Capacity")}</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">${station.prefecture}</div>
-                    <div class="stat-label">Prefecture</div>
+                    <div class="stat-label">${t("Prefecture")}</div>
                 </div>
             </div>
             <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">
-                Kyushu leads Japan in renewable energy adoption, providing the stable and diverse power mix semiconductor manufacturing requires.
+                ${t("Kyushu leads Japan in renewable energy adoption, providing the stable and diverse power mix semiconductor manufacturing requires.")}
             </p>
         `;
 
@@ -409,31 +410,31 @@ export const methods = {
     const layers = [
       {
         key: "futureSciencePark",
-        label: "Science park circles",
+        label: t("Science park circles"),
         color: "#007aff",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>',
       },
       {
         key: "futureAirport",
-        label: "Airport access",
+        label: t("Airport access"),
         color: "#34c759",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
       },
       {
         key: "futureGovZones",
-        label: "Government zone clusters",
+        label: t("Government zone clusters"),
         color: "#ff3b30",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
       },
       {
         key: "futureRoads",
-        label: "Roads and interchanges",
+        label: t("Roads and interchanges"),
         color: "#ff9500",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
       },
       {
         key: "futureTrafficFlow",
-        label: "Traffic flow",
+        label: t("Traffic flow"),
         color: "#ef4444",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
       },
@@ -454,11 +455,11 @@ export const methods = {
       .join("");
 
     return `
-      ${panelHeader("Future outlook", "2030+ vision", "Toggle layers to explore the completed state of the semiconductor corridor.")}
+      ${panelHeader(t("Future outlook"), t("2030+ vision"), t("Toggle layers to explore the completed state of the semiconductor corridor."))}
       <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
         ${rowsHtml}
       </div>
-      <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showFutureOutlookEvidence()">View evidence</button>
+      <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showFutureOutlookEvidence()">${t("View evidence")}</button>
     `;
   },
 
@@ -472,7 +473,7 @@ export const methods = {
         "assets/use-case-images/evidence-science-park.webp",
         "assets/use-case-images/evidence-kumamoto-future-road-network.webp",
       ],
-      title: "Future outlook evidence",
+      title: t("Future outlook evidence"),
     });
   },
 
@@ -589,7 +590,7 @@ export const methods = {
               )
               .join("");
           } else {
-            propsListHtml = `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); padding: var(--space-3);">No properties yet.</div>`;
+            propsListHtml = `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); padding: var(--space-3);">${t("No properties yet.")}</div>`;
           }
 
           return `
@@ -605,7 +606,7 @@ export const methods = {
 
       detailsHtml = `
                 <div style="margin-top: var(--space-6);">
-                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Zone details</div>
+                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Zone details")}</div>
                     <div style="display: flex; flex-direction: column; gap: var(--space-4);">
                         ${cardsHtml}
                     </div>
@@ -614,7 +615,7 @@ export const methods = {
     }
 
     return `
-            ${panelHeader("Investment properties", "Zone overview", "Five properties across three investment zones in the semiconductor corridor. Toggle a zone to explore its properties.")}
+            ${panelHeader(t("Investment properties"), t("Zone overview"), t("Five properties across three investment zones in the semiconductor corridor. Toggle a zone to explore its properties."))}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>
@@ -631,19 +632,19 @@ export const methods = {
     const types = [
       {
         key: "solar",
-        label: "Solar power",
+        label: t("Solar power"),
         color: "#ff9500",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
       },
       {
         key: "wind",
-        label: "Wind energy",
+        label: t("Wind energy"),
         color: "#5ac8fa",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
       },
       {
         key: "nuclear",
-        label: "Nuclear energy",
+        label: t("Nuclear energy"),
         color: "#ff3b30",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>',
       },
@@ -652,15 +653,15 @@ export const methods = {
     const evidence = AppData.kyushuEnergy?.evidence || {};
 
     const rowsHtml = types
-      .map((t) => {
-        const isActive = activeTypes.includes(t.key);
+      .map((tp) => {
+        const isActive = activeTypes.includes(tp.key);
         return toggleRow({
-          id: t.key,
-          label: t.label,
-          color: t.color,
-          icon: t.icon,
+          id: tp.key,
+          label: tp.label,
+          color: tp.color,
+          icon: tp.icon,
           active: isActive,
-          onclick: `App.toggleEnergyType('${t.key}')`,
+          onclick: `App.toggleEnergyType('${tp.key}')`,
         });
       })
       .join("");
@@ -672,7 +673,7 @@ export const methods = {
         .map((key) => {
           const ev = evidence[key];
           if (!ev) return "";
-          const t = types.find((t) => t.key === key);
+          const tp = types.find((tp) => tp.key === key);
 
           const imageHtml = ev.image
             ? `
@@ -683,7 +684,7 @@ export const methods = {
             : "";
 
           return evidenceCard({
-            color: t.color,
+            color: tp.color,
             subtitle: ev.subtitle,
             title: ev.title,
             description: ev.description,
@@ -695,7 +696,7 @@ export const methods = {
 
       evidenceHtml = `
                 <div style="margin-top: var(--space-6);">
-                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">Evidence</div>
+                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Evidence")}</div>
                     <div style="display: flex; flex-direction: column; gap: var(--space-4);">
                         ${cardsHtml}
                     </div>
@@ -704,7 +705,7 @@ export const methods = {
     }
 
     return `
-            ${panelHeader("Sustainable energy", "Power resources", "Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require.")}
+            ${panelHeader(t("Sustainable energy"), t("Power resources"), t("Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require."))}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>
@@ -773,7 +774,7 @@ export const methods = {
     if (activeLevels.length > 0) {
       const cardsHtml = activeLevels
         .map((levelId) => {
-          const tier = tiers.find((t) => t.id === levelId);
+          const tier = tiers.find((tr) => tr.id === levelId);
           if (!tier) return "";
 
           // Sub-items for local tier
@@ -811,9 +812,9 @@ export const methods = {
 
       // Combined totals
       const totalCommitment = activeLevels.reduce((sum, id) => {
-        const t = tiers.find((t) => t.id === id);
-        if (!t) return sum;
-        const val = t.commitment || t.stats?.[0]?.value || "";
+        const tier = tiers.find((tr) => tr.id === id);
+        if (!tier) return sum;
+        const val = tier.commitment || tier.stats?.[0]?.value || "";
         const num = parseFloat(val.replace(/[^0-9.]/g, ""));
         return sum + (isNaN(num) ? 0 : num);
       }, 0);
@@ -822,8 +823,8 @@ export const methods = {
         activeLevels.length > 1
           ? `
                 <div style="margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--color-bg-tertiary); border-radius: var(--radius-medium); display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${activeLevels.length} levels active</span>
-                    <span style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--font-weight-bold);">~¥${Math.round(totalCommitment)}B combined</span>
+                    <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${activeLevels.length} ${t("levels active")}</span>
+                    <span style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--font-weight-bold);">~¥${Math.round(totalCommitment)}B ${t("combined")}</span>
                 </div>
             `
           : "";
@@ -831,12 +832,12 @@ export const methods = {
       // Section heading: use tier label for single-select, generic for multi
       const sectionHeading =
         activeLevels.length === 1
-          ? tiers.find((t) => t.id === activeLevels[0])?.tierLabel ||
-            "Commitment details"
-          : "Active commitments";
+          ? tiers.find((tr) => tr.id === activeLevels[0])?.tierLabel ||
+            t("Commitment details")
+          : t("Active commitments");
 
       const centralEvidenceBtn = activeLevels.includes("central")
-        ? `<button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showQuickLook({ type: 'pdf', src: 'assets/pdfs/2040-vision-plan.pdf', title: '2040 vision plan' })">View evidence</button>`
+        ? `<button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showQuickLook({ type: 'pdf', src: 'assets/pdfs/2040-vision-plan.pdf', title: '2040 vision plan' })">${t("View evidence")}</button>`
         : "";
 
       detailHtml = `
@@ -852,7 +853,7 @@ export const methods = {
     }
 
     return `
-            ${panelHeader("Tri-level alignment", "Government support", "Japan's semiconductor strategy is backed by coordinated investment across central, prefectural, and local government - a rare tri-level alignment that de-risks the corridor.")}
+            ${panelHeader(t("Tri-level alignment"), t("Government support"), t("Japan's semiconductor strategy is backed by coordinated investment across central, prefectural, and local government - a rare tri-level alignment that de-risks the corridor."))}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>
@@ -912,7 +913,7 @@ export const methods = {
             description: company.description,
             stats: company.stats || [],
             extra: `${company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : ""}
-              ${company.evidence ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')">View source document</button>` : ""}`,
+              ${company.evidence ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')"> ${t("View source document")}</button>` : ""}`,
           });
         })
         .join("");
@@ -926,7 +927,7 @@ export const methods = {
     }
 
     return `
-      ${panelHeader("Employment data", "Talent pipeline", data.summary)}
+      ${panelHeader(t("Employment data"), t("Talent pipeline"), data.summary)}
       <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
         ${rowsHtml}
       </div>
@@ -989,7 +990,7 @@ export const methods = {
     }
 
     return `
-      ${panelHeader("Education and talent pipeline", "Education pipeline", AppData.talentPipeline?.description || "")}
+      ${panelHeader(t("Education and talent pipeline"), t("Education pipeline"), AppData.talentPipeline?.description || "")}
       <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
         ${rowsHtml}
       </div>
@@ -1039,9 +1040,9 @@ export const methods = {
       ? `
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
-                        <div class="stat-label" style="color: var(--color-text-tertiary); margin-bottom: var(--space-1);">Service suspended</div>
+                        <div class="stat-label" style="color: var(--color-text-tertiary); margin-bottom: var(--space-1);">${t("Service suspended")}</div>
                         <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-text-tertiary);">${destination.flightTime}</div>
-                        <div class="stat-label">Flight time when active</div>
+                        <div class="stat-label">${t("Flight time when active")}</div>
                     </div>
                 </div>
             `
@@ -1049,7 +1050,7 @@ export const methods = {
                 <div class="stat-grid" style="grid-template-columns: 1fr;">
                     <div class="stat-item" style="text-align: center;">
                         <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-info);">${destination.flightTime}</div>
-                        <div class="stat-label">Direct flight time</div>
+                        <div class="stat-label">${t("Direct flight time")}</div>
                     </div>
                 </div>
             `;
@@ -1058,11 +1059,11 @@ export const methods = {
     const statsHtml = `
             <div class="stat-item">
                 <div class="stat-value">${destination.airlines.join(", ")}</div>
-                <div class="stat-label">Airlines</div>
+                <div class="stat-label">${t("Airlines")}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value">${destination.region}</div>
-                <div class="stat-label">Region</div>
+                <div class="stat-label">${t("Region")}</div>
             </div>
         `;
 
@@ -1085,7 +1086,7 @@ export const methods = {
       : "";
 
     const content = `
-            ${panelHeader("International route", `${destination.name} (${destination.code})`)}
+            ${panelHeader(t("International route"), `${destination.name} (${destination.code})`)}
             ${semiBadge}
 
             ${headlineHtml}
@@ -1097,7 +1098,7 @@ export const methods = {
             <p>${destination.description}</p>
 
             <button class="panel-btn secondary" onclick="UI.showAllAirlineRoutes()">
-                View all routes
+                ${t("View all routes")}
             </button>
         `;
 
@@ -1133,8 +1134,8 @@ export const methods = {
     this.disclosureState["active-routes"] = true;
 
     const content = `
-            ${panelHeader("Aso Kumamoto Airport", "International routes")}
-            <p style="margin-bottom: var(--space-4);">Direct connections to ${activeRoutes.length} destinations across Korea, Taiwan, and greater Asia.</p>
+            ${panelHeader(t("Aso Kumamoto Airport"), t("International routes"))}
+            <p style="margin-bottom: var(--space-4);">${t("Direct connections to")} ${activeRoutes.length} ${t("destinations across Korea, Taiwan, and greater Asia.")}</p>
 
             <div class="disclosure-group expanded" data-group-id="active-routes">
                 <button class="disclosure-header" aria-expanded="true" onclick="UI.toggleDisclosureGroup('active-routes')">
@@ -1145,7 +1146,7 @@ export const methods = {
                     <span class="disclosure-icon" style="color: var(--color-success);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1l5.2 3L6 14.3 3.7 14c-.4 0-.7.2-.9.5l-.1.3c-.1.3 0 .7.3.9l2.4 1.4 1.4 2.4c.2.3.6.4.9.3l.3-.1c.3-.2.5-.5.5-.9L8.3 16l3 2.9c.5.4 1 .5 1.4.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
                     </span>
-                    <span class="disclosure-title">Active routes</span>
+                    <span class="disclosure-title">${t("Active routes")}</span>
                     <span class="disclosure-badge">${activeRoutes.length}</span>
                 </button>
                 <div class="disclosure-content">
@@ -1284,15 +1285,15 @@ export const methods = {
       .join("");
 
     const evidenceBtn = options.evidencePdf
-      ? `<button onclick="UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: 'Evidence report' })" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); padding: var(--space-3) var(--space-6); font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); background: transparent; border: 1px solid var(--color-bg-tertiary); border-radius: var(--radius-full); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);" onmouseenter="this.style.backgroundColor='var(--color-bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'">
+      ? `<button onclick="UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: '${t("Evidence report")}' })" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); padding: var(--space-3) var(--space-6); font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); background: transparent; border: 1px solid var(--color-bg-tertiary); border-radius: var(--radius-full); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);" onmouseenter="this.style.backgroundColor='var(--color-bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          View evidence
+          ${t("View evidence")}
         </button>`
       : "";
 
     const content = `
-      ${panelHeader("Properties", label)}
-      <p style="color: var(--color-text-secondary); margin-top: var(--space-3);">${properties.length} ${properties.length === 1 ? "property" : "properties"} in this zone</p>
+      ${panelHeader(t("Properties"), label)}
+      <p style="color: var(--color-text-secondary); margin-top: var(--space-3);">${properties.length} ${properties.length === 1 ? t("property") : t("properties")} ${t("in this zone")}</p>
       <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-6);">
         ${rows}
       </div>
@@ -1329,8 +1330,8 @@ export const methods = {
     // JASM
     connectionsHtml += connectionItem(
       connectionIcons.jasm,
-      "JASM (TSMC)",
-      `${conn.jasm.distance} - ${conn.jasm.time} drive`,
+      t("JASM (TSMC)"),
+      `${conn.jasm.distance} - ${conn.jasm.time} ${t("drive")}`,
     );
 
     // Station
@@ -1343,21 +1344,21 @@ export const methods = {
     // Airport
     connectionsHtml += connectionItem(
       connectionIcons.airport,
-      "Kumamoto Airport",
-      `${conn.airport.distance} - ${conn.airport.time} drive`,
+      t("Kumamoto Airport"),
+      `${conn.airport.distance} - ${conn.airport.time} ${t("drive")}`,
     );
 
     // Road
     connectionsHtml += connectionItem(
       connectionIcons.road,
       conn.road.name,
-      "Planned infrastructure extension",
+      t("Planned infrastructure extension"),
     );
 
     const html = `
       <div class="inspector-resize-handle"></div>
       <div class="inspector-title-bar">
-        <div class="inspector-subtitle">Infrastructure access</div>
+        <div class="inspector-subtitle">${t("Infrastructure access")}</div>
         <h2 class="inspector-title">${property.name}</h2>
       </div>
       <div class="inspector-body">
@@ -1366,7 +1367,7 @@ export const methods = {
         </div>
         <div class="context-prompt">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 4 4 4-4"/></svg>
-          <span>Click the property marker to explore details</span>
+          <span>${t("Click the property marker to explore details")}</span>
         </div>
       </div>`;
 
@@ -1397,16 +1398,16 @@ export const methods = {
       road: "#5ac8fa",
     };
     const names = {
-      jasm: "JASM (TSMC)",
-      station: target.name || "Station",
-      airport: "Kumamoto Airport",
-      road: target.name || "Road",
+      jasm: t("JASM (TSMC)"),
+      station: target.name || t("Station"),
+      airport: t("Kumamoto Airport"),
+      road: target.name || t("Road"),
     };
     const subtitles = {
-      jasm: "Semiconductor factory",
-      station: "Rail connection",
-      airport: "Air access",
-      road: "Road infrastructure",
+      jasm: t("Semiconductor factory"),
+      station: t("Rail connection"),
+      airport: t("Air access"),
+      road: t("Road infrastructure"),
     };
 
     const color = colors[type] || "#6e7073";
@@ -1418,14 +1419,14 @@ export const methods = {
       statsHtml += `
         <div class="panel-bento-stat">
           <div class="panel-bento-stat-value">${target.distance}</div>
-          <div class="panel-bento-stat-label">Distance</div>
+          <div class="panel-bento-stat-label">${t("Distance")}</div>
         </div>`;
     }
     if (target.time) {
       statsHtml += `
         <div class="panel-bento-stat">
           <div class="panel-bento-stat-value">${target.time}</div>
-          <div class="panel-bento-stat-label">Drive time</div>
+          <div class="panel-bento-stat-label">${t("Drive time")}</div>
         </div>`;
     }
 
@@ -1437,7 +1438,7 @@ export const methods = {
       </div>
       <div class="inspector-body">
         <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">
-          Connection from ${property.name}
+          ${t("Connection from")} ${property.name}
         </p>
         ${statsHtml ? `<div class="panel-bento-stats" style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
       </div>`;
@@ -1494,9 +1495,9 @@ export const methods = {
     const content = `
             ${gktkHtml}
             <div class="portfolio-summary">
-                <div class="portfolio-summary-label">Combined 5-year potential</div>
+                <div class="portfolio-summary-label">${t("Combined 5-year potential")}</div>
                 <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>
-                <div class="portfolio-summary-detail">Projected return across ${properties.length} properties</div>
+                <div class="portfolio-summary-detail">${t("Projected return across")} ${properties.length} ${t("properties")}</div>
                 <div class="portfolio-summary-properties">
                     ${propertyNames.join(" • ")}
                 </div>
@@ -1511,7 +1512,7 @@ export const methods = {
    */
   showGktkSummary() {
     const gktk = AppData.gktk;
-    if (!gktk) return "<p>Fund data unavailable.</p>";
+    if (!gktk) return `<p>${t("Fund data unavailable.")}</p>`;
     return `
             <div class="gktk-banner">
                 <div class="gktk-label">${gktk.fullName}</div>
@@ -1542,9 +1543,9 @@ export const methods = {
 
     return `
             <div class="portfolio-summary">
-                <div class="portfolio-summary-label">Combined 5-year potential</div>
+                <div class="portfolio-summary-label">${t("Combined 5-year potential")}</div>
                 <div class="portfolio-summary-value">${formatYen(totalNetProfit)}</div>
-                <div class="portfolio-summary-detail">Projected return across ${properties.length} properties</div>
+                <div class="portfolio-summary-detail">${t("Projected return across")} ${properties.length} ${t("properties")}</div>
                 <div class="portfolio-summary-properties">
                     ${propertyNames.join(" • ")}
                 </div>
@@ -1579,32 +1580,32 @@ export const methods = {
     );
 
     const content = `
-            ${panelHeader("Financial projection", "Performance calculator")}
+            ${panelHeader(t("Financial projection"), t("Performance calculator"))}
 
             <!-- HEADLINE STAT - Von Restorff Effect -->
             <div class="headline-stat">
-                <div class="headline-stat-label">Projected 5-year return</div>
+                <div class="headline-stat-label">${t("Projected 5-year return")}</div>
                 <div class="headline-stat-value">${formatYenCompact(data.netProfit)}</div>
-                <div class="headline-stat-sublabel">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} case scenario</div>
+                <div class="headline-stat-sublabel">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} ${t("case scenario")}</div>
             </div>
 
             <!-- SCENARIO SELECTOR -->
             <div class="calculator-section">
-                <h4>Scenario comparison</h4>
+                <h4>${t("Scenario comparison")}</h4>
                 <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
-                    <canvas id="scenario-chart" role="img" aria-label="Bar chart comparing investment scenarios"></canvas>
+                    <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios")}"></canvas>
                 </div>
                 <div id="scenario-chart-table"></div>
 
                 <div class="scenario-toggle">
                     <button class="scenario-btn ${scenario === "bear" ? "active" : ""}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'bear')">
-                        <span class="scenario-icon" aria-hidden="true">▼</span> Bear
+                        <span class="scenario-icon" aria-hidden="true">▼</span> ${t("Bear")}
                     </button>
                     <button class="scenario-btn ${scenario === "average" ? "active" : ""}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'average')">
-                        <span class="scenario-icon" aria-hidden="true">—</span> Average
+                        <span class="scenario-icon" aria-hidden="true">—</span> ${t("Average")}
                     </button>
                     <button class="scenario-btn ${scenario === "bull" ? "active" : ""}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'bull')">
-                        <span class="scenario-icon" aria-hidden="true">▲</span> Bull
+                        <span class="scenario-icon" aria-hidden="true">▲</span> ${t("Bull")}
                     </button>
                 </div>
             </div>
@@ -1616,7 +1617,7 @@ export const methods = {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                             <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
-                        View detailed breakdown
+                        ${t("View detailed breakdown")}
                     </span>
                     <span class="financials-disclosure-chevron">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1626,41 +1627,41 @@ export const methods = {
                 </button>
                 <div class="financials-disclosure-content" id="financials-details">
                     <div class="calc-row">
-                        <span class="calc-label">Appreciation rate</span>
-                        <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
+                        <span class="calc-label">${t("Appreciation rate")}</span>
+                        <span class="calc-value">${formatPercent(data.appreciation)}/${t("yr")}</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Est. selling price (5yr)</span>
+                        <span class="calc-label">${t("Est. selling price (5yr)")}</span>
                         <div class="calc-value-with-confidence">
                             <span class="calc-value">${sellingPriceInfo.display}</span>
                             <span class="confidence-range" title="${confidence.level} confidence">
-                                Range: ${sellingPriceInfo.range}
+                                ${t("Range:")} ${sellingPriceInfo.range}
                                 <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
                             </span>
                         </div>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Rental yield</span>
+                        <span class="calc-label">${t("Rental yield")}</span>
                         <span class="calc-value">${formatPercent(data.noiTicRatio || data.irr || 0)}</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Annual rental income</span>
+                        <span class="calc-label">${t("Annual rental income")}</span>
                         <span class="calc-value">${formatYen(data.annualRent)}</span>
                     </div>
                     <div class="calc-row">
-                        <span class="calc-label">Applicable taxes</span>
+                        <span class="calc-label">${t("Applicable taxes")}</span>
                         <span class="calc-value negative">${formatYen(data.taxes)}</span>
                     </div>
                 </div>
             </div>
 
-            ${dataAttribution("Price data from Kumamoto Land Registry (Jan 2026)")}
+            ${dataAttribution(t("Price data from Kumamoto Land Registry (Jan 2026)"))}
 
             <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
-                View rental report
+                ${t("View rental report")}
             </button>
             <button class="panel-btn" onclick="UI.showAreaStats()">
-                Area statistics
+                ${t("Area statistics")}
             </button>
         `;
 

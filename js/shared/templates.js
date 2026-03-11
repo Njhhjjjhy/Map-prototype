@@ -3,6 +3,8 @@
  * Each returns an HTML string. Used across ui/, step-handlers, and app.
  */
 
+import { t } from "../i18n/index.js";
+
 // --- SVG constants ---
 
 export const SVG_CHECKMARK = `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
@@ -189,10 +191,11 @@ export function evidenceCard({
  */
 export function continueBtn(
   onclick,
-  label = "Continue",
+  label,
   { arrow = false, variant = "primary" } = {},
 ) {
-  return `<button class="chatbox-continue ${variant}" onclick="${onclick}">${label}${arrow ? ` ${SVG_ARROW_RIGHT}` : ""}</button>`;
+  const btnLabel = label || t("Continue");
+  return `<button class="chatbox-continue ${variant}" onclick="${onclick}">${btnLabel}${arrow ? ` ${SVG_ARROW_RIGHT}` : ""}</button>`;
 }
 
 /**
@@ -202,7 +205,7 @@ export function continueBtn(
  */
 export function dataAttribution(source) {
   return `<div class="data-attribution">
-    <p class="data-timestamp">Sample data · Q1 2026</p>
+    <p class="data-timestamp">${t("Sample data · Q1 2026")}</p>
     <p>${source}</p>
 </div>`;
 }
