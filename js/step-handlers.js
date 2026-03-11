@@ -802,32 +802,6 @@ export const stepHandlers = {
       active.splice(idx, 1);
       this._removeDevelopmentMapElement(childId);
     } else {
-      // Science-park zone plans are mutually exclusive - deactivate siblings
-      const spZoneIds = (AppData.scienceParkZonePlans || []).map((z) => z.id);
-      if (spZoneIds.includes(childId)) {
-        const spActive = active.filter((id) => spZoneIds.includes(id));
-        spActive.forEach((id) => {
-          if (id === "sp-gov-zone") {
-            this.state.selectedGovZoneCluster = null;
-            this.state.selectedGovZoneInfra = null;
-            MapController.setGovZoneClusterHighlight(null);
-          }
-          const i = active.indexOf(id);
-          if (i !== -1) active.splice(i, 1);
-          this._removeDevelopmentMapElement(id);
-        });
-      }
-
-      // Grand-airport children are mutually exclusive - deactivate siblings
-      if (childId.startsWith("ga-")) {
-        const gaChildren = active.filter((id) => id.startsWith("ga-"));
-        gaChildren.forEach((id) => {
-          const i = active.indexOf(id);
-          if (i !== -1) active.splice(i, 1);
-          this._removeDevelopmentMapElement(id);
-        });
-      }
-
       // Turn on this child
       active.push(childId);
       this._showDevelopmentMapElement(childId);
