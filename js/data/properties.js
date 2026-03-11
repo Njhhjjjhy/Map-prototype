@@ -333,6 +333,7 @@ export const properties = [
             "assets/step-11-images/ozu-1-interior-2.jpg",
             "assets/step-11-images/ozu-1-interior-3.jpg",
             "assets/step-11-images/ozu-1-interior-4.jpg",
+            "assets/step-11-images/ozu-1-interior-5.jpg",
             "assets/step-11-images/ozu-1-interior-6.jpg",
             "assets/step-11-images/ozu-1-interior-7.jpg",
           ],
