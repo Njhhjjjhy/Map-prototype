@@ -94,7 +94,7 @@
           <button
             id="chatbox-back"
             aria-label="Go back"
-            onclick="App.prevStep()"
+            onclick="App.state.qaMode ? UI.chatboxBack() : App.prevStep()"
             disabled
           >
             <svg

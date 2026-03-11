@@ -1272,8 +1272,8 @@ export const stepHandlers = {
     // Populate data layers panel with all 11 layer groups (all unselected)
     UI.showDataLayers("qa");
 
-    // Show AI chat with Q&A suggestion chips
-    UI.showQAChatbox();
+    // Replace chatbox content with Q&A mode (same chatbox, back arrow returns to recap)
+    UI.updateChatbox(this._renderQAChatboxContent());
 
     // Ensure right panel is hidden initially
     UI.hidePanel();
@@ -1286,6 +1286,30 @@ export const stepHandlers = {
     MapController.startHeartbeat();
 
     this._transitioning = false;
+  },
+
+  /**
+   * Render the Q&A chatbox content shown inside the step chatbox.
+   */
+  _renderQAChatboxContent() {
+    return `
+            <h3>Q&amp;A</h3>
+            <p>Explore any topic from the presentation.</p>
+            <div class="chatbox-options" role="group" aria-label="Q&A topics">
+                <button class="chatbox-option" onclick="UI.showAIChat(); UI.sendAIMessage('What about Kumamoto\\'s water quality and supply?')">Water quality?</button>
+                <button class="chatbox-option" onclick="UI.showAIChat(); UI.sendAIMessage('How strong is government support for the semiconductor corridor?')">Government support?</button>
+                <button class="chatbox-option" onclick="UI.showAIChat(); UI.sendAIMessage('What are the projected property returns in Kumamoto?')">Property returns?</button>
+                <button class="chatbox-option" onclick="UI.showAIChat(); UI.sendAIMessage('Tell me about the talent pipeline and workforce availability.')">Talent pipeline?</button>
+            </div>
+            <button class="chatbox-continue border" onclick="UI.downloadSummary()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" x2="12" y1="15" y2="3"/>
+                </svg>
+                Download summary
+            </button>
+        `;
   },
 
   // ================================

@@ -499,8 +499,11 @@ export const methods = {
    * Enabled when on any step > 0, disabled at step 0 (welcome).
    */
   _updateChatboxBackButton() {
-    const canGoBack =
-      typeof App !== "undefined" && App.state && App.state.currentStep > 0;
+    const isQA =
+      typeof App !== "undefined" && App.state && App.state.qaMode;
+    const canGoBack = isQA
+      ? this.chatboxHistory.length > 0
+      : typeof App !== "undefined" && App.state && App.state.currentStep > 0;
     this.elements.chatboxBack.disabled = !canGoBack;
   },
 
