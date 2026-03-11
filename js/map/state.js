@@ -54,6 +54,9 @@ const state = {
     infraPlan: [],
   },
 
+  // Railway animation tracking
+  _railwayDrawRafs: [],
+
   // Road extension animation tracking
   _roadDrawRafs: [],
   _roadPulseTimeout: null,

@@ -731,7 +731,10 @@ export const stepHandlers = {
     const station = data?.stations?.find((s) => s.id === stationId);
     if (!station) return;
 
-    const color = station.type === "planned" ? "#ff9500" : "#6e7073";
+    const color =
+      station.type === "planned" || station.type === "proposed"
+        ? "#ff9500"
+        : "#6e7073";
     const statsHtml = station.stats?.length ? bentoStats(station.stats) : "";
 
     UI.showPanel(`

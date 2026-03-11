@@ -619,47 +619,76 @@ export const grandAirportData = {
     ],
   },
 
-  // JR Hohi Line and station data
+  // JR Hohi Main Line (Kumamoto to Higo-Ozu) and station data
   railway: {
     jrHohiLine: [
-      [32.85, 130.78], // West end (approaching Mifunegaoka)
-      [32.854, 130.79],
-      [32.8556, 130.7979], // Mifunegaoka Station
-      [32.86, 130.802],
-      [32.8644, 130.8052], // Sanrigi Station
-      [32.868, 130.81],
-      [32.87, 130.815],
-      [32.88, 130.81], // New Kikuyo Station (planned)
-      [32.875, 130.82],
-      [32.8698, 130.823], // Haramizu Station
-      [32.872, 130.84],
-      [32.875, 130.855],
-      [32.8773, 130.8668], // Higo-Ozu Station
+      [32.7904, 130.6885], // Kumamoto Station (start)
+      [32.7980, 130.7050],
+      [32.8080, 130.7200],
+      [32.8200, 130.7380],
+      [32.8350, 130.7550],
+      [32.8480, 130.7750],
+      [32.8618, 130.7970], // Sanrigi Station
+      [32.8630, 130.8050],
+      [32.8650, 130.8190], // Proposed new station
+      [32.8680, 130.8240],
+      [32.8706, 130.8291], // Haramizu Station
+      [32.8730, 130.8400],
+      [32.8750, 130.8530],
+      [32.8774, 130.8662], // Higo-Ozu Station (end)
     ],
     stations: [
       {
-        id: "new-kikuyo",
-        name: "New Kikuyo station",
-        coords: [32.88, 130.81],
-        type: "planned",
+        id: "kumamoto",
+        name: "Kumamoto station",
+        coords: [32.7904, 130.6885],
+        type: "existing",
         icon: "train-front",
         color: "#ff9500",
         description:
-          "Planned new station on the JR Hohi Line between Mifunegaoka and Haramizu, directly serving the semiconductor corridor workforce. Expected to handle over 6,000 daily riders.",
+          "Major terminal station and starting point of the JR Hohi Main Line. Principal rail hub for Kumamoto Prefecture with shinkansen connections.",
         stats: [
-          { value: "2028", label: "Planned opening" },
+          { value: "JR Hohi", label: "Railway line" },
+          { value: "32,000+", label: "Daily riders" },
+        ],
+      },
+      {
+        id: "sanrigi",
+        name: "Sanrigi station",
+        coords: [32.8618, 130.7970],
+        type: "existing",
+        icon: "train-front",
+        color: "#ff9500",
+        description:
+          "Station on the JR Hohi Main Line in the Kikuyo area, serving the growing residential district near the semiconductor corridor.",
+        stats: [
+          { value: "JR Hohi", label: "Railway line" },
+          { value: "1,200", label: "Daily riders" },
+        ],
+      },
+      {
+        id: "proposed-new",
+        name: "Proposed new station",
+        coords: [32.865, 130.819],
+        type: "proposed",
+        icon: "train-front",
+        color: "#ff9500",
+        description:
+          "Planning-stage concept for a new station on the JR Hohi Main Line between Sanrigi and Haramizu, intended to serve the semiconductor corridor workforce directly.",
+        stats: [
+          { value: "Concept", label: "Status" },
           { value: "6,000+", label: "Projected daily riders" },
         ],
       },
       {
         id: "haramizu",
         name: "Haramizu station",
-        coords: [32.8698, 130.823],
+        coords: [32.8706, 130.8291],
         type: "existing",
         icon: "train-front",
         color: "#ff9500",
         description:
-          "Existing station on the JR Hohi Line east of the semiconductor corridor. Serves as a key access point for the Kikuyo residential area.",
+          "Existing station on the JR Hohi Main Line east of the semiconductor corridor. Serves as a key access point for the Kikuyo residential area.",
         stats: [
           { value: "JR Hohi", label: "Railway line" },
           { value: "850", label: "Daily riders" },
@@ -667,13 +696,13 @@ export const grandAirportData = {
       },
       {
         id: "higo-ozu",
-        name: "Higo-Ozu",
-        coords: [32.8773, 130.8668],
+        name: "Higo-Ozu station",
+        coords: [32.8774, 130.8662],
         type: "existing",
         icon: "train-front",
         color: "#ff9500",
         description:
-          "Key JR Hohi Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor.",
+          "Key JR Hohi Main Line junction where the proposed airport access railway will terminate, connecting air and rail transit for the semiconductor corridor.",
         stats: [
           { value: "JR Hohi", label: "Railway line" },
           { value: "44 min", label: "To Kumamoto Station" },
@@ -691,10 +720,10 @@ export const grandAirportData = {
       bearing: 19,
     },
     "ga-railway-stations": {
-      center: [130.9479, 32.8796],
-      zoom: 11.2,
+      center: [130.7800, 32.8350],
+      zoom: 11.0,
       pitch: 52,
-      bearing: 0,
+      bearing: 30,
     },
     "ga-road-extensions": {
       center: [130.82, 32.86],

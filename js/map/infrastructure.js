@@ -1488,17 +1488,41 @@ export const methods = {
     // Clean up previous if any
     this.hideRailwayStations();
 
-    // 1. JR Hohi Line
+    // 1. Prepare line coordinates and station positions along the line
     const lineCoords = data.jrHohiLine.map((c) => this._toMapbox(c));
     const lineSourceId = "ga-jr-hohi-line";
+
+    // Build a lookup: for each station, find which segment index it sits at
+    // by matching its coords to the nearest point in jrHohiLine
+    const stationLinePositions = data.stations.map((station) => {
+      const sCoord = this._toMapbox(station.coords);
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < lineCoords.length; i++) {
+        const dx = lineCoords[i][0] - sCoord[0];
+        const dy = lineCoords[i][1] - sCoord[1];
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+      return { station, segmentIndex: bestIdx };
+    });
+
+    // Start with a zero-length line at the first point
     this._safeAddSource(lineSourceId, {
       type: "geojson",
       data: {
         type: "Feature",
-        geometry: { type: "LineString", coordinates: lineCoords },
+        geometry: {
+          type: "LineString",
+          coordinates: [lineCoords[0], lineCoords[0]],
+        },
       },
     });
-    // Glow
+
+    // Glow layer
     this.map.addLayer({
       id: `${lineSourceId}-glow`,
       type: "line",
@@ -1529,18 +1553,42 @@ export const methods = {
       lineSourceId,
     );
 
-    // 2. Station markers (elevated style, tooltip on hover, click for detail)
+    // 2. Station marker helpers
     const stationIcons = {
       "train-front": `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`,
       station: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>`,
     };
 
-    data.stations.forEach((station) => {
+    // Track which stations have been revealed
+    const revealedStations = new Set();
+
+    // Function to create and show a station marker
+    const revealStation = (station) => {
+      if (revealedStations.has(station.id)) return;
+      revealedStations.add(station.id);
+
       const color = station.color;
-      const iconSvg = stationIcons[station.icon] || stationIcons["train-front"];
+      const iconSvg =
+        stationIcons[station.icon] || stationIcons["train-front"];
       const id = `ga-station-${station.id}`;
 
-      const html = this._elevatedMarkerHtml(iconSvg, color, 36);
+      // Proposed station gets a dashed-circle style to indicate planning stage
+      let html;
+      if (station.type === "proposed") {
+        html = `<div class="elevated-marker" style="height: 36px; display: flex; flex-direction: column; align-items: center;">
+          <div style="
+            width: 28px; height: 28px;
+            background: transparent;
+            border: 2.5px dashed ${color};
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          "><svg viewBox="0 0 24 24" fill="${color}" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg></div>
+          <div style="width: 2px; flex: 1; background: ${color}; opacity: 0.4;"></div>
+        </div>`;
+      } else {
+        html = this._elevatedMarkerHtml(iconSvg, color, 36);
+      }
 
       const { marker, element } = this._createMarker(station.coords, html, {
         className: "ga-station-marker",
@@ -1548,19 +1596,75 @@ export const methods = {
         ariaLabel: station.name,
       });
 
-      // Hover tooltip (text on hover only)
       this._addTooltip(marker, element, station.name);
 
-      // Click to show detail in dashboard
       element.addEventListener("click", () => {
         App.showRailwayStationDetail(station.id);
       });
 
       this.markers[id] = marker;
       this._layerGroups.grandAirportRailway.push(id);
-    });
+    };
 
-    // Pulse animation - oscillate glow width and opacity for visible breathing effect
+    // 3. Animate the line drawing progressively from Kumamoto to Higo-Ozu
+    const drawDuration = 2500;
+    const totalSegments = lineCoords.length - 1;
+    const startTime = performance.now();
+
+    const animateStep = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / drawDuration, 1);
+      // Ease-out cubic for smooth deceleration
+      const eased = 1 - Math.pow(1 - t, 3);
+
+      const currentLength = eased * totalSegments;
+      const full = Math.floor(currentLength);
+      const frac = currentLength - full;
+
+      // Build coordinates up to the current progress point
+      const drawn = lineCoords.slice(0, full + 1);
+      if (full < totalSegments) {
+        const from = lineCoords[full];
+        const to = lineCoords[full + 1];
+        drawn.push([
+          from[0] + (to[0] - from[0]) * frac,
+          from[1] + (to[1] - from[1]) * frac,
+        ]);
+      }
+
+      const source = this.map.getSource(lineSourceId);
+      if (source) {
+        source.setData({
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates:
+              drawn.length >= 2 ? drawn : [lineCoords[0], lineCoords[0]],
+          },
+        });
+      }
+
+      // Reveal station markers as the line reaches them
+      stationLinePositions.forEach(({ station, segmentIndex }) => {
+        if (full >= segmentIndex) {
+          revealStation(station);
+        }
+      });
+
+      if (t < 1) {
+        const rafId = requestAnimationFrame(animateStep);
+        this._railwayDrawRafs.push(rafId);
+      } else {
+        // Animation complete - start pulse
+        this._startRailwayPulse(lineSourceId);
+      }
+    };
+
+    const rafId = requestAnimationFrame(animateStep);
+    this._railwayDrawRafs.push(rafId);
+  },
+
+  _startRailwayPulse(lineSourceId) {
     let railPhase = 0;
     this._railwayPulseTimer = setInterval(() => {
       railPhase += 0.05;
@@ -1588,6 +1692,12 @@ export const methods = {
   },
 
   hideRailwayStations() {
+    // Cancel any pending draw animations
+    if (this._railwayDrawRafs) {
+      this._railwayDrawRafs.forEach((id) => cancelAnimationFrame(id));
+    }
+    this._railwayDrawRafs = [];
+
     // Clean up pulse animation
     if (this._railwayPulseTimer) {
       clearInterval(this._railwayPulseTimer);
