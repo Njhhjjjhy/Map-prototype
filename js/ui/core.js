@@ -1,4 +1,4 @@
-import { STEPS, AppData } from "../data/index.js";
+import { STEPS, STAGE_TABS, AppData } from "../data/index.js";
 import { TIMING } from "../app.js";
 
 export const methods = {
@@ -16,6 +16,7 @@ export const methods = {
       chatboxBack: document.getElementById("chatbox-back"),
       rightPanel: document.getElementById("right-panel"),
       panelClose: document.getElementById("panel-close"),
+      panelHome: document.getElementById("panel-home"),
       panelContent: document.getElementById("panel-content"),
       galleryModal: document.getElementById("gallery-modal"),
       galleryClose: document.getElementById("gallery-close"),
@@ -183,6 +184,11 @@ export const methods = {
     // Panel close
     this.elements.panelClose.addEventListener("click", () => {
       this.hidePanel();
+    });
+
+    // Panel home - reset to root view for current step
+    this.elements.panelHome.addEventListener("click", () => {
+      this.navigateHome();
     });
 
     // Gallery close
@@ -558,7 +564,20 @@ export const methods = {
     this.elements.rightPanel.classList.add("visible");
     this.panelOpen = true;
 
-    // Update toolbar back button based on history
+    // Capture first panel content as home snapshot (for sub-item steps)
+    if (this._panelAtHome && !this._panelHomeContent && !this._isNavigatingHome) {
+      this._panelHomeContent = content;
+    }
+
+    // Track whether we've navigated away from home
+    if (!this._isNavigatingHome && (this._panelHomeFn || this._panelHomeContent)) {
+      // Not at home if content differs from saved home
+      if (this._panelHomeContent && content !== this._panelHomeContent) {
+        this._panelAtHome = false;
+      }
+    }
+
+    // Update toolbar back button and home button based on history
     this._updateToolbarBackButton();
 
     // Show panel toggle button (will be visible/active when panel is open)
@@ -585,17 +604,19 @@ export const methods = {
   },
 
   /**
-   * Update toolbar back button based on history state
+   * Update toolbar back and home buttons based on history state
    */
   _updateToolbarBackButton() {
     const toolbar = document.querySelector(".panel-toolbar");
     if (!toolbar) return;
 
+    const hasHistory = this.panelHistory.length > 0;
+
     // Remove existing back button
     const existing = toolbar.querySelector(".panel-back-btn");
     if (existing) existing.remove();
 
-    if (this.panelHistory.length > 0) {
+    if (hasHistory) {
       const backBtn = document.createElement("button");
       backBtn.className = "panel-back-btn";
       backBtn.setAttribute("aria-label", "Go back");
@@ -603,6 +624,18 @@ export const methods = {
       backBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
       toolbar.insertBefore(backBtn, toolbar.firstChild);
     }
+
+    // Also update home button
+    this._updateHomeButton();
+  },
+
+  /**
+   * Show or hide the home button. Visible whenever a home mechanism is available.
+   */
+  _updateHomeButton() {
+    if (!this.elements.panelHome) return;
+    const hasHome = this._panelHomeFn || this._panelHomeContent;
+    this.elements.panelHome.classList.toggle("hidden", !hasHome);
   },
 
   /**
@@ -613,16 +646,66 @@ export const methods = {
 
     const previousView = this.panelHistory.pop();
     if (previousView) {
-      // Check if we still have more history after this pop
       this.elements.panelContent.innerHTML = previousView.content;
 
-      // Update toolbar back button
+      // If history is now empty, we're back at the root
+      if (this.panelHistory.length === 0) {
+        this._panelAtHome = true;
+      }
+
+      // Update toolbar back and home buttons
       this._updateToolbarBackButton();
 
       // Restore scroll position
       if (previousView.scrollTop !== undefined) {
         this.elements.rightPanel.scrollTop = previousView.scrollTop;
       }
+    }
+  },
+
+  /**
+   * Set the panel home function for the current step.
+   * Called when a step first renders its panel, or when dashboard mode starts.
+   */
+  /**
+   * Set the panel home function for the current step.
+   * Called when a step renders its own panel (inspector or showPanel).
+   */
+  setPanelHome(fn) {
+    this._panelHomeFn = fn;
+    this._panelHomeContent = null;
+    this._panelAtHome = true;
+    this._updateHomeButton();
+  },
+
+  /**
+   * Clear home function and prepare for content-based home capture.
+   * Called for sub-item steps where the panel is shown later on sub-item click.
+   */
+  clearPanelHome() {
+    this._panelHomeFn = null;
+    this._panelHomeContent = null;
+    this._panelAtHome = true;
+    this._updateHomeButton();
+  },
+
+  /**
+   * Navigate home - reset panel to root view for current step
+   */
+  navigateHome() {
+    // Prefer function-based home (for inspector panels and dashboard mode)
+    if (this._panelHomeFn) {
+      this._isNavigatingHome = true;
+      this._panelHomeFn();
+      this._isNavigatingHome = false;
+      this._panelAtHome = true;
+      this._updateHomeButton();
+    } else if (this._panelHomeContent) {
+      // Fallback: restore saved home content (for sub-item panel steps)
+      this.panelHistory = [];
+      this.elements.panelContent.innerHTML = this._panelHomeContent;
+      this._panelAtHome = true;
+      this._updateToolbarBackButton();
     }
   },
 
@@ -646,8 +729,11 @@ export const methods = {
       this.cancelDrillDown();
     }
 
-    // Clear panel history when closing
+    // Clear panel history and home state when closing
     this.clearPanelHistory();
+    this._panelHomeFn = null;
+    this._panelHomeContent = null;
+    this._updateHomeButton();
 
     // Wait for animation to complete, then remove visible
     const animationDuration = TIMING.fast; // matches --duration-fast

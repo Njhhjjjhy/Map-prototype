@@ -583,6 +583,7 @@ const App = {
   },
 
   _renderStepPanel(step) {
+    let hasPanel = true;
     switch (step.id) {
       case "strategic-location":
         UI.showAllAirlineRoutes();
@@ -623,13 +624,20 @@ const App = {
         UI.showInvestmentZonesPanel(this.state.activeInvestmentZones);
         break;
 
-      case "final":
-        // No panel for final step
-        break;
-
       default:
-        // Steps with sub-items: panel shows on sub-item click
+        // Steps with sub-items or no panel: panel shows on sub-item click
+        hasPanel = false;
         break;
+    }
+
+    if (hasPanel) {
+      // Store home function so the panel home button can reset to this view
+      const stepRef = step;
+      UI.setPanelHome(() => this._renderStepPanel(stepRef));
+    } else {
+      // For sub-item steps, enable content-based home capture.
+      // The first showPanel call will be saved as home content.
+      UI.clearPanelHome();
     }
   },
 
