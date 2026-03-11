@@ -564,9 +564,17 @@ export const methods = {
     this.elements.rightPanel.classList.add("visible");
     this.panelOpen = true;
 
+    // Capture first panel content as home snapshot (for sub-item steps)
+    if (this._panelAtHome && !this._panelHomeContent && !this._isNavigatingHome) {
+      this._panelHomeContent = content;
+    }
+
     // Track whether we've navigated away from home
-    if (this._panelHomeFn && !this._isNavigatingHome) {
-      this._panelAtHome = false;
+    if (!this._isNavigatingHome && (this._panelHomeFn || this._panelHomeContent)) {
+      // Not at home if content differs from saved home
+      if (this._panelHomeContent && content !== this._panelHomeContent) {
+        this._panelAtHome = false;
+      }
     }
 
     // Update toolbar back button and home button based on history
@@ -622,11 +630,12 @@ export const methods = {
   },
 
   /**
-   * Show or hide the home button. Visible whenever a home function is set.
+   * Show or hide the home button. Visible whenever a home mechanism is available.
    */
   _updateHomeButton() {
     if (!this.elements.panelHome) return;
-    this.elements.panelHome.classList.toggle("hidden", !this._panelHomeFn);
+    const hasHome = this._panelHomeFn || this._panelHomeContent;
+    this.elements.panelHome.classList.toggle("hidden", !hasHome);
   },
 
   /**
@@ -658,8 +667,24 @@ export const methods = {
    * Set the panel home function for the current step.
    * Called when a step first renders its panel, or when dashboard mode starts.
    */
+  /**
+   * Set the panel home function for the current step.
+   * Called when a step renders its own panel (inspector or showPanel).
+   */
   setPanelHome(fn) {
     this._panelHomeFn = fn;
+    this._panelHomeContent = null;
+    this._panelAtHome = true;
+    this._updateHomeButton();
+  },
+
+  /**
+   * Clear home function and prepare for content-based home capture.
+   * Called for sub-item steps where the panel is shown later on sub-item click.
+   */
+  clearPanelHome() {
+    this._panelHomeFn = null;
+    this._panelHomeContent = null;
     this._panelAtHome = true;
     this._updateHomeButton();
   },
@@ -668,12 +693,19 @@ export const methods = {
    * Navigate home - reset panel to root view for current step
    */
   navigateHome() {
+    // Prefer function-based home (for inspector panels and dashboard mode)
     if (this._panelHomeFn) {
       this._isNavigatingHome = true;
       this._panelHomeFn();
       this._isNavigatingHome = false;
       this._panelAtHome = true;
       this._updateHomeButton();
+    } else if (this._panelHomeContent) {
+      // Fallback: restore saved home content (for sub-item panel steps)
+      this.panelHistory = [];
+      this.elements.panelContent.innerHTML = this._panelHomeContent;
+      this._panelAtHome = true;
+      this._updateToolbarBackButton();
     }
   },
 
@@ -700,6 +732,7 @@ export const methods = {
     // Clear panel history and home state when closing
     this.clearPanelHistory();
     this._panelHomeFn = null;
+    this._panelHomeContent = null;
     this._updateHomeButton();
 
     // Wait for animation to complete, then remove visible
