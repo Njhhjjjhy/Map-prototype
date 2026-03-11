@@ -149,7 +149,7 @@ export const methods = {
         step: 5,
         layer: "sciencePark",
         icon: icons.sciencePark,
-        label: "Science park and grand airport",
+        label: "Science park & airport concept",
       },
       {
         step: 6,
@@ -165,27 +165,27 @@ export const methods = {
       },
       {
         step: 8,
-        layer: "investmentZones",
-        icon: icons.realEstate,
-        label: "Investment opportunity zones",
-      },
-      {
-        step: 9,
-        layer: "properties",
-        icon: icons.properties,
-        label: "Investment properties",
-      },
-      {
-        step: 10,
         layer: "railCommute",
         icon: icons.railCommute,
         label: "Rail commute",
       },
       {
-        step: 10,
+        step: 9,
         layer: "infraPlan",
         icon: icons.infraPlan,
         label: "Infrastructure plan",
+      },
+      {
+        step: 10,
+        layer: "investmentZones",
+        icon: icons.realEstate,
+        label: "Property investment zones",
+      },
+      {
+        step: 10,
+        layer: "properties",
+        icon: icons.properties,
+        label: "Investment properties",
       },
     ];
 
