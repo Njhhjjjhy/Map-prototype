@@ -94,7 +94,7 @@
           <button
             id="chatbox-back"
             aria-label="Go back"
-            onclick="App.state.qaMode ? UI.chatboxBack() : App.prevStep()"
+            onclick="App.prevStep()"
             disabled
           >
             <svg
@@ -664,23 +664,44 @@
     <!-- Hold-to-Confirm Splash Screen (appears at step B6) -->
     <!-- AI Chat (appears after journey completion) -->
     <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
-      <button id="ai-chat-close" aria-label="Close chat">
-        <svg
-          aria-hidden="true"
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="14" y1="2" x2="2" y2="14"></line>
-          <line x1="2" y1="2" x2="14" y2="14"></line>
-        </svg>
-      </button>
-      <div class="ai-chat-header">
+      <div class="ai-chat-toolbar">
+        <button id="ai-chat-back" class="hidden" aria-label="Go back" onclick="UI.aiChatBack()">
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <button id="ai-chat-close" aria-label="Close chat">
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="14" y1="2" x2="2" y2="14"></line>
+            <line x1="2" y1="2" x2="14" y2="14"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Recap content (shown at final step, hidden in Q&A mode) -->
+      <div id="ai-chat-recap" class="hidden"></div>
+
+      <div class="ai-chat-header" id="ai-chat-header">
         <h3>Ask Me Anything About Kumamoto</h3>
       </div>
 

@@ -3489,10 +3489,10 @@ button.layer-item {
   transform: translateX(-50%);
   z-index: 500;
 
-  /* Layout - close button at top, then content flows down */
+  /* Layout - toolbar at top, then content flows down */
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Close button aligns right */
+  align-items: stretch;
 
   /* Sizing */
   width: 100%;
@@ -3515,7 +3515,56 @@ button.layer-item {
   animation: chatboxExit var(--duration-fast) var(--easing-accelerate) forwards;
 }
 
+/* Toolbar - back and close buttons */
+.ai-chat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+}
+
+/* Back button - top left */
+#ai-chat-back {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-standard);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+}
+
+#ai-chat-back:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+#ai-chat-back:active {
+  background: var(--color-bg-tertiary);
+}
+
+#ai-chat-back.hidden {
+  visibility: hidden;
+}
+
+/* Recap content inside AI chat */
+#ai-chat-recap {
+  align-self: stretch;
+  margin-top: var(--space-4);
+}
+
 /* Close button - top right */
+.ai-chat-toolbar #ai-chat-close {
+  margin-left: auto;
+}
+
 #ai-chat-close {
   flex-shrink: 0;
   width: 24px;

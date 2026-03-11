@@ -405,6 +405,11 @@ const App = {
    */
   _renderStepChatbox(step) {
     const chatboxContent = this._getStepChatboxContent(step);
+    if (step.id === "final") {
+      // Final step uses the AI chat panel instead of the step chatbox
+      UI.showFinalRecap(chatboxContent);
+      return;
+    }
     UI.showChatbox(chatboxContent, { skipHistory: true });
   },
 
