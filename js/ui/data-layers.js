@@ -149,38 +149,31 @@ export const methods = {
         step: 5,
         layer: "sciencePark",
         icon: icons.sciencePark,
-        label: "Science park",
-        labelFrom5: "Science park & airport concept",
+        label: "Science park and grand airport",
       },
       {
         step: 6,
-        layer: "scienceParkClusters",
-        icon: icons.sciencePark,
-        label: "Science park clusters",
+        layer: "talentPipeline",
+        icon: icons.employment,
+        label: "Education and talent pipeline",
       },
       {
         step: 7,
-        layer: "talentPipeline",
-        icon: icons.employment,
-        label: "Talent pipeline",
-      },
-      {
-        step: 8,
         layer: "futureOutlook",
         icon: icons.infrastructure,
         label: "Future outlook",
       },
       {
-        step: 9,
+        step: 8,
         layer: "investmentZones",
         icon: icons.realEstate,
-        label: "Investment zones",
+        label: "Investment opportunity zones",
       },
       {
-        step: 10,
+        step: 9,
         layer: "properties",
         icon: icons.properties,
-        label: "Properties",
+        label: "Investment properties",
       },
       {
         step: 10,
@@ -200,20 +193,14 @@ export const methods = {
     if (stepIndex === "initial") {
       html = layerBtn("waterResources", icons.riskyArea, "Water resources");
     } else if (stepIndex === "dashboard" || stepIndex === "qa") {
-      // Dashboard / Q&A: show all available layers (use extended label for combined entry)
-      html = LAYER_SEQUENCE.map((item) => {
-        const label = item.labelFrom5 || item.label;
-        return layerBtn(item.layer, item.icon, label);
-      }).join("");
+      // Dashboard / Q&A: show all available layers
+      html = LAYER_SEQUENCE.map((item) =>
+        layerBtn(item.layer, item.icon, item.label),
+      ).join("");
     } else if (typeof stepIndex === "number" && stepIndex >= 1) {
       // Show items for steps 1 through current step
-      // From step 6+, use extended label for the science park entry
       html = LAYER_SEQUENCE.filter((item) => item.step <= stepIndex)
-        .map((item) => {
-          const label =
-            stepIndex >= 5 && item.labelFrom5 ? item.labelFrom5 : item.label;
-          return layerBtn(item.layer, item.icon, label);
-        })
+        .map((item) => layerBtn(item.layer, item.icon, item.label))
         .join("");
     }
 
@@ -229,7 +216,7 @@ export const methods = {
    * @param {Object} step - The current step object from STEPS array
    */
   syncDataLayersToStep(step) {
-    if (!step || !step.layers) return;
+    if (!step) return;
 
     // Map from step.layers entries to data-layer attribute values
     const layerToDataAttr = {
@@ -241,14 +228,23 @@ export const methods = {
       governmentChain: "governmentChain",
     };
 
-    const activeLayers = step.layers;
+    // Direct step-index overrides for auto-selecting the current step's layer
+    const stepAutoSelect = {
+      6: "talentPipeline",
+      7: "futureOutlook",
+      8: "investmentZones",
+      9: "properties",
+    };
+
+    const activeLayers = step.layers || [];
+    const autoSelect = stepAutoSelect[step.index];
     const allItems = document.querySelectorAll("#data-layer-items .layer-item");
 
     allItems.forEach((item) => {
       const layerKey = item.getAttribute("data-layer");
-      const shouldBeActive = activeLayers.some(
-        (l) => layerToDataAttr[l] === layerKey,
-      );
+      const shouldBeActive = autoSelect
+        ? layerKey === autoSelect
+        : activeLayers.some((l) => layerToDataAttr[l] === layerKey);
 
       if (shouldBeActive) {
         item.classList.add("active");
@@ -526,7 +522,7 @@ export const methods = {
    */
   getLayerDisplayName(layerName) {
     const names = {
-      properties: "Properties",
+      properties: "Investment properties",
       companies: "Corporate sites",
       sciencePark: "Science park",
       baseMap: "Base map",
@@ -541,10 +537,9 @@ export const methods = {
       airlineRoutes: "Strategic location",
       governmentChain: "Government support",
       waterResources: "Water resources",
-      scienceParkClusters: "Science park clusters",
-      talentPipeline: "Talent pipeline",
+      talentPipeline: "Education and talent pipeline",
       futureOutlook: "Future outlook",
-      investmentZones: "Investment zones",
+      investmentZones: "Investment opportunity zones",
     };
     return names[layerName] || layerName;
   },
