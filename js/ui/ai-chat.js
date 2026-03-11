@@ -149,6 +149,11 @@ export const methods = {
    * Shows chat elements, hides recap, shows back button and download summary.
    */
   showQAMode() {
+    // Hide the step chatbox
+    this.elements.chatbox.classList.add("hidden");
+    this.hideChatFab();
+
+    const aiChat = document.getElementById("ai-chat");
     const recap = document.getElementById("ai-chat-recap");
     const header = document.getElementById("ai-chat-header");
     const suggestions = document.getElementById("ai-chat-suggestions");
@@ -163,9 +168,7 @@ export const methods = {
     form.classList.remove("hidden");
     messages.classList.remove("hidden");
     messages.innerHTML = "";
-
-    // Show back button to return to recap
-    backBtn.classList.remove("hidden");
+    backBtn.classList.add("hidden");
 
     // Replace suggestions with Q&A topics
     suggestions.classList.remove("hidden");
@@ -186,6 +189,10 @@ export const methods = {
       this.initAIChat();
       this.aiChatInitialized = true;
     }
+
+    // Show the panel
+    aiChat.classList.remove("hidden");
+    this._retriggerAnimation(aiChat);
 
     // Focus the input
     setTimeout(() => {

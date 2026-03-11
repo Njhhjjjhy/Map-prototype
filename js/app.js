@@ -406,8 +406,8 @@ const App = {
   _renderStepChatbox(step) {
     const chatboxContent = this._getStepChatboxContent(step);
     if (step.id === "final") {
-      // Final step uses the AI chat panel instead of the step chatbox
-      UI.showFinalRecap(chatboxContent);
+      // Final step shows AI chat panel directly, skip the step chatbox
+      UI.showQAMode();
       return;
     }
     UI.showChatbox(chatboxContent, { skipHistory: true });
