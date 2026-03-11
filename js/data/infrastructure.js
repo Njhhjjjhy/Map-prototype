@@ -736,29 +736,6 @@ export const grandAirportData = {
   // Road extensions data - new and expanded road segments
   roadExtensions: [
     {
-      id: "north-connection",
-      name: "Metropolitan north connection road",
-      type: "new",
-      color: "#e63f5a",
-      coords: [
-        [32.845, 130.73],
-        [32.85, 130.742],
-        [32.856, 130.755],
-        [32.86, 130.77],
-        [32.862, 130.785],
-        [32.862, 130.8],
-        [32.86, 130.815],
-        [32.858, 130.83],
-      ],
-      description:
-        "New high-standard road connecting provisional Kumamoto Kita JCT eastward through Nishi-Goshi, Goshi, and Ozu-Nishi interchanges. Part of the 10-minute ring concept linking the semiconductor corridor to the expressway network.",
-      stats: [
-        { value: "New", label: "Road type" },
-        { value: "~12 km", label: "Length" },
-        { value: "10-min ring", label: "Concept" },
-      ],
-    },
-    {
       id: "airport-connection",
       name: "Airport connection road",
       type: "new",
@@ -780,24 +757,24 @@ export const grandAirportData = {
       ],
     },
     {
-      id: "south-connection",
-      name: "Metropolitan south connection road",
+      id: "ring-road-connector",
+      name: "Kumamoto ring road connector",
       type: "new",
       color: "#e63f5a",
       coords: [
-        [32.78, 130.695],
-        [32.773, 130.705],
-        [32.766, 130.715],
-        [32.758, 130.728],
-        [32.75, 130.742],
-        [32.744, 130.756],
+        [32.8974, 130.7178], // Kumamoto North JCT (start)
+        [32.8820, 130.7220], // Kumamoto North IC
+        [32.8910, 130.7445], // Nishi-Kamishi IC
+        [32.8859, 130.7897], // Kamishi IC
+        [32.8783, 130.8685], // Ozu West IC
+        [32.8917, 130.8962], // Ozu IC (end)
       ],
       description:
-        "New high-standard road extending south from Kumamoto city through provisional Shiroyama and Sunahara interchanges to Kashima JCT. Completes the southern leg of the metropolitan expressway ring.",
+        "Planned high-standard road running from Kumamoto North Junction westward to Ozu interchange. Part of the Kumamoto ring road network linking the semiconductor corridor to the expressway system.",
       stats: [
         { value: "New", label: "Road type" },
-        { value: "~8 km", label: "Length" },
-        { value: "10-min ring", label: "Concept" },
+        { value: "~20 km", label: "Length" },
+        { value: "Ring road", label: "Concept" },
       ],
     },
   ],
