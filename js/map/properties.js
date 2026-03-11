@@ -376,9 +376,9 @@ export const methods = {
       source: sourceId,
       paint: {
         "line-color": ["get", "color"],
-        "line-width": 12,
+        "line-width": 24,
         "line-opacity": ["number", ["feature-state", "opacity"], 0],
-        "line-blur": 8,
+        "line-blur": 16,
       },
       layout: { "line-cap": "round", "line-join": "round" },
     });
@@ -390,15 +390,28 @@ export const methods = {
       source: sourceId,
       paint: {
         "line-color": ["get", "color"],
-        "line-width": 3,
+        "line-width": 6,
         "line-opacity": ["number", ["feature-state", "opacity"], 0],
         "line-dasharray": [6, 4],
       },
       layout: { "line-cap": "round", "line-join": "round" },
     });
 
+    // Transparent wide hit-test layer for easier hover
+    this.map.addLayer({
+      id: `${sourceId}-hit`,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": "transparent",
+        "line-width": 24,
+        "line-opacity": 1,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+
     // Hover tooltip on lines (same pattern as icon/logo hovers)
-    const lineLayerId = `${sourceId}-line`;
+    const lineLayerId = `${sourceId}-hit`;
     const lineTooltip = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
@@ -451,6 +464,7 @@ export const methods = {
     this._layerGroups.propertyContextLines.push(
       `${sourceId}-glow`,
       `${sourceId}-line`,
+      `${sourceId}-hit`,
       sourceId,
     );
 
