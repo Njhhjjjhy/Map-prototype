@@ -168,7 +168,7 @@ export const methods = {
     form.classList.remove("hidden");
     messages.classList.remove("hidden");
     messages.innerHTML = "";
-    backBtn.classList.add("hidden");
+    backBtn.classList.remove("hidden");
 
     // Replace suggestions with Q&A topics
     suggestions.classList.remove("hidden");
@@ -200,27 +200,6 @@ export const methods = {
     }, 400);
   },
 
-  /**
-   * Navigate back from Q&A mode to the recap view.
-   */
-  aiChatBack() {
-    const recap = document.getElementById("ai-chat-recap");
-    const header = document.getElementById("ai-chat-header");
-    const suggestions = document.getElementById("ai-chat-suggestions");
-    const form = document.getElementById("ai-chat-form");
-    const messages = document.getElementById("ai-chat-messages");
-    const ctas = document.getElementById("ai-chat-ctas");
-    const backBtn = document.getElementById("ai-chat-back");
-
-    // Show recap, hide chat elements
-    recap.classList.remove("hidden");
-    header.classList.add("hidden");
-    suggestions.classList.add("hidden");
-    form.classList.add("hidden");
-    messages.classList.add("hidden");
-    if (ctas) ctas.classList.add("hidden");
-    backBtn.classList.add("hidden");
-  },
   hideAIChat() {
     const aiChat = document.getElementById("ai-chat");
     // Add closing animation class

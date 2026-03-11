@@ -665,7 +665,7 @@
     <!-- AI Chat (appears after journey completion) -->
     <div id="ai-chat" class="hidden" role="region" aria-label="AI Assistant">
       <div class="ai-chat-toolbar">
-        <button id="ai-chat-back" class="hidden" aria-label="Go back" onclick="UI.aiChatBack()">
+        <button id="ai-chat-back" class="hidden" aria-label="Go back" onclick="UI.hideAIChat(); App.prevStep()">
           <svg
             aria-hidden="true"
             width="16"
