@@ -49,6 +49,7 @@ const state = {
     grandAirportAccess: [],
     grandAirportRailway: [],
     grandAirportRoads: [],
+    tenTwentyConcept: [],
     propertyContextLines: [],
     railCommute: [],
     infraPlan: [],
@@ -56,6 +57,10 @@ const state = {
 
   // Railway animation tracking
   _railwayDrawRafs: [],
+
+  // 10-20 minute concept animation tracking
+  _tenTwentyDrawRafs: [],
+  _tenTwentyPulseTimer: null,
 
   // Road extension animation tracking
   _roadDrawRafs: [],

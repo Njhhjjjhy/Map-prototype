@@ -101,6 +101,11 @@ export const STEPS = [
             label: "Road extensions",
             icon: "route",
           },
+          {
+            id: "ga-ten-twenty-concept",
+            label: "10-20 minute concept",
+            icon: "clock",
+          },
         ],
       },
     ],

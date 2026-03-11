@@ -1774,6 +1774,180 @@ export const methods = {
     this._layerGroups.grandAirportRailway = [];
   },
 
+  showTenTwentyConcept() {
+    const data = AppData.grandAirportData?.tenTwentyConcept;
+    if (!data || !this.map) return;
+
+    this.hideTenTwentyConcept();
+
+    const color = "#FF69B4";
+    const drawDuration = 1000;
+    const stagger = 400;
+
+    // 1. Draw three animated lines
+    data.lines.forEach((line, index) => {
+      const allCoords = line.coords.map((c) => this._toMapbox(c));
+      const sourceId = `ga-ten-twenty-line-${line.id}`;
+
+      this._safeAddSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [allCoords[0], allCoords[0]],
+          },
+        },
+      });
+
+      // Glow
+      this.map.addLayer({
+        id: `${sourceId}-glow`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": color,
+          "line-width": 12,
+          "line-opacity": 0.2,
+          "line-blur": 6,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      // Main line
+      this.map.addLayer({
+        id: `${sourceId}-line`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": color,
+          "line-width": 5,
+          "line-opacity": 0.9,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      this._layerGroups.tenTwentyConcept.push(
+        `${sourceId}-glow`,
+        `${sourceId}-line`,
+        sourceId,
+      );
+
+      // Stagger the draw animation
+      const delay = index * stagger;
+      setTimeout(() => {
+        this._animateRoadDraw(sourceId, allCoords, drawDuration);
+      }, delay);
+    });
+
+    // 2. After all lines finish, show pulsing circles
+    const totalLineTime =
+      (data.lines.length - 1) * stagger + drawDuration + 200;
+    setTimeout(() => {
+      this._showTenTwentyCircles(data.circles, color);
+    }, totalLineTime);
+  },
+
+  _showTenTwentyCircles(circles, color) {
+    if (!this.map) return;
+
+    const radiusKm = 3;
+    const steps = 64;
+
+    circles.forEach((circle) => {
+      const center = this._toMapbox(circle.coords);
+      const coords = this._circleCoords(center, radiusKm, steps);
+      const sourceId = `ga-ten-twenty-circle-${circle.id}`;
+
+      this._safeAddSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [coords],
+          },
+        },
+      });
+
+      // Fill
+      this.map.addLayer({
+        id: `${sourceId}-fill`,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": color,
+          "fill-opacity": 0.15,
+        },
+      });
+
+      // Border
+      this.map.addLayer({
+        id: `${sourceId}-stroke`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": color,
+          "line-width": 2,
+          "line-opacity": 0.7,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      this._layerGroups.tenTwentyConcept.push(
+        `${sourceId}-fill`,
+        `${sourceId}-stroke`,
+        sourceId,
+      );
+    });
+
+    // Pulse animation on circle fills
+    let phase = 0;
+    this._tenTwentyPulseTimer = setInterval(() => {
+      phase += 0.05;
+      const sin = Math.sin(phase);
+      circles.forEach((circle) => {
+        const fillId = `ga-ten-twenty-circle-${circle.id}-fill`;
+        const strokeId = `ga-ten-twenty-circle-${circle.id}-stroke`;
+        if (this.map.getLayer(fillId)) {
+          this.map.setPaintProperty(
+            fillId,
+            "fill-opacity",
+            0.12 + 0.08 * sin,
+          );
+        }
+        if (this.map.getLayer(strokeId)) {
+          this.map.setPaintProperty(
+            strokeId,
+            "line-opacity",
+            0.5 + 0.3 * sin,
+          );
+        }
+      });
+    }, 50);
+  },
+
+  hideTenTwentyConcept() {
+    // Cancel draw animations
+    if (this._tenTwentyDrawRafs) {
+      this._tenTwentyDrawRafs.forEach((id) => cancelAnimationFrame(id));
+    }
+    this._tenTwentyDrawRafs = [];
+
+    // Cancel pulse
+    if (this._tenTwentyPulseTimer) {
+      clearInterval(this._tenTwentyPulseTimer);
+      this._tenTwentyPulseTimer = null;
+    }
+
+    const group = this._layerGroups.tenTwentyConcept;
+    group.forEach((id) => {
+      this._safeRemoveLayer(id);
+      this._safeRemoveSource(id);
+    });
+    this._layerGroups.tenTwentyConcept = [];
+  },
+
   showRoadExtensions() {
     const roads = AppData.grandAirportData?.roadExtensions;
     if (!roads || !this.map) return;
