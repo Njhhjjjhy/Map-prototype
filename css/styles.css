@@ -1165,6 +1165,46 @@ a:focus-visible {
   display: none;
 }
 
+/* Border button variant - outlined CTA */
+.chatbox-continue.border {
+  width: 100%;
+  padding: var(--space-3) var(--space-5);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-medium);
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+.chatbox-continue.border::after {
+  display: none;
+}
+
+.chatbox-continue.border:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-text-secondary);
+}
+
+.chatbox-continue.border:active {
+  background: var(--color-bg-tertiary);
+}
+
+.chatbox-continue.border:focus-visible {
+  outline: 3px solid var(--color-info);
+  outline-offset: 2px;
+}
+
 /* ================================
    HOLD-TO-CONFIRM SPLASH SCREEN
    Full-screen overlay with circular progress button.
@@ -3449,10 +3489,10 @@ button.layer-item {
   transform: translateX(-50%);
   z-index: 500;
 
-  /* Layout - close button at top, then content flows down */
+  /* Layout - toolbar at top, then content flows down */
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Close button aligns right */
+  align-items: stretch;
 
   /* Sizing */
   width: 100%;
@@ -3475,7 +3515,56 @@ button.layer-item {
   animation: chatboxExit var(--duration-fast) var(--easing-accelerate) forwards;
 }
 
+/* Toolbar - back and close buttons */
+.ai-chat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+}
+
+/* Back button - top left */
+#ai-chat-back {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-standard);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+}
+
+#ai-chat-back:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+#ai-chat-back:active {
+  background: var(--color-bg-tertiary);
+}
+
+#ai-chat-back.hidden {
+  visibility: hidden;
+}
+
+/* Recap content inside AI chat */
+#ai-chat-recap {
+  align-self: stretch;
+  margin-top: var(--space-4);
+}
+
 /* Close button - top right */
+.ai-chat-toolbar #ai-chat-close {
+  margin-left: auto;
+}
+
 #ai-chat-close {
   flex-shrink: 0;
   width: 24px;

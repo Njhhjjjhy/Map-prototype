@@ -108,6 +108,98 @@ export const methods = {
       document.getElementById("ai-chat-input").focus();
     }, 400);
   },
+
+  /**
+   * Show the AI chat panel with journey recap content (final step).
+   * Hides the chat-specific elements (header, suggestions, input, messages).
+   */
+  showFinalRecap(recapHtml) {
+    // Hide the step chatbox
+    this.elements.chatbox.classList.add("hidden");
+    this.hideChatFab();
+
+    const aiChat = document.getElementById("ai-chat");
+    const recap = document.getElementById("ai-chat-recap");
+    const header = document.getElementById("ai-chat-header");
+    const suggestions = document.getElementById("ai-chat-suggestions");
+    const form = document.getElementById("ai-chat-form");
+    const messages = document.getElementById("ai-chat-messages");
+    const ctas = document.getElementById("ai-chat-ctas");
+    const backBtn = document.getElementById("ai-chat-back");
+
+    // Populate and show recap
+    recap.innerHTML = recapHtml;
+    recap.classList.remove("hidden");
+
+    // Hide chat elements
+    header.classList.add("hidden");
+    suggestions.classList.add("hidden");
+    form.classList.add("hidden");
+    messages.classList.add("hidden");
+    if (ctas) ctas.classList.add("hidden");
+    backBtn.classList.add("hidden");
+
+    // Show the panel
+    aiChat.classList.remove("hidden");
+    this._retriggerAnimation(aiChat);
+  },
+
+  /**
+   * Switch AI chat panel from recap to Q&A mode.
+   * Shows chat elements, hides recap, shows back button and download summary.
+   */
+  showQAMode() {
+    // Hide the step chatbox
+    this.elements.chatbox.classList.add("hidden");
+    this.hideChatFab();
+
+    const aiChat = document.getElementById("ai-chat");
+    const recap = document.getElementById("ai-chat-recap");
+    const header = document.getElementById("ai-chat-header");
+    const suggestions = document.getElementById("ai-chat-suggestions");
+    const form = document.getElementById("ai-chat-form");
+    const messages = document.getElementById("ai-chat-messages");
+    const ctas = document.getElementById("ai-chat-ctas");
+    const backBtn = document.getElementById("ai-chat-back");
+
+    // Hide recap, show chat elements
+    recap.classList.add("hidden");
+    header.classList.remove("hidden");
+    form.classList.remove("hidden");
+    messages.classList.remove("hidden");
+    messages.innerHTML = "";
+    backBtn.classList.remove("hidden");
+
+    // Replace suggestions with Q&A topics
+    suggestions.classList.remove("hidden");
+    suggestions.innerHTML = `
+      <button class="ai-chat-chip" data-question="What about Kumamoto's water quality and supply?">Water quality?</button>
+      <button class="ai-chat-chip" data-question="How strong is government support for the semiconductor corridor?">Government support?</button>
+      <button class="ai-chat-chip" data-question="What are the projected property returns in Kumamoto?">Property returns?</button>
+      <button class="ai-chat-chip" data-question="Tell me about the talent pipeline and workforce availability.">Talent pipeline?</button>
+    `;
+
+    // Show download summary as border button in CTAs area
+    if (ctas) {
+      ctas.classList.remove("hidden");
+    }
+
+    // Initialize if not already done
+    if (!this.aiChatInitialized) {
+      this.initAIChat();
+      this.aiChatInitialized = true;
+    }
+
+    // Show the panel
+    aiChat.classList.remove("hidden");
+    this._retriggerAnimation(aiChat);
+
+    // Focus the input
+    setTimeout(() => {
+      document.getElementById("ai-chat-input").focus();
+    }, 400);
+  },
+
   hideAIChat() {
     const aiChat = document.getElementById("ai-chat");
     // Add closing animation class

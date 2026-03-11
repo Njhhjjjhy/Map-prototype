@@ -1230,17 +1230,7 @@ export const stepHandlers = {
                     <div class="journey-recap-headline-value">${formatYen(totalNetProfit)}</div>
                     <div class="journey-recap-headline-detail">across the portfolio</div>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                    ${continueBtn("App.enterQAMode()", "Enter Q&amp;A")}
-                    <button class="chatbox-continue secondary" onclick="UI.hideChatbox(); setTimeout(() => { UI.showAIChat(); UI.downloadSummary(); }, 600);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" x2="12" y1="15" y2="3"/>
-                        </svg>
-                        Download summary
-                    </button>
-                </div>
+                ${continueBtn("App.enterQAMode()", "Enter Q&amp;A")}
             </div>
         `;
   },
@@ -1272,8 +1262,8 @@ export const stepHandlers = {
     // Populate data layers panel with all 11 layer groups (all unselected)
     UI.showDataLayers("qa");
 
-    // Show AI chat with Q&A suggestion chips
-    UI.showQAChatbox();
+    // Switch AI chat panel to Q&A mode (suggestions, input, download summary)
+    UI.showQAMode();
 
     // Ensure right panel is hidden initially
     UI.hidePanel();
