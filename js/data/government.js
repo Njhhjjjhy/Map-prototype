@@ -19,7 +19,7 @@ export const governmentChain = {
       stats: [
         { value: "¥10B", label: t("Direct commitment") },
         { value: "2021", label: t("Policy announced") },
-        { value: "Critical", label: t("Infrastructure status") },
+        { value: t("Critical"), label: t("Infrastructure status") },
         { value: "50%", label: t("JASM subsidy") },
       ],
     },
@@ -84,7 +84,7 @@ export const governmentChain = {
         { value: "6.8km", label: t("New rail link") },
         { value: "¥41B", label: t("Rail investment") },
         { value: "44min", label: t("Station to airport") },
-        { value: "4 pillars", label: t("Strategic plan") },
+        { value: t("4 pillars"), label: t("Strategic plan") },
       ],
       pillars: [
         t("Enhance domestic and international route network"),
@@ -113,7 +113,7 @@ export const governmentTiers = [
     stats: [
       { value: "¥10B", label: t("Direct commitment") },
       { value: "2021", label: t("Policy announced") },
-      { value: "Critical", label: t("Infrastructure status") },
+      { value: t("Critical"), label: t("Infrastructure status") },
       { value: "50%", label: t("JASM subsidy") },
     ],
   },

@@ -204,6 +204,7 @@ export default {
   Solar: "太陽能",
   Wind: "風力",
   Nuclear: "核能",
+  Offshore: "離岸",
   "Kagoshima 24.7 MW, Fukuoka 22.9 MW, Nagasaki 10 MW":
     "鹿兒島 24.7 MW、福岡 22.9 MW、長崎 10 MW",
   "Miyazaki 65.55 MW, Saga/Nagasaki 27.2 MW, Goto offshore":
@@ -318,6 +319,7 @@ export default {
   "Rail investment": "軌道投資額",
   "Station to airport": "車站至機場",
   "Strategic plan": "策略計劃",
+  "4 pillars": "4 大支柱",
   "Enhance domestic and international route network":
     "強化國內與國際航線網絡",
   "Improve ground transportation and airport access":
@@ -1263,6 +1265,9 @@ export default {
   "Development zones": "開發區域",
   "Supporting evidence": "佐證資料",
   "Silicon triangle": "矽三角",
+  "Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details.":
+    "半導體生態系統中三個功能各異的區域。點擊區域查看詳情。",
+  "TSMC infrastructure overview": "台積電基礎設施概覽",
   "Natural advantages verified": "自然優勢已驗證",
   "4T+ yen government commitment": "逾 4 兆日圓政府承諾",
   "investment properties": "投資物件",
@@ -1821,6 +1826,8 @@ export default {
   "commute saved": "通勤節省",
   "Click any tier for details.": "點擊任一層級查看詳情。",
   "10-minute ring road": "十分鐘環狀道路",
+  'The "10-minute ring" concept connects the airport, industrial parks, and residential zones at approximately 10-minute drive intervals, creating an integrated urban corridor.':
+    "「十分鐘環狀」構想將機場、工業園區與住宅區以約十分鐘車程的間隔串連，打造一體化的都市走廊。",
   "Toggle layers to explore the completed state of the semiconductor corridor.": "切換圖層以探索半導體廊道的完成狀態。",
   "Service suspended": "航線暫停",
   "Flight time when active": "營運時飛行時間",

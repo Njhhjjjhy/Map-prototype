@@ -140,6 +140,10 @@
   --z-tooltip: 1100;
 }
 
+:root:lang(zh-TW) {
+  --font-body: "Noto Sans TC", sans-serif;
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;

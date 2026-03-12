@@ -223,7 +223,7 @@ export const kyushuEnergy = {
       id: "wind-goto",
       name: t("Goto Offshore Wind"),
       coords: [32.7, 128.85],
-      capacity: "Offshore",
+      capacity: t("Offshore"),
       prefecture: "Nagasaki",
     },
   ],
@@ -268,7 +268,7 @@ export const kyushuEnergy = {
       stats: [
         { value: "640MW", label: t("Wind capacity (2024)") },
         { value: "92.75 MW", label: t("Combined Kyushu sites") },
-        { value: "Offshore", label: t("Goto floating turbines") },
+        { value: t("Offshore"), label: t("Goto floating turbines") },
         { value: "12.88GW", label: t("Total renewable (solar+wind)") },
       ],
       image: "assets/use-case-images/evidence-renewable-energy.webp",

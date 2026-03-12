@@ -378,9 +378,14 @@ const App = {
     if (layers.includes("futureZones")) {
       MapController.hideFutureZones();
     }
-    // Clean up zone plan highlights, airport marker, road highlights (step 6)
+    // Clean up zone plan highlights, airport marker, grand airport children (step 6)
     if (step.id === "transport-access") {
       MapController.hideZonePlanHighlight();
+      MapController.hideAirportAccessRoutes();
+      MapController.hideRailwayStations();
+      MapController.hideRoadExtensions();
+      MapController.hideTenTwentyConcept();
+      MapController.setScienceParkCircleVisible(false);
       if (MapController.markers["airport"]) {
         MapController.markers["airport"].remove();
         delete MapController.markers["airport"];
@@ -612,8 +617,8 @@ const App = {
 
       case "investment-zones":
         UI.showPanel(`
-                    ${panelHeader("Silicon triangle", "Investment opportunity zones", "Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details.")}
-                    ${evidenceImage("assets/use-case-images/evidence-tsmc-infrastructure-overview.webp", "TSMC infrastructure overview")}
+                    ${panelHeader(t("Silicon triangle"), t("Investment opportunity zones"), t("Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details."))}
+                    ${evidenceImage("assets/use-case-images/evidence-tsmc-infrastructure-overview.webp", t("TSMC infrastructure overview"))}
                 `);
         break;
 

@@ -116,7 +116,7 @@ export const companies = [
       { value: "¥95B", label: t("Investment") },
       { value: "2,800", label: t("Employees") },
       { value: "IC packages", label: t("Core product") },
-      { value: "Asia-Pacific", label: t("Market served") },
+      { value: t("Asia-Pacific"), label: t("Market served") },
     ],
     evidence: {
       title: t("Kyocera component expansion"),
