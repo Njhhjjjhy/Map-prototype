@@ -463,7 +463,6 @@ export const methods = {
       <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
         ${rowsHtml}
       </div>
-      <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showFutureOutlookEvidence()">${t("View evidence")}</button>
     `;
   },
 
