@@ -137,26 +137,35 @@ export const methods = {
       this._addAnimatedTalentArc(inst.coords, jasmCoords, inst, i);
     }
 
-    // Hide all arcs initially (they become visible when a university is toggled on)
+    // Hide all arcs and university markers initially (they become visible when toggled on)
     for (let i = 0; i < pipeline.institutions.length; i++) {
+      const inst = pipeline.institutions[i];
       const layerId = `talent-arc-${i}-line`;
       if (this.map.getLayer(layerId)) {
         this.map.setLayoutProperty(layerId, "visibility", "none");
+      }
+      const marker = this.markers[`talent-${inst.id}`];
+      if (marker) {
+        marker.getElement().style.display = "none";
       }
     }
   },
 
   /**
-   * Show or hide talent pipeline arc lines based on which universities are active.
+   * Show or hide talent pipeline arc lines and university markers based on which universities are active.
    * @param {string[]} activeUniversities - Array of active university IDs
    */
   updateTalentArcVisibility(activeUniversities) {
     const institutions = AppData.talentPipeline?.institutions || [];
     institutions.forEach((inst, i) => {
+      const isActive = activeUniversities.includes(inst.id);
       const layerId = `talent-arc-${i}-line`;
       if (this.map.getLayer(layerId)) {
-        const visible = activeUniversities.includes(inst.id) ? "visible" : "none";
-        this.map.setLayoutProperty(layerId, "visibility", visible);
+        this.map.setLayoutProperty(layerId, "visibility", isActive ? "visible" : "none");
+      }
+      const marker = this.markers[`talent-${inst.id}`];
+      if (marker) {
+        marker.getElement().style.display = isActive ? "" : "none";
       }
     });
   },
