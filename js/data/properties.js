@@ -289,7 +289,7 @@ export const properties = [
   {
     id: "ozu-1",
     name: t("Chateau Life Ozu 1"),
-    coords: [32.865, 130.87],
+    coords: [32.914715306464416, 130.85025552883533],
     subtitle: t("New construction (BTR)"),
     type: t("Build to rent"),
     zone: "Ozu",
@@ -299,7 +299,7 @@ export const properties = [
     address:
       "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
     camera: {
-      center: [130.87, 32.865],
+      center: [130.85025552883533, 32.914715306464416],
       zoom: 14.0,
       pitch: 52,
       bearing: 15,
@@ -461,7 +461,7 @@ export const properties = [
   {
     id: "ozu-2",
     name: t("Chateau Life Ozu 2"),
-    coords: [32.862, 130.865],
+    coords: [32.914778352968796, 130.85029844417664],
     subtitle: t("New construction (BTR)"),
     type: t("Build to rent"),
     zone: "Ozu",
@@ -470,7 +470,7 @@ export const properties = [
     driveTime: "9 min",
     address: "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
     camera: {
-      center: [130.865, 32.862],
+      center: [130.85029844417664, 32.914778352968796],
       zoom: 14.0,
       pitch: 52,
       bearing: 15,
@@ -628,7 +628,7 @@ export const properties = [
   {
     id: "kikuyo-1",
     name: t("Chateau Life Kikuyo 1"),
-    coords: [32.88, 130.825],
+    coords: [32.85619131225209, 130.84545339429738],
     subtitle: t("Renovation opportunity"),
     type: t("Buy-renovate-rent/sell"),
     zone: "Kikuyo",
@@ -638,7 +638,7 @@ export const properties = [
     address:
       "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto",
     camera: {
-      center: [130.825, 32.88],
+      center: [130.84545339429738, 32.85619131225209],
       zoom: 14.0,
       pitch: 52,
       bearing: 5,
@@ -804,7 +804,7 @@ export const properties = [
   {
     id: "haramizu-1",
     name: t("Chateau Life Haramizu 1"),
-    coords: [32.8698, 130.823],
+    coords: [32.86806132535452, 130.82964025582334],
     subtitle: t("Land development"),
     type: t("Land acquisition"),
     zone: "Kikuyo",
@@ -814,7 +814,7 @@ export const properties = [
     address:
       "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
     camera: {
-      center: [130.823, 32.8698],
+      center: [130.82964025582334, 32.86806132535452],
       zoom: 14.2,
       pitch: 52,
       bearing: 10,
@@ -970,7 +970,7 @@ export const properties = [
   {
     id: "haramizu-2",
     name: t("Chateau Life Haramizu 2"),
-    coords: [32.871, 130.826],
+    coords: [32.86806132535452, 130.82964025582334],
     subtitle: t("Land development"),
     type: t("Land acquisition"),
     zone: "Kikuyo",
@@ -980,7 +980,7 @@ export const properties = [
     address:
       "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
     camera: {
-      center: [130.826, 32.871],
+      center: [130.82964025582334, 32.86806132535452],
       zoom: 14.2,
       pitch: 52,
       bearing: 10,
