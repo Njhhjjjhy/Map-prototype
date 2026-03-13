@@ -42,7 +42,7 @@ export const methods = {
    * Show app directly - no start screen, subtle fade-in
    */
   showResourcePanel(resource) {
-    const statsHtml = bentoStats(resource.stats);
+    const statsHtml = resource.id === "water" ? "" : bentoStats(resource.stats);
 
     // Generate energy mix section for power resource (disclosure groups)
     let energyMixHtml = "";
