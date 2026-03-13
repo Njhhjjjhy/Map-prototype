@@ -290,7 +290,6 @@ export const methods = {
 
     const content = `
             ${panelHeader(t("Corporate investment"), company.name)}
-            ${company.subtitle ? `<p style="margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-text-tertiary);">${company.subtitle}</p>` : ""}
             ${statsHtml}
             <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${company.description || ""}</p>
             ${evidenceHtml}
