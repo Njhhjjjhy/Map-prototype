@@ -436,7 +436,7 @@ const App = {
       },
       "strategic-location": {
         title: t("Strategic location"),
-        body: t("Seoul and Taipei are both just <strong>1 hour 40 minutes</strong> by direct flight from Kumamoto. Busan is 1h 25m. Every major semiconductor hub in Asia is under 3 hours away."),
+        body: t("Seoul, Busan, and Taiwan are all reachable by direct flight in under 3 hours from Kumamoto. Every major semiconductor hub in Asia is within easy reach."),
         afterItems:
           t('<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">Click destinations on the map to see route details.</p>'),
       },
