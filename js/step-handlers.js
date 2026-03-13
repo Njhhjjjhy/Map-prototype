@@ -910,10 +910,11 @@ export const stepHandlers = {
   // --- Step 6: Education ---
   _handleEducationSubItem(itemId) {
     if (itemId === "universities") {
-      // Show university markers with animated arcs
+      // Show university markers with animated arcs — all visible by default
       MapController.hideTalentPipeline();
       MapController.hideEmploymentMarkers();
-      this.state.activeUniversities = [];
+      const institutions = AppData.talentPipeline?.institutions || [];
+      this.state.activeUniversities = institutions.map((inst) => inst.id);
       UI.showUniversitiesPanel(this.state.activeUniversities);
       MapController.showTalentPipeline({ skipFly: true });
     } else if (itemId === "employment") {

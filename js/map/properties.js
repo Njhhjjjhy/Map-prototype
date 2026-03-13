@@ -137,18 +137,9 @@ export const methods = {
       this._addAnimatedTalentArc(inst.coords, jasmCoords, inst, i);
     }
 
-    // Hide all arcs and university markers initially (they become visible when toggled on)
-    for (let i = 0; i < pipeline.institutions.length; i++) {
-      const inst = pipeline.institutions[i];
-      const layerId = `talent-arc-${i}-line`;
-      if (this.map.getLayer(layerId)) {
-        this.map.setLayoutProperty(layerId, "visibility", "none");
-      }
-      const marker = this.markers[`talent-${inst.id}`];
-      if (marker) {
-        marker.getElement().style.display = "none";
-      }
-    }
+    // All arcs and university markers stay visible after the entrance animation.
+    // They are hidden individually when toggled off, or all at once when
+    // "Employment data" is selected (via hideTalentPipeline).
   },
 
   /**
