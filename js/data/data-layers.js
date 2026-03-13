@@ -145,7 +145,7 @@ export const infrastructureRoads = [
 export const infrastructureStation = {
   id: "kikuyo-station",
   name: t("Kikuyo Station"),
-  coords: [32.88, 130.81],
+  coords: [32.8654, 130.8099],
   subtitle: t("New rail connection"),
   status: t("Under Construction"),
   completionDate: "2026",
@@ -165,7 +165,7 @@ export const infrastructureStation = {
 export const haramizuStation = {
   id: "haramizu-station",
   name: t("Haramizu Station Area"),
-  coords: [32.8698, 130.823],
+  coords: [32.87079200721318, 130.82919294020132],
   subtitle: t("New development hub"),
   status: t("Under Development"),
   description: t(
@@ -345,7 +345,7 @@ export const dataLayers = {
       },
       {
         id: "rail-2",
-        coords: [32.88, 130.81],
+        coords: [32.8654, 130.8099],
         name: t("Kikuyo Station (Planned)"),
         type: t("New Station"),
         toJasm: "8 min",
@@ -449,7 +449,7 @@ export const dataLayers = {
     markers: [
       {
         id: "emp-1",
-        coords: [32.874, 130.785],
+        coords: [32.89232977461037, 130.84458372026097],
         name: t("JASM"),
         employees: "3,400",
         growth: "+850 (2025)",

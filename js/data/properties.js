@@ -305,16 +305,16 @@ export const properties = [
       bearing: 15,
     },
     connections: {
-      jasm: { coords: [32.874, 130.785], distance: "5.2 km", time: "8 min" },
+      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "5.2 km", time: "8 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
-        coords: [32.8698, 130.823],
+        coords: [32.87079200721318, 130.82919294020132],
         distance: "4.8 km",
         time: "7 min",
       },
       airport: {
-        coords: [32.8373, 130.8552],
+        coords: [32.83514194156781, 130.8590315178461],
         distance: "8.2 km",
         time: "14 min",
       },
@@ -476,16 +476,16 @@ export const properties = [
       bearing: 15,
     },
     connections: {
-      jasm: { coords: [32.874, 130.785], distance: "5.5 km", time: "9 min" },
+      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "5.5 km", time: "9 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
-        coords: [32.8698, 130.823],
+        coords: [32.87079200721318, 130.82919294020132],
         distance: "4.5 km",
         time: "6 min",
       },
       airport: {
-        coords: [32.8373, 130.8552],
+        coords: [32.83514194156781, 130.8590315178461],
         distance: "8.5 km",
         time: "15 min",
       },
@@ -644,16 +644,16 @@ export const properties = [
       bearing: 5,
     },
     connections: {
-      jasm: { coords: [32.874, 130.785], distance: "6.8 km", time: "10 min" },
+      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "6.8 km", time: "10 min" },
       station: {
         id: "kikuyo-station",
         name: t("Kikuyo station"),
-        coords: [32.88, 130.81],
+        coords: [32.8654, 130.8099],
         distance: "1.2 km",
         time: "2 min",
       },
       airport: {
-        coords: [32.8373, 130.8552],
+        coords: [32.83514194156781, 130.8590315178461],
         distance: "7.8 km",
         time: "13 min",
       },
@@ -820,16 +820,16 @@ export const properties = [
       bearing: 10,
     },
     connections: {
-      jasm: { coords: [32.874, 130.785], distance: "4.5 km", time: "7 min" },
+      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "4.5 km", time: "7 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
-        coords: [32.8698, 130.823],
+        coords: [32.87079200721318, 130.82919294020132],
         distance: "0 km",
         time: "adjacent",
       },
       airport: {
-        coords: [32.8373, 130.8552],
+        coords: [32.83514194156781, 130.8590315178461],
         distance: "7.2 km",
         time: "12 min",
       },
@@ -986,16 +986,16 @@ export const properties = [
       bearing: 10,
     },
     connections: {
-      jasm: { coords: [32.874, 130.785], distance: "4.3 km", time: "7 min" },
+      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "4.3 km", time: "7 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
-        coords: [32.8698, 130.823],
+        coords: [32.87079200721318, 130.82919294020132],
         distance: "0.2 km",
         time: "1 min",
       },
       airport: {
-        coords: [32.8373, 130.8552],
+        coords: [32.83514194156781, 130.8590315178461],
         distance: "7.5 km",
         time: "13 min",
       },
