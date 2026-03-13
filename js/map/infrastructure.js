@@ -1618,23 +1618,7 @@ export const methods = {
         stationIcons[station.icon] || stationIcons["train-front"];
       const id = `ga-station-${station.id}`;
 
-      // Proposed station gets a dashed-circle style to indicate planning stage
-      let html;
-      if (station.type === "proposed") {
-        html = `<div class="elevated-marker" style="height: 36px; display: flex; flex-direction: column; align-items: center;">
-          <div style="
-            width: 28px; height: 28px;
-            background: transparent;
-            border: 2.5px dashed ${color};
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-          "><svg viewBox="0 0 24 24" fill="${color}" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg></div>
-          <div style="width: 2px; flex: 1; background: ${color}; opacity: 0.4;"></div>
-        </div>`;
-      } else {
-        html = this._elevatedMarkerHtml(iconSvg, color, 36);
-      }
+      const html = this._elevatedMarkerHtml(iconSvg, color, 36);
 
       const { marker, element } = this._createMarker(station.coords, html, {
         className: "ga-station-marker",
