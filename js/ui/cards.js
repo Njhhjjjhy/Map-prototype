@@ -231,7 +231,7 @@ export const methods = {
                 <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${tier.commitmentLabel || ""}</span>
             </div>
             <p>${tier.description}</p>
-            ${tier.stats ? statGrid(tier.stats, "margin-top: var(--space-4)") : ""}
+            ${tier.stats && tier.id !== "central" ? statGrid(tier.stats, "margin-top: var(--space-4)") : ""}
             ${subItemsHtml}
         `;
 
