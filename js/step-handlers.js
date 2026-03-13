@@ -833,17 +833,6 @@ export const stepHandlers = {
       MapController.setScienceParkCircleVisible(active.length === 0);
     }
 
-    // Apply combo style when both grand airport concept and road extensions are active
-    if (childId === "ga-airport-access" || childId === "ga-road-extensions") {
-      const comboActive =
-        active.includes("ga-airport-access") &&
-        active.includes("ga-road-extensions");
-      // Delay slightly to let layers finish rendering before updating paint properties
-      setTimeout(() => {
-        MapController.applyAirportRoadComboStyle(comboActive);
-      }, 100);
-    }
-
     // Re-render panel to reflect toggle state
     this._renderDevelopmentDashboard();
   },

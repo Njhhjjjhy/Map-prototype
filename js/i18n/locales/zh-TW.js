@@ -570,6 +570,7 @@ export default {
   "Under planning": "規劃中",
   "Kumamoto airport monorail": "熊本機場單軌",
   "Aso Kumamoto Airport": "阿蘇熊本機場",
+  "Kumamoto airport": "熊本機場",
   "Kumamoto's primary airport handling 3.5 million passengers annually. The proposed rail link will cut travel time to the semiconductor corridor to under 15 minutes.":
     "熊本主要機場，年旅客量 350 萬人次。規劃中的軌道連結將把到半導體走廊的交通時間縮短至 15 分鐘以內。",
   "Annual passengers": "年旅客量",
@@ -599,7 +600,7 @@ export default {
   "Estimated length": "預估長度",
   "Alignment type": "路線型態",
   Direct: "直線",
-  "Newly announced route": "新公布路線",
+  "Newly announced monorail": "新公布單軌",
   "The revised route announced in 2024, sweeping east to better serve the Techno Research Park area before connecting to Higo-Ozu Station.":
     "2024 年公布的修訂路線，向東繞行以服務科技研究園區一帶，再接入肥後大津站。",
   Curved: "彎道型",

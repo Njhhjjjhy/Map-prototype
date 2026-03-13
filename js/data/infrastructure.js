@@ -525,10 +525,10 @@ export const grandAirportData = {
     landmarks: [
       {
         id: "airport",
-        name: t("Aso Kumamoto Airport"),
+        name: t("Kumamoto airport"),
         coords: [32.8373, 130.8552],
         icon: "plane",
-        color: "#007aff",
+        color: "#34c759",
         description: t(
           "Kumamoto's primary airport handling 3.5 million passengers annually. The proposed rail link will cut travel time to the semiconductor corridor to under 15 minutes."
         ),
@@ -612,8 +612,8 @@ export const grandAirportData = {
       {
         id: "new-route",
         sourceId: "ga-new-route",
-        name: t("Newly announced route"),
-        color: "#007aff",
+        name: t("Newly announced monorail"),
+        color: "#34c759",
         description: t(
           "The revised route announced in 2024, sweeping east to better serve the Techno Research Park area before connecting to Higo-Ozu Station."
         ),
@@ -639,7 +639,7 @@ export const grandAirportData = {
         id: "airport-connection",
         sourceId: "ga-access-airport-road",
         name: t("Airport connection road"),
-        color: "#007aff",
+        color: "#34c759",
         description: t(
           "New high-standard road connecting Kumamoto IC directly east to Aso Kumamoto Airport. Reduces airport access time from the city center to approximately 20 minutes."
         ),
