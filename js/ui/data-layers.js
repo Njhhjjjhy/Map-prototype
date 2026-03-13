@@ -489,18 +489,6 @@ export const methods = {
                      alt="${t("JASM ESG report - green power and sustainability section")}"
                      style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
             </div>
-            <div class="panel-bento-stats" style="margin-top: var(--space-4);">
-                ${water.stats
-                  .map(
-                    (stat) => `
-                    <div class="panel-bento-stat">
-                        <div class="panel-bento-stat-value">${stat.value}</div>
-                        <div class="panel-bento-stat-label">${stat.label}</div>
-                    </div>
-                `,
-                  )
-                  .join("")}
-            </div>
         `;
 
     this.showPanel(content);
@@ -794,9 +782,6 @@ export const methods = {
         <p>${water.description}</p>
         <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', '${t("JASM ESG report")}')">
           <img src="assets/use-case-images/evidence-renewable-energy.webp" alt="${t("JASM ESG report")}" style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
-        </div>
-        <div class="panel-bento-stats" style="margin-top: var(--space-4);">
-          ${water.stats.map((s) => `<div class="panel-bento-stat"><div class="panel-bento-stat-value">${s.value}</div><div class="panel-bento-stat-label">${s.label}</div></div>`).join("")}
         </div>
       `;
     }
