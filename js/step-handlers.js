@@ -945,6 +945,7 @@ export const stepHandlers = {
         });
       }
     }
+    MapController.updateTalentArcVisibility(this.state.activeUniversities);
     UI.updateUniversitiesPanel(this.state.activeUniversities);
   },
 

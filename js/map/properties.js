@@ -136,6 +136,38 @@ export const methods = {
       if (i > 0) await this._delay(staggerDelay);
       this._addAnimatedTalentArc(inst.coords, jasmCoords, inst, i);
     }
+
+    // Hide all arcs and university markers initially (they become visible when toggled on)
+    for (let i = 0; i < pipeline.institutions.length; i++) {
+      const inst = pipeline.institutions[i];
+      const layerId = `talent-arc-${i}-line`;
+      if (this.map.getLayer(layerId)) {
+        this.map.setLayoutProperty(layerId, "visibility", "none");
+      }
+      const marker = this.markers[`talent-${inst.id}`];
+      if (marker) {
+        marker.getElement().style.display = "none";
+      }
+    }
+  },
+
+  /**
+   * Show or hide talent pipeline arc lines and university markers based on which universities are active.
+   * @param {string[]} activeUniversities - Array of active university IDs
+   */
+  updateTalentArcVisibility(activeUniversities) {
+    const institutions = AppData.talentPipeline?.institutions || [];
+    institutions.forEach((inst, i) => {
+      const isActive = activeUniversities.includes(inst.id);
+      const layerId = `talent-arc-${i}-line`;
+      if (this.map.getLayer(layerId)) {
+        this.map.setLayoutProperty(layerId, "visibility", isActive ? "visible" : "none");
+      }
+      const marker = this.markers[`talent-${inst.id}`];
+      if (marker) {
+        marker.getElement().style.display = isActive ? "" : "none";
+      }
+    });
   },
 
   _addAnimatedTalentArc(origin, destination, inst, index) {

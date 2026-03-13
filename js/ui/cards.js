@@ -915,7 +915,7 @@ export const methods = {
             subtitle: company.headlineLabel,
             title: company.headline,
             description: company.description,
-            stats: company.stats || [],
+            stats: [],
             extra: `${company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : ""}
               ${company.evidence ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')"> ${t("View source document")}</button>` : ""}`,
           });
@@ -979,8 +979,8 @@ export const methods = {
             color: inst.color,
             subtitle: inst.city,
             title: inst.fullName || inst.name,
-            description: inst.role,
-            stats: inst.details || [],
+            description: inst.description || inst.role,
+            stats: [],
           });
         })
         .join("");
