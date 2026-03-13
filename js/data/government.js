@@ -34,8 +34,6 @@ export const governmentChain = {
       ),
       stats: [
         { value: "¥480B", label: t("Infrastructure budget") },
-        { value: "12", label: t("Priority projects") },
-        { value: "30%", label: t("Permit time reduction") },
         { value: "2040", label: t("Master plan horizon") },
       ],
     },
@@ -131,8 +129,6 @@ export const governmentTiers = [
     commitmentLabel: t("Infrastructure Budget"),
     stats: [
       { value: "¥480B", label: t("Infrastructure budget") },
-      { value: "12", label: t("Priority projects") },
-      { value: "30%", label: t("Permit time reduction") },
       { value: "2040", label: t("Master plan horizon") },
     ],
   },
