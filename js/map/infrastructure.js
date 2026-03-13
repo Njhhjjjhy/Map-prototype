@@ -1488,7 +1488,70 @@ export const methods = {
     // Clean up previous if any
     this.hideRailwayStations();
 
-    // 1. Station marker helpers
+    // 1. Orange JR Hohi Line - animated draw that loops continuously
+    const lineCoords = data.jrHohiLine.map((c) => this._toMapbox(c));
+    const lineSourceId = "ga-jr-hohi-line";
+
+    // Build station position lookup for progressive reveal
+    const stationLinePositions = data.stations.map((station) => {
+      const sCoord = this._toMapbox(station.coords);
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < lineCoords.length; i++) {
+        const dx = lineCoords[i][0] - sCoord[0];
+        const dy = lineCoords[i][1] - sCoord[1];
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+      return { station, segmentIndex: bestIdx };
+    });
+
+    this._safeAddSource(lineSourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [lineCoords[0], lineCoords[0]],
+        },
+      },
+    });
+
+    // Glow layer (2x original: 8 -> 16)
+    this.map.addLayer({
+      id: `${lineSourceId}-glow`,
+      type: "line",
+      source: lineSourceId,
+      paint: {
+        "line-color": "#ff9500",
+        "line-width": 16,
+        "line-opacity": 0.12,
+        "line-blur": 4,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    // Main line (2x original: 3 -> 6)
+    this.map.addLayer({
+      id: `${lineSourceId}-line`,
+      type: "line",
+      source: lineSourceId,
+      paint: {
+        "line-color": "#ff9500",
+        "line-width": 6,
+        "line-opacity": 0.8,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    this._layerGroups.grandAirportRailway.push(
+      `${lineSourceId}-glow`,
+      `${lineSourceId}-line`,
+      lineSourceId,
+    );
+
+    // 2. Station marker helpers
     const stationIcons = {
       "train-front": `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`,
       station: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>`,
@@ -1541,10 +1604,78 @@ export const methods = {
       this._layerGroups.grandAirportRailway.push(id);
     };
 
-    // 2. Reveal all station markers immediately (no line animation)
-    data.stations.forEach((station) => {
-      revealStation(station);
-    });
+    // 3. Continuously looping line draw animation
+    const drawDuration = 2500;
+    const pauseBetweenLoops = 800;
+    const totalSegments = lineCoords.length - 1;
+
+    const runDrawLoop = () => {
+      const startTime = performance.now();
+
+      const animateStep = (now) => {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / drawDuration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+
+        const currentLength = eased * totalSegments;
+        const full = Math.floor(currentLength);
+        const frac = currentLength - full;
+
+        const drawn = lineCoords.slice(0, full + 1);
+        if (full < totalSegments) {
+          const from = lineCoords[full];
+          const to = lineCoords[full + 1];
+          drawn.push([
+            from[0] + (to[0] - from[0]) * frac,
+            from[1] + (to[1] - from[1]) * frac,
+          ]);
+        }
+
+        const source = this.map.getSource(lineSourceId);
+        if (source) {
+          source.setData({
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates:
+                drawn.length >= 2 ? drawn : [lineCoords[0], lineCoords[0]],
+            },
+          });
+        }
+
+        // Reveal station markers as the line reaches them
+        stationLinePositions.forEach(({ station, segmentIndex }) => {
+          if (full >= segmentIndex) {
+            revealStation(station);
+          }
+        });
+
+        if (t < 1) {
+          const rafId = requestAnimationFrame(animateStep);
+          this._railwayDrawRafs.push(rafId);
+        } else {
+          // Pause, then reset line and loop again
+          this._railwayPulseTimer = setTimeout(() => {
+            const src = this.map.getSource(lineSourceId);
+            if (src) {
+              src.setData({
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates: [lineCoords[0], lineCoords[0]],
+                },
+              });
+            }
+            runDrawLoop();
+          }, pauseBetweenLoops);
+        }
+      };
+
+      const rafId = requestAnimationFrame(animateStep);
+      this._railwayDrawRafs.push(rafId);
+    };
+
+    runDrawLoop();
   },
 
   hideRailwayStations() {
@@ -1554,9 +1685,9 @@ export const methods = {
     }
     this._railwayDrawRafs = [];
 
-    // Clean up pulse animation
+    // Clean up loop timer
     if (this._railwayPulseTimer) {
-      clearInterval(this._railwayPulseTimer);
+      clearTimeout(this._railwayPulseTimer);
       this._railwayPulseTimer = null;
     }
 
