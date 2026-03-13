@@ -713,6 +713,25 @@ export const stepHandlers = {
   },
 
   /**
+   * Show JR Hohi Line detail in the right panel when the orange line is clicked.
+   */
+  showHohiLineDetail() {
+    const route = AppData.grandAirportData?.airportAccessRoutes?.routes?.find(
+      (r) => r.id === "hohi-line",
+    );
+    if (!route) return;
+
+    const statsHtml = route.stats?.length ? bentoStats(route.stats) : "";
+
+    UI.showPanel(`
+      <div class="subtitle" style="color: #ff9500;">${t("New railway stations")}</div>
+      <h2>${route.name}</h2>
+      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${route.description || ""}</p>
+      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
+    `);
+  },
+
+  /**
    * Show road extension detail in the right panel when a road line is clicked.
    */
   showRoadExtensionDetail(roadId) {

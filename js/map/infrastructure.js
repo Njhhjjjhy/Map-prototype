@@ -1551,6 +1551,49 @@ export const methods = {
       lineSourceId,
     );
 
+    // 1b. Hover tooltip and click handler on the orange line
+    const hohiPopup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      className: "mapbox-tooltip",
+      offset: [0, -10],
+    });
+    this._railwayLinePopup = hohiPopup;
+    this._railwayLineHandlers = [];
+
+    const hohiLineId = `${lineSourceId}-line`;
+    const hohiEnter = (e) => {
+      this.map.getCanvas().style.cursor = "pointer";
+      if (this.map.getLayer(hohiLineId)) {
+        this.map.setPaintProperty(hohiLineId, "line-width", 8);
+      }
+      hohiPopup.setLngLat(e.lngLat).setText("JR Hohi Line").addTo(this.map);
+    };
+    const hohiMove = (e) => {
+      hohiPopup.setLngLat(e.lngLat);
+    };
+    const hohiLeave = () => {
+      this.map.getCanvas().style.cursor = "";
+      if (this.map.getLayer(hohiLineId)) {
+        this.map.setPaintProperty(hohiLineId, "line-width", 6);
+      }
+      hohiPopup.remove();
+    };
+    const hohiClick = () => {
+      App.showHohiLineDetail();
+    };
+
+    this.map.on("mouseenter", hohiLineId, hohiEnter);
+    this.map.on("mousemove", hohiLineId, hohiMove);
+    this.map.on("mouseleave", hohiLineId, hohiLeave);
+    this.map.on("click", hohiLineId, hohiClick);
+    this._railwayLineHandlers.push(
+      { event: "mouseenter", layer: hohiLineId, fn: hohiEnter },
+      { event: "mousemove", layer: hohiLineId, fn: hohiMove },
+      { event: "mouseleave", layer: hohiLineId, fn: hohiLeave },
+      { event: "click", layer: hohiLineId, fn: hohiClick },
+    );
+
     // 2. Station marker helpers
     const stationIcons = {
       "train-front": `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`,
@@ -1689,6 +1732,18 @@ export const methods = {
     if (this._railwayPulseTimer) {
       clearTimeout(this._railwayPulseTimer);
       this._railwayPulseTimer = null;
+    }
+
+    // Clean up hover/click handlers
+    if (this._railwayLineHandlers) {
+      this._railwayLineHandlers.forEach(({ event, layer, fn }) => {
+        if (this.map) this.map.off(event, layer, fn);
+      });
+      this._railwayLineHandlers = [];
+    }
+    if (this._railwayLinePopup) {
+      this._railwayLinePopup.remove();
+      this._railwayLinePopup = null;
     }
 
     const group = this._layerGroups.grandAirportRailway;
