@@ -10,7 +10,7 @@ const MAP_COLORS = {
   success: "#34c759",
   resource: "#ff3b30",
   company: "#007aff",
-  property: "#ff9500",
+  property: "#fbb931",
   zone: "#5856D6",
   route: "#64748b",
   infrastructure: "#5ac8fa",
