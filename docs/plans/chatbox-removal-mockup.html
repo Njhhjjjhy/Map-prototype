@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatbox removal mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&family=Rem:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+<style>
+  /* === STANDALONE MOCKUP - uses exact CSS from the real project === */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --font-display: "Rem", sans-serif;
+    --font-body: "Noto Sans JP", sans-serif;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --text-xs: 0.6875rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --text-lg: 1.0625rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.375rem;
+    --text-3xl: 1.75rem;
+    --color-primary: #fbb931;
+    --color-primary-hover: #e5a82c;
+    --color-primary-pressed: #cc9526;
+    --color-text-primary: #1e1f20;
+    --color-text-secondary: #4a4b4d;
+    --color-text-tertiary: #6e7073;
+    --color-text-on-primary: #1e1f20;
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f5f5f7;
+    --color-bg-tertiary: #e8e8ed;
+    --color-border: rgba(0,0,0,0.1);
+    --color-border-strong: rgba(0,0,0,0.15);
+    --color-success: #34c759;
+    --color-info: #007aff;
+    --color-warning: #ff9f0a;
+    --color-error: #ff3b30;
+    --shadow-subtle: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-medium: 0 2px 4px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.08);
+    --shadow-large: 0 4px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.12);
+    --shadow-xlarge: 0 8px 16px rgba(0,0,0,0.08), 0 24px 48px rgba(0,0,0,0.16);
+    --radius-small: 4px;
+    --radius-medium: 8px;
+    --radius-large: 12px;
+    --radius-xlarge: 16px;
+    --radius-full: 9999px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-20: 80px;
+    --tracking-display: -0.02em;
+    --tracking-body: -0.01em;
+    --line-height-tight: 1.2;
+    --duration-fast: 150ms;
+    --duration-normal: 250ms;
+    --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  body {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Map - full viewport */
+  #map {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* === JOURNEY PROGRESS - exact match from project === */
+  #journey-progress {
+    position: absolute;
+    top: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 300;
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-medium);
+  }
+  .progress-segment {
+    width: 20px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--color-bg-tertiary);
+    transition: background-color var(--duration-fast) var(--easing-standard),
+                width var(--duration-fast) var(--easing-standard);
+  }
+  .progress-segment.completed {
+    background: var(--color-primary);
+  }
+  .progress-segment.active {
+    background: var(--color-primary);
+    width: 28px;
+  }
+
+  /* === PANEL TOGGLE BUTTON - exact match === */
+  #panel-toggle {
+    position: absolute;
+    top: var(--space-20);
+    right: var(--space-3);
+    z-index: 500;
+    width: 36px;
+    height: 36px;
+    background: var(--color-bg-primary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    transition: all var(--duration-fast) var(--easing-standard);
+  }
+  #panel-toggle:hover { color: var(--color-text-primary); }
+  #panel-toggle.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-primary);
+  }
+  #panel-toggle svg { width: 18px; height: 18px; }
+
+  /* === RIGHT PANEL - exact match from project === */
+  #right-panel {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 380px;
+    min-width: 320px;
+    max-width: 60vw;
+    height: calc(100vh - var(--space-8));
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-primary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: var(--radius-xlarge);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-xlarge);
+    overflow: hidden;
+    z-index: 1000;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+  }
+
+  /* Panel toolbar - exact match */
+  .panel-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-3) 0 var(--space-3);
+    min-height: 36px;
+    flex-shrink: 0;
+  }
+
+  #panel-home {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    color: var(--color-text-secondary);
+  }
+  #panel-home:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-medium);
+  }
+  #panel-home svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  #panel-close {
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    margin-left: auto;
+  }
+  #panel-close:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+  #panel-close:active { background: var(--color-bg-tertiary); }
+  #panel-close svg { width: 20px; height: 20px; }
+
+  /* === INSPECTOR TITLE BAR - exact match from project === */
+  .inspector-title-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .inspector-title {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--tracking-display);
+    margin: 0;
+    line-height: var(--line-height-tight);
+  }
+  .inspector-subtitle {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* === NARRATIVE BLURB - new component slotted below title bar === */
+  .narrative-blurb {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    padding: var(--space-3) var(--space-4) 0;
+  }
+
+  /* === INSPECTOR TABS - exact match from project === */
+  .inspector-tabs {
+    display: flex;
+    gap: 1px;
+    background: var(--color-bg-tertiary);
+    padding: 2px;
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-border);
+    margin: var(--space-3) var(--space-4);
+  }
+  .inspector-tab {
+    flex: 1;
+    padding: var(--space-1) var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: calc(var(--radius-small) - 2px);
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--duration-fast) var(--easing-standard);
+    white-space: nowrap;
+  }
+  .inspector-tab:hover { color: var(--color-text-primary); }
+  .inspector-tab.active {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* === INSPECTOR BODY - exact match from project === */
+  .inspector-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+    container-type: inline-size;
+  }
+
+  /* === ICARD GRID - exact match from project === */
+  .icard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  /* === ICARD - exact match from project === */
+  .icard {
+    position: relative;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    padding: var(--space-6);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .icard-standard { width: 100%; }
+  .icard-compact { width: 100%; padding: var(--space-3); }
+  @container (min-width: 500px) {
+    .icard-grid .icard-standard { width: calc(50% - var(--space-2)); }
+  }
+
+  /* Card anatomy */
+  .icard-source {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-1);
+    line-height: var(--line-height-tight);
+  }
+  .icard-title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-4);
+    line-height: var(--line-height-tight);
+  }
+
+  /* Stats grid */
+  .icard-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4) var(--space-3);
+  }
+  .icard-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .icard-stat-value {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+  }
+  .icard-stat-label {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+  }
+
+  /* Evidence doc card */
+  .icard-evidence-doc {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .icard-evidence-thumb {
+    width: 40px;
+    height: 48px;
+    border-radius: var(--radius-small);
+    background: var(--color-bg-tertiary);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+  }
+  .icard-evidence-info { flex: 1; min-width: 0; }
+  .icard-evidence-title {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .icard-evidence-meta {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-1);
+  }
+
+  /* Timeline */
+  .icard-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--color-border);
+  }
+  .icard-timeline-item {
+    position: relative;
+    padding: var(--space-2) 0 var(--space-4) var(--space-4);
+  }
+  .icard-timeline-item::before {
+    content: "";
+    position: absolute;
+    left: calc(-1 * var(--space-4) - 5px);
+    top: var(--space-3);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-info);
+    border: 2px solid var(--color-bg-primary);
+  }
+  .icard-timeline-item.future::before {
+    background: transparent;
+    border: 2px solid var(--color-text-tertiary);
+  }
+  .icard-timeline-date {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+  }
+  .icard-timeline-title {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    margin-top: var(--space-1);
+  }
+  .icard-timeline-meta {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Yield row */
+  .icard-yield-row {
+    display: flex;
+    gap: var(--space-4);
+  }
+  .icard-yield-item { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
+  .icard-yield-value {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+  }
+  .icard-yield-label {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+  }
+
+  /* Scenario toggle */
+  .icard-scenario-toggle {
+    display: flex;
+    gap: 1px;
+    background: var(--color-bg-tertiary);
+    padding: 2px;
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-border);
+  }
+  .icard-scenario-btn {
+    flex: 1;
+    padding: var(--space-1) var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: calc(var(--radius-small) - 2px);
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--duration-fast) var(--easing-standard);
+  }
+  .icard-scenario-btn.active {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* Calculator stats */
+  .icard-calc-stats { display: flex; flex-direction: column; gap: var(--space-3); }
+  .icard-calc-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .icard-calc-label {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+  }
+  .icard-calc-value {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+  .icard-calc-value.highlight {
+    color: var(--color-success);
+    font-size: var(--text-lg);
+  }
+
+  /* Gallery grid */
+  .icard-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-2);
+  }
+  .icard-gallery-thumb {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-small);
+    object-fit: cover;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    width: 100%;
+    background: var(--color-bg-tertiary);
+  }
+  .icard-gallery-thumb:hover {
+    opacity: 0.85;
+    box-shadow: var(--shadow-medium);
+  }
+
+  /* Corporate card */
+  .icard-corporate-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .icard-corporate-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-medium);
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+  }
+  .icard-corporate-name {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  /* Property navigation arrows */
+  .inspector-nav-arrows {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+  .inspector-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all var(--duration-fast) var(--easing-standard);
+  }
+  .inspector-nav-btn:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+  }
+  .inspector-nav-label {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    min-width: 32px;
+    text-align: center;
+  }
+
+  /* === PANEL BENTO BUTTONS - exact match from project === */
+  .panel-bento-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-medium);
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--tracking-body);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    border: none;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .panel-bento-btn.secondary {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+  }
+  .panel-bento-btn.secondary:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-text-secondary);
+  }
+  .panel-bento-btn.secondary:active {
+    background: var(--color-bg-tertiary);
+    transform: scale(0.98);
+  }
+  .panel-bento-btn.full-width { width: 100%; }
+
+  /* === SUB-ITEM TOGGLES - chatbox replacement === */
+  .sub-item-toggles {
+    display: flex;
+    gap: 1px;
+    background: var(--color-bg-tertiary);
+    padding: 2px;
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-border);
+    margin: 0 var(--space-4) var(--space-3);
+  }
+  .sub-item-toggle {
+    flex: 1;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: calc(var(--radius-small) - 2px);
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--duration-fast) var(--easing-standard);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .sub-item-toggle:hover { color: var(--color-text-primary); }
+  .sub-item-toggle.active {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-subtle);
+  }
+  .sub-item-toggle .check-icon {
+    width: 12px;
+    height: 12px;
+    color: var(--color-success);
+  }
+
+  /* Disclosure groups for parent/child sub-items */
+  .disclosure {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+  }
+  .disclosure + .disclosure { margin-top: var(--space-2); }
+  .disclosure summary {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    list-style: none;
+    background: var(--color-bg-secondary);
+  }
+  .disclosure summary::-webkit-details-marker { display: none; }
+  .disclosure summary svg {
+    width: 14px; height: 14px;
+    color: var(--color-text-tertiary);
+    transition: transform 0.15s;
+    stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .disclosure[open] summary svg { transform: rotate(90deg); }
+  .disclosure-body {
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* Toggle rows (for zone selectors) */
+  .toggle-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+  .toggle-row:hover { background: var(--color-bg-tertiary); }
+  .toggle-row.active {
+    background: var(--color-bg-primary);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-subtle);
+  }
+  .toggle-row-icon { width: 20px; height: 20px; color: var(--color-text-tertiary); flex-shrink: 0; }
+  .toggle-row.active .toggle-row-icon { color: var(--color-info); }
+  .toggle-row-label {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+  .toggle-row-check { width: 16px; height: 16px; color: var(--color-success); opacity: 0; transition: opacity 0.15s; }
+  .toggle-row.explored .toggle-row-check { opacity: 1; }
+
+  /* === NAV ARROWS - replaces chatbox FAB === */
+  .nav-arrows {
+    position: absolute;
+    bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .nav-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--color-bg-primary);
+    box-shadow: var(--shadow-large);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--duration-fast) var(--easing-standard);
+    color: var(--color-text-primary);
+  }
+  .nav-btn:hover {
+    box-shadow: var(--shadow-xlarge);
+    transform: scale(1.05);
+  }
+  .nav-btn:active { transform: scale(0.95); }
+  .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.forward {
+    background: var(--color-primary);
+    color: var(--color-text-primary);
+  }
+  .nav-btn.forward:hover { background: var(--color-primary-hover); }
+  .nav-btn.forward:active { background: var(--color-primary-pressed); }
+
+  /* Demo step switcher */
+  .demo-controls {
+    position: fixed;
+    bottom: 32px;
+    left: 24px;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0,0,0,0.7);
+    padding: 16px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .demo-controls label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .demo-controls select {
+    font-family: var(--font-display);
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    cursor: pointer;
+  }
+  .demo-controls select option { background: #1a1a2e; color: white; }
+  .demo-hint {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    max-width: 180px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Journey progress - exact match from project -->
+<nav id="journey-progress"></nav>
+
+<!-- Panel toggle button - exact match -->
+<button id="panel-toggle" class="active">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="18" height="18" x="3" y="3" rx="2"/>
+    <path d="M15 3v18"/>
+  </svg>
+</button>
+
+<!-- Right panel - exact HTML structure from project -->
+<aside id="right-panel">
+  <div class="panel-toolbar">
+    <button id="panel-home">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+    </button>
+    <button id="panel-close">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div id="panel-content">
+    <!-- Content injected by JS -->
+  </div>
+</aside>
+
+<!-- Nav arrows - replaces chatbox + FAB -->
+<div class="nav-arrows">
+  <button class="nav-btn back" id="navBack" title="Previous step">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <button class="nav-btn forward" id="navForward" title="Next step">
+    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- Demo step switcher -->
+<div class="demo-controls">
+  <label>Preview step</label>
+  <select id="stepSelect" onchange="showStep(this.value)">
+    <option value="0">0. Kumamoto investment guide</option>
+    <option value="1">1. Resources</option>
+    <option value="2">2. Strategic location</option>
+    <option value="3" selected>3. Government support</option>
+    <option value="4">4. Corporate investment</option>
+    <option value="5">5. Science park and grand airport</option>
+    <option value="6">6. Education pipeline</option>
+    <option value="7">7. Future outlook</option>
+    <option value="8">8. Investment opportunity zones</option>
+    <option value="9">9. Investment properties</option>
+    <option value="10">10. Journey complete</option>
+  </select>
+  <span class="demo-hint">Use this selector or the arrow buttons to preview each step's dashboard layout.</span>
+</div>
+
+<script>
+// SVG icon helpers
+const icons = {
+  doc: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
+  check: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>',
+  navLeft: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  navRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+};
+
+// Tab click handler for inspector tabs
+function switchTab(el) {
+  const tabs = el.parentNode.querySelectorAll('.inspector-tab');
+  tabs.forEach((t, i) => {
+    t.classList.toggle('active', t === el);
+  });
+}
+
+// Sub-item toggle click handler
+function switchSubItem(el) {
+  const toggles = el.parentNode.querySelectorAll('.sub-item-toggle');
+  toggles.forEach(t => t.classList.toggle('active', t === el));
+}
+
+// Scenario toggle click handler
+function switchScenario(el) {
+  el.parentNode.querySelectorAll('.icard-scenario-btn').forEach(b => b.classList.toggle('active', b === el));
+}
+
+// Step data - real panel hierarchy: title bar -> narrative -> tabs -> toggles -> icards -> evidence/buttons
+const steps = [
+  {
+    // Step 0: Intro
+    title: "Kumamoto investment guide",
+    subtitle: "",
+    narrative: "Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.",
+    tabs: [],
+    toggles: "",
+    cards: ``
+  },
+  {
+    // Step 1: Resources
+    title: "Resources",
+    subtitle: "Water and power infrastructure",
+    narrative: "Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both in surplus.",
+    tabs: ["Evidence"],
+    toggles: `
+      <div class="sub-item-toggles">
+        <button class="sub-item-toggle active" onclick="switchSubItem(this)">
+          Water resources
+          <span class="check-icon">${icons.check}</span>
+        </button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">
+          Power resources
+        </button>
+      </div>
+    `,
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-title">Resources and location</div>
+        <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-top: var(--space-2);">Kumamoto's natural advantages: water, power, and strategic position in the semiconductor supply chain.</p>
+      </div>
+      <div class="icard icard-standard">
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">10M</div>
+            <div class="icard-stat-label">Gallons per day</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">Surplus</div>
+            <div class="icard-stat-label">Supply status</div>
+          </div>
+        </div>
+        <div style="margin-top: var(--space-6);">
+          <button class="panel-bento-btn secondary full-width">View evidence</button>
+        </div>
+      </div>
+    `
+  },
+  {
+    // Step 2: Strategic location
+    title: "Strategic location",
+    subtitle: "Kyushu position in Asia",
+    narrative: "Seoul and Taipei are both just <strong>1 hour 40 minutes</strong> by direct flight from Kumamoto. Busan is 1h 25m. Every major semiconductor hub in Asia is under 3 hours away.",
+    tabs: ["Evidence"],
+    toggles: "",
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-title">Flight connections</div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">1h 40m</div>
+            <div class="icard-stat-label">Seoul / Taipei</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">1h 25m</div>
+            <div class="icard-stat-label">Busan</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">&lt; 3h</div>
+            <div class="icard-stat-label">All Asia hubs</div>
+          </div>
+        </div>
+        <div style="margin-top: var(--space-6);">
+          <button class="panel-bento-btn secondary full-width">View evidence</button>
+        </div>
+      </div>
+    `
+  },
+  {
+    // Step 3: Government support
+    title: "Government support",
+    subtitle: "National to local commitment",
+    narrative: "<strong>4+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors.",
+    tabs: ["Support", "Dashboard"],
+    toggles: `
+      <div class="sub-item-toggles">
+        <button class="sub-item-toggle active" onclick="switchSubItem(this)">
+          Central
+          <span class="check-icon">${icons.check}</span>
+        </button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">Prefectural</button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">Local</button>
+      </div>
+    `,
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-source">National policy</div>
+        <div class="icard-title">Central government</div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">4T+</div>
+            <div class="icard-stat-label">Total commitment</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">3.9T</div>
+            <div class="icard-stat-label">Semiconductor subsidy</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">12</div>
+            <div class="icard-stat-label">Priority projects</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">30%</div>
+            <div class="icard-stat-label">Permit time reduction</div>
+          </div>
+        </div>
+      </div>
+      <div class="icard icard-standard">
+        <div class="icard-source">Kumamoto Prefecture</div>
+        <div class="icard-title">Prefectural government</div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">480B</div>
+            <div class="icard-stat-label">Prefecture commitment</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">120B</div>
+            <div class="icard-stat-label">Infrastructure fund</div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  {
+    // Step 4: Corporate investment
+    title: "Corporate investment",
+    subtitle: "Seven major players",
+    narrative: "TSMC committed <strong>over 3 trillion yen</strong> for two fabs. Sony, SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron all announced expansions. <strong>Seven major players</strong>, all converging on Kumamoto.",
+    tabs: ["Investment", "Companies"],
+    toggles: "",
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-corporate-header">
+          <div class="icard-corporate-logo">TS</div>
+          <div>
+            <div class="icard-corporate-name">TSMC / JASM</div>
+          </div>
+        </div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">3T+</div>
+            <div class="icard-stat-label">Total investment</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">46k+</div>
+            <div class="icard-stat-label">Jobs created</div>
+          </div>
+        </div>
+      </div>
+      <div class="icard icard-standard">
+        <div class="icard-corporate-header">
+          <div class="icard-corporate-logo">So</div>
+          <div>
+            <div class="icard-corporate-name">Sony Semiconductor</div>
+          </div>
+        </div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">Expansion</div>
+            <div class="icard-stat-label">Status</div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  {
+    // Step 5: Science park and grand airport
+    title: "Science park and grand airport",
+    subtitle: "Development zones and airport connectivity",
+    narrative: "Kumamoto Science Park anchors a semiconductor corridor backed by <strong>\u00a54.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia.",
+    tabs: ["Overview", "Timeline", "Evidence"],
+    toggles: `
+      <div class="sub-item-toggles">
+        <button class="sub-item-toggle active" onclick="switchSubItem(this)">Science park</button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">Grand airport</button>
+      </div>
+    `,
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-title">Kumamoto Science Park</div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">4.8T</div>
+            <div class="icard-stat-label">Government investment</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">Active</div>
+            <div class="icard-stat-label">Status</div>
+          </div>
+        </div>
+      </div>
+      <details class="disclosure" open style="margin-top: var(--space-2);">
+        <summary>
+          ${icons.chevron}
+          Science park
+        </summary>
+        <div class="disclosure-body">
+          <div class="toggle-row active explored">
+            <span class="toggle-row-label">Government zone plan</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-row-label">Kikuyo long-term plan</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-row-label">Ozu long-term plan</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+      </details>
+      <details class="disclosure">
+        <summary>
+          ${icons.chevron}
+          Grand airport concept
+        </summary>
+        <div class="disclosure-body">
+          <div class="toggle-row">
+            <span class="toggle-row-label">Airport access</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-row-label">New railway stations</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-row-label">Road extensions</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-row-label">10-20 minute concept</span>
+            <svg class="toggle-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+      </details>
+      <div style="margin-top: var(--space-4);">
+        <button class="panel-bento-btn secondary full-width">View evidence</button>
+      </div>
+    `
+  },
+  {
+    // Step 6: Education and talent pipeline
+    title: "Education and talent pipeline",
+    subtitle: "Universities, training, and employment",
+    narrative: "METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.",
+    tabs: ["Education", "Employment"],
+    toggles: `
+      <div class="sub-item-toggles">
+        <button class="sub-item-toggle active" onclick="switchSubItem(this)">
+          Universities
+          <span class="check-icon">${icons.check}</span>
+        </button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">Employment data</button>
+      </div>
+    `,
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-title">Kumamoto University</div>
+        <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-2);">Partnership with JASM (TSMC) to establish a semiconductor research center, enabling direct industry-academia collaboration.</p>
+      </div>
+    `
+  },
+  {
+    // Step 7: Future outlook
+    title: "Future outlook",
+    subtitle: "Composite 2030+ vision",
+    narrative: "See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.",
+    tabs: ["Plans", "Timeline"],
+    toggles: "",
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-title">Infrastructure timeline</div>
+        <div class="icard-timeline">
+          <div class="icard-timeline-item">
+            <div class="icard-timeline-date">2024</div>
+            <div class="icard-timeline-title">JASM Phase 1 operational</div>
+            <div class="icard-timeline-meta">First wafers produced</div>
+          </div>
+          <div class="icard-timeline-item">
+            <div class="icard-timeline-date">2025</div>
+            <div class="icard-timeline-title">Phase 2 construction</div>
+            <div class="icard-timeline-meta">Second fab under construction</div>
+          </div>
+          <div class="icard-timeline-item future">
+            <div class="icard-timeline-date">2027</div>
+            <div class="icard-timeline-title">Science park expansion</div>
+            <div class="icard-timeline-meta">New zones and facilities</div>
+          </div>
+          <div class="icard-timeline-item future">
+            <div class="icard-timeline-date">2030+</div>
+            <div class="icard-timeline-title">Grand airport concept</div>
+            <div class="icard-timeline-meta">New terminal and rail connection</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: var(--space-4);">
+        <button class="panel-bento-btn secondary full-width">View evidence</button>
+      </div>
+    `
+  },
+  {
+    // Step 8: Investment zones
+    title: "Investment opportunity zones",
+    subtitle: "Three zones in the silicon triangle",
+    narrative: "Three zones in the silicon triangle, each with a distinct role in the semiconductor ecosystem.",
+    tabs: ["Zones", "Metrics"],
+    toggles: `
+      <div class="sub-item-toggles">
+        <button class="sub-item-toggle active" onclick="switchSubItem(this)">
+          Central city
+          <span class="check-icon">${icons.check}</span>
+        </button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">
+          Middle zone
+          <span class="check-icon">${icons.check}</span>
+        </button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">JASM</button>
+      </div>
+    `,
+    cards: `
+      <div class="icard icard-standard">
+        <div class="icard-title">Demand</div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">High</div>
+            <div class="icard-stat-label">Rental demand</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">Growing</div>
+            <div class="icard-stat-label">Population trend</div>
+          </div>
+        </div>
+      </div>
+      <div class="icard icard-standard">
+        <div class="icard-title">Area statistics</div>
+        <div class="icard-yield-row">
+          <div class="icard-yield-item">
+            <div class="icard-yield-value">+12%</div>
+            <div class="icard-yield-label">Avg appreciation</div>
+          </div>
+          <div class="icard-yield-item">
+            <div class="icard-yield-value">5.2%</div>
+            <div class="icard-yield-label">Avg rental yield</div>
+          </div>
+          <div class="icard-yield-item">
+            <div class="icard-yield-value">96%</div>
+            <div class="icard-yield-label">Occupancy rate</div>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  {
+    // Step 9: Properties
+    title: "Kikuyo property A",
+    subtitle: "Investment opportunities",
+    narrative: "2 properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.",
+    tabs: ["Truth engine", "Future outlook", "Financials", "Images"],
+    toggles: `
+      <div class="sub-item-toggles">
+        <button class="sub-item-toggle active" onclick="switchSubItem(this)">Kikuyo properties</button>
+        <button class="sub-item-toggle" onclick="switchSubItem(this)">Ozu properties</button>
+      </div>
+    `,
+    cards: `
+      <div class="inspector-nav-arrows" style="margin: 0 0 var(--space-3);">
+        <button class="inspector-nav-btn">${icons.navLeft}</button>
+        <span class="inspector-nav-label">1 / 2</span>
+        <button class="inspector-nav-btn">${icons.navRight}</button>
+      </div>
+      <div class="icard icard-standard">
+        <div class="icard-title">Overview</div>
+        <div class="icard-stats-grid">
+          <div class="icard-stat">
+            <div class="icard-stat-value">Kikuyo</div>
+            <div class="icard-stat-label">Area</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">12 min</div>
+            <div class="icard-stat-label">Drive to JASM</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">5.0%</div>
+            <div class="icard-stat-label">Surface yield</div>
+          </div>
+          <div class="icard-stat">
+            <div class="icard-stat-value">4.2%</div>
+            <div class="icard-stat-label">Actual yield</div>
+          </div>
+        </div>
+      </div>
+      <div class="icard icard-standard">
+        <div class="icard-title">Performance calculator</div>
+        <div class="icard-scenario-toggle" style="margin-bottom: var(--space-3);">
+          <button class="icard-scenario-btn" onclick="switchScenario(this)">Bear</button>
+          <button class="icard-scenario-btn active" onclick="switchScenario(this)">Average</button>
+          <button class="icard-scenario-btn" onclick="switchScenario(this)">Bull</button>
+        </div>
+        <div class="icard-calc-stats">
+          <div class="icard-calc-row">
+            <span class="icard-calc-label">Annual rent</span>
+            <span class="icard-calc-value">2,400,000</span>
+          </div>
+          <div class="icard-calc-row">
+            <span class="icard-calc-label">Monthly rent</span>
+            <span class="icard-calc-value">200,000</span>
+          </div>
+          <div class="icard-calc-row">
+            <span class="icard-calc-label">Surface yield</span>
+            <span class="icard-calc-value highlight">5.0%</span>
+          </div>
+        </div>
+      </div>
+    `
+  },
+  {
+    // Step 10: Journey complete
+    title: "Journey complete",
+    subtitle: "Summary and Q&A",
+    narrative: "",
+    tabs: [],
+    toggles: "",
+    cards: `
+      <div class="icard icard-standard" style="border-left: 3px solid var(--color-success);">
+        <div class="icard-title">Journey recap</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg style="width:16px;height:16px;color:#34c759;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-size:var(--text-sm);">Natural advantages verified</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg style="width:16px;height:16px;color:#34c759;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-size:var(--text-sm);">4T+ yen government commitment</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg style="width:16px;height:16px;color:#34c759;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-size:var(--text-sm);">2 investment properties</span>
+          </div>
+        </div>
+      </div>
+    `
+  }
+];
+
+let currentStep = 3;
+
+function renderProgress(stepIndex) {
+  const el = document.getElementById('journey-progress');
+  let html = '';
+  for (let i = 1; i <= 10; i++) {
+    let cls = 'progress-segment';
+    if (i < stepIndex) cls += ' completed';
+    else if (i === stepIndex) cls += ' active';
+    html += `<div class="${cls}"></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function showStep(index) {
+  index = parseInt(index);
+  currentStep = index;
+  const step = steps[index];
+
+  // Progress
+  renderProgress(index);
+
+  // Build panel content using real inspector hierarchy:
+  // 1. Inspector title bar (subtitle + title)
+  // 2. Narrative blurb (new - from chatbox)
+  // 3. Inspector tabs
+  // 4. Sub-item toggles (new - from chatbox)
+  // 5. Inspector body > icard-grid > icards
+  // 6. Evidence buttons / bordered buttons
+
+  let html = '';
+
+  // 1. Title bar
+  const showSubtitle = step.subtitle && step.subtitle !== step.title;
+  html += `<div class="inspector-title-bar">
+    ${showSubtitle ? `<div class="inspector-subtitle">${step.subtitle}</div>` : ''}
+    <h2 class="inspector-title">${step.title}</h2>
+  </div>`;
+
+  // 2. Narrative blurb (the new piece from the chatbox)
+  if (step.narrative) {
+    html += `<div class="narrative-blurb">${step.narrative}</div>`;
+  }
+
+  // 3. Inspector tabs
+  if (step.tabs.length > 1) {
+    html += '<div class="inspector-tabs">';
+    step.tabs.forEach((tab, i) => {
+      html += `<button class="inspector-tab${i === 0 ? ' active' : ''}" onclick="switchTab(this)">${tab}</button>`;
+    });
+    html += '</div>';
+  }
+
+  // 4. Sub-item toggles (moved from chatbox)
+  if (step.toggles) {
+    html += step.toggles;
+  }
+
+  // 5. Inspector body with icard grid
+  html += `<div class="inspector-body">
+    <div class="icard-grid">
+      ${step.cards}
+    </div>
+  </div>`;
+
+  document.getElementById('panel-content').innerHTML = html;
+
+  // Nav buttons
+  document.getElementById('navBack').style.display = index === 0 ? 'none' : 'flex';
+
+  // Select
+  document.getElementById('stepSelect').value = index;
+}
+
+// Nav button handlers
+document.getElementById('navForward').addEventListener('click', () => {
+  if (currentStep < 10) showStep(currentStep + 1);
+});
+document.getElementById('navBack').addEventListener('click', () => {
+  if (currentStep > 0) showStep(currentStep - 1);
+});
+
+// Map initialization
+mapboxgl.accessToken = "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+const map = new mapboxgl.Map({
+  container: "map",
+  style: "mapbox://styles/mapbox/streets-v12",
+  center: [130.75, 32.8],
+  zoom: 7.5,
+  pitch: 0,
+  bearing: 0,
+  antialias: true,
+  interactive: true,
+  attributionControl: false
+});
+
+// Initialize
+showStep(3);
+</script>
+
+</body>
+</html>
