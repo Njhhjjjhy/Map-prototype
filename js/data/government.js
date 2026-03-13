@@ -152,7 +152,7 @@ export const governmentTiers = [
       {
         id: "kikuyo-city",
         name: t("Kikuyo Town"),
-        subtitle: t("Residential and commercial"),
+        subtitle: t("JASM and science park"),
         coords: [32.88, 130.83],
         commitment: "¥180B",
         description: t(
@@ -189,7 +189,7 @@ export const governmentTiers = [
       {
         id: "ozu-city",
         name: t("Ozu Town"),
-        subtitle: t("Industrial expansion"),
+        subtitle: t("Airport and industrial zone"),
         coords: [32.86, 130.87],
         commitment: "¥95B",
         description: t(
@@ -227,7 +227,7 @@ export const governmentTiers = [
       {
         id: "koshi-town",
         name: t("Koshi Town"),
-        subtitle: t("TEL R&D hub and high-end rentals"),
+        subtitle: t("TEL R&D hub and residential area"),
         coords: [32.884, 130.771],
         commitment: "¥47B",
         description: t(
