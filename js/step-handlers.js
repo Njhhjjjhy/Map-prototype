@@ -626,7 +626,7 @@ export const stepHandlers = {
         description:
           airport?.description ||
           t("Airport access infrastructure connecting the semiconductor corridor to Aso Kumamoto Airport."),
-        stats: airport?.stats || [],
+        stats: (airport?.stats || []).filter((s) => s.value !== t("4 pillars")),
         images: [
           {
             src: "assets/use-case-images/evidence-airport-master-plan.webp",
@@ -641,7 +641,7 @@ export const stepHandlers = {
         title: t("New railway stations"),
         description:
           t("A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station."),
-        stats: airport?.stats || [],
+        stats: (airport?.stats || []).filter((s) => s.value !== t("4 pillars")),
         images: [
           {
             src: "assets/use-case-images/evidence-airport-to-city-railway.webp",
