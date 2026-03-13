@@ -54,6 +54,7 @@ export const resources = {
         description: t(
           "Major beverage manufacturer chose Kumamoto for exceptional water quality and abundance. The plant produces beverages for the entire Kyushu region."
         ),
+        image: "assets/use-case-images/step-1-coca-cola.webp",
         stats: [
           { value: "1987", label: t("Established") },
           { value: "Minami-ku", label: t("Location") },
@@ -69,6 +70,7 @@ export const resources = {
         description: t(
           "Suntory selected Kashima, Kamimashiki for its pristine groundwater. The facility produces premium beverages requiring the highest water purity standards."
         ),
+        image: "assets/use-case-images/step-1-suntory.webp",
         stats: [
           { value: "1991", label: t("Established") },
           { value: "Kashima", label: t("Location") },

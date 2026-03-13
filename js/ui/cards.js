@@ -304,6 +304,14 @@ export const methods = {
    * @param {Object} evidence - Evidence marker data
    */
   showWaterEvidencePanel(evidence) {
+    const viewEvidenceBtn = evidence.image
+      ? `<div style="margin-top: var(--space-6);">
+                <button class="panel-bento-btn secondary full-width" onclick="UI.showEvidenceLightbox('${evidence.image}', '${evidence.name.replace(/'/g, "\\'")}')">
+                    ${t("View evidence")}
+                </button>
+            </div>`
+      : "";
+
     const content = `
             ${panelHeader(t("Water quality evidence"), evidence.name)}
             <p class="panel-subtitle" style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">${evidence.subtitle}</p>
@@ -311,6 +319,7 @@ export const methods = {
             <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
                 ${t("Major manufacturers chose Kumamoto for water quality - proof the resource meets industrial standards.")}
             </p>
+            ${viewEvidenceBtn}
         `;
 
     this.showPanel(content);
