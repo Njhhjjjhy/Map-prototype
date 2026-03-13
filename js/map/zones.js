@@ -7,21 +7,30 @@ export const methods = {
       const circles = [
         {
           id: "science-park-circle-tsmc",
-          label: "TSMC Semiconductor Hub",
+          label: "Science park",
           center: [130.825, 32.885],
           radius: 12000,
           color: MAP_COLORS.primary,
         },
         {
           id: "science-park-circle-airport",
-          label: "Kumamoto Airport Development Zone",
+          label: "Grand airport concept",
           center: [130.85989089814692, 32.841638592865074],
           radius: 10000,
           color: "#7C3AED",
         },
       ];
 
-      circles.forEach(({ id, center, radius, color }) => {
+      // Shared hover popup for science park circles
+      this._scienceParkPopup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        offset: [0, -4],
+        className: "mapbox-tooltip",
+      });
+      this._scienceParkEventCleanups = [];
+
+      circles.forEach(({ id, label, center, radius, color }) => {
         const geoJson = this._generateCirclePolygon(center, radius);
         this._safeAddSource(id, { type: "geojson", data: geoJson });
 
@@ -44,6 +53,29 @@ export const methods = {
         });
 
         this._layerGroups.sciencePark.push(`${id}-fill`, `${id}-stroke`, id);
+
+        // Hover tooltip
+        const fillId = `${id}-fill`;
+        const popup = this._scienceParkPopup;
+        const enterFn = (e) => {
+          popup.setLngLat(e.lngLat).setText(label).addTo(this.map);
+          this.map.getCanvas().style.cursor = "pointer";
+        };
+        const moveFn = (e) => popup.setLngLat(e.lngLat);
+        const leaveFn = () => {
+          popup.remove();
+          this.map.getCanvas().style.cursor = "";
+        };
+
+        this.map.on("mouseenter", fillId, enterFn);
+        this.map.on("mousemove", fillId, moveFn);
+        this.map.on("mouseleave", fillId, leaveFn);
+
+        this._scienceParkEventCleanups.push(
+          () => { this.map.off("mouseenter", fillId, enterFn); popup.remove(); },
+          () => this.map.off("mousemove", fillId, moveFn),
+          () => this.map.off("mouseleave", fillId, leaveFn),
+        );
       });
     }
 
@@ -489,8 +521,20 @@ export const methods = {
     // Kept for API compatibility with setTimeView().
   },
 
+  _cleanupScienceParkTooltips() {
+    if (this._scienceParkEventCleanups) {
+      this._scienceParkEventCleanups.forEach((fn) => { try { fn(); } catch (_) {} });
+      this._scienceParkEventCleanups = [];
+    }
+    if (this._scienceParkPopup) {
+      this._scienceParkPopup.remove();
+      this._scienceParkPopup = null;
+    }
+  },
+
   hideFutureZones() {
     // Hide all future layer groups that may be active
+    this._cleanupScienceParkTooltips();
     this._removeLayerGroup("sciencePark");
     this.hideAirportAccessRoutes();
     this.hideRailwayStations();
