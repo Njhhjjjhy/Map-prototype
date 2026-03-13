@@ -1941,7 +1941,10 @@ export const methods = {
     this._ringRoadDrawRafs = [];
     this._ringRoadLoopTimer = null;
 
-    roads.forEach((road, index) => {
+    // Filter out airport-connection road - it is already shown by showAirportAccessRoutes()
+    const filteredRoads = roads.filter((r) => r.id !== "airport-connection");
+
+    filteredRoads.forEach((road, index) => {
       const allCoords = road.coords.map((c) => this._toMapbox(c));
       const sourceId = `ga-road-ext-${road.id}`;
       const color = road.color || "#e63f5a";
