@@ -281,16 +281,15 @@ export const methods = {
       "margin-top: var(--space-4)",
     );
 
-    const evidenceHtml = company.evidence
+    const evidenceHtml = company.evidence?.image
       ? `
-            <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.openEvidenceDocument('${company.evidence.title}')">
-                ${t("View source document")}
+            <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showEvidenceLightbox('${company.evidence.image}', '${company.name.replace(/'/g, "\\'")}')">
+                ${t("View evidence")}
             </button>`
       : "";
 
     const content = `
             ${panelHeader(t("Corporate investment"), company.name)}
-            ${company.subtitle ? `<p style="margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-text-tertiary);">${company.subtitle}</p>` : ""}
             ${statsHtml}
             <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${company.description || ""}</p>
             ${evidenceHtml}
