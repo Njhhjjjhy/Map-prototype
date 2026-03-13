@@ -910,6 +910,12 @@ export const methods = {
             )
             .join("");
 
+          const evidenceImages = {
+            jasm: "assets/use-case-images/step-7-TSMC.webp",
+            tel: "assets/use-case-images/step-7-TEL.webp",
+          };
+          const evidenceImage = evidenceImages[company.id];
+
           return evidenceCard({
             color: company.color || "#007aff",
             subtitle: company.headlineLabel,
@@ -917,7 +923,7 @@ export const methods = {
             description: company.description,
             stats: [],
             extra: `${company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : ""}
-              ${company.evidence ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showGalleryFromUrl('${company.evidence.url}', '${company.evidence.title.replace(/'/g, "\\'")}')"> ${t("View source document")}</button>` : ""}`,
+              ${evidenceImage ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showQuickLook({ type: 'image', src: '${evidenceImage}', title: '${(company.evidence?.title || company.name).replace(/'/g, "\\'")}' })">${t("View evidence")}</button>` : ""}`,
           });
         })
         .join("");
