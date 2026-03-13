@@ -809,7 +809,7 @@ export const methods = {
             subtitle: tier.tierLabel,
             title: tier.name,
             description: tier.description,
-            stats: tier.stats,
+            stats: tier.id === "central" ? null : tier.stats,
             extra: subItemsHtml,
           });
         })
