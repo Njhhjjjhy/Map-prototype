@@ -8,9 +8,9 @@
 
   /* macOS Type Scale */
   --text-xs: 1rem; /* 16px - Caption 2 */
-  --text-sm: 0.8125rem; /* 13px - Footnote */
+  --text-sm: 0.875rem; /* 14px - Footnote */
   --text-base: 1.125rem; /* 18px - Subheadline */
-  --text-lg: 1.0625rem; /* 17px - Body/Headline */
+  --text-lg: 1.25rem; /* 20px - Body/Headline */
   --text-xl: 1.25rem; /* 20px - Title 3 */
   --text-2xl: 1.375rem; /* 22px - Title 2 */
   --text-3xl: 1.75rem; /* 28px - Title 1 */
