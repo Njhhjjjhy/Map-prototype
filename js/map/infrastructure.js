@@ -1485,6 +1485,9 @@ export const methods = {
     const data = AppData.grandAirportData?.railway;
     if (!data || !this.map) return;
 
+    // If already showing, do not rebuild (keeps the line animation running)
+    if (this._layerGroups.grandAirportRailway.length > 0) return;
+
     // Clean up previous if any
     this.hideRailwayStations();
 
