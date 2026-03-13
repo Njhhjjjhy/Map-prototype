@@ -397,6 +397,7 @@ const App = {
     }
     // Clean up science park circle layers and markers
     if (layers.includes("sciencePark")) {
+      MapController._cleanupScienceParkTooltips();
       MapController._removeLayerGroup("sciencePark");
     }
   },

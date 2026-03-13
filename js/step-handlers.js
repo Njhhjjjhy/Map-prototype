@@ -345,6 +345,7 @@ export const stepHandlers = {
     if (idx >= 0) {
       this.state.activeFutureLayers.splice(idx, 1);
       if (layerName === "futureSciencePark") {
+        MapController._cleanupScienceParkTooltips();
         MapController._removeLayerGroup("sciencePark");
       } else if (layerName === "futureAirport") {
         MapController.hideAirportAccessRoutes();
