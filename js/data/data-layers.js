@@ -449,7 +449,7 @@ export const dataLayers = {
     markers: [
       {
         id: "emp-1",
-        coords: [32.89232977461037, 130.84458372026097],
+        coords: [32.88615077755822, 130.84277124622932],
         name: t("JASM"),
         employees: "3,400",
         growth: "+850 (2025)",

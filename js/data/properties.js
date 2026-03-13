@@ -294,8 +294,8 @@ export const properties = [
     type: t("Build to rent"),
     zone: "Ozu",
     subArea: "Sugitmizu",
-    distanceToJasm: "5.2 km",
-    driveTime: "8 min",
+    distanceToJasm: "3.3 km",
+    driveTime: "7 min",
     address:
       "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
     camera: {
@@ -305,25 +305,25 @@ export const properties = [
       bearing: 15,
     },
     connections: {
-      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "5.2 km", time: "8 min" },
+      jasm: { coords: [32.88615077755822, 130.84277124622932], distance: "3.3 km", time: "7 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
         coords: [32.87079200721318, 130.82919294020132],
-        distance: "4.8 km",
-        time: "7 min",
+        distance: "5.3 km",
+        time: "11 min",
       },
       airport: {
         coords: [32.83514194156781, 130.8590315178461],
-        distance: "8.2 km",
-        time: "14 min",
+        distance: "8.9 km",
+        time: "18 min",
       },
       road: {
         id: "ozu-road",
         name: t("Ozu Road"),
         coords: [32.88, 130.87],
-        distance: "1.2 km",
-        time: "3 min",
+        distance: "4.3 km",
+        time: "9 min",
       },
     },
 
@@ -466,8 +466,8 @@ export const properties = [
     type: t("Build to rent"),
     zone: "Ozu",
     subArea: "Sugitmizu",
-    distanceToJasm: "5.5 km",
-    driveTime: "9 min",
+    distanceToJasm: "3.3 km",
+    driveTime: "7 min",
     address: "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
     camera: {
       center: [130.85029844417664, 32.914778352968796],
@@ -476,25 +476,25 @@ export const properties = [
       bearing: 15,
     },
     connections: {
-      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "5.5 km", time: "9 min" },
+      jasm: { coords: [32.88615077755822, 130.84277124622932], distance: "3.3 km", time: "7 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
         coords: [32.87079200721318, 130.82919294020132],
-        distance: "4.5 km",
-        time: "6 min",
+        distance: "5.3 km",
+        time: "11 min",
       },
       airport: {
         coords: [32.83514194156781, 130.8590315178461],
-        distance: "8.5 km",
-        time: "15 min",
+        distance: "8.9 km",
+        time: "18 min",
       },
       road: {
         id: "ozu-road",
         name: t("Ozu Road"),
         coords: [32.88, 130.87],
-        distance: "1.4 km",
-        time: "3 min",
+        distance: "4.3 km",
+        time: "9 min",
       },
     },
 
@@ -633,8 +633,8 @@ export const properties = [
     type: t("Buy-renovate-rent/sell"),
     zone: "Kikuyo",
     subArea: "Kubota",
-    distanceToJasm: "6.8 km",
-    driveTime: "10 min",
+    distanceToJasm: "3.3 km",
+    driveTime: "7 min",
     address:
       "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto",
     camera: {
@@ -644,25 +644,25 @@ export const properties = [
       bearing: 5,
     },
     connections: {
-      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "6.8 km", time: "10 min" },
+      jasm: { coords: [32.88615077755822, 130.84277124622932], distance: "3.3 km", time: "7 min" },
       station: {
         id: "kikuyo-station",
         name: t("Kikuyo station"),
         coords: [32.8654, 130.8099],
-        distance: "1.2 km",
-        time: "2 min",
+        distance: "3.5 km",
+        time: "7 min",
       },
       airport: {
         coords: [32.83514194156781, 130.8590315178461],
-        distance: "7.8 km",
-        time: "13 min",
+        distance: "2.7 km",
+        time: "5 min",
       },
       road: {
-        id: "ozu-kumamoto-road",
-        name: t("Ozu-Kumamoto Road"),
-        coords: [32.87, 130.82],
-        distance: "3.8 km",
-        time: "6 min",
+        id: "ozu-road",
+        name: t("Ozu Road"),
+        coords: [32.875, 130.84],
+        distance: "2.2 km",
+        time: "4 min",
       },
     },
 
@@ -809,8 +809,8 @@ export const properties = [
     type: t("Land acquisition"),
     zone: "Kikuyo",
     subArea: "Haramizu",
-    distanceToJasm: "4.5 km",
-    driveTime: "7 min",
+    distanceToJasm: "2.4 km",
+    driveTime: "5 min",
     address:
       "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
     camera: {
@@ -820,25 +820,25 @@ export const properties = [
       bearing: 10,
     },
     connections: {
-      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "4.5 km", time: "7 min" },
+      jasm: { coords: [32.88615077755822, 130.84277124622932], distance: "2.4 km", time: "5 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
         coords: [32.87079200721318, 130.82919294020132],
-        distance: "0 km",
-        time: "adjacent",
+        distance: "0.3 km",
+        time: "1 min",
       },
       airport: {
         coords: [32.83514194156781, 130.8590315178461],
-        distance: "7.2 km",
-        time: "12 min",
+        distance: "4.6 km",
+        time: "9 min",
       },
       road: {
         id: "ozu-kumamoto-road",
         name: t("Ozu-Kumamoto Road"),
         coords: [32.87, 130.82],
-        distance: "4.1 km",
-        time: "7 min",
+        distance: "0.9 km",
+        time: "2 min",
       },
     },
 
@@ -975,8 +975,8 @@ export const properties = [
     type: t("Land acquisition"),
     zone: "Kikuyo",
     subArea: "Haramizu",
-    distanceToJasm: "4.3 km",
-    driveTime: "7 min",
+    distanceToJasm: "2.4 km",
+    driveTime: "5 min",
     address:
       "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
     camera: {
@@ -986,25 +986,25 @@ export const properties = [
       bearing: 10,
     },
     connections: {
-      jasm: { coords: [32.89232977461037, 130.84458372026097], distance: "4.3 km", time: "7 min" },
+      jasm: { coords: [32.88615077755822, 130.84277124622932], distance: "2.4 km", time: "5 min" },
       station: {
         id: "haramizu-station",
         name: t("Haramizu station"),
         coords: [32.87079200721318, 130.82919294020132],
-        distance: "0.2 km",
+        distance: "0.3 km",
         time: "1 min",
       },
       airport: {
         coords: [32.83514194156781, 130.8590315178461],
-        distance: "7.5 km",
-        time: "13 min",
+        distance: "4.6 km",
+        time: "9 min",
       },
       road: {
         id: "ozu-kumamoto-road",
         name: t("Ozu-Kumamoto Road"),
         coords: [32.87, 130.82],
-        distance: "3.5 km",
-        time: "6 min",
+        distance: "0.9 km",
+        time: "2 min",
       },
     },
 
