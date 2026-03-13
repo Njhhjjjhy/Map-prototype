@@ -285,10 +285,15 @@ export const stepHandlers = {
     const items = tiers
       .map((tier) => {
         const isVisited = visitedLevels.includes(tier.id);
+        const checkmark = isVisited
+          ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+          : "";
         return `<button class="chatbox-option${isVisited ? " completed" : ""}"
                         onclick="App.toggleGovernmentLevel('${tier.id}')"
                         aria-pressed="${isVisited}">
-                    ${tier.tier}${isVisited ? '<span class="sr-only"> (active)</span>' : ""}
+                    ${tier.tier}
+                    ${checkmark}
+                    ${isVisited ? '<span class="sr-only"> (active)</span>' : ""}
                 </button>`;
       })
       .join("");
