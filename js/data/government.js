@@ -146,8 +146,6 @@ export const governmentTiers = [
     commitmentLabel: t("Combined Investment"),
     stats: [
       { value: "¥322B", label: t("Combined investment") },
-      { value: "3", label: t("Key municipalities") },
-      { value: "2028", label: t("Phase 1 targets") },
       { value: "5,500+", label: t("Housing + jobs") },
     ],
     subItems: [
