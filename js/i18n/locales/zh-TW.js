@@ -1570,7 +1570,7 @@ export default {
   Avg: "中性",
   "Semiconductor factory": "半導體工廠",
   "Rail connection": "軌道連結",
-  "Science park circles": "科學園區範圍",
+  "Science park and grand airport concept": "科學園區與大機場構想",
   "Airport access": "機場聯絡",
   "No government data available.": "暫無政府資料。",
   "No images available.": "暫無圖片。",

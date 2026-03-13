@@ -414,7 +414,7 @@ export const methods = {
     const layers = [
       {
         key: "futureSciencePark",
-        label: t("Science park circles"),
+        label: t("Science park and grand airport concept"),
         color: "#007aff",
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>',
       },
