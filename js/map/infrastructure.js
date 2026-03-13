@@ -1224,7 +1224,7 @@ export const methods = {
       type: "fill",
       source: newSourceId,
       paint: {
-        "fill-color": "#007aff",
+        "fill-color": "#34c759",
         "fill-opacity": 0.2,
       },
     });
@@ -1234,7 +1234,7 @@ export const methods = {
       type: "line",
       source: newSourceId,
       paint: {
-        "line-color": "#007aff",
+        "line-color": "#34c759",
         "line-width": 2,
         "line-opacity": 0.8,
       },
@@ -1300,7 +1300,7 @@ export const methods = {
           type: "Feature",
           geometry: {
             type: "LineString",
-            coordinates: [arCoords[0], arCoords[0]],
+            coordinates: arCoords,
           },
         },
       });
@@ -1309,8 +1309,8 @@ export const methods = {
         type: "line",
         source: arSourceId,
         paint: {
-          "line-color": airportRoad.color,
-          "line-width": 10,
+          "line-color": "#34c759",
+          "line-width": 20,
           "line-opacity": 0.2,
           "line-blur": 6,
         },
@@ -1321,8 +1321,8 @@ export const methods = {
         type: "line",
         source: arSourceId,
         paint: {
-          "line-color": airportRoad.color,
-          "line-width": 4,
+          "line-color": "#34c759",
+          "line-width": 8,
           "line-opacity": 0.9,
         },
         layout: { "line-cap": "round", "line-join": "round" },
@@ -1332,9 +1332,6 @@ export const methods = {
         `${arSourceId}-line`,
         arSourceId,
       );
-      setTimeout(() => {
-        this._animateRoadDraw(arSourceId, arCoords, 1200);
-      }, 800);
     }
 
     // 5. Line interactions: pulse animation, hover tooltips, click handlers
@@ -1356,7 +1353,7 @@ export const methods = {
       {
         lineId: "ga-access-airport-road-line",
         glowId: "ga-access-airport-road-glow",
-        baseWidth: 4,
+        baseWidth: 8,
         routeId: "airport-connection",
       },
     ];
@@ -1941,10 +1938,21 @@ export const methods = {
     });
     this._roadExtHandlers = [];
 
-    roads.forEach((road, index) => {
+    this._ringRoadDrawRafs = [];
+    this._ringRoadLoopTimer = null;
+
+    // Filter out airport-connection road - it is already shown by showAirportAccessRoutes()
+    const filteredRoads = roads.filter((r) => r.id !== "airport-connection");
+
+    filteredRoads.forEach((road, index) => {
       const allCoords = road.coords.map((c) => this._toMapbox(c));
       const sourceId = `ga-road-ext-${road.id}`;
       const color = road.color || "#e63f5a";
+      const isRingRoad = road.id === "ring-road-connector";
+
+      // Ring road connector gets 2x thickness
+      const glowWidth = isRingRoad ? 20 : 10;
+      const lineWidth = isRingRoad ? 8 : 4;
 
       // Start with a zero-length line at the first point
       this._safeAddSource(sourceId, {
@@ -1965,7 +1973,7 @@ export const methods = {
         source: sourceId,
         paint: {
           "line-color": color,
-          "line-width": 10,
+          "line-width": glowWidth,
           "line-opacity": 0.2,
           "line-blur": 6,
         },
@@ -1979,7 +1987,7 @@ export const methods = {
         source: sourceId,
         paint: {
           "line-color": color,
-          "line-width": 4,
+          "line-width": lineWidth,
           "line-opacity": 0.9,
         },
         layout: { "line-cap": "round", "line-join": "round" },
@@ -1994,7 +2002,7 @@ export const methods = {
       // Hover + click handlers on the main line layer
       const lineLayerId = `${sourceId}-line`;
       const glowLayerId = `${sourceId}-glow`;
-      const baseLineWidth = 4;
+      const baseLineWidth = lineWidth;
       const roadId = road.id;
 
       const enterHandler = () => {
@@ -2047,11 +2055,91 @@ export const methods = {
         { event: "click", layer: lineLayerId, fn: clickHandler },
       );
 
-      // Stagger the draw animation for each road
-      const delay = index * stagger;
-      setTimeout(() => {
-        this._animateRoadDraw(sourceId, allCoords, drawDuration);
-      }, delay);
+      if (isRingRoad) {
+        // Ring road connector gets a continuously looping draw animation.
+        // Uses the same proven pattern as the JR Hohi Line (showRailwayStations).
+        const loopDuration = 2500;
+        const pauseBetweenLoops = 800;
+        const totalSegments = allCoords.length - 1;
+        const ringSourceId = sourceId;
+
+        const runRingRoadLoop = () => {
+          // Reset line to zero-length at the start of each loop
+          const resetSrc = this.map?.getSource(ringSourceId);
+          if (resetSrc) {
+            resetSrc.setData({
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                coordinates: [allCoords[0], allCoords[0]],
+              },
+            });
+          }
+
+          const startTime = performance.now();
+
+          const animateStep = (now) => {
+            if (!this.map) return;
+
+            const elapsed = now - startTime;
+            const t = Math.min(elapsed / loopDuration, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+
+            const currentLength = eased * totalSegments;
+            const full = Math.floor(currentLength);
+            const frac = currentLength - full;
+
+            const drawn = allCoords.slice(0, full + 1);
+            if (full < totalSegments) {
+              const from = allCoords[full];
+              const to = allCoords[full + 1];
+              drawn.push([
+                from[0] + (to[0] - from[0]) * frac,
+                from[1] + (to[1] - from[1]) * frac,
+              ]);
+            }
+
+            const source = this.map.getSource(ringSourceId);
+            if (source) {
+              source.setData({
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates:
+                    drawn.length >= 2
+                      ? drawn
+                      : [allCoords[0], allCoords[0]],
+                },
+              });
+            }
+
+            if (t < 1) {
+              const rafId = requestAnimationFrame(animateStep);
+              this._ringRoadDrawRafs.push(rafId);
+            } else {
+              // Draw complete - pause then loop again
+              this._ringRoadLoopTimer = setTimeout(() => {
+                runRingRoadLoop();
+              }, pauseBetweenLoops);
+            }
+          };
+
+          const rafId = requestAnimationFrame(animateStep);
+          this._ringRoadDrawRafs.push(rafId);
+        };
+
+        // Start the looping animation with the same stagger delay
+        const delay = index * stagger;
+        setTimeout(() => {
+          runRingRoadLoop();
+        }, delay);
+      } else {
+        // Other roads get the standard one-shot draw animation
+        const delay = index * stagger;
+        setTimeout(() => {
+          this._animateRoadDraw(sourceId, allCoords, drawDuration);
+        }, delay);
+      }
     });
 
   },
@@ -2134,6 +2222,16 @@ export const methods = {
     }
     this._roadDrawRafs = [];
 
+    // Cancel ring road looping animation
+    if (this._ringRoadDrawRafs) {
+      this._ringRoadDrawRafs.forEach((id) => cancelAnimationFrame(id));
+    }
+    this._ringRoadDrawRafs = [];
+    if (this._ringRoadLoopTimer) {
+      clearTimeout(this._ringRoadLoopTimer);
+      this._ringRoadLoopTimer = null;
+    }
+
     // Cancel pulse start timeout
     if (this._roadPulseTimeout) {
       clearTimeout(this._roadPulseTimeout);
@@ -2167,4 +2265,5 @@ export const methods = {
     });
     this._layerGroups.grandAirportRoads = [];
   },
+
 };
