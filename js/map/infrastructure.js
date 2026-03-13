@@ -2053,15 +2053,31 @@ export const methods = {
       );
 
       if (isRingRoad) {
-        // Ring road connector gets a continuously looping draw animation
+        // Ring road connector gets a continuously looping draw animation.
+        // Uses the same proven pattern as the JR Hohi Line (showRailwayStations).
         const loopDuration = 2500;
         const pauseBetweenLoops = 800;
         const totalSegments = allCoords.length - 1;
+        const ringSourceId = sourceId;
 
         const runRingRoadLoop = () => {
+          // Reset line to zero-length at the start of each loop
+          const resetSrc = this.map?.getSource(ringSourceId);
+          if (resetSrc) {
+            resetSrc.setData({
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                coordinates: [allCoords[0], allCoords[0]],
+              },
+            });
+          }
+
           const startTime = performance.now();
 
           const animateStep = (now) => {
+            if (!this.map) return;
+
             const elapsed = now - startTime;
             const t = Math.min(elapsed / loopDuration, 1);
             const eased = 1 - Math.pow(1 - t, 3);
@@ -2080,7 +2096,7 @@ export const methods = {
               ]);
             }
 
-            const source = this.map.getSource(sourceId);
+            const source = this.map.getSource(ringSourceId);
             if (source) {
               source.setData({
                 type: "Feature",
@@ -2098,18 +2114,8 @@ export const methods = {
               const rafId = requestAnimationFrame(animateStep);
               this._ringRoadDrawRafs.push(rafId);
             } else {
-              // Pause, then reset and loop again
+              // Draw complete - pause then loop again
               this._ringRoadLoopTimer = setTimeout(() => {
-                const src = this.map.getSource(sourceId);
-                if (src) {
-                  src.setData({
-                    type: "Feature",
-                    geometry: {
-                      type: "LineString",
-                      coordinates: [allCoords[0], allCoords[0]],
-                    },
-                  });
-                }
                 runRingRoadLoop();
               }, pauseBetweenLoops);
             }
