@@ -485,17 +485,12 @@ export const stepHandlers = {
       if (otherActiveZones.length > 0) {
         const cardsHtml = otherActiveZones
           .map((zone) => {
-            const imageHtml = `<div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-science-park.webp', '${zone.name.replace(/'/g, "\\'")}')">
-                      <img src="assets/use-case-images/evidence-science-park.webp" alt="${zone.name}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                  </div>`;
-
             return evidenceCard({
               color: zone.strokeColor,
               subtitle: t("Development zone"),
               title: zone.name,
               description: zone.description,
               stats: zone.stats,
-              extra: imageHtml,
             });
           })
           .join("");
