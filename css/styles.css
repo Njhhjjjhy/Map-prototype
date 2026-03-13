@@ -1931,6 +1931,11 @@ a:focus-visible {
   padding: var(--space-4);
   border-radius: var(--radius-medium);
   border: 1px solid var(--color-border);
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+
+.panel-bento-stat:hover {
+  background: #FFFBEc;
 }
 
 .panel-bento-stat-value {
