@@ -22,6 +22,7 @@ export const companies = [
       title: t("JASM press release"),
       type: "pdf",
       description: t("Official announcement of Phase 2 expansion"),
+      image: "assets/use-case-images/step-5-corporate-investment-JASM.webp",
     },
   },
   {
@@ -42,6 +43,7 @@ export const companies = [
       title: t("Sony Kumamoto expansion"),
       type: "pdf",
       description: t("Facility expansion and hiring announcement"),
+      image: "assets/use-case-images/step-5-corporate-investment-SONY.webp",
     },
   },
   {
@@ -62,6 +64,7 @@ export const companies = [
       title: t("Tokyo Electron announcement"),
       type: "pdf",
       description: t("New facility press release"),
+      image: "assets/use-case-images/step-5-corporate-investment-tokyo-electron.webp",
     },
   },
   {
@@ -82,6 +85,7 @@ export const companies = [
       title: t("Mitsubishi power semiconductor plan"),
       type: "pdf",
       description: t("EV market expansion strategy"),
+      image: "assets/use-case-images/step-5-corporate-investment-mitsubishi-electric.webp",
     },
   },
   {
@@ -102,6 +106,7 @@ export const companies = [
       title: t("SUMCO Kyushu expansion"),
       type: "pdf",
       description: t("Wafer production capacity expansion plan"),
+      image: "assets/use-case-images/step-5-corporate-investment-sumco.webp",
     },
   },
   {
@@ -122,6 +127,7 @@ export const companies = [
       title: t("Kyocera component expansion"),
       type: "pdf",
       description: t("Regional manufacturing strategy"),
+      image: "assets/use-case-images/step-5-corporate-investment-kyocera.webp",
     },
   },
   {
@@ -142,6 +148,7 @@ export const companies = [
       title: t("Rohm Apollo SiC expansion"),
       type: "pdf",
       description: t("Silicon carbide power device production plan"),
+      image: "assets/use-case-images/step-5-corporate-investment-rohm-apollo.webp",
     },
   },
 ];
