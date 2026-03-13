@@ -2167,4 +2167,82 @@ export const methods = {
     });
     this._layerGroups.grandAirportRoads = [];
   },
+
+  /**
+   * Apply or revert the combo style when both "Grand airport concept" and
+   * "Road extensions" are simultaneously active in Step 6.
+   * When active: airport connection road turns green at 2x thickness,
+   * newly announced route turns green.
+   * When inactive: all elements revert to their original styles.
+   */
+  applyAirportRoadComboStyle(active) {
+    if (!this.map) return;
+
+    const green = "#34c759";
+    const originalBlue = "#007aff";
+
+    // Airport connection road from airport access routes
+    const accessGlow = "ga-access-airport-road-glow";
+    const accessLine = "ga-access-airport-road-line";
+    // Airport connection road from road extensions
+    const extGlow = "ga-road-ext-airport-connection-glow";
+    const extLine = "ga-road-ext-airport-connection-line";
+    // Newly announced route (polygon)
+    const routeFill = "ga-new-route-fill";
+    const routeStroke = "ga-new-route-stroke";
+
+    if (active) {
+      // Airport connection road - green + 2x thickness (access routes instance)
+      if (this.map.getLayer(accessGlow)) {
+        this.map.setPaintProperty(accessGlow, "line-color", green);
+        this.map.setPaintProperty(accessGlow, "line-width", 20);
+      }
+      if (this.map.getLayer(accessLine)) {
+        this.map.setPaintProperty(accessLine, "line-color", green);
+        this.map.setPaintProperty(accessLine, "line-width", 8);
+      }
+      // Airport connection road - green + 2x thickness (road extensions instance)
+      if (this.map.getLayer(extGlow)) {
+        this.map.setPaintProperty(extGlow, "line-color", green);
+        this.map.setPaintProperty(extGlow, "line-width", 20);
+      }
+      if (this.map.getLayer(extLine)) {
+        this.map.setPaintProperty(extLine, "line-color", green);
+        this.map.setPaintProperty(extLine, "line-width", 8);
+      }
+      // Newly announced route - green
+      if (this.map.getLayer(routeFill)) {
+        this.map.setPaintProperty(routeFill, "fill-color", green);
+      }
+      if (this.map.getLayer(routeStroke)) {
+        this.map.setPaintProperty(routeStroke, "line-color", green);
+      }
+    } else {
+      // Revert airport connection road (access routes instance)
+      if (this.map.getLayer(accessGlow)) {
+        this.map.setPaintProperty(accessGlow, "line-color", originalBlue);
+        this.map.setPaintProperty(accessGlow, "line-width", 10);
+      }
+      if (this.map.getLayer(accessLine)) {
+        this.map.setPaintProperty(accessLine, "line-color", originalBlue);
+        this.map.setPaintProperty(accessLine, "line-width", 4);
+      }
+      // Revert airport connection road (road extensions instance)
+      if (this.map.getLayer(extGlow)) {
+        this.map.setPaintProperty(extGlow, "line-color", originalBlue);
+        this.map.setPaintProperty(extGlow, "line-width", 10);
+      }
+      if (this.map.getLayer(extLine)) {
+        this.map.setPaintProperty(extLine, "line-color", originalBlue);
+        this.map.setPaintProperty(extLine, "line-width", 4);
+      }
+      // Revert newly announced route
+      if (this.map.getLayer(routeFill)) {
+        this.map.setPaintProperty(routeFill, "fill-color", originalBlue);
+      }
+      if (this.map.getLayer(routeStroke)) {
+        this.map.setPaintProperty(routeStroke, "line-color", originalBlue);
+      }
+    }
+  },
 };
