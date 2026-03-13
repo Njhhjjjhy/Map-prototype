@@ -316,9 +316,6 @@ export const methods = {
             ${panelHeader(t("Water quality evidence"), evidence.name)}
             <p class="panel-subtitle" style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">${evidence.subtitle}</p>
             <p style="margin-bottom: var(--space-4);">${evidence.description}</p>
-            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">
-                ${t("Major manufacturers chose Kumamoto for water quality - proof the resource meets industrial standards.")}
-            </p>
             ${viewEvidenceBtn}
         `;
 

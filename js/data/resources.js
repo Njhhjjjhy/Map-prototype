@@ -50,7 +50,7 @@ export const resources = {
         id: "coca-cola",
         name: t("Coca-Cola Bottlers Japan"),
         coords: [32.802677, 130.7128],
-        subtitle: t("Kumamoto plant"),
+        subtitle: "",
         description: t(
           "Major beverage manufacturer chose Kumamoto for exceptional water quality and abundance. The plant produces beverages for the entire Kyushu region."
         ),
@@ -66,7 +66,7 @@ export const resources = {
         id: "suntory",
         name: t("Suntory Kyushu Kumamoto Factory"),
         coords: [32.746801, 130.791987],
-        subtitle: t("Premium beverage production"),
+        subtitle: "",
         description: t(
           "Suntory selected Kashima, Kamimashiki for its pristine groundwater. The facility produces premium beverages requiring the highest water purity standards."
         ),
