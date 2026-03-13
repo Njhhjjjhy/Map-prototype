@@ -1300,7 +1300,7 @@ export const methods = {
           type: "Feature",
           geometry: {
             type: "LineString",
-            coordinates: [arCoords[0], arCoords[0]],
+            coordinates: arCoords,
           },
         },
       });
@@ -1332,9 +1332,6 @@ export const methods = {
         `${arSourceId}-line`,
         arSourceId,
       );
-      setTimeout(() => {
-        this._animateRoadDraw(arSourceId, arCoords, 1200);
-      }, 800);
     }
 
     // 5. Line interactions: pulse animation, hover tooltips, click handlers
