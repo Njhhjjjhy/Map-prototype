@@ -1255,7 +1255,9 @@ export const methods = {
       microscope: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg>`,
     };
 
-    data.landmarks.forEach((lm) => {
+    // Skip station landmarks - these belong to "New railway stations" toggle
+    const stationLandmarkIds = ["higo-ozu", "new-kikuyo-landmark"];
+    data.landmarks.filter((lm) => !stationLandmarkIds.includes(lm.id)).forEach((lm) => {
       const id = `ga-landmark-${lm.id}`;
 
       // Use branded JASM logo instead of generic icon
@@ -1485,10 +1487,119 @@ export const methods = {
     const data = AppData.grandAirportData?.railway;
     if (!data || !this.map) return;
 
+    // If already showing, do not rebuild (keeps the line animation running)
+    if (this._layerGroups.grandAirportRailway.length > 0) return;
+
     // Clean up previous if any
     this.hideRailwayStations();
 
-    // 1. Station marker helpers
+    // 1. Orange JR Hohi Line - animated draw that loops continuously
+    const lineCoords = data.jrHohiLine.map((c) => this._toMapbox(c));
+    const lineSourceId = "ga-jr-hohi-line";
+
+    // Build station position lookup for progressive reveal
+    const stationLinePositions = data.stations.map((station) => {
+      const sCoord = this._toMapbox(station.coords);
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < lineCoords.length; i++) {
+        const dx = lineCoords[i][0] - sCoord[0];
+        const dy = lineCoords[i][1] - sCoord[1];
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+      return { station, segmentIndex: bestIdx };
+    });
+
+    this._safeAddSource(lineSourceId, {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [lineCoords[0], lineCoords[0]],
+        },
+      },
+    });
+
+    // Glow layer (2x original: 8 -> 16)
+    this.map.addLayer({
+      id: `${lineSourceId}-glow`,
+      type: "line",
+      source: lineSourceId,
+      paint: {
+        "line-color": "#ff9500",
+        "line-width": 16,
+        "line-opacity": 0.12,
+        "line-blur": 4,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    // Main line (2x original: 3 -> 6)
+    this.map.addLayer({
+      id: `${lineSourceId}-line`,
+      type: "line",
+      source: lineSourceId,
+      paint: {
+        "line-color": "#ff9500",
+        "line-width": 6,
+        "line-opacity": 0.8,
+      },
+      layout: { "line-cap": "round", "line-join": "round" },
+    });
+    this._layerGroups.grandAirportRailway.push(
+      `${lineSourceId}-glow`,
+      `${lineSourceId}-line`,
+      lineSourceId,
+    );
+
+    // 1b. Hover tooltip and click handler on the orange line
+    const hohiPopup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      className: "mapbox-tooltip",
+      offset: [0, -10],
+    });
+    this._railwayLinePopup = hohiPopup;
+    this._railwayLineHandlers = [];
+
+    const hohiLineId = `${lineSourceId}-line`;
+    const hohiEnter = (e) => {
+      this.map.getCanvas().style.cursor = "pointer";
+      if (this.map.getLayer(hohiLineId)) {
+        this.map.setPaintProperty(hohiLineId, "line-width", 8);
+      }
+      hohiPopup.setLngLat(e.lngLat).setText("JR Hohi Line").addTo(this.map);
+    };
+    const hohiMove = (e) => {
+      hohiPopup.setLngLat(e.lngLat);
+    };
+    const hohiLeave = () => {
+      this.map.getCanvas().style.cursor = "";
+      if (this.map.getLayer(hohiLineId)) {
+        this.map.setPaintProperty(hohiLineId, "line-width", 6);
+      }
+      hohiPopup.remove();
+    };
+    const hohiClick = () => {
+      App.showHohiLineDetail();
+    };
+
+    this.map.on("mouseenter", hohiLineId, hohiEnter);
+    this.map.on("mousemove", hohiLineId, hohiMove);
+    this.map.on("mouseleave", hohiLineId, hohiLeave);
+    this.map.on("click", hohiLineId, hohiClick);
+    this._railwayLineHandlers.push(
+      { event: "mouseenter", layer: hohiLineId, fn: hohiEnter },
+      { event: "mousemove", layer: hohiLineId, fn: hohiMove },
+      { event: "mouseleave", layer: hohiLineId, fn: hohiLeave },
+      { event: "click", layer: hohiLineId, fn: hohiClick },
+    );
+
+    // 2. Station marker helpers
     const stationIcons = {
       "train-front": `<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>`,
       station: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>`,
@@ -1507,23 +1618,7 @@ export const methods = {
         stationIcons[station.icon] || stationIcons["train-front"];
       const id = `ga-station-${station.id}`;
 
-      // Proposed station gets a dashed-circle style to indicate planning stage
-      let html;
-      if (station.type === "proposed") {
-        html = `<div class="elevated-marker" style="height: 36px; display: flex; flex-direction: column; align-items: center;">
-          <div style="
-            width: 28px; height: 28px;
-            background: transparent;
-            border: 2.5px dashed ${color};
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-          "><svg viewBox="0 0 24 24" fill="${color}" width="14" height="14"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 16h20M4 16l-2 6h20l-2-6"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg></div>
-          <div style="width: 2px; flex: 1; background: ${color}; opacity: 0.4;"></div>
-        </div>`;
-      } else {
-        html = this._elevatedMarkerHtml(iconSvg, color, 36);
-      }
+      const html = this._elevatedMarkerHtml(iconSvg, color, 36);
 
       const { marker, element } = this._createMarker(station.coords, html, {
         className: "ga-station-marker",
@@ -1541,10 +1636,78 @@ export const methods = {
       this._layerGroups.grandAirportRailway.push(id);
     };
 
-    // 2. Reveal all station markers immediately (no line animation)
-    data.stations.forEach((station) => {
-      revealStation(station);
-    });
+    // 3. Continuously looping line draw animation
+    const drawDuration = 2500;
+    const pauseBetweenLoops = 800;
+    const totalSegments = lineCoords.length - 1;
+
+    const runDrawLoop = () => {
+      const startTime = performance.now();
+
+      const animateStep = (now) => {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / drawDuration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+
+        const currentLength = eased * totalSegments;
+        const full = Math.floor(currentLength);
+        const frac = currentLength - full;
+
+        const drawn = lineCoords.slice(0, full + 1);
+        if (full < totalSegments) {
+          const from = lineCoords[full];
+          const to = lineCoords[full + 1];
+          drawn.push([
+            from[0] + (to[0] - from[0]) * frac,
+            from[1] + (to[1] - from[1]) * frac,
+          ]);
+        }
+
+        const source = this.map.getSource(lineSourceId);
+        if (source) {
+          source.setData({
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates:
+                drawn.length >= 2 ? drawn : [lineCoords[0], lineCoords[0]],
+            },
+          });
+        }
+
+        // Reveal station markers as the line reaches them
+        stationLinePositions.forEach(({ station, segmentIndex }) => {
+          if (full >= segmentIndex) {
+            revealStation(station);
+          }
+        });
+
+        if (t < 1) {
+          const rafId = requestAnimationFrame(animateStep);
+          this._railwayDrawRafs.push(rafId);
+        } else {
+          // Pause, then reset line and loop again
+          this._railwayPulseTimer = setTimeout(() => {
+            const src = this.map.getSource(lineSourceId);
+            if (src) {
+              src.setData({
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates: [lineCoords[0], lineCoords[0]],
+                },
+              });
+            }
+            runDrawLoop();
+          }, pauseBetweenLoops);
+        }
+      };
+
+      const rafId = requestAnimationFrame(animateStep);
+      this._railwayDrawRafs.push(rafId);
+    };
+
+    runDrawLoop();
   },
 
   hideRailwayStations() {
@@ -1554,10 +1717,22 @@ export const methods = {
     }
     this._railwayDrawRafs = [];
 
-    // Clean up pulse animation
+    // Clean up loop timer
     if (this._railwayPulseTimer) {
-      clearInterval(this._railwayPulseTimer);
+      clearTimeout(this._railwayPulseTimer);
       this._railwayPulseTimer = null;
+    }
+
+    // Clean up hover/click handlers
+    if (this._railwayLineHandlers) {
+      this._railwayLineHandlers.forEach(({ event, layer, fn }) => {
+        if (this.map) this.map.off(event, layer, fn);
+      });
+      this._railwayLineHandlers = [];
+    }
+    if (this._railwayLinePopup) {
+      this._railwayLinePopup.remove();
+      this._railwayLinePopup = null;
     }
 
     const group = this._layerGroups.grandAirportRailway;

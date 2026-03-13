@@ -702,7 +702,7 @@ export const grandAirportData = {
       },
       {
         id: "proposed-new",
-        name: t("Proposed new station"),
+        name: t("New Kikuyo station"),
         coords: [32.865, 130.819],
         type: "proposed",
         icon: "train-front",
