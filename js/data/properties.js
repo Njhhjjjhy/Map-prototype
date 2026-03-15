@@ -290,10 +290,10 @@ export const properties = [
     id: "ozu-1",
     name: t("Chateau Life Ozu 1"),
     coords: [32.914715306464416, 130.85025552883533],
-    subtitle: t("New construction (BTR)"),
+    subtitle: t("Renovation"),
     type: t("Build to rent"),
     zone: "Ozu",
-    subArea: "Sugitmizu",
+    subArea: t("Sugimizu"),
     distanceToJasm: "3.3 km",
     driveTime: "7 min",
     address:
@@ -349,8 +349,9 @@ export const properties = [
         data: {
           basicSettings: {
             propertyName: t("Chateau Life Ozu 1"),
-            address:
-              "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
+            address: t(
+              "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto"
+            ),
             propertyType: t("Detached house (single-family)"),
             landArea: t("117.62 sqm (approx. 35.6 tsubo)"),
             buildingArea: t(
@@ -358,9 +359,9 @@ export const properties = [
             ),
             layout: t("4LDK, 3 parking spaces"),
             availability: t("May 2026 onwards"),
-            rentBear: "¥160,000/mo",
-            rentAverage: "¥190,000/mo",
-            rentBull: "¥210,000/mo",
+            rentBear: t("¥160,000/mo"),
+            rentAverage: t("¥190,000/mo"),
+            rentBull: t("¥210,000/mo"),
           },
           designStrategy: {
             description: t("Expat family standard spec"),
@@ -462,10 +463,10 @@ export const properties = [
     id: "ozu-2",
     name: t("Chateau Life Ozu 2"),
     coords: [32.914778352968796, 130.85029844417664],
-    subtitle: t("New construction (BTR)"),
+    subtitle: t("Renovation"),
     type: t("Build to rent"),
     zone: "Ozu",
-    subArea: "Sugitmizu",
+    subArea: t("Sugimizu"),
     distanceToJasm: "3.3 km",
     driveTime: "7 min",
     address: "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
@@ -520,16 +521,17 @@ export const properties = [
         data: {
           basicSettings: {
             propertyName: t("Chateau Life Ozu 2"),
-            address:
-              "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
+            address: t(
+              "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto"
+            ),
             propertyType: t("Detached house (single-family)"),
             landArea: t("200.7 sqm (approx. 60.7 tsubo)"),
             buildingArea: t("94.81 sqm total, 2 floors"),
             layout: t("4LDK, 3 parking spaces"),
             availability: t("July 2026 onwards"),
-            rentBear: "¥160,000/mo",
-            rentAverage: "¥190,000/mo",
-            rentBull: "¥210,000/mo",
+            rentBear: t("¥160,000/mo"),
+            rentAverage: t("¥190,000/mo"),
+            rentBull: t("¥210,000/mo"),
           },
           designStrategy: {
             description: t("Expat family standard spec"),
@@ -629,10 +631,10 @@ export const properties = [
     id: "kikuyo-1",
     name: t("Chateau Life Kikuyo 1"),
     coords: [32.85619131225209, 130.84545339429738],
-    subtitle: t("Renovation opportunity"),
+    subtitle: t("Renovation"),
     type: t("Buy-renovate-rent/sell"),
     zone: "Kikuyo",
-    subArea: "Kubota",
+    subArea: t("Kubota"),
     distanceToJasm: "3.3 km",
     driveTime: "7 min",
     address:
@@ -688,8 +690,9 @@ export const properties = [
         data: {
           basicSettings: {
             propertyName: t("Chateau Life Kikuyo 1"),
-            address:
-              "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+            address: t(
+              "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto"
+            ),
             propertyType: t("Detached house (single-family)"),
             landArea: t("201.6 sqm (approx. 60.98 tsubo)"),
             buildingArea: t(
@@ -697,9 +700,9 @@ export const properties = [
             ),
             layout: t("4LDK, 3 parking spaces"),
             availability: t("June 2026 onwards"),
-            rentBear: "¥170,000/mo",
-            rentAverage: "¥190,000/mo",
-            rentBull: "¥210,000/mo",
+            rentBear: t("¥170,000/mo"),
+            rentAverage: t("¥190,000/mo"),
+            rentBull: t("¥210,000/mo"),
           },
           designStrategy: {
             description: t("Convert to expat standard"),
@@ -808,7 +811,7 @@ export const properties = [
     subtitle: t("Land development"),
     type: t("Land acquisition"),
     zone: "Kikuyo",
-    subArea: "Haramizu",
+    subArea: t("Haramizu"),
     distanceToJasm: "2.4 km",
     driveTime: "5 min",
     address:
@@ -862,15 +865,16 @@ export const properties = [
           basicSettings: {
             propertyName: t("Haramizu Land 1"),
             propertyType: t("Land (pre-sale / off-plan)"),
-            address:
-              "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+            address: t(
+              "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto"
+            ),
             landArea: t("210.86 sqm (approx. 63.78 tsubo)"),
             buildingArea: t("Planned (spec to be confirmed)"),
             parking: t("4-5 spaces (planned)"),
             availability: t("6-9 months after contract signing"),
-            rentBear: "¥170,000/mo",
-            rentAverage: "¥190,000/mo",
-            rentBull: "¥210,000/mo",
+            rentBear: t("¥170,000/mo"),
+            rentAverage: t("¥190,000/mo"),
+            rentBull: t("¥210,000/mo"),
           },
           designStrategy: {
             description: t("Three-zone development concept"),
@@ -974,7 +978,7 @@ export const properties = [
     subtitle: t("Land development"),
     type: t("Land acquisition"),
     zone: "Kikuyo",
-    subArea: "Haramizu",
+    subArea: t("Haramizu"),
     distanceToJasm: "2.4 km",
     driveTime: "5 min",
     address:
@@ -1028,15 +1032,16 @@ export const properties = [
           basicSettings: {
             propertyName: t("Haramizu Land 2"),
             propertyType: t("Land (pre-sale / off-plan)"),
-            address:
-              "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto",
+            address: t(
+              "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto"
+            ),
             landArea: t("224.88 sqm (approx. 68.02 tsubo)"),
             buildingArea: t("Planned (spec to be confirmed)"),
             parking: t("3-4 spaces (planned)"),
             availability: t("6-9 months after contract signing"),
-            rentBear: "¥170,000/mo",
-            rentAverage: "¥190,000/mo",
-            rentBull: "¥210,000/mo",
+            rentBear: t("¥170,000/mo"),
+            rentAverage: t("¥190,000/mo"),
+            rentBull: t("¥210,000/mo"),
           },
           designStrategy: {
             description: t("Three-zone development concept"),

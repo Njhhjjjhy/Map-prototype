@@ -193,7 +193,7 @@ export const scienceParkZonePlans = [
     },
     stats: [
       { value: "560ha", label: t("Designated area") },
-      { value: "¥1.2T", label: t("Public investment") },
+      { value: "¥2T", label: t("Public investment") },
       { value: "2025", label: t("Zoning enacted") },
       { value: "15", label: t("Incentive programs") },
     ],

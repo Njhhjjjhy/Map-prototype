@@ -481,10 +481,7 @@ export const methods = {
       }
       case 2: {
         // Financials tab
-        return (
-          this.renderCalculatorCard(property) +
-          this.renderYieldSummaryCard(property)
-        );
+        return this.renderCalculatorCard(property);
       }
       case 3: {
         // Images tab - exteriors first, then interiors, deduplicated
@@ -535,7 +532,7 @@ export const methods = {
                     ${entries
                       .map(
                         ([key, val]) => `<div class="icard-detail-row">
-                        <span class="icard-detail-label">${key.replace(/([A-Z])/g, " $1").toLowerCase().replace(/^./, (s) => s.toUpperCase())}</span>
+                        <span class="icard-detail-label">${t(key.replace(/([A-Z])/g, " $1").toLowerCase().replace(/^./, (s) => s.toUpperCase()))}</span>
                         <span class="icard-detail-value">${val}</span>
                     </div>`,
                       )
@@ -850,7 +847,7 @@ export const methods = {
       rows = [
         {
           label: t("Monthly rent"),
-          value: this.formatYen(rental.monthlyRent || 0) + "/mo",
+          value: this.formatYen(rental.monthlyRent || 0) + t("/mo"),
         },
         {
           label: t("Guaranteed yield"),
@@ -863,34 +860,16 @@ export const methods = {
           highlight: true,
         },
       ];
-    } else if (sc.annualRent) {
-      // BTR property: show rent + yield (no absolute costs or exit prices)
+    } else {
+      // BTR / land: show annual rent + yield
       rows = [
-        {
-          label: t("Monthly rent"),
-          value: this.formatYen(Math.round((sc.annualRent || 0) / 12)) + "/mo",
-        },
         { label: t("Annual rent"), value: this.formatYen(sc.annualRent || 0) },
         {
-          label: t("Rental yield"),
+          label: t("Yield"),
           value:
-            totalCost > 0
+            totalCost > 0 && sc.annualRent
               ? ((sc.annualRent / totalCost) * 100).toFixed(1) + "%"
-              : "-",
-          highlight: true,
-        },
-        {
-          label: t("IRR"),
-          value: ((sc.irr || 0) * 100).toFixed(1) + "%",
-          highlight: true,
-        },
-      ];
-    } else {
-      // Land development: show IRR only (no absolute values)
-      rows = [
-        {
-          label: t("IRR"),
-          value: ((sc.irr || 0) * 100).toFixed(1) + "%",
+              : ((sc.noiTicRatio || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
       ];
@@ -1319,7 +1298,7 @@ export const methods = {
       const rows = [
         {
           label: t("Monthly rent"),
-          value: this.formatYen(rental.monthlyRent || 0) + "/mo",
+          value: this.formatYen(rental.monthlyRent || 0) + t("/mo"),
         },
         { label: t("Annual rent"), value: this.formatYen(rental.annualRent || 0) },
         {
@@ -1346,12 +1325,15 @@ export const methods = {
     } else {
       const scenarios = fin.scenarios || {};
       const sc = scenarios[scenario] || {};
+      const totalCost = fin.totalInvestment || fin.acquisitionCost || 0;
       const rows = [
         { label: t("Annual rent"), value: this.formatYen(sc.annualRent || 0) },
-        { label: t("NOI"), value: this.formatYen(sc.noi || 0) },
         {
-          label: t("IRR"),
-          value: ((sc.irr || 0) * 100).toFixed(1) + "%",
+          label: t("Yield"),
+          value:
+            totalCost > 0 && sc.annualRent
+              ? ((sc.annualRent / totalCost) * 100).toFixed(1) + "%"
+              : ((sc.noiTicRatio || 0) * 100).toFixed(1) + "%",
           highlight: true,
         },
       ];

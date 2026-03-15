@@ -417,6 +417,11 @@ const App = {
       UI.showQAMode();
       return;
     }
+    if (step.id === "properties") {
+      // Properties step shows only the right dashboard, no chatbox
+      UI.hideChatbox();
+      return;
+    }
     UI.showChatbox(chatboxContent, { skipHistory: true });
   },
 
@@ -443,7 +448,7 @@ const App = {
       },
       "government-support": {
         title: t("Government support"),
-        body: t("<strong>4+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors."),
+        body: t("<strong>3+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors."),
         afterItems:
           t('<p style="margin-top: var(--space-2);">Click tier markers to see commitment details.</p>'),
       },
@@ -475,7 +480,7 @@ const App = {
       },
       properties: {
         title: t("Investment properties"),
-        body: t("{{count}} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.", { count: AppData.properties.length }),
+        body: t("{{count}} properties in the semiconductor corridor. Within <strong>10-minute drive</strong> to JASM.", { count: AppData.properties.length }),
         afterItems: "",
       },
       final: {

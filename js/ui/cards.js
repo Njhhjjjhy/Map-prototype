@@ -21,11 +21,11 @@ export const methods = {
             <div id="investment-chart-table"></div>
             <div class="stat-grid">
                 <div class="stat-item">
-                    <div class="stat-value">¥2.6T+</div>
+                    <div class="stat-value">¥4T+</div>
                     <div class="stat-label">${t("Total investment")}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">9,600+</div>
+                    <div class="stat-value">47,000+</div>
                     <div class="stat-label">${t("Direct jobs")}</div>
                 </div>
             </div>
@@ -528,7 +528,9 @@ export const methods = {
    * @returns {string} HTML string
    */
   _buildInvestmentZonesContent(activeZones) {
-    const zones = AppData.investmentZones || [];
+    const zones = (AppData.investmentZones || []).filter(
+      (z) => z.id !== "koshi-zone",
+    );
 
     const rowsHtml = zones
       .map((zone) => {
@@ -552,8 +554,9 @@ export const methods = {
           if (!zone) return "";
 
           // Find properties in this zone by exact zone name match
+          const zoneFilter = zone.id.replace("-zone", "");
           const zoneProps = AppData.properties.filter(
-            (p) => p.zone && p.zone === zone.name,
+            (p) => p.zone && p.zone.toLowerCase() === zoneFilter,
           );
 
           let propsListHtml;

@@ -1,5 +1,6 @@
 import { AppData } from "../data/index.js";
 import { MAP_COLORS, CAMERA_STEPS } from "./constants.js";
+import { t } from "../i18n/index.js";
 
 export const methods = {
   showSciencePark(opts = {}) {
@@ -7,14 +8,14 @@ export const methods = {
       const circles = [
         {
           id: "science-park-circle-tsmc",
-          label: "Science park",
+          label: t("Science park"),
           center: [130.825, 32.885],
           radius: 12000,
           color: MAP_COLORS.primary,
         },
         {
           id: "science-park-circle-airport",
-          label: "Grand airport concept",
+          label: t("Grand airport concept"),
           center: [130.85989089814692, 32.841638592865074],
           radius: 10000,
           color: "#7C3AED",
@@ -550,14 +551,14 @@ export const methods = {
 
     // Pulsing travel time indicators
     const travelTimes = [
-      { label: "~10 min", coords: [130.798, 32.814], color: "#007aff" },
-      { label: "~20 min", coords: [130.855, 32.837], color: "#007aff" },
+      { coords: [130.798, 32.814], color: "#007aff" },
+      { coords: [130.855, 32.837], color: "#007aff" },
     ];
 
     travelTimes.forEach((tt) => {
       const el = document.createElement("div");
       el.className = "future-travel-time-indicator";
-      el.innerHTML = `<span class="future-travel-time-text">${tt.label}</span>`;
+      el.innerHTML = "";
 
       const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
         .setLngLat(tt.coords)

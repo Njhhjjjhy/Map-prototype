@@ -78,16 +78,16 @@ export default {
   "National to local commitment": "從中央到地方的全面承諾",
   "Central government": "中央政府",
   "Prefectural government": "縣級政府",
-  "Local municipalities": "地方自治體",
+  "Local municipalities": "地方城市",
   "Corporate investment": "企業投資",
   "Seven major players": "七大核心企業",
-  "Science park and grand airport": "科學園區與大空港計劃",
+  "Science park and grand airport": "科學園區與大空港計畫",
   "Development zones and airport connectivity": "開發區與機場連結",
   "Science park": "科學園區",
   "Government zone plan": "政府園區規劃",
-  "Kikuyo long-term plan": "菊陽町中長期計劃",
-  "Ozu long-term plan": "大津町中長期計劃",
-  "Grand airport concept": "大空港構想",
+  "Kikuyo long-term plan": "菊陽町中長期計畫",
+  "Ozu long-term plan": "大津町中長期計畫",
+  "Grand airport concept": "大空港計畫",
   "Airport access": "機場連結",
   "New railway stations": "新設鐵路車站",
   "Road extensions": "道路延伸工程",
@@ -134,20 +134,20 @@ export default {
     "探索地圖並運用資料圖層，深入了解熊本半導體走廊的投資機會。",
   "Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both in surplus.":
     "半導體晶圓廠每日需消耗<strong>約 3,800 萬公升的超純水</strong>，外加足以供應一座小型城市的電力。熊本兩者皆充裕無虞。",
-  "Seoul and Taipei are both just <strong>1 hour 40 minutes</strong> by direct flight from Kumamoto. Busan is 1h 25m. Every major semiconductor hub in Asia is under 3 hours away.":
-    "從熊本直飛首爾與台北僅需<strong>1 小時 40 分鐘</strong>，釜山僅需 1 小時 25 分鐘。亞洲所有主要半導體重鎮均在 3 小時航程以內。",
+  "Seoul, Busan, and Taiwan are all reachable by direct flight in under 3 hours from Kumamoto. Every major semiconductor hub in Asia is within easy reach.":
+    "從熊本直飛首爾、釜山及台灣均在 3 小時以內。亞洲所有主要半導體重鎮皆近在咫尺。",
   '<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">Click destinations on the map to see route details.</p>':
     '<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">點選地圖上的目的地可檢視航線詳情。</p>',
-  "<strong>4+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors.":
-    "中央政府投入<strong>超過 4 兆日圓</strong>，熊本縣投入<strong>4,800 億日圓</strong>。從國家到地方，各層級政府全面支持半導體產業。",
+  "<strong>3+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors.":
+    "中央政府投入<strong>超過 3 兆日圓</strong>，熊本縣投入<strong>4,800 億日圓</strong>。從國家到地方，各層級政府全面支持半導體產業。",
   '<p style="margin-top: var(--space-2);">Click tier markers to see commitment details.</p>':
     '<p style="margin-top: var(--space-2);">點選各層級標記可檢視承諾詳情。</p>',
   "TSMC committed <strong>2.16 trillion yen</strong> for two fabs. Sony, SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron all announced expansions. <strong>Seven major players</strong>, all converging on Kumamoto.":
-    "台積電投入<strong>2.16 兆日圓</strong>建設兩座晶圓廠。Sony、SUMCO、京瓷、Rohm Apollo、三菱電機、東京威力科創均已宣布擴廠計劃。<strong>七大核心企業</strong>齊聚熊本。",
+    "台積電投入<strong>2.16 兆日圓</strong>建設兩座晶圓廠。Sony、SUMCO、京瓷、Rohm Apollo、三菱電機、東京威力科創均已宣布擴廠計畫。<strong>七大核心企業</strong>齊聚熊本。",
   '<p style="margin-top: var(--space-2);">Click company markers to see investment scale.</p>':
     '<p style="margin-top: var(--space-2);">點選企業標記可檢視投資規模。</p>',
   "Kumamoto Science Park anchors a semiconductor corridor backed by <strong>¥4.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia.":
-    "熊本科學園區是半導體走廊的核心，背後有<strong>4.8 兆日圓</strong>的政府投資支撐。全新的大空港構想將走廊與亞洲緊密連結。",
+    "熊本科學園區是半導體走廊的核心，背後有<strong>4.8 兆日圓</strong>的政府投資支撐。全新的大空港計畫將走廊與亞洲緊密連結。",
   "METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline.":
     "經產省主導的九州半導體人才育成聯盟協調區域內<strong>五所大學</strong>，打造專屬的人才供給管道。",
   "See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.":
@@ -196,7 +196,7 @@ export default {
   "Grid reliability": "電網可靠度",
   "Industrial rate": "工業電價",
   "Renewable mix": "再生能源占比",
-  "Kyushu Electric infrastructure plan": "九州電力基礎設施計劃",
+  "Kyushu Electric infrastructure plan": "九州電力基礎設施計畫",
   "Investment roadmap for semiconductor corridor power infrastructure":
     "半導體走廊電力基礎設施投資藍圖",
   "Kyushu leads Japan in energy diversity, providing the stable power semiconductor fabs require.":
@@ -215,16 +215,16 @@ export default {
   "Kumamoto Semicon public sewage": "熊本半導體特定公共下水道",
   "Specified public sewage district": "特定公共下水道區域",
   "Kumamoto Prefecture designated a Semicon Specified Public Sewage district to support expanded industrial and residential demand from the semiconductor corridor. The master plan covers multiple zones across the Koshi area.":
-    "熊本縣劃定半導體特定公共下水道區域，以因應半導體走廊擴張帶來的工業與住宅排水需求。總體計劃涵蓋合志地區的多個區域。",
-  "Plan scale": "計劃比例尺",
+    "熊本縣劃定半導體特定公共下水道區域，以因應半導體走廊擴張帶來的工業與住宅排水需求。總體計畫涵蓋合志地區的多個區域。",
+  "Plan scale": "計畫比例尺",
   "Primary coverage": "主要涵蓋區域",
   "Decision authority": "決策機關",
   "Sewage designation": "下水道類別",
   Specified: "特定",
   Prefecture: "縣",
-  "Kumamoto Semicon public sewage master plan": "熊本半導體特定公共下水道總體計劃",
+  "Kumamoto Semicon public sewage master plan": "熊本半導體特定公共下水道總體計畫",
   "Kumamoto Prefecture urban plan sewerage change for Semicon Specified Public Sewage district":
-    "熊本縣都市計劃下水道變更——半導體特定公共下水道區域",
+    "熊本縣都市計畫下水道變更——半導體特定公共下水道區域",
 
   // Silicon Island
   "Japan semiconductor materials dominance": "日本半導體材料主導地位",
@@ -296,9 +296,9 @@ export default {
   "Infrastructure budget": "基礎建設預算",
   "Priority projects": "優先專案數",
   "Permit time reduction": "審批時程縮短",
-  "Master plan horizon": "總體計劃期程",
+  "Master plan horizon": "總體計畫期程",
   "Kikuyo Town": "菊陽町",
-  "Local development plan": "地方發展計劃",
+  "Local development plan": "地方發展計畫",
   "Kikuyo approved rezoning for 2,500 housing units and commercial centers to support semiconductor worker families.":
     "菊陽町已核准重新劃區，規劃 2,500 戶住宅與商業中心，以因應半導體產業從業人員家庭的需求。",
   "Housing units": "住宅戶數",
@@ -312,13 +312,13 @@ export default {
   "Industrial land": "產業用地",
   "Phase 1": "第一期",
   "Jobs projected": "預估就業人數",
-  "New grand airport vision": "新大空港構想",
+  "New grand airport vision": "新大空港計畫",
   'A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station. The "New Grand Airport Vision" is a 10-year plan with four strategic pillars to position Kumamoto Airport as a gateway for the semiconductor ecosystem.':
-    "一條全新 6.8 公里的軌道連結，將阿蘇熊本機場直接接入 JR 豊肥本線，從熊本站出發預估 44 分鐘可達。「新大空港構想」是一項 10 年計劃，以四大策略支柱將熊本機場定位為半導體生態系的門戶。",
+    "一條全新 6.8 公里的軌道連結，將阿蘇熊本機場直接接入 JR 豊肥本線，從熊本站出發預估 44 分鐘可達。「新大空港計畫」是一項 10 年計畫，以四大策略支柱將熊本機場定位為半導體生態系的門戶。",
   "New rail link": "新軌道連結",
   "Rail investment": "軌道投資額",
   "Station to airport": "車站至機場",
-  "Strategic plan": "策略計劃",
+  "Strategic plan": "策略計畫",
   "4 pillars": "4 大支柱",
   "Enhance domestic and international route network":
     "強化國內與國際航線網絡",
@@ -332,14 +332,14 @@ export default {
   "National Policy": "國家政策",
   "Regional Coordination": "區域統籌",
   Implementation: "執行落實",
-  "Local Municipalities": "地方自治體",
+  "Local Municipalities": "地方城市",
   "Direct Investment": "直接投資",
   "Infrastructure Budget": "基礎建設預算",
   "Combined Investment": "合計投資額",
   "Three key local initiatives directly supporting the semiconductor corridor workforce and infrastructure.":
     "三項關鍵地方政策，直接支持半導體走廊的人力與基礎建設需求。",
   "Combined investment": "合計投資額",
-  "Key municipalities": "重點自治體",
+  "Key municipalities": "重點地方城市",
   "Phase 1 targets": "第一期目標",
   "Housing + jobs": "住宅 + 就業",
   "Residential and commercial": "住宅與商業",
@@ -389,7 +389,7 @@ export default {
   "New jobs": "新增就業",
   Completion: "完工年份",
   "Capacity increase": "產能增幅",
-  "Mitsubishi power semiconductor plan": "三菱電機功率半導體計劃",
+  "Mitsubishi power semiconductor plan": "三菱電機功率半導體計畫",
   "EV market expansion strategy": "電動車市場擴張策略",
   SUMCO: "SUMCO",
   "Silicon wafer manufacturing": "矽晶圓製造",
@@ -397,7 +397,7 @@ export default {
     "全球最大矽晶圓製造商之一。SUMCO 九州廠區生產先進半導體製程所需的高純度晶圓。",
   "Global wafer share": "全球晶圓市占率",
   "SUMCO Kyushu expansion": "SUMCO 九州擴建",
-  "Wafer production capacity expansion plan": "晶圓產能擴增計劃",
+  "Wafer production capacity expansion plan": "晶圓產能擴增計畫",
   Kyocera: "京瓷",
   "Ceramic packages & components": "陶瓷封裝與元件",
   "Kyocera manufactures ceramic packages and electronic components critical to semiconductor assembly. Their Kyushu operations serve the entire Asia-Pacific market.":
@@ -416,7 +416,7 @@ export default {
   "SiC power": "碳化矽功率元件",
   "Capacity expansion": "產能擴充",
   "Rohm Apollo SiC expansion": "Rohm Apollo 碳化矽擴建",
-  "Silicon carbide power device production plan": "碳化矽功率元件生產計劃",
+  "Silicon carbide power device production plan": "碳化矽功率元件生產計畫",
 
   // =====================================================================
   // Infrastructure (infrastructure.js)
@@ -435,7 +435,7 @@ export default {
   "Established a cross-departmental semiconductor human resources center to train the next generation of chip engineers.":
     "成立跨系所半導體人力資源中心，培育次世代晶片工程師。",
   "Annual graduates": "年畢業人數",
-  "Program scope": "計劃範疇",
+  "Program scope": "計畫範疇",
   "Cross-departmental": "跨系所",
   "Core strength": "核心優勢",
   Research: "研究",
@@ -450,7 +450,7 @@ export default {
   "Oita University": "大分大學",
   "Established a semiconductor core talent retraining center focused on upskilling working professionals through industry-led partnerships.":
     "設立半導體核心人才再訓練中心，透過產業主導的合作模式提升在職專業人員技能。",
-  "Program focus": "計劃重點",
+  "Program focus": "計畫重點",
   "Core talent development": "核心人才養成",
   "Working professionals": "在職專業人員",
   "Partnership model": "合作模式",
@@ -458,6 +458,8 @@ export default {
   "Kumamoto University": "熊本大學",
   "Partnered with JASM (TSMC) to establish a semiconductor research center as a direct industry-academia collaboration.":
     "與 JASM（台積電）合作設立半導體研究中心，實現產學直接合作。",
+  "Kumamoto university has partnered with JASM (TSMC) to establish a semiconductor research center, enabling direct collaboration between industry and academia.":
+    "熊本大學與 JASM（台積電）合作設立半導體研究中心，實現產學直接合作。",
   "Industry partner": "產業合作夥伴",
   "JASM (TSMC)": "JASM（台積電）",
   Researchers: "研究員數",
@@ -503,8 +505,8 @@ export default {
   "Government investment": "政府投資額",
   "Completion target": "完成目標年",
   "Projected new jobs": "預估新增就業",
-  "Major facilities planned": "計劃重大設施數",
-  "Kumamoto Science Park master plan": "熊本科學園區總體計劃",
+  "Major facilities planned": "計畫重大設施數",
+  "Kumamoto Science Park master plan": "熊本科學園區總體計畫",
   "Official development roadmap and zoning documentation":
     "官方開發藍圖與分區規劃文件",
 
@@ -545,9 +547,9 @@ export default {
   "Kikuyo town rezoned development district": "菊陽町重劃開發區",
   "Southwest of JASM": "JASM 西南側",
   "Planned land readjustment and rezoning area in the Kubota–Tsukure district of Kikuyo, southwest of JASM.":
-    "位於 JASM 西南側菊陽町久保田—津久禮地區的計劃性土地區劃整理與重新劃區區域。",
+    "位於 JASM 西南側菊陽町久保田—津久禮地區的計畫性土地區劃整理與重新劃區區域。",
   "Rezoned area": "重劃面積",
-  "Municipal budget": "自治體預算",
+  "Municipal budget": "地方城市預算",
   Target: "目標年",
   "Sony Semiconductor Kumamoto": "Sony 半導體熊本",
 
@@ -583,12 +585,12 @@ export default {
   "Semiconductor Tech Park": "半導體科技園區",
   "A dedicated technology park for semiconductor-related R&D and manufacturing support facilities, anchoring the northern end of the corridor.":
     "專為半導體相關研發與製造支援設施設置的科技園區，為走廊北端的核心據點。",
-  "Planned area": "計劃面積",
+  "Planned area": "計畫面積",
   "Target completion": "目標完成年",
   "New Kikuyo Station": "菊陽新站",
   "Planned new station on the JR Hohi Line serving the semiconductor corridor workforce. Will reduce commute times for thousands of employees.":
     "JR 豊肥本線上的新設車站，服務半導體走廊從業人員，將大幅縮短數千名員工的通勤時間。",
-  "Planned opening": "計劃啟用",
+  "Planned opening": "計畫啟用",
   "Projected daily riders": "預估每日旅客量",
   "Techno Research Park": "科技研究園區",
   "Established research park housing semiconductor testing and advanced materials labs. Benefits directly from improved airport and rail connectivity.":
@@ -660,9 +662,9 @@ export default {
   "Residential & commercial": "住宅與商業",
   "Kikuyo Town has approved rezoning for mixed-use development adjacent to the Science Park. New housing, retail, and support services for semiconductor workers.":
     "菊陽町已核准科學園區毗鄰地區的複合式開發重劃，規劃住宅、零售及支援服務設施。",
-  "Housing units planned": "計劃住宅戶數",
+  "Housing units planned": "計畫住宅戶數",
   "To JASM": "到 JASM",
-  "Kikuyo Town development plan": "菊陽町發展計劃",
+  "Kikuyo Town development plan": "菊陽町發展計畫",
   "Official rezoning and infrastructure roadmap": "官方重劃與基礎建設藍圖",
   Housing: "住宅",
   "Retail hub": "零售中心",
@@ -674,7 +676,7 @@ export default {
   "Ozu Town is developing new industrial parcels and logistics facilities to support the semiconductor supply chain.":
     "大津町正在開發新的產業用地與物流設施，以支持半導體供應鏈。",
   Available: "可用年份",
-  "Ozu industrial zone plan": "大津工業區計劃",
+  "Ozu industrial zone plan": "大津工業區計畫",
   "Industrial development documentation": "產業開發文件",
   Logistics: "物流",
   Warehouse: "倉儲",
@@ -687,7 +689,7 @@ export default {
   "TEL investment": "TEL 投資額",
   "R&D facility": "研發設施",
   "R&D jobs": "研發就業人數",
-  "Koshi City development plan": "合志市發展計劃",
+  "Koshi City development plan": "合志市發展計畫",
   "R&D corridor expansion documentation": "研發走廊擴張文件",
 
   // Corridor Zones
@@ -707,14 +709,13 @@ export default {
   "Target IRR": "目標 IRR",
 
   // Properties
-  "Chateau Life Ozu 1": "Chateau Life 大津 1 號",
-  "Chateau Life Ozu 2": "Chateau Life 大津 2 號",
-  "Chateau Life Kikuyo 1": "Chateau Life 菊陽 1 號",
-  "Chateau Life Haramizu 1": "Chateau Life 原水 1 號",
-  "Chateau Life Haramizu 2": "Chateau Life 原水 2 號",
-  "New construction (BTR)": "新建物件（出租型）",
+  "Chateau Life Ozu 1": "Chateau Life 大津 1",
+  "Chateau Life Ozu 2": "Chateau Life 大津 2",
+  "Chateau Life Kikuyo 1": "Chateau Life 菊陽 1",
+  "Chateau Life Haramizu 1": "Chateau Life 原水 1",
+  "Chateau Life Haramizu 2": "Chateau Life 原水 2",
   "Build to rent": "新建出租型",
-  "Renovation opportunity": "翻修投資機會",
+  "Renovation": "翻修物件",
   "Buy-renovate-rent/sell": "買入-翻修-出租/出售",
   "Land development": "土地開發",
   "Land acquisition": "土地取得",
@@ -762,16 +763,16 @@ export default {
     "長期城市級專案，而非單一住宅開發案。JR 九州在三里木至原水之間新設車站，形成交通錨點。",
   "Land readjustment timeline uncertainty": "土地區劃整理時程不確定",
   "Zoning finalization dependent on municipal process":
-    "分區定案取決於自治體流程",
+    "分區定案取決於地方城市流程",
   "Higher upfront capital requirement than renovation path":
     "前期資本需求高於翻修路徑",
   "BTR (build to rent)": "BTR（新建出租型）",
   "Land acquisition and hold/develop": "土地取得-持有/開發",
 
   // Property Future Outlook
-  "Area development plans affecting Ozu 1": "影響大津 1 號的區域開發計劃",
-  "Area development plans affecting Ozu 2": "影響大津 2 號的區域開發計劃",
-  "Area development plans affecting Kikuyo 1": "影響菊陽 1 號的區域開發計劃",
+  "Area development plans affecting Ozu 1": "影響大津 1 號的區域開發計畫",
+  "Area development plans affecting Ozu 2": "影響大津 2 號的區域開發計畫",
+  "Area development plans affecting Kikuyo 1": "影響菊陽 1 號的區域開發計畫",
   "Ozu industrial expansion": "大津產業擴張",
   "120ha new logistics and supply chain facilities by 2027":
     "2027 年前新增 120 公頃物流與供應鏈設施",
@@ -880,7 +881,7 @@ export default {
   "Haramizu Station area is being developed as a new urban core with 70ha of mixed-use land. Three development zones planned. Mitsui Fudosan and JR Kyushu selected as development partners.":
     "原水站周邊正被開發為 70 公頃複合式用地的新都心。規劃三大開發區域。三井不動產與 JR 九州獲選為開發夥伴。",
   "Development area": "開發面積",
-  "Mixed-use plan": "複合用途計劃",
+  "Mixed-use plan": "複合用途計畫",
   "Development partners": "開發夥伴",
   "Phase 1 target": "第一期目標",
   Vibrancy: "活力區",
@@ -920,7 +921,7 @@ export default {
   "Local roads south": "南部地方道路",
   "Increase since 2023": "2023 年以來增幅",
   "Work commuters": "通勤人數占比",
-  "Road expansion program": "道路擴建計劃",
+  "Road expansion program": "道路擴建計畫",
   Active: "進行中",
   "Rail commute": "鐵路通勤",
   "JR Kyushu rail network serving the semiconductor corridor workforce.":
@@ -944,10 +945,10 @@ export default {
   Uptime: "運轉率",
   "Semiconductor industry employment statistics and hiring trends.":
     "半導體產業就業統計與招募趨勢。",
-  "Direct jobs": "直接就業人數",
+  "Direct jobs": "就業機會",
   "YoY growth": "年成長率",
   "Avg. salary": "平均薪資",
-  "Infrastructure plan": "基礎建設計劃",
+  "Infrastructure plan": "基礎建設計畫",
   "Planned and in-progress infrastructure development projects.":
     "已規劃與進行中的基礎建設專案。",
   "New water treatment": "新水處理設施",
@@ -981,8 +982,8 @@ export default {
   "Mitigation investment": "防災投資",
   "Science park clusters": "科學園區聚落",
   "Kumamoto Science Park development zones with district-level plans for Kikuyo and Ozu municipalities.":
-    "熊本科學園區開發區域，含菊陽町與大津町各區計劃。",
-  "Zone plans": "區域計劃",
+    "熊本科學園區開發區域，含菊陽町與大津町各區計畫。",
+  "Zone plans": "區域計畫",
   "Education & talent pipeline": "教育與人才管道",
   "Universities, training centers, and employment data supporting the semiconductor corridor workforce.":
     "支持半導體走廊人力的大學、培訓中心與就業數據。",
@@ -1032,9 +1033,9 @@ export default {
   "Sendai Nuclear Power Plant provides baseload electricity for the region, ensuring stable power supply for high-demand semiconductor manufacturing.":
     "川內核能發電廠為區域提供基載電力，確保高用電需求的半導體製造穩定供電。",
   "Generation capacity": "發電容量",
-  "Kumamoto Semicon public sewage plan": "熊本半導體特定公共下水道計劃",
+  "Kumamoto Semicon public sewage plan": "熊本半導體特定公共下水道計畫",
   "Kumamoto Prefecture urban plan sewerage change designating the Kumamoto Semicon Specified Public Sewage district. The 1:12,000 master plan map covers multiple zones across the Koshi and semiconductor corridor area to support expanded industrial and residential demand.":
-    "熊本縣都市計劃下水道變更，劃定半導體特定公共下水道區域。1:12,000 總體計劃圖涵蓋合志及半導體走廊區域的多個分區，以因應工業與住宅需求擴張。",
+    "熊本縣都市計畫下水道變更，劃定半導體特定公共下水道區域。1:12,000 總體計畫圖涵蓋合志及半導體走廊區域的多個分區，以因應工業與住宅需求擴張。",
   "Transportation network": "交通運輸網絡",
   "Naka-Kyushu Cross Road extensions": "中九州橫斷道路延伸",
   "Four-segment expressway system extending from Ueki IC through Koshi to Ozu IC, running north of the semiconductor corridor. Connects western Kumamoto to the existing expressway network at Ozu IC. Segments range from under survey to under construction.":
@@ -1071,11 +1072,11 @@ export default {
   "Multi-modal": "多元運具",
   "Kumamoto transport overview": "熊本交通總覽",
   "Railway cost structure and community transport status across the Kumamoto metropolitan area. Facility maintenance accounts for 50% of railway operating costs, with direct transport at 39% and other costs at 11%. Community transport map shows suburban municipalities served by shared taxis and community buses, with many bus routes carrying only 0-7 passengers per vehicle per day, highlighting underserved corridors.":
-    "熊本都會區鐵路成本結構與社區交通現況。設施維護占鐵路營運成本 50%，直接運輸占 39%、其他 11%。社區交通圖顯示郊區自治體以共乘計程車與社區巴士服務，許多公車路線每日每車僅載 0-7 名旅客，凸顯服務不足的走廊。",
+    "熊本都會區鐵路成本結構與社區交通現況。設施維護占鐵路營運成本 50%，直接運輸占 39%、其他 11%。社區交通圖顯示郊區地方城市以共乘計程車與社區巴士服務，許多公車路線每日每車僅載 0-7 名旅客，凸顯服務不足的走廊。",
   "Railway costs on maintenance": "鐵路維護成本占比",
   "Direct transport costs": "直接運輸成本占比",
   "Low-density bus routes": "低密度公車路線",
-  "Municipalities mapped": "涵蓋自治體數",
+  "Municipalities mapped": "涵蓋地方城市數",
   "Regional traffic flow changes": "區域交通流量變化",
   "Inter-regional traffic flow analysis from the Kumamoto Person Trip Survey comparing 2012 to 1997 baselines. Kikuyo-cho shows the highest growth at 1.67x, with the Kumamoto-to-Kikuyo corridor growing 1.54x. Overall Kumamoto metro traffic grew 1.13x to 1.67M trips/day. Commuting flows toward the northeast semiconductor cluster show the strongest growth, with Kikuyo-to-Ozu flows also at 1.67x.":
     "熊本都市交通調查的區域間交通流量分析，比較 2012 年與 1997 年基線。菊陽町成長最高達 1.67 倍，熊本至菊陽走廊成長 1.54 倍。熊本都會區整體交通量成長 1.13 倍至每日 167 萬人次。往東北側半導體聚落的通勤流量成長最為顯著，菊陽至大津亦達 1.67 倍。",
@@ -1112,14 +1113,14 @@ export default {
   "TSMC area infrastructure and industrial parks":
     "台積電區域基礎設施與工業園區",
   "Overview of infrastructure status around TSMC expansion. Documents 13 planned industrial park sites across Kikuchi, Koshi, Ozu, Mashiki, and surrounding municipalities ranging from 8ha to 25ha, with opening dates from 2023 to 2028. Also summarizes four key infrastructure projects: Naka-Kyushu Cross Road, Ozu-Ueki Line road widening (2.4km to 6 lanes), airport access railway, and Kumamoto-Taiwan air routes.":
-    "台積電擴建周邊的基礎設施現況概覽。記載 13 處規劃中工業園區，分布於菊池、合志、大津、益城及周邊自治體，面積 8 至 25 公頃，啟用日期自 2023 至 2028 年。同時摘要四項重大基礎建設：中九州橫斷道路、大津-植木線道路拓寬（2.4 公里擴至 6 車道）、機場聯絡鐵路及熊本-台灣航線。",
+    "台積電擴建周邊的基礎設施現況概覽。記載 13 處規劃中工業園區，分布於菊池、合志、大津、益城及周邊地方城市，面積 8 至 25 公頃，啟用日期自 2023 至 2028 年。同時摘要四項重大基礎建設：中九州橫斷道路、大津-植木線道路拓寬（2.4 公里擴至 6 車道）、機場聯絡鐵路及熊本-台灣航線。",
   "Planned industrial sites": "規劃中工業園區",
   "Site size range": "基地面積範圍",
   "Opening timeline": "啟用時程",
   "Key infrastructure projects": "重大基礎建設",
-  "New grand airport concept": "新大空港構想",
+  "New grand airport concept": "新大空港計畫",
   "Conceptual vision map for the New Grand Airport initiative. Identifies three development zones: north of airport (Kumamoto Science Park), south side of airport, and the Southern Prefecture Region. Shows strategic road connections to Fukuoka, Oita, Miyazaki, and Kagoshima via Kyushu Main Expressway, Central Kyushu Transversal Road, and Ariake Sea Coastal Road.":
-    "新大空港構想概念願景圖。劃分三大開發區域：機場北側（熊本科學園區）、機場南側及南部縣域。展示經九州主要高速公路、中九州橫斷道路及有明海沿岸道路通往福岡、大分、宮崎及鹿兒島的策略性道路連結。",
+    "新大空港計畫概念願景圖。劃分三大開發區域：機場北側（熊本科學園區）、機場南側及南部縣域。展示經九州主要高速公路、中九州橫斷道路及有明海沿岸道路通往福岡、大分、宮崎及鹿兒島的策略性道路連結。",
   "Development zones": "開發區域",
   "Science Park zone": "科學園區區域",
   "Airport-side zone": "機場側區域",
@@ -1129,7 +1130,7 @@ export default {
   South: "南側",
   "East Asian route strategy": "東亞航線策略",
   "Strategic plan for attracting East Asian air routes to Kumamoto Airport. Targets 4.86 million passengers by 2027 (up from 3.92M in 2022) and 6.22 million by 2051. International routes planned to grow from 4 in 2022 to 11 by 2027 and 17 by 2051. Cargo volume targets 27,000 tons by 2027 and 42,000 tons by 2051. Includes new passenger terminal building and route network to major East Asian cities.":
-    "吸引東亞航線至熊本機場的策略計劃。目標 2027 年旅客量達 486 萬人次（2022 年為 392 萬），2051 年達 622 萬人次。國際航線規劃從 2022 年的 4 條增至 2027 年 11 條、2051 年 17 條。貨運量目標 2027 年 27,000 噸、2051 年 42,000 噸。包含新旅客航廈與通往東亞主要城市的航線網絡。",
+    "吸引東亞航線至熊本機場的策略計畫。目標 2027 年旅客量達 486 萬人次（2022 年為 392 萬），2051 年達 622 萬人次。國際航線規劃從 2022 年的 4 條增至 2027 年 11 條、2051 年 17 條。貨運量目標 2027 年 27,000 噸、2051 年 42,000 噸。包含新旅客航廈與通往東亞主要城市的航線網絡。",
   "Passenger target 2027": "2027 旅客目標",
   "International routes 2027": "2027 國際航線數",
   "Cargo target 2027": "2027 貨運目標",
@@ -1179,11 +1180,11 @@ export default {
   Materials: "材料",
   "TSMC area industrial park schedule": "台積電區域工業園區時程",
   "Detailed map and table of 13 planned industrial parks around TSMC. Sites span Kikuchi, Koshi, Ozu, Mashiki, Tamana, Yamaga, and Kikuchi municipalities. Includes Kikuchi Techno Park (25ha, public, FY2026), Semicon Techno Park West (11.2ha, FY2025), Ozu site on Route 325 (7.9ha, FY2027), and JASM Phase 1 factory site (25ha). Mix of public and private development from 2023 to 2028.":
-    "台積電周邊 13 處規劃中工業園區的詳細地圖與表格。分布於菊池、合志、大津、益城、玉名、山鹿等自治體。包含菊池科技園區（25 公頃、公營、FY2026）、半導體科技園區西（11.2 公頃、FY2025）、325 號線大津用地（7.9 公頃、FY2027）及 JASM 第一期廠區（25 公頃）。2023 至 2028 年公私混合開發。",
+    "台積電周邊 13 處規劃中工業園區的詳細地圖與表格。分布於菊池、合志、大津、益城、玉名、山鹿等地方城市。包含菊池科技園區（25 公頃、公營、FY2026）、半導體科技園區西（11.2 公頃、FY2025）、325 號線大津用地（7.9 公頃、FY2027）及 JASM 第一期廠區（25 公頃）。2023 至 2028 年公私混合開發。",
   "Planned park sites": "規劃園區數",
   "Public site range": "公營用地範圍",
   "Opening schedule": "啟用時程",
-  Municipalities: "自治體",
+  Municipalities: "地方城市",
   "East Asia supply chain proximity": "東亞供應鏈鄰近性",
   "Supply chain logistics map showing Kyushu as Japan's semiconductor hub and gateway to East Asia. Proximity to Taiwan (foundry), Korea (memory), and Shanghai (end-market and supply chain hinterland). All three connections within 1-2 days by sea and under 3 hours by air, offering shorter logistics times and integration advantages.":
     "供應鏈物流圖呈現九州作為日本半導體樞紐與東亞門戶的地位。鄰近台灣（晶圓代工）、韓國（記憶體）及上海（終端市場與供應鏈腹地）。三者均在海運 1-2 天、空運 3 小時以內，具備更短的物流時效與整合優勢。",
@@ -1206,7 +1207,35 @@ export default {
   "AI rent assessment for A-type 4LDK/115.1sqm property. Assessed rent: ¥170,000/month (¥1,477/sqm). Based on 30 comparable properties corrected to same conditions. Grade distribution: high ¥243K-259K (4 units), slightly high ¥208K-243K (4 units), average ¥174K-208K (13 units), slightly low ¥139K-174K (8 units). Correction factors include building age, floor area, walking distance, and amenities.":
     "A 型 4LDK/115.1 平方公尺物件 AI 租金評估。評估租金：每月 170,000 日圓（每平方公尺 1,477 日圓）。依據 30 筆可比物件校正至同等條件。等級分布：高 243K-259K（4 筆）、略高 208K-243K（4 筆）、平均 174K-208K（13 筆）、略低 139K-174K（8 筆）。校正因子包含屋齡、樓地板面積、步行距離及設施。",
   "Assessed monthly rent": "評估月租金",
-  "Property type": "物件類型",
+  "Property type": "物件型態",
+  "Property name": "物件名稱",
+  Address: "地址",
+  "Land area": "基地面積",
+  "Building area": "建物面積",
+  Layout: "房間數",
+  Availability: "可交屋日",
+  "Rent bear": "租金（保守）",
+  "Rent average": "租金（平均）",
+  "Rent bull": "租金（樂觀）",
+  Parking: "車位數量",
+  "/mo": "/月",
+  "¥160,000/mo": "¥160,000/月",
+  "¥170,000/mo": "¥170,000/月",
+  "¥190,000/mo": "¥190,000/月",
+  "¥210,000/mo": "¥210,000/月",
+  "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto":
+    "熊本縣菊池郡大津町大字杉水字下水迫 3542-81",
+  "2813-1 Shimozuru, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto":
+    "熊本縣菊池郡大津町大字杉水字下鶴 2813-1",
+  "1315-18, 23 Maeda, Aza Kubota, Kikuyo-machi, Kikuchi-gun, Kumamoto":
+    "熊本縣菊池郡菊陽町大字久保田字前田 1315-18, 23",
+  "1023-14 Minamijuke, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto":
+    "熊本縣菊池郡菊陽町大字原水字南重計 1023-14",
+  Sugimizu: "杉水",
+  Kubota: "久保田",
+  Haramizu: "原水",
+  "969-142 Mukaihara, Aza Haramizu, Kikuyo-machi, Kikuchi-gun, Kumamoto":
+    "熊本縣菊池郡菊陽町大字原水字向原 969-142",
   "Floor area": "樓地板面積",
   "Comparable properties": "可比物件數",
   "Rental assessment (4LDK/89sqm)": "租金評估（4LDK/89 平方公尺）",
@@ -1322,7 +1351,7 @@ export default {
   "Science park & airport concept": "科學園區與機場概念",
   "Education and talent pipeline": "教育與人才管道",
   "Rail commute": "鐵路通勤",
-  "Infrastructure plan": "基礎建設計劃",
+  "Infrastructure plan": "基礎建設計畫",
   "Property investment zones": "不動產投資區域",
   "Investment properties": "投資物件",
   Locations: "地點",
@@ -1471,7 +1500,7 @@ export default {
   "The Kumamoto corridor is experiencing unprecedented transformation with over ¥4 trillion in committed investment.":
     "熊本走廊正經歷空前的轉型，已承諾投資逾 4 兆日圓。",
   "I can help with land prices, infrastructure plans, or specific investment opportunities.":
-    "我可以協助您了解地價、基礎建設計劃或特定投資機會。",
+    "我可以協助您了解地價、基礎建設計畫或特定投資機會。",
   "Based on Q3 2024 data": "資料基準：2024 年第三季",
   "I'd like to schedule a call with an advisor.":
     "我想預約顧問諮詢。",
@@ -1870,7 +1899,11 @@ export default {
   "201.6 sqm (approx. 60.98 tsubo)": "201.6 平方公尺（約 60.98 坪）",
   "210.86 sqm (approx. 63.78 tsubo)": "210.86 平方公尺（約 63.78 坪）",
   "224.88 sqm (approx. 68.02 tsubo)": "224.88 平方公尺（約 68.02 坪）",
+  "89.10 sqm total (1F: 43.74 sqm, 2F: 45.36 sqm), 2 floors":
+    "總面積 89.10 平方公尺（1F: 43.74 平方公尺、2F: 45.36 平方公尺），2 層樓",
   "94.81 sqm total, 2 floors": "總面積 94.81 平方公尺，2 層樓",
+  "115.1 sqm total (1F: 62.93 sqm, 2F: 52.17 sqm), 2 floors":
+    "總面積 115.1 平方公尺（1F: 62.93 平方公尺、2F: 52.17 平方公尺），2 層樓",
   "4LDK, 3 parking spaces": "4LDK，3 個停車位",
   "3-4 spaces (planned)": "3-4 個車位（規劃中）",
   "4-5 spaces (planned)": "4-5 個車位（規劃中）",
@@ -1900,8 +1933,8 @@ export default {
   "2d": "2D",
 
   // --- Interpolated strings ---
-  "{{count}} properties in the semiconductor corridor. Average <strong>12-minute drive</strong> to JASM. Click any amber marker to see the full financial picture.":
-    "半導體廊道內共 {{count}} 處物件。平均 <strong>12 分鐘車程</strong>即達 JASM。點擊任一琥珀色標記查看完整財務分析。",
+  "{{count}} properties in the semiconductor corridor. Within <strong>10-minute drive</strong> to JASM.":
+    "半導體廊道內共 {{count}} 處物件。距 JASM <strong>10 分鐘車程</strong>以內。",
 
   // --- CSS/code false positives to skip ---
   "ga-airport-access": "ga-airport-access",

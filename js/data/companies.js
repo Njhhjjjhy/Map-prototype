@@ -13,7 +13,7 @@ export const companies = [
       "Joint venture between TSMC, Sony, and Denso. Japan's most advanced semiconductor fab, producing chips for automotive and industrial applications."
     ),
     stats: [
-      { value: "¥1.2T", label: t("Total investment") },
+      { value: "¥2T", label: t("Total investment") },
       { value: "3,400", label: t("Direct employees") },
       { value: "2024", label: t("Phase 1 operational") },
       { value: "22nm", label: t("Process node") },

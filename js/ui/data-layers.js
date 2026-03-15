@@ -836,8 +836,8 @@ export const methods = {
         </div>
         <div id="investment-chart-table"></div>
         ${statGrid([
-          { value: "¥2.6T+", label: t("Total investment") },
-          { value: "9,600+", label: t("Direct jobs") },
+          { value: "¥4T+", label: t("Total investment") },
+          { value: "47,000+", label: t("Direct jobs") },
         ])}
       `;
     }
