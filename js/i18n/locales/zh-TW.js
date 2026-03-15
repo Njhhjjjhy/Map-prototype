@@ -344,6 +344,9 @@ export default {
   "Housing + jobs": "住宅 + 就業",
   "Residential and commercial": "住宅與商業",
   "Koshi Town": "合志市",
+  "JASM and science park": "JASM 與科學園區",
+  "Airport and industrial zone": "機場與工業區",
+  "TEL R&D hub and residential area": "東京威力科創研發中心與住宅區",
   "TEL R&D hub and high-end rentals": "東京威力科創研發中心與高端租賃",
   "Tokyo Electron (TEL) is building a major R&D hub in Fukuhara, Koshi Town. The ~27,000 sqm facility represents ~¥47 billion in investment, focused on coating, developing, and cleaning equipment R&D. This drives demand for high-income R&D engineers seeking family-size 2-3LDK mid-to-high-end rentals.":
     "東京威力科創（TEL）正在合志市福原建設大型研發中心。約 27,000 平方公尺的設施投資約 470 億日圓，專注於塗佈、顯影與清洗設備的研發。這帶動高收入研發工程師對 2-3LDK 中高端家庭型租賃住宅的需求。",
@@ -477,6 +480,8 @@ export default {
   // Employment Data
   "JASM and major semiconductor employers are reshaping Kumamoto's wage landscape, offering salaries significantly above local and national averages to attract talent.":
     "JASM 與主要半導體雇主正在重塑熊本的薪資結構，以顯著高於在地與全國平均的薪資水準延攬人才。",
+  "¥280,000/month": "¥280,000/月",
+  "+40%": "+40%",
   "University graduate salary": "大學畢業生薪資",
   "JASM offers ¥280,000/month for university graduates, ¥320,000/month for master's degrees, and ¥360,000/month for doctorates. Significantly higher than the local Kumamoto average for graduates (~¥201,000/month).":
     "JASM 大學畢業生月薪 28 萬日圓、碩士 32 萬日圓、博士 36 萬日圓，顯著高於熊本在地畢業生平均（約 20.1 萬日圓/月）。",
@@ -489,8 +494,8 @@ export default {
     "JASM 月薪較全國平均高出 5 萬日圓以上。",
   "Tokyo Electron (TEL)": "東京威力科創（TEL）",
   "Salary increase for new recruits": "新進員工薪資調幅",
-  "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800 (increase of ¥85,500/month).":
-    "TEL 為與台積電和 ASML 競爭人才，將新進員工起薪突破 30 萬日圓大關。自 2024 年 4 月起，大學畢業生月薪達 304,800 日圓（月增 85,500 日圓）。",
+  "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800.":
+    "TEL 為與台積電和 ASML 競爭人才，將新進員工起薪突破 30 萬日圓大關。自 2024 年 4 月起，大學畢業生月薪達 304,800 日圓。",
   "New graduate salary": "新進畢業生薪資",
   "Monthly increase": "月薪增幅",
   "Salary increase": "薪資調幅",

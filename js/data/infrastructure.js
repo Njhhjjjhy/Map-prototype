@@ -104,7 +104,7 @@ export const employmentData = {
       name: t("JASM (TSMC)"),
       coords: [32.88565, 130.84237],
       color: "#e74c3c",
-      headline: "¥280,000/month",
+      headline: t("¥280,000/month"),
       headlineLabel: t("University graduate salary"),
       description: t(
         "JASM offers ¥280,000/month for university graduates, ¥320,000/month for master's degrees, and ¥360,000/month for doctorates. Significantly higher than the local Kumamoto average for graduates (~¥201,000/month)."
@@ -131,10 +131,10 @@ export const employmentData = {
       name: t("Tokyo Electron (TEL)"),
       coords: [32.85, 130.73],
       color: "#2980b9",
-      headline: "+40%",
+      headline: t("+40%"),
       headlineLabel: t("Salary increase for new recruits"),
       description: t(
-        "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800 (increase of ¥85,500/month)."
+        "TEL broke the ¥300,000 barrier for new recruits to stay competitive with TSMC and ASML. Effective April 2024, monthly salary for university graduates reached ¥304,800."
       ),
       stats: [
         { value: "¥304,800", label: t("New graduate salary") },

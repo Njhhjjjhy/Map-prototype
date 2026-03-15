@@ -202,6 +202,13 @@ export const methods = {
     const subtitle = tabDef.label || "";
     const tabs = tabDef.tabs || [];
 
+    // Determine disabled tabs based on property
+    const disabledTabs = new Set();
+    if (stage === 9 && this.currentProperty) {
+      const pid = this.currentProperty.id || "";
+      if (pid.startsWith("haramizu")) disabledTabs.add(2);
+    }
+
     let tabsHtml = "";
     if (tabs.length > 1) {
       tabsHtml =
@@ -209,7 +216,9 @@ export const methods = {
         tabs
           .map(
             (t, i) =>
-              `<button class="inspector-tab${i === startTab ? " active" : ""}" data-tab-index="${i}">${t}</button>`,
+              disabledTabs.has(i)
+                ? `<button class="inspector-tab disabled" data-tab-index="${i}" disabled style="opacity: 0.35; pointer-events: none;">${t}</button>`
+                : `<button class="inspector-tab${i === startTab ? " active" : ""}" data-tab-index="${i}">${t}</button>`,
           )
           .join("") +
         "</div>";

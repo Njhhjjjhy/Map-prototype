@@ -275,7 +275,8 @@ const App = {
     await new Promise((r) => setTimeout(r, TIMING.fast));
     UI.hidePanel();
 
-    // Clean up step-specific map elements
+    // Clean up all map elements for a fresh start
+    MapController.clearAll();
     this._hideStepLayers(step);
 
     // Reset future view if active
@@ -390,6 +391,19 @@ const App = {
         MapController.markers["airport"].remove();
         delete MapController.markers["airport"];
       }
+    }
+    // Clean up future outlook layers on exit
+    if (step.id === "future-outlook") {
+      MapController._cleanupScienceParkTooltips();
+      MapController._removeLayerGroup("sciencePark");
+      MapController.hideAirportAccessRoutes();
+      MapController.hideRailwayStations();
+      MapController.hideZonePlanHighlight();
+      MapController.hideRoadExtensions();
+      MapController._hideFutureRoadOverlays();
+      MapController.hideInfrastructureRoads();
+      MapController.hideDataLayerMarkers("trafficFlow");
+      UI.hideTimeToggle();
     }
     // Clean up property markers on exit
     if (step.id === "properties") {
@@ -506,16 +520,6 @@ const App = {
       return this._renderGovernmentChatbox(n, continueBtnHtml);
     }
 
-    // Step 7 (future-outlook) gets a "See the Future" CTA only
-    if (step.id === "future-outlook") {
-      return `
-        <h3>${n.title}</h3>
-        <p>${n.body}</p>
-        <div class="chatbox-options">
-          <button class="chatbox-continue primary" onclick="UI.setTimeView('future')">${t("See the Future")}</button>
-        </div>
-      `;
-    }
 
     const navRow = continueBtnHtml
       ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`

@@ -19,6 +19,29 @@ export function toggleArrayItem(array, item) {
 }
 
 /**
+ * Chaikin's corner-cutting algorithm for smoothing a closed polygon.
+ * Each iteration replaces each edge with two new points at 25% and 75%.
+ * @param {Array<[number, number]>} coords - Ring coordinates (first === last).
+ * @param {number} [iterations=3] - Number of smoothing passes.
+ * @returns {Array<[number, number]>} Smoothed coordinates (closed ring).
+ */
+export function smoothPolygon(coords, iterations = 3) {
+  let pts = coords.slice(0, -1); // remove closing duplicate
+  for (let iter = 0; iter < iterations; iter++) {
+    const next = [];
+    for (let i = 0; i < pts.length; i++) {
+      const p0 = pts[i];
+      const p1 = pts[(i + 1) % pts.length];
+      next.push([0.75 * p0[0] + 0.25 * p1[0], 0.75 * p0[1] + 0.25 * p1[1]]);
+      next.push([0.25 * p0[0] + 0.75 * p1[0], 0.25 * p0[1] + 0.75 * p1[1]]);
+    }
+    pts = next;
+  }
+  pts.push(pts[0]); // close the ring
+  return pts;
+}
+
+/**
  * Cycle an index forward or backward through an array length, wrapping around.
  * @param {number} length - Array length
  * @param {number} current - Current index

@@ -1,6 +1,7 @@
 import { AppData } from "../data/index.js";
 import { MAP_COLORS, CAMERA_STEPS } from "./constants.js";
 import { t } from "../i18n/index.js";
+import { smoothPolygon } from "../shared/utils.js";
 
 export const methods = {
   showSciencePark(opts = {}) {
@@ -123,7 +124,7 @@ export const methods = {
         type: "Feature",
         geometry: {
           type: "Polygon",
-          coordinates: [zone.polygon],
+          coordinates: [smoothPolygon(zone.polygon)],
         },
       };
 
