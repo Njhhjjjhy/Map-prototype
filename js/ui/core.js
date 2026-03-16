@@ -211,23 +211,43 @@ export const methods = {
       this.hideAIChat();
     });
 
-    // Keyboard handling for gallery (Escape to close)
+    // Unified Escape key handler: closes only the topmost overlay.
+    // Checks from highest z-index to lowest, returns after the first match.
     document.addEventListener("keydown", (e) => {
-      if (
-        e.key === "Escape" &&
-        !this.elements.galleryModal.classList.contains("hidden")
-      ) {
-        this.hideGallery();
-      }
-    });
+      if (e.key !== "Escape") return;
 
-    // Keyboard handling for panel (Escape to close)
-    document.addEventListener("keydown", (e) => {
+      // Quick Look (z-index 2000)
+      const quickLook = document.getElementById("property-quick-look");
+      if (quickLook && !quickLook.classList.contains("hidden")) {
+        this.hidePropertyImageQuickLook();
+        return;
+      }
+
+      // Evidence preview modal (z-index 1000)
       if (
-        e.key === "Escape" &&
-        !this.elements.rightPanel.classList.contains("hidden")
+        this.elements.evidencePreview &&
+        !this.elements.evidencePreview.classList.contains("hidden")
       ) {
+        this.hideEvidencePreview();
+        return;
+      }
+
+      // Gallery modal (z-index 1000)
+      if (!this.elements.galleryModal.classList.contains("hidden")) {
+        this.hideGallery();
+        return;
+      }
+
+      // Panel (z-index 200)
+      if (!this.elements.rightPanel.classList.contains("hidden")) {
         this.hidePanel();
+        return;
+      }
+
+      // 3D camera drill-down
+      if (this._drillDown) {
+        this.cancelDrillDown();
+        return;
       }
     });
 
@@ -238,42 +258,6 @@ export const methods = {
         const propId = row.dataset.propertyId;
         if (propId && typeof App !== "undefined") {
           App.selectProperty(propId);
-        }
-      }
-    });
-
-    // Keyboard handling for property image Quick Look (Escape to close)
-    document.addEventListener("keydown", (e) => {
-      const quickLook = document.getElementById("property-quick-look");
-      if (
-        e.key === "Escape" &&
-        quickLook &&
-        !quickLook.classList.contains("hidden")
-      ) {
-        this.hidePropertyImageQuickLook();
-      }
-    });
-
-    // Keyboard handling for evidence preview (Escape to close)
-    document.addEventListener("keydown", (e) => {
-      if (
-        e.key === "Escape" &&
-        this.elements.evidencePreview &&
-        !this.elements.evidencePreview.classList.contains("hidden")
-      ) {
-        this.hideEvidencePreview();
-      }
-    });
-
-    // Keyboard handling for 3D camera reveal (Escape to cancel drill-down)
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this._drillDown) {
-        // Only cancel if an actual drill-down is in progress
-        // (don't exit corridor mode on Escape)
-        if (this.panelOpen) {
-          this.hidePanel();
-        } else {
-          this.cancelDrillDown();
         }
       }
     });

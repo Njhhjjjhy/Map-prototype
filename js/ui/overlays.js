@@ -666,7 +666,10 @@ export const methods = {
       this._quickLookKeyHandler = (e) => {
         if (e.key === "ArrowLeft") this._quickLookNav(-1);
         else if (e.key === "ArrowRight") this._quickLookNav(1);
-        else if (e.key === "Escape") this.hideQuickLook();
+        else if (e.key === "Escape") {
+          e.stopImmediatePropagation();
+          this.hideQuickLook();
+        }
       };
       document.addEventListener("keydown", this._quickLookKeyHandler);
     } else if (type === "pdf") {
