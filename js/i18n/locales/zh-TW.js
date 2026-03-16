@@ -282,8 +282,8 @@ export default {
     "從中央到地方，各層級政府全面支持此走廊的發展。",
   "Japan National Government": "日本中央政府",
   "Strategic semiconductor policy": "半導體戰略政策",
-  "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.":
-    "日本政府將半導體列為關鍵基礎設施，投入超過 100 億日圓支持熊本在地晶片生產。",
+  "The Japanese government designated semiconductors as critical infrastructure, committing ¥3 trillion to support domestic chip production in Kumamoto.":
+    "日本政府將半導體列為關鍵基礎設施，投入超過 3 兆日圓支持熊本在地晶片生產。",
   "Direct commitment": "直接承諾金額",
   "Policy announced": "政策宣布年份",
   "Infrastructure status": "基礎設施地位",

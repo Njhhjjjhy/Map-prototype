@@ -104,7 +104,7 @@ export const governmentTiers = [
     coords: [32.87, 130.7],
     tokyoCoords: [35.6762, 139.6503],
     description: t(
-      "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto."
+      "The Japanese government designated semiconductors as critical infrastructure, committing ¥3 trillion to support domestic chip production in Kumamoto."
     ),
     commitment: "¥10B",
     commitmentLabel: t("Direct Investment"),
