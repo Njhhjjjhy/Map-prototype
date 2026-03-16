@@ -37,7 +37,6 @@ export const evidenceGroups = {
           "Kyushu wind generation complements solar as part of the region's renewable energy base. As of September 2024, installed wind capacity reached 640 MW. Combined with solar, total renewable capacity stands at 12.88 GW."
         ),
         coords: [32.68, 130.42],
-        image: "assets/use-case-images/evidence-renewable-energy.webp",
         stats: [
           { value: "640MW", label: t("Wind capacity (2024.9)") },
           { value: "12.88GW", label: t("Total renewable (solar+wind)") },
