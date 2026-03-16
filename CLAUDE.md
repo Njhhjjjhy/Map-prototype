@@ -47,6 +47,10 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Check `element.parentNode` exists before calling `.remove()`.
 - Clean up in all restart/reset functions.
 
+**Escape key handling:**
+- Use a single unified Escape key handler that checks overlays from highest z-index to lowest and closes only the topmost one. Never register multiple independent Escape listeners that can all fire on the same keypress.
+- Closing a modal overlay must never close the dashboard, chatbox, or panel behind it.
+
 ### Visual Rules
 
 **Typography prohibitions:**
