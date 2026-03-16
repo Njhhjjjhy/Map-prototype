@@ -2162,6 +2162,10 @@ a:focus-visible {
   background: var(--color-bg-secondary);
 }
 
+.chart-data-table tbody tr:hover td:last-child {
+  background: #fffbeb;
+}
+
 /* ================================
    CONFIDENCE INDICATORS
    ================================ */
