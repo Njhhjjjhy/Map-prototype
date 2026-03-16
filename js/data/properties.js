@@ -289,7 +289,7 @@ export const properties = [
   {
     id: "ozu-1",
     name: t("Chateau Life Ozu 1"),
-    coords: [32.914715306464416, 130.85025552883533],
+    coords: [32.8969721, 130.8513891],
     subtitle: t("Renovation"),
     type: t("Build to rent"),
     zone: "Ozu",
@@ -462,7 +462,7 @@ export const properties = [
   {
     id: "ozu-2",
     name: t("Chateau Life Ozu 2"),
-    coords: [32.914778352968796, 130.85029844417664],
+    coords: [32.914382, 130.860216],
     subtitle: t("Renovation"),
     type: t("Build to rent"),
     zone: "Ozu",
