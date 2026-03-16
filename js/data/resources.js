@@ -273,7 +273,6 @@ export const kyushuEnergy = {
         { value: t("Offshore"), label: t("Goto floating turbines") },
         { value: "12.88GW", label: t("Total renewable (solar+wind)") },
       ],
-      image: "assets/use-case-images/evidence-renewable-energy.webp",
     },
     nuclear: {
       title: t("Kyushu nuclear baseload"),
