@@ -154,11 +154,7 @@ const StepJumper = {
       App.state.expandedGroups = [];
       App.state.activeProperty = null;
       UI.updateJourneyProgress(0, STEPS.length);
-      UI.showChatbox(`
-        <h3>${t("Kumamoto investment guide")}</h3>
-        <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
-        <button class="chatbox-continue primary" onclick="App.goToStep(1)">${t("Start Journey")} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-      `);
+      UI.showNavArrows(0, STEPS.length);
       MapController.startHeartbeat();
       this._highlightCurrent();
       App._transitioning = false;

@@ -10,7 +10,6 @@ import { methods as coreMethods } from "./core.js";
 import { methods as cardMethods } from "./cards.js";
 import { methods as chartMethods } from "./charts.js";
 import { methods as dataLayerMethods } from "./data-layers.js";
-import { methods as aiChatMethods } from "./ai-chat.js";
 import { methods as overlayMethods } from "./overlays.js";
 import { methods as evidenceMethods } from "./evidence.js";
 import { methods as inspectorMethods } from "./inspector.js";
@@ -22,7 +21,6 @@ const UI = Object.assign(
   cardMethods,
   chartMethods,
   dataLayerMethods,
-  aiChatMethods,
   overlayMethods,
   evidenceMethods,
   inspectorMethods,

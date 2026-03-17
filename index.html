@@ -83,54 +83,14 @@
           </button>
         </div>
 
-        <!-- Chatbox -->
-        <div
-          id="chatbox"
-          class="hidden"
-          role="region"
-          aria-label="旅程導覽"
-          aria-live="polite"
-        >
-          <button
-            id="chatbox-back"
-            aria-label="返回"
-            onclick="App.prevStep()"
-            disabled
-          >
-            <svg
-              aria-hidden="true"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
+        <!-- Nav arrows (replaces chatbox + FAB) -->
+        <div class="nav-arrows" id="nav-arrows" style="display: none;">
+          <button class="nav-btn back" id="nav-back" aria-label="Previous step">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
-          <button id="chatbox-close" aria-label="關閉對話框">
-            <svg
-              aria-hidden="true"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+          <button class="nav-btn forward" id="nav-forward" aria-label="Next step">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
-          <div id="chatbox-body">
-            <h3 id="chatbox-title"></h3>
-            <div id="chatbox-content"></div>
-          </div>
         </div>
 
         <!-- Layers Toggle Button (hidden until journey starts) -->
@@ -157,24 +117,6 @@
           </svg>
         </button>
 
-        <!-- Floating action button to reopen chatbox/AI chat -->
-        <button id="chat-fab" class="hidden" aria-label="重新開啟導覽">
-          <svg
-            aria-hidden="true"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-            ></path>
-          </svg>
-        </button>
 
         <!-- Data Layers Panel (journey-aware, toggled by button) -->
         <div
@@ -677,115 +619,6 @@
       </div>
     </div>
 
-    <!-- Hold-to-Confirm Splash Screen (appears at step B6) -->
-    <!-- AI Chat (appears after journey completion) -->
-    <div id="ai-chat" class="hidden" role="region" aria-label="AI 助理">
-      <div class="ai-chat-toolbar">
-        <button id="ai-chat-back" class="hidden" aria-label="返回" onclick="UI.hideAIChat(); App.prevStep()">
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button id="ai-chat-close" aria-label="關閉聊天">
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="14" y1="2" x2="2" y2="14"></line>
-            <line x1="2" y1="2" x2="14" y2="14"></line>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Recap content (shown at final step, hidden in Q&A mode) -->
-      <div id="ai-chat-recap" class="hidden"></div>
-
-      <div class="ai-chat-header" id="ai-chat-header">
-        <h3>關於熊本，有任何問題都可以問我</h3>
-      </div>
-
-      <div class="ai-chat-suggestions" id="ai-chat-suggestions">
-        <button
-          class="ai-chat-chip"
-          data-question="投資這裡有哪些風險？"
-        >
-          有哪些風險？
-        </button>
-        <button
-          class="ai-chat-chip"
-          data-question="如何開始投資熊本？"
-        >
-          如何投資？
-        </button>
-      </div>
-
-      <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite">
-        <!-- Messages will be inserted here -->
-      </div>
-
-      <form class="ai-chat-input-container" id="ai-chat-form">
-        <input
-          type="text"
-          id="ai-chat-input"
-          class="ai-chat-input"
-          placeholder="詢問關於熊本的問題..."
-          autocomplete="off"
-          aria-label="輸入您的問題"
-        />
-        <button type="submit" class="ai-chat-send" aria-label="傳送訊息">
-          <svg
-            aria-hidden="true"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M22 2L11 13"></path>
-            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-          </svg>
-        </button>
-      </form>
-
-      <!-- CTAs for clear calls to action (Strengthen Ending) -->
-      <div class="ai-chat-ctas" id="ai-chat-ctas">
-        <button class="ai-chat-cta" onclick="UI.downloadSummary()">
-          <span class="ai-chat-cta-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="15" y2="3" />
-            </svg>
-          </span>
-          下載摘要
-        </button>
-      </div>
-    </div>
 
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>

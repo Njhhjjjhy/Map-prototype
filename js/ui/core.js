@@ -1,4 +1,4 @@
-import { STEPS, STAGE_TABS, AppData } from "../data/index.js";
+import { STEPS } from "../data/index.js";
 import { TIMING } from "../app.js";
 import { t } from "../i18n/index.js";
 
@@ -10,11 +10,6 @@ export const methods = {
       timeToggle: document.getElementById("time-toggle"),
       presentBtn: document.getElementById("present-btn"),
       futureBtn: document.getElementById("future-btn"),
-      chatbox: document.getElementById("chatbox"),
-      chatboxTitle: document.getElementById("chatbox-title"),
-      chatboxContent: document.getElementById("chatbox-content"),
-      chatboxClose: document.getElementById("chatbox-close"),
-      chatboxBack: document.getElementById("chatbox-back"),
       rightPanel: document.getElementById("right-panel"),
       panelClose: document.getElementById("panel-close"),
       panelHome: document.getElementById("panel-home"),
@@ -25,18 +20,17 @@ export const methods = {
       galleryBody: document.getElementById("gallery-body"),
       layersToggle: document.getElementById("layers-toggle"),
       dataLayers: document.getElementById("data-layers"),
-      aiChat: document.getElementById("ai-chat"),
-      aiChatClose: document.getElementById("ai-chat-close"),
-      chatFab: document.getElementById("chat-fab"),
       panelToggle: document.getElementById("panel-toggle"),
       evidencePreview: document.getElementById("evidence-preview"),
       evidencePreviewBody: document.getElementById("evidence-preview-body"),
       evidencePreviewClose: document.getElementById("evidence-preview-close"),
+      navArrows: document.getElementById("nav-arrows"),
+      navBack: document.getElementById("nav-back"),
+      navForward: document.getElementById("nav-forward"),
     };
 
     this.layersPanelOpen = false;
     this.panelOpen = false;
-    this.lastChatType = "chatbox"; // Track which chat was last shown
     this.bindEvents();
     this.initDraggableModals();
   },
@@ -49,17 +43,11 @@ export const methods = {
    * Initialize draggable functionality for modals
    */
   initDraggableModals() {
-    // Make chatbox draggable (drag from header)
-    this.makeDraggable(this.elements.chatbox, "#chatbox-body");
-
     // Make right panel draggable (drag from header area)
     this.makeDraggable(
       this.elements.rightPanel,
       "#panel-content .subtitle, #panel-content h2",
     );
-
-    // Make AI chat draggable (drag from header)
-    this.makeDraggable(this.elements.aiChat, ".ai-chat-header");
 
     // Make gallery modal draggable (drag from content area header)
     this.makeDraggable(
@@ -201,14 +189,12 @@ export const methods = {
       this.hideGallery();
     });
 
-    // Chatbox close
-    this.elements.chatboxClose.addEventListener("click", () => {
-      this.hideChatbox();
+    // Nav arrow buttons
+    this.elements.navForward.addEventListener("click", () => {
+      if (typeof App !== "undefined") App.nextStep();
     });
-
-    // AI Chat close
-    this.elements.aiChatClose.addEventListener("click", () => {
-      this.hideAIChat();
+    this.elements.navBack.addEventListener("click", () => {
+      if (typeof App !== "undefined") App.prevStep();
     });
 
     // Unified Escape key handler: closes only the topmost overlay.
@@ -276,74 +262,12 @@ export const methods = {
       this.toggleLayersPanel();
     });
 
-    // Chat FAB - reopen chatbox or AI chat
-    this.elements.chatFab.addEventListener("click", () => {
-      this.reopenChat();
-    });
-
     // Panel toggle button
     this.elements.panelToggle.addEventListener("click", () => {
       this.togglePanel();
     });
   },
 
-  /**
-   * Reopen the last closed chat (chatbox or AI chat)
-   */
-  reopenChat() {
-    this.hideChatFab();
-
-    if (this.lastChatType === "aiChat") {
-      this.showAIChat();
-    } else {
-      // Restore appropriate chatbox content based on current journey state
-      if (typeof App !== "undefined" && App.state) {
-        App.restoreChatbox();
-
-        // If data layer dashboard was showing, restore journey panel content
-        // Data layer markers stay on map
-        if (this._dataLayerDashboardActive && App.state.currentStep > 0) {
-          this._dataLayerDashboardActive = false;
-          App._renderStepPanel(STEPS[App.state.currentStep - 1]);
-        }
-      } else {
-        this.elements.chatbox.classList.remove("hidden");
-        this._retriggerAnimation(this.elements.chatbox);
-      }
-    }
-  },
-
-  /**
-   * Show the chat FAB button with icon matching the chat type it will reopen
-   */
-  showChatFab() {
-    const fab = this.elements.chatFab;
-
-    // Swap icon: sparkles for AI chat, message-square for chatbox
-    if (this.lastChatType === "aiChat") {
-      fab.innerHTML = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
-                <path d="M5 3v4"></path><path d="M19 17v4"></path>
-                <path d="M3 5h4"></path><path d="M17 19h4"></path>
-            </svg>`;
-      fab.setAttribute("aria-label", t("Reopen AI chat"));
-    } else {
-      fab.innerHTML = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>`;
-      fab.setAttribute("aria-label", t("Reopen guide"));
-    }
-
-    fab.classList.remove("hidden");
-    this._retriggerAnimation(fab);
-  },
-
-  /**
-   * Hide the chat FAB button
-   */
-  hideChatFab() {
-    this.elements.chatFab.classList.add("hidden");
-  },
 
   // ================================
   // CHART RENDERING (Dataviz)
@@ -371,144 +295,26 @@ export const methods = {
   },
 
   // ================================
-  // CHATBOX
+  // NAV ARROWS
   // ================================
 
   /**
-   * Show chatbox with content
-   * @param {string} content - HTML content to display
-   * @param {Object} options - { preserveHistory: boolean, skipHistory: boolean }
-   *   - preserveHistory: true = save current content to history before showing new
-   *   - skipHistory: true = don't touch history at all (for transitions)
-   *   - default = clear history (for fresh starts)
+   * Show the nav arrows and update visibility of back/forward based on step.
+   * @param {number} currentStep - Current step index (0 = welcome)
+   * @param {number} totalSteps - Total number of steps
    */
-  showChatbox(content, options = {}) {
-    const { preserveHistory = false, skipHistory = false } = options;
-
-    if (skipHistory) {
-      // Don't touch history at all (for transition screens)
-    } else if (preserveHistory) {
-      // Save current content to history before updating (for cross-journey navigation)
-      const currentTitle = this.elements.chatboxTitle.textContent;
-      const currentContent = this.elements.chatboxContent.innerHTML;
-
-      if (currentTitle || currentContent.trim()) {
-        const historyContent = currentTitle
-          ? `<h3>${currentTitle}</h3>${currentContent}`
-          : currentContent;
-        this.chatboxHistory.push(historyContent);
-      }
-    } else {
-      // Clear history when showing chatbox fresh (new journey start)
-      this.chatboxHistory = [];
-    }
-
-    this._setChatboxContent(content);
-    this._updateChatboxBackButton();
-    this.elements.chatbox.classList.remove("hidden");
-    this._retriggerAnimation(this.elements.chatbox);
-    this.hideChatFab();
-  },
-  hideChatbox() {
-    const chatbox = this.elements.chatbox;
-    // Add closing animation class
-    chatbox.classList.add("closing");
-    this.lastChatType = "chatbox";
-
-    // DON'T clear history when hiding - preserve for back navigation across journeys
-
-    // Wait for animation to complete, then hide
-    const animationDuration = TIMING.fast; // matches --duration-fast
-    setTimeout(() => {
-      chatbox.classList.add("hidden");
-      chatbox.classList.remove("closing");
-      this.showChatFab();
-    }, animationDuration);
+  showNavArrows(currentStep, totalSteps) {
+    this.elements.navArrows.style.display = "flex";
+    // Hide back on step 0, hide forward on last step
+    this.elements.navBack.style.display = currentStep === 0 ? "none" : "flex";
+    this.elements.navForward.style.display = currentStep >= totalSteps ? "none" : "flex";
   },
 
   /**
-   * Update chatbox content, saving current content to history
+   * Hide the nav arrows
    */
-  updateChatbox(content) {
-    // Save current content to history before updating
-    const currentTitle = this.elements.chatboxTitle.textContent;
-    const currentContent = this.elements.chatboxContent.innerHTML;
-
-    if (currentTitle || currentContent.trim()) {
-      // Build the full content string for history
-      const historyContent = currentTitle
-        ? `<h3>${currentTitle}</h3>${currentContent}`
-        : currentContent;
-
-      // Don't push if same as last history item (avoid duplicates)
-      const lastHistory = this.chatboxHistory[this.chatboxHistory.length - 1];
-      if (!lastHistory || lastHistory !== historyContent) {
-        this.chatboxHistory.push(historyContent);
-      }
-    }
-
-    this._setChatboxContent(content);
-    this._updateChatboxBackButton();
-  },
-
-  /**
-   * Navigate back to previous chatbox content
-   */
-  chatboxBack() {
-    if (this.chatboxHistory.length === 0) return;
-
-    const previousContent = this.chatboxHistory.pop();
-    if (previousContent) {
-      this._setChatboxContent(previousContent);
-      this._updateChatboxBackButton();
-    }
-  },
-
-  /**
-   * Save current chatbox content to history (for cross-journey navigation)
-   * Call this BEFORE transitioning to a new journey
-   */
-  saveChatboxToHistory() {
-    const currentTitle = this.elements.chatboxTitle.textContent;
-    const currentContent = this.elements.chatboxContent.innerHTML;
-
-    if (currentTitle || currentContent.trim()) {
-      const historyContent = currentTitle
-        ? `<h3>${currentTitle}</h3>${currentContent}`
-        : currentContent;
-
-      // Don't push duplicates
-      const lastHistory = this.chatboxHistory[this.chatboxHistory.length - 1];
-      if (!lastHistory || lastHistory !== historyContent) {
-        this.chatboxHistory.push(historyContent);
-      }
-    }
-  },
-
-  /**
-   * Enable/disable chatbox back button based on current journey step.
-   * Enabled when on any step > 0, disabled at step 0 (welcome).
-   */
-  _updateChatboxBackButton() {
-    const canGoBack =
-      typeof App !== "undefined" && App.state && App.state.currentStep > 0;
-    this.elements.chatboxBack.disabled = !canGoBack;
-  },
-
-  _setChatboxContent(content) {
-    // Parse content to extract h3 title
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = content;
-    const h3 = tempDiv.querySelector("h3");
-
-    if (h3) {
-      this.elements.chatboxTitle.textContent = h3.textContent;
-      h3.remove();
-      this.elements.chatboxContent.innerHTML = tempDiv.innerHTML;
-    } else {
-      this.elements.chatboxTitle.textContent = "";
-      this.elements.chatboxContent.innerHTML = content;
-    }
+  hideNavArrows() {
+    this.elements.navArrows.style.display = "none";
   },
 
   // ================================
@@ -988,7 +794,6 @@ export const methods = {
       this.elements.presentBtn.setAttribute("aria-checked", "false");
       this.elements.futureBtn.classList.add("active");
       this.elements.futureBtn.setAttribute("aria-checked", "true");
-      this.hideChatbox();
       App._renderFutureOutlookDashboard();
       MapController.showFutureZones();
 
@@ -1011,18 +816,6 @@ export const methods = {
         duration: flightDuration,
       });
       App.state.futureView = true;
-
-      // Re-show chatbox with Continue button after camera flight completes
-      setTimeout(() => {
-        const content = `
-          <h3>${t("Future outlook")}</h3>
-          <p>${t("See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations.")}</p>
-          <div class="chatbox-options">
-            <button class="chatbox-continue primary" onclick="App.goToStep(9)">${t("Continue")}</button>
-          </div>
-        `;
-        this.showChatbox(content, { skipHistory: true });
-      }, flightDuration + 300);
     } else {
       this.elements.futureBtn.classList.remove("active");
       this.elements.futureBtn.setAttribute("aria-checked", "false");

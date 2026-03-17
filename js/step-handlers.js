@@ -8,9 +8,7 @@ import {
   evidenceImage,
   toggleRow,
   evidenceCard,
-  SVG_CHECKMARK,
   continueBtn,
-  SVG_ARROW_RIGHT,
 } from "./shared/templates.js";
 
 export const stepHandlers = {
@@ -66,8 +64,6 @@ export const stepHandlers = {
       this._renderDevelopmentDashboard();
     }
 
-    // Re-render chatbox to reflect expanded state
-    if (step) this._renderStepChatbox(step);
   },
 
   /**
@@ -79,9 +75,6 @@ export const stepHandlers = {
     }
     // Dispatch to step-specific handler
     this._handleSubItem(this.state.currentStep, itemId);
-    // Refresh chatbox to show updated explored state
-    const step = STEPS[this.state.currentStep - 1];
-    if (step) this._renderStepChatbox(step);
   },
 
   /**
@@ -240,10 +233,8 @@ export const stepHandlers = {
       // Fly to the appropriate camera position for this level
       this._flyToGovernmentLevel(level);
     }
-    // Re-render panel and chatbox to reflect toggle state
+    // Re-render panel to reflect toggle state
     UI.updateGovernmentPanel(this.state.activeGovernmentLevels);
-    const step = STEPS[this.state.currentStep - 1];
-    if (step) this._renderStepChatbox(step);
   },
 
   /**
@@ -272,45 +263,6 @@ export const stepHandlers = {
     if (cam) {
       MapController.flyToStep(cam);
     }
-  },
-
-  /**
-   * Render chatbox content for the government-support step.
-   * Uses chatbox-option buttons (matching water/power resources look) with toggle behavior.
-   */
-  _renderGovernmentChatbox(narrative, continueBtn) {
-    const tiers = AppData.governmentTiers || [];
-    const visitedLevels = this.state.visitedGovernmentLevels;
-
-    const items = tiers
-      .map((tier) => {
-        const isVisited = visitedLevels.includes(tier.id);
-        const checkmark = isVisited
-          ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-          : "";
-        return `<button class="chatbox-option${isVisited ? " completed" : ""}"
-                        onclick="App.toggleGovernmentLevel('${tier.id}')"
-                        aria-pressed="${isVisited}">
-                    ${tier.tier}
-                    ${checkmark}
-                    ${isVisited ? '<span class="sr-only"> (active)</span>' : ""}
-                </button>`;
-      })
-      .join("");
-
-    const navRow = continueBtn
-      ? `<div class="chatbox-nav-row">${continueBtn}</div>`
-      : "";
-
-    return `
-            <h3>${narrative.title}</h3>
-            <p>${narrative.body}</p>
-            <div class="chatbox-options" role="group" aria-label="${t("Government levels")}">
-                ${items}
-            </div>
-            ${narrative.afterItems}
-            ${navRow}
-        `;
   },
 
   // --- Step 3: Government ---
@@ -1192,9 +1144,9 @@ export const stepHandlers = {
   },
 
   /**
-   * Render the final step chatbox (journey recap + AI chat).
+   * Render the final step recap (no longer used - kept as data reference).
    */
-  _renderFinalChatbox() {
+  _renderFinalRecap() {
     const propCount = AppData.properties.length;
     let totalNetProfit = 0;
     AppData.properties.forEach((p) => {
@@ -1247,48 +1199,6 @@ export const stepHandlers = {
         `;
   },
 
-  // ================================
-  // Q&A Mode
-  // ================================
-
-  /**
-   * Enter Q&A mode: clean map, show AI chat, enable all data layer toggles.
-   */
-  async enterQAMode() {
-    if (this._transitioning) return;
-    this._transitioning = true;
-    this.state.qaMode = true;
-
-    // Clean up the current step
-    if (this.state.currentStep > 0) {
-      await this._exitStep(this.state.currentStep);
-    }
-
-    // Clear all map annotations for a clean base map
-    MapController.clearAll();
-
-    // Hide progress bar and time toggle
-    UI.updateJourneyProgress(0, STEPS.length);
-    UI.hideTimeToggle();
-
-    // Populate data layers panel with all 11 layer groups (all unselected)
-    UI.showDataLayers("qa");
-
-    // Switch AI chat panel to Q&A mode (suggestions, input, download summary)
-    UI.showQAMode();
-
-    // Ensure right panel is hidden initially
-    UI.hidePanel();
-
-    // Show persistent controls
-    UI.showLayersToggle();
-    UI.showPanelToggle();
-
-    // Restart ambient motion
-    MapController.startHeartbeat();
-
-    this._transitioning = false;
-  },
 
   // ================================
   // Per-step panel content
@@ -1365,24 +1275,4 @@ export const stepHandlers = {
   },
 
   // ================================
-  // Restore and restart
-  // ================================
-
-  /**
-   * Restore chatbox content based on current step.
-   * Called when user clicks the FAB to reopen chatbox.
-   */
-  restoreChatbox() {
-    const step = STEPS[this.state.currentStep - 1];
-    if (step) {
-      const content = this._getStepChatboxContent(step);
-      UI.showChatbox(content);
-    } else {
-      UI.showChatbox(`
-                <h3>${t("Kumamoto investment guide")}</h3>
-                <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
-                ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
-            `);
-    }
-  },
 };

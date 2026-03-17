@@ -623,8 +623,7 @@ export const methods = {
   },
 
   /**
-   * Handle dashboard auto-open when data layers are toggled while chatbox is closed.
-   * Journey takes priority when chatbox is open.
+   * Handle dashboard auto-open when data layers are toggled.
    */
   _handleDataLayerDashboard() {
     // In Q&A mode, always use the tabbed QA panel
@@ -637,12 +636,6 @@ export const methods = {
       this._renderQAPanel();
       return;
     }
-
-    const chatbox = this.elements.chatbox;
-    const chatboxOpen = chatbox && !chatbox.classList.contains("hidden");
-
-    // Journey takes priority when chatbox is open
-    if (chatboxOpen) return;
 
     // Check if any data layers are active
     const activeKeys = Object.keys(this.activeDataLayers);

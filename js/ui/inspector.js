@@ -38,10 +38,6 @@ export const methods = {
       });
     }, 300);
 
-    setTimeout(() => {
-      this.lastChatType = "aiChat";
-      this.showChatFab();
-    }, 600);
   },
 
   /**
