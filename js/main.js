@@ -28,12 +28,30 @@ window.UI = UI;
 window.TIMING = TIMING;
 window.App = App;
 
+// Dev-only QA tools: step jumper, QA reporter, camera explorer, camera debug.
+// In production builds (Vercel), import.meta.env.DEV is false and this block is
+// stripped out, so the QA tools never load and their UI is removed from the DOM
+// BEFORE App.init() runs (so map/core.js camera-debug setup short-circuits).
+if (!import.meta.env.DEV) {
+  const devSelectors = [
+    "#step-jumper-toggle",
+    "#step-jumper",
+    "#camera-explorer-toggle",
+    "#camera-explorer",
+    "#qa-toggle",
+    "#qa-panel",
+    "#camera-debug-toggle",
+    "#camera-debug",
+  ];
+  devSelectors.forEach((sel) => {
+    const el = document.querySelector(sel);
+    if (el) el.remove();
+  });
+}
+
 // Module scripts are deferred, so the DOM is ready at this point.
 App.init();
 
-// Dev-only QA tools: step jumper, QA reporter, camera explorer.
-// In production builds (Vercel), import.meta.env.DEV is false and this block is
-// stripped out, so the QA tools never load and their UI is removed from the DOM.
 if (import.meta.env.DEV) {
   const [
     { StepJumper },
@@ -50,17 +68,4 @@ if (import.meta.env.DEV) {
   StepJumper.init();
   QAReporter.init();
   CameraExplorer.init();
-} else {
-  const devSelectors = [
-    "#step-jumper-toggle",
-    "#step-jumper",
-    "#camera-explorer-toggle",
-    "#camera-explorer",
-    "#qa-toggle",
-    "#qa-panel",
-  ];
-  devSelectors.forEach((sel) => {
-    const el = document.querySelector(sel);
-    if (el) el.remove();
-  });
 }
