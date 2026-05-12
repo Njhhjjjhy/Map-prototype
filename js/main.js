@@ -15,9 +15,6 @@ import {
 } from "./map/index.js";
 import { UI } from "./ui/index.js";
 import { TIMING, App } from "./app.js";
-import { StepJumper } from "./dev/step-jumper.js";
-import { QAReporter } from "./dev/qa-reporter.js";
-import { CameraExplorer } from "./dev/camera-explorer.js";
 
 // Expose all globals for inline onclick handlers and cross-module references
 window.STEPS = STEPS;
@@ -30,12 +27,40 @@ window.MapController = MapController;
 window.UI = UI;
 window.TIMING = TIMING;
 window.App = App;
-window.StepJumper = StepJumper;
-window.QAReporter = QAReporter;
-window.CameraExplorer = CameraExplorer;
 
 // Module scripts are deferred, so the DOM is ready at this point.
 App.init();
-StepJumper.init();
-QAReporter.init();
-CameraExplorer.init();
+
+// Dev-only QA tools: step jumper, QA reporter, camera explorer.
+// In production builds (Vercel), import.meta.env.DEV is false and this block is
+// stripped out, so the QA tools never load and their UI is removed from the DOM.
+if (import.meta.env.DEV) {
+  const [
+    { StepJumper },
+    { QAReporter },
+    { CameraExplorer },
+  ] = await Promise.all([
+    import("./dev/step-jumper.js"),
+    import("./dev/qa-reporter.js"),
+    import("./dev/camera-explorer.js"),
+  ]);
+  window.StepJumper = StepJumper;
+  window.QAReporter = QAReporter;
+  window.CameraExplorer = CameraExplorer;
+  StepJumper.init();
+  QAReporter.init();
+  CameraExplorer.init();
+} else {
+  const devSelectors = [
+    "#step-jumper-toggle",
+    "#step-jumper",
+    "#camera-explorer-toggle",
+    "#camera-explorer",
+    "#qa-toggle",
+    "#qa-panel",
+  ];
+  devSelectors.forEach((sel) => {
+    const el = document.querySelector(sel);
+    if (el) el.remove();
+  });
+}
