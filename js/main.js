@@ -47,7 +47,7 @@ if (!import.meta.env.DEV) {
   ];
   devSelectors.forEach((sel) => {
     const el = document.querySelector(sel);
-    if (el) el.remove();
+    if (el) el.style.setProperty("display", "none", "important");
   });
 }
 
