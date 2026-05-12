@@ -174,6 +174,44 @@ export const STEPS = [
   },
 ];
 
+/**
+ * Optional ?steps= query-param filter.
+ *
+ * When present, the STEPS array is narrowed (in place) to the listed IDs in
+ * the given order, and their `index` fields are renumbered 1..N. All other
+ * code can continue to treat STEPS as the complete journey.
+ *
+ * Example: ?steps=government-support,corporate-investment,transport-access,future-outlook
+ *
+ * This is used by the gktk-prototype playground to embed curated slices of
+ * the map experience inside a single step drawer.
+ */
+(function applyStepsFilter() {
+  if (typeof window === "undefined" || typeof URLSearchParams === "undefined") {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("steps");
+  if (!raw) return;
+
+  const requested = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (requested.length === 0) return;
+
+  const byId = new Map(STEPS.map((s) => [s.id, s]));
+  const filtered = requested
+    .map((id) => byId.get(id))
+    .filter(Boolean);
+  if (filtered.length === 0) return;
+
+  STEPS.splice(0, STEPS.length, ...filtered);
+  STEPS.forEach((s, i) => {
+    s.index = i + 1;
+  });
+})();
+
 export const STAGE_TABS = {};
 STEPS.forEach((s) => {
   STAGE_TABS[s.index] = { label: s.subtitle, tabs: s.panelTabs };

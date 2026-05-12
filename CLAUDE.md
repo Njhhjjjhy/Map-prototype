@@ -215,3 +215,10 @@ map-prototype/
 
 *Last updated: March 5, 2026*
 *Based on macOS Human Interface Guidelines with project-specific customizations*
+
+
+## Obsidian vault
+
+- Path: /Users/riaan/Documents/personal/obsidian-vault
+- After each session, write a handoff note to /Users/riaan/Documents/personal/obsidian-vault/sessions/
+- Use filename format: YYYY-MM-DD-[project-name]-[topic].md
