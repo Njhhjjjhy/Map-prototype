@@ -5,15 +5,15 @@
  * translation key. When the active locale has a translation, it is
  * returned; otherwise the English key string is used as-is (fallback).
  *
- * Default locale: zh-TW (Traditional Chinese, Taiwan).
- * To switch to English, change `lng` below to 'en'.
+ * Default locale: en (English).
+ * To switch to Traditional Chinese, change the fallback below to 'zh-TW'.
  */
 
 import i18next from "i18next";
 import zhTW from "./locales/zh-TW.js";
 
-/** Read saved language preference, default to zh-TW */
-const savedLng = localStorage.getItem("app-lang") || "zh-TW";
+/** Read saved language preference, default to English */
+const savedLng = localStorage.getItem("app-lang") || "en";
 
 i18next.init({
   lng: savedLng,
