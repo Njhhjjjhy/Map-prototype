@@ -42,6 +42,8 @@ if (!import.meta.env.DEV) {
     "#qa-panel",
     "#camera-debug-toggle",
     "#camera-debug",
+    "#layers-toggle",
+    "#data-layers",
   ];
   devSelectors.forEach((sel) => {
     const el = document.querySelector(sel);
