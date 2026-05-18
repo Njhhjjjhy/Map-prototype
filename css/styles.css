@@ -5731,6 +5731,8 @@ button.layer-item {
   .panel-bento-btn.ghost:hover,
   .disclosure-header:hover,
   .disclosure-item:hover,
+  .zone-property-row:hover,
+  .panel-evidence-btn:hover,
   .property-image-container:hover .property-image,
   .property-image-container:hover .property-image-expand,
   .data-layer-marker-item:hover,
@@ -6785,6 +6787,28 @@ button.layer-item {
   background: var(--color-success);
   border-color: var(--color-success);
   color: #fff;
+}
+
+/* Panel pickable rows (zone property lists, area-grouped lists) and the
+   evidence button. Pure CSS hover replaces the inline onmouseenter/onmouseleave
+   handlers that were dead code on touch. The transition is short so trackpad
+   pointer feedback feels responsive. The @media (hover: none) block above
+   already neutralises these selectors on touch so the hover state cannot
+   stick after a tap. */
+.zone-property-row {
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.zone-property-row:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.panel-evidence-btn {
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.panel-evidence-btn:hover {
+  background-color: var(--color-bg-secondary);
 }
 
 /* ================================

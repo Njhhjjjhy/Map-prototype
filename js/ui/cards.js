@@ -577,9 +577,7 @@ export const methods = {
                         ${props
                           .map(
                             (p) => `
-                            <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-small); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);"
-                                 onmouseenter="this.style.background='var(--color-bg-secondary)'"
-                                 onmouseleave="this.style.background=''"
+                            <div class="zone-property-row" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-small); cursor: pointer;"
                                  onclick="App.selectProperty('${p.id}')">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                                 <div style="flex: 1; min-width: 0;">
@@ -1282,9 +1280,7 @@ export const methods = {
         const typeLabel = p.type || p.subtitle || "";
         return `
         <div class="zone-property-row" data-property-id="${p.id}"
-             style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-medium); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);"
-             onmouseenter="this.style.backgroundColor='var(--color-bg-secondary)'"
-             onmouseleave="this.style.backgroundColor='transparent'">
+             style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-medium); cursor: pointer;">
           <div style="width: 32px; height: 32px; border-radius: var(--radius-full); background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${MAP_COLORS.property}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
@@ -1298,7 +1294,7 @@ export const methods = {
       .join("");
 
     const evidenceBtn = options.evidencePdf
-      ? `<button onclick="UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: '${t("Evidence report")}' })" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); padding: var(--space-3) var(--space-6); font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); background: transparent; border: 1px solid var(--color-bg-tertiary); border-radius: var(--radius-full); cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard);" onmouseenter="this.style.backgroundColor='var(--color-bg-secondary)'" onmouseleave="this.style.backgroundColor='transparent'">
+      ? `<button class="panel-evidence-btn" onclick="UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: '${t("Evidence report")}' })" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); padding: var(--space-3) var(--space-6); font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); background: transparent; border: 1px solid var(--color-bg-tertiary); border-radius: var(--radius-full); cursor: pointer;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
           ${t("View evidence")}
         </button>`
