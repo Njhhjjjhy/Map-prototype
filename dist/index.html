@@ -23,8 +23,8 @@
     />
 
     <!-- App CSS -->
-    <script type="module" crossorigin src="./assets/index-KXOammB4.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CmKAqSVn.css">
+    <script type="module" crossorigin src="./assets/index-DvIVIUnJ.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D_Zprl1N.css">
   </head>
   <body>
     <!-- Embed mode: set by ?embed=1. Hides dev tools and the language toggle
@@ -47,6 +47,12 @@
         if (params.get("chromeless") === "1") {
           document.documentElement.setAttribute("data-chromeless", "1");
         }
+
+        /* host=valueadd skips the iPhone-host setup below (bottom-sheet
+           drag, overlay reparenting). embed-mobile.css is scoped with
+           :not([data-embed-host="valueadd"]) so its rules don't apply
+           in this host; the standalone styles in styles.css win. */
+        if (host === "valueadd") return;
 
         document.addEventListener("DOMContentLoaded", function () {
           /* Reparent overlays into #app-container so their `position: absolute`
@@ -295,6 +301,7 @@
     </script>
 
     <style>
+      /* Dev tools are always hidden in any embed mode. */
       [data-embed="1"] #camera-debug-toggle,
       [data-embed="1"] #camera-debug,
       [data-embed="1"] #qa-toggle,
@@ -303,11 +310,33 @@
       [data-embed="1"] #camera-explorer,
       [data-embed="1"] #step-jumper-toggle,
       [data-embed="1"] #step-jumper,
-      [data-embed="1"] #lang-toggle,
-      [data-embed="1"] #panel-toggle,
-      [data-embed="1"] #layers-toggle,
-      [data-embed="1"] #time-toggle,
-      [data-embed="1"] #journey-progress {
+      [data-embed="1"] #layers-toggle {
+        display: none !important;
+      }
+
+      /* The iPhone playground embed hides the language toggle, panel
+         toggle, time toggle, and journey progress. The value-add
+         host wants them visible, so this rule is scoped to NOT match
+         when host=valueadd. */
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #lang-toggle,
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #panel-toggle,
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #time-toggle,
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #journey-progress {
+        display: none !important;
+      }
+
+      /* Dev-only QA tool toggle. Cmd+Shift+1 flips data-dev-hidden on <html>
+         so the local presenter can clear the screen without leaving the
+         browser. Handler is gated by import.meta.env.DEV in main.js, so this
+         attribute is only ever set in development. */
+      [data-dev-hidden="1"] #camera-debug-toggle,
+      [data-dev-hidden="1"] #camera-debug,
+      [data-dev-hidden="1"] #qa-toggle,
+      [data-dev-hidden="1"] #qa-panel,
+      [data-dev-hidden="1"] #camera-explorer-toggle,
+      [data-dev-hidden="1"] #camera-explorer,
+      [data-dev-hidden="1"] #step-jumper-toggle,
+      [data-dev-hidden="1"] #step-jumper {
         display: none !important;
       }
 

@@ -9,6 +9,10 @@ import { t } from "../i18n/index.js";
 
 export const methods = {
   showDataLayers(stepIndex) {
+    /* The Data Layers panel and its toggle button live inside DEV-ONLY
+       blocks in index.html, so production builds strip them. Bail out
+       quietly so embedded / production environments don't crash. */
+    if (!this.elements.layersToggle || !this.elements.dataLayers) return;
     // Lucide-style SVG icons
     const icons = {
       // Home icon (Lucide: home)
@@ -281,7 +285,8 @@ export const methods = {
     }
   },
   hideDataLayers() {
-    document.getElementById("data-layers").classList.add("hidden");
+    if (!this.elements.layersToggle || !this.elements.dataLayers) return;
+    this.elements.dataLayers.classList.add("hidden");
     this.layersPanelOpen = false;
     this.elements.layersToggle.classList.remove("active");
     this.elements.layersToggle.setAttribute("aria-expanded", "false");
@@ -303,6 +308,7 @@ export const methods = {
    * Toggle layers panel visibility
    */
   toggleLayersPanel() {
+    if (!this.elements.layersToggle || !this.elements.dataLayers) return;
     if (this.layersPanelOpen) {
       this.elements.dataLayers.classList.add("hidden");
       this.elements.layersToggle.classList.remove("active");
@@ -321,6 +327,7 @@ export const methods = {
    * Show layers toggle button
    */
   showLayersToggle() {
+    if (!this.elements.layersToggle) return;
     this.elements.layersToggle.classList.remove("hidden");
   },
 

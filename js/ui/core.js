@@ -325,21 +325,22 @@ export const methods = {
     });
 
     // Time toggle buttons
-    this.elements.presentBtn.addEventListener("click", () => {
+    this.elements.presentBtn?.addEventListener("click", () => {
       this.setTimeView("present");
     });
 
-    this.elements.futureBtn.addEventListener("click", () => {
+    this.elements.futureBtn?.addEventListener("click", () => {
       this.setTimeView("future");
     });
 
-    // Layers toggle button
-    this.elements.layersToggle.addEventListener("click", () => {
+    // Layers toggle button (stripped from production builds by the
+    // DEV-ONLY plugin in vite.config.js — so it may be null here).
+    this.elements.layersToggle?.addEventListener("click", () => {
       this.toggleLayersPanel();
     });
 
     // Panel toggle button
-    this.elements.panelToggle.addEventListener("click", () => {
+    this.elements.panelToggle?.addEventListener("click", () => {
       this.togglePanel();
     });
 
