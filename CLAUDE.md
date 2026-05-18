@@ -51,6 +51,14 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Use a single unified Escape key handler that checks overlays from highest z-index to lowest and closes only the topmost one. Never register multiple independent Escape listeners that can all fire on the same keypress.
 - Closing a modal overlay must never close the dashboard, chatbox, or panel behind it.
 
+**Touch-compatible hover behavior:**
+- For tooltip-style hover on map markers, DOM elements, or any control where hover reveals information, use pointer events (`pointerenter` / `pointerleave` / `pointercancel`) rather than `mouseenter` / `mouseleave`. Pointer events fire for mouse, trackpad, Apple Pencil hover, and touch, so the same code works across every iPadOS input mode.
+- For Mapbox layer hover (`map.on("mouseenter", layerId, ...)`), also wire a matching `map.on("click", layerId, ...)` handler that performs the equivalent reveal, since Mapbox layer events are mouse-only on touch devices.
+- Never write inline `onmouseenter` / `onmouseleave` attributes in JS-generated HTML strings. Use CSS `:hover` rules and add the new selector to the `@media (hover: none)` neutraliser in `css/styles.css` so the hover state cannot stick after a tap on touch.
+
+**Dev / QA tools in production:**
+- Any dev or QA-only UI block in `index.html` must be wrapped with the `<!-- DEV-ONLY-START -->` and `<!-- DEV-ONLY-END -->` marker comments. The Vite plugin in `vite.config.js` strips everything between those markers from production builds, so dev tools never ship to the deployed site. In `pnpm dev` the markers are no-ops and the tools are visible.
+
 ### Visual Rules
 
 **Typography prohibitions:**
