@@ -42,6 +42,12 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Only the commit title line may be a generated summary.
 - When `/feature <name>` is invoked on master, check for uncommitted changes BEFORE creating the branch. If changes exist, present exactly two options: (1) drop the changes, (2) save them to a separate feature branch with a commit, PR, and merge to master, then create the requested branch. Never silently carry uncommitted master changes into a new branch.
 
+**Feature branch scope (map vs value-add-prototype):**
+- Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for the map (this project), or for value-add-prototype (the slideshow that embeds the map)?"
+- If "map": work happens in this repo only.
+- If "value-add-prototype": Claude makes the map changes in this repo, then runs `pnpm build`, then copies the build output into the two embed locations in value-add-prototype (`public/playground/prototypes/step-6-section-3-map/map-prototype-v1/` and `public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/`), preserving any per-embed customizations. Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo.
+- For full context on the two-project relationship, see `docs/value-add-prototype-relationship.md`.
+
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).
 - Check `element.parentNode` exists before calling `.remove()`.

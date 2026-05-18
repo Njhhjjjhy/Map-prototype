@@ -23,16 +23,30 @@
     />
 
     <!-- App CSS -->
-    <script type="module" crossorigin src="./assets/index-CBMytML9.js"></script>
+    <script type="module" crossorigin src="./assets/index-KXOammB4.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-CmKAqSVn.css">
   </head>
   <body>
     <!-- Embed mode: set by ?embed=1. Hides dev tools and the language toggle
-         so the prototype can be iframed as a clean experience. -->
+         so the prototype can be iframed as a clean experience.
+
+         An optional ?host=<name> flag selects an embed host style:
+           - (unset)         → iPhone 17 Pro phone frame (gktk-prototype playground)
+           - host=valueadd   → fills 100% of the iframe, no phone frame, adds
+                               postMessage events and a setup cover so it can
+                               be embedded in the value-add-prototype slideshow.
+         See docs/value-add-prototype-relationship.md for the relationship
+         between this project and value-add-prototype. -->
     <script>
       (function () {
-        if (new URLSearchParams(location.search).get("embed") !== "1") return;
+        var params = new URLSearchParams(location.search);
+        if (params.get("embed") !== "1") return;
         document.documentElement.setAttribute("data-embed", "1");
+        var host = params.get("host") || "";
+        if (host) document.documentElement.setAttribute("data-embed-host", host);
+        if (params.get("chromeless") === "1") {
+          document.documentElement.setAttribute("data-chromeless", "1");
+        }
 
         document.addEventListener("DOMContentLoaded", function () {
           /* Reparent overlays into #app-container so their `position: absolute`
@@ -167,6 +181,119 @@
         });
       })();
     </script>
+
+    <!-- value-add-prototype embed host. Activated by ?embed=1&host=valueadd.
+         Adds the behaviors the slideshow expects:
+           - chromeless toggle via ?chromeless=1 and the
+             { type: "gktk-set-chromeless", value } postMessage
+           - a #__setup-cover overlay that hides the bundle's first paint
+             until the initial framing is in place, then fires
+             { type: "gktk-map-ready" } to the parent window
+           - capture-phase click interceptor on #nav-back / #nav-forward
+             that fires { type: "gktk-map-back-to-content" } at the first
+             step (back) and { type: "gktk-map-complete" } at the last step
+             (forward), so the slideshow can transition out of the iframe
+         See docs/value-add-prototype-relationship.md. -->
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        if (params.get("embed") !== "1") return;
+        if (params.get("host") !== "valueadd") return;
+
+        /* Allow the parent slideshow to flip chromeless mode at runtime
+           via postMessage. Used during transitions where the map face is
+           tilted/animated — any UI on top breaks the illusion. */
+        window.addEventListener("message", function (e) {
+          if (e.origin !== window.location.origin) return;
+          var data = e.data;
+          if (!data || typeof data !== "object") return;
+          if (data.type === "gktk-set-chromeless") {
+            if (data.value) {
+              document.documentElement.setAttribute("data-chromeless", "1");
+            } else {
+              document.documentElement.removeAttribute("data-chromeless");
+            }
+          }
+        });
+
+        /* Setup cover. Covers the screen with a solid #F9F9F9 overlay
+           during initialization so the slideshow never sees the bundle's
+           default map view or the step-1 entry camera flash before the
+           desired framing is in place. We use an overlay rather than
+           hiding <html> because some browsers pause WebGL rendering in
+           invisible elements, which would stop the map from finishing
+           its setup. The map renders normally underneath. */
+        var cover = document.createElement("div");
+        cover.id = "__setup-cover";
+        cover.style.cssText = [
+          "position:fixed",
+          "inset:0",
+          "background:#F9F9F9",
+          "z-index:99999",
+          "pointer-events:none",
+        ].join(";");
+        function uncover() {
+          if (cover && cover.parentNode) cover.parentNode.removeChild(cover);
+          cover = null;
+          /* Tell the parent slideshow that the map has reached its initial
+             framing and is now visible. Transition steps gate the start
+             of their animations on this signal. */
+          try {
+            window.parent.postMessage({ type: "gktk-map-ready" }, "*");
+          } catch (_e) {}
+        }
+        window.__uncoverSetup = uncover;
+        /* Safety reveal in case the normal trigger never fires. Short
+           because the fast-entry window caps camera durations, so the
+           final auto-fit should complete well under 1s. */
+        setTimeout(uncover, 3000);
+        if (document.body) {
+          document.body.appendChild(cover);
+        } else {
+          document.addEventListener("DOMContentLoaded", function () {
+            if (cover) document.body.appendChild(cover);
+          });
+        }
+
+        /* Boundary intercepts. At the first internal step #nav-back and
+           at the last internal step #nav-forward, signal the parent
+           slideshow to navigate out of the iframe instead of letting the
+           bundle's internal handler run. Capture-phase + closest() so it
+           survives node re-creation and beats bundle handlers. */
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          var fwd = t && t.closest && t.closest("#nav-forward");
+          var back = t && t.closest && t.closest("#nav-back");
+          if (!fwd && !back) return;
+          var stepsParam =
+            new URLSearchParams(location.search).get("steps") || "";
+          var totalSteps = stepsParam.split(",").filter(Boolean).length;
+          if (!totalSteps && window.STEPS && window.STEPS.length) {
+            totalSteps = window.STEPS.length;
+          }
+          if (!totalSteps) return;
+          var current =
+            (window.App && window.App.state && window.App.state.currentStep) || 1;
+          if (fwd && current >= totalSteps) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            try {
+              window.parent.postMessage({ type: "gktk-map-complete" }, "*");
+            } catch (_e) {}
+          } else if (back && current <= 1) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            try {
+              window.parent.postMessage(
+                { type: "gktk-map-back-to-content" },
+                "*"
+              );
+            } catch (_e) {}
+          }
+        }, true);
+      })();
+    </script>
+
     <style>
       [data-embed="1"] #camera-debug-toggle,
       [data-embed="1"] #camera-debug,
@@ -239,6 +366,52 @@
         height: auto;
         border-radius: 40px;
         overflow: hidden;
+      }
+
+      /* ───── value-add-prototype embed host overrides ─────
+         Activated by ?embed=1&host=valueadd. Overrides the iPhone phone
+         frame above and lets the iframe fill its container — the slideshow
+         draws its own iPad frame around the iframe. */
+      [data-embed-host="valueadd"] {
+        background: #F9F9F9;
+      }
+      html[data-embed-host="valueadd"],
+      [data-embed-host="valueadd"] body {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+      [data-embed-host="valueadd"] body {
+        background: #F9F9F9;
+        border-radius: 0;
+        box-shadow: none;
+        position: relative;
+        transform: translate(0, 0);
+      }
+      [data-embed-host="valueadd"] #app-container {
+        border-radius: 0;
+      }
+      [data-embed-host="valueadd"] #map-container {
+        border-radius: 0;
+      }
+      [data-embed-host="valueadd"] #gallery-modal,
+      [data-embed-host="valueadd"] #property-quick-look,
+      [data-embed-host="valueadd"] #evidence-preview {
+        border-radius: 0;
+      }
+
+      /* Chromeless mode (toggled via ?chromeless=1 or postMessage). Hides
+         every interactive overlay so the map reads as a pure visual
+         surface during transitions. */
+      [data-chromeless="1"] #right-panel,
+      [data-chromeless="1"] #nav-arrows,
+      [data-chromeless="1"] #view-mode-toggle,
+      [data-chromeless="1"] #lang-toggle {
+        display: none !important;
       }
     </style>
 

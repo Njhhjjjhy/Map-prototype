@@ -84,6 +84,29 @@ const App = {
 
     // Show nav arrows (step 0 = welcome, forward only)
     UI.showNavArrows(0, STEPS.length);
+
+    /* Embed auto-advance. When loaded with ?startStep=N (used by the
+       value-add-prototype slideshow), jump straight to that step
+       instead of sitting on the welcome screen at step 0. After the
+       step's camera flight completes, remove any setup cover the
+       embed-host script placed and notify the parent window that the
+       map is ready (gktk-map-ready). */
+    try {
+      const startStepRaw = new URLSearchParams(location.search).get(
+        "startStep",
+      );
+      const startStep = startStepRaw ? parseInt(startStepRaw, 10) : NaN;
+      if (
+        Number.isFinite(startStep) &&
+        startStep >= 1 &&
+        startStep <= STEPS.length
+      ) {
+        await this.goToStep(startStep);
+      }
+    } catch (_e) {}
+    if (typeof window.__uncoverSetup === "function") {
+      window.__uncoverSetup();
+    }
   },
 
   /**
