@@ -266,6 +266,99 @@ export const methods = {
     this.elements.panelToggle.addEventListener("click", () => {
       this.togglePanel();
     });
+
+    this.setupSwipeToAdvance();
+  },
+
+  /**
+   * HIG iPad swipe-to-advance (Section 5.4). A one-finger horizontal flick
+   * across the canvas moves between steps. Higher velocity threshold than
+   * the bare HIG number so a slow map-pan is not mistaken for a swipe.
+   *
+   *   distance: ≥ 60 pt
+   *   duration: ≤ 800 ms
+   *   velocity: ≥ 500 pt/s (raised from HIG's 300 pt/s because Mapbox
+   *             drag-pan owns the slower band)
+   *   angle:    within 30° of horizontal
+   *
+   * Excludes scrollable overlays and tap targets so panel scroll, gallery
+   * paging, and button taps are unaffected.
+   */
+  setupSwipeToAdvance() {
+    const MIN_DISTANCE = 60;
+    const MIN_VELOCITY = 0.5; // pt/ms (500 pt/s)
+    const MAX_DURATION = 800;
+    const TAN_30 = Math.tan((30 * Math.PI) / 180);
+
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    let tracking = false;
+
+    const isExcluded = (target) => {
+      if (!target) return false;
+      return !!target.closest(
+        'button, a, [role="button"], input, textarea, select, ' +
+          "#right-panel, #gallery-modal, #property-quick-look, " +
+          "#evidence-preview, #data-layers, #qa-panel, #step-jumper, " +
+          "#camera-debug, #camera-explorer",
+      );
+    };
+
+    document.addEventListener(
+      "pointerdown",
+      (e) => {
+        if (!e.isPrimary) return;
+        if (isExcluded(e.target)) {
+          tracking = false;
+          return;
+        }
+        tracking = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startTime = performance.now();
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "pointerup",
+      (e) => {
+        if (!tracking) return;
+        tracking = false;
+        if (!e.isPrimary) return;
+        if (typeof App === "undefined" || !App.state) return;
+        if (App.state.currentStep <= 0) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const dt = performance.now() - startTime;
+        if (dt <= 0 || dt > MAX_DURATION) return;
+
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        const velocity = absX / dt;
+
+        if (absX < MIN_DISTANCE) return;
+        if (velocity < MIN_VELOCITY) return;
+        if (absY > absX * TAN_30) return;
+
+        if (dx < 0) {
+          App.nextStep?.();
+        } else {
+          App.prevStep?.();
+        }
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "pointercancel",
+      () => {
+        tracking = false;
+      },
+      { passive: true },
+    );
   },
 
 
