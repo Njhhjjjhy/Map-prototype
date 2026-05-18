@@ -6752,3 +6752,78 @@ button.layer-item {
   border-color: var(--color-success);
   color: #fff;
 }
+
+/* ================================
+   ROTATE-TO-LANDSCAPE OVERLAY
+   The app is landscape-only. On touch devices in portrait,
+   this overlay covers the broken portrait layout until rotation.
+   Excluded in embed mode (the phone-frame showcase is intentionally portrait).
+   ================================ */
+#rotate-overlay {
+  display: none;
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  html:not([data-embed="1"]) #rotate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-primary);
+    padding: var(--space-8);
+    padding-top: calc(var(--space-8) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+  }
+
+  html:not([data-embed="1"]) .rotate-overlay-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 480px;
+  }
+
+  html:not([data-embed="1"]) .rotate-overlay-icon {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-6);
+    animation: rotate-overlay-hint 2.6s ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+
+  html:not([data-embed="1"]) .rotate-overlay-title {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-3);
+    letter-spacing: -0.01em;
+  }
+
+  html:not([data-embed="1"]) .rotate-overlay-body {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+@keyframes rotate-overlay-hint {
+  0%,
+  20%,
+  100% {
+    transform: rotate(0deg);
+  }
+  55%,
+  75% {
+    transform: rotate(-90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotate-overlay-icon {
+    animation: none !important;
+  }
+}
