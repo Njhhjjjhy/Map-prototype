@@ -57,22 +57,14 @@ App.init();
 if (import.meta.env.DEV) {
   // Register the dev-tools toggle FIRST, before any awaits, so it works even
   // if a later dynamic import throws. Capture phase so Mapbox / focused
-  // controls cannot eat the event. Backtick (`) flips data-dev-hidden on
-  // <html>; CSS in index.html does the actual hiding.
+  // controls cannot eat the event. Cmd+Shift+1 (Mac) / Ctrl+Shift+1 (other)
+  // flips data-dev-hidden on <html>; CSS in index.html does the actual hiding.
+  // Uses e.code === "Digit1" because Shift+1 produces "!" in e.key.
   document.addEventListener(
     "keydown",
     (e) => {
-      if (e.key !== "`") return;
-      const ae = document.activeElement;
-      const tag = ae && ae.tagName;
-      if (
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        tag === "SELECT" ||
-        (ae && ae.isContentEditable)
-      ) {
-        return;
-      }
+      if (e.code !== "Digit1" || !e.shiftKey) return;
+      if (!e.metaKey && !e.ctrlKey) return;
       e.preventDefault();
       e.stopPropagation();
       const root = document.documentElement;
@@ -83,7 +75,7 @@ if (import.meta.env.DEV) {
         root.setAttribute("data-dev-hidden", "1");
       }
       console.log(
-        `[dev] backtick toggle → dev tools ${hidden ? "shown" : "hidden"}`,
+        `[dev] cmd+shift+1 → dev tools ${hidden ? "shown" : "hidden"}`,
       );
     },
     true,
