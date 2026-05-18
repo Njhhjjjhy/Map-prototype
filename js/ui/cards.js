@@ -528,8 +528,9 @@ export const methods = {
    * @returns {string} HTML string
    */
   _buildInvestmentZonesContent(activeZones) {
+    // Step 10 surfaces only the Ozu zone and only the Ozu-1 property.
     const zones = (AppData.investmentZones || []).filter(
-      (z) => z.id !== "koshi-zone",
+      (z) => z.id === "ozu-zone",
     );
 
     const rowsHtml = zones
@@ -553,11 +554,8 @@ export const methods = {
           const zone = zones.find((z) => z.id === zoneId);
           if (!zone) return "";
 
-          // Find properties in this zone by exact zone name match
-          const zoneFilter = zone.id.replace("-zone", "");
-          const zoneProps = AppData.properties.filter(
-            (p) => p.zone && p.zone.toLowerCase() === zoneFilter,
-          );
+          // Step 10 surfaces only Ozu-1 within the Ozu zone.
+          const zoneProps = AppData.properties.filter((p) => p.id === "ozu-1");
 
           let propsListHtml;
           if (zoneProps.length > 0) {
@@ -619,7 +617,7 @@ export const methods = {
     }
 
     return `
-            ${panelHeader(t("Investment properties"), t("Zone overview"), t("Five properties across three investment zones in the semiconductor corridor. Toggle a zone to explore its properties."))}
+            ${panelHeader(t("Investment properties"), t("Ozu 1"), t("A renovation opportunity in the Ozu zone."))}
             <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
                 ${rowsHtml}
             </div>

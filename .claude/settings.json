@@ -5,7 +5,11 @@
       "Bash(cp '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/assets/embed-mobile-overrides.css' /tmp/overrides-step12.css)",
       "Bash(rm -rf '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-6-section-3-map/map-prototype-v1/*' '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/*')",
       "Bash(cp -R '/Users/riaan/Documents/Design Files/Code Projects/map-prototype/dist/*' '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-6-section-3-map/map-prototype-v1/')",
-      "Bash(cp -R '/Users/riaan/Documents/Design Files/Code Projects/map-prototype/dist/*' '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/')"
+      "Bash(cp -R '/Users/riaan/Documents/Design Files/Code Projects/map-prototype/dist/*' '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/')",
+      "Bash(cp -R '/Users/riaan/Documents/Design Files/Code Projects/map-prototype/dist/.' '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-6-section-3-map/map-prototype-v1/')",
+      "Bash(cp -R '/Users/riaan/Documents/Design Files/Code Projects/map-prototype/dist/.' '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/')",
+      "Bash(cp /tmp/overrides-step6.css '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-6-section-3-map/map-prototype-v1/assets/embed-mobile-overrides.css')",
+      "Bash(cp /tmp/overrides-step12.css '/Users/riaan/Documents/Design Files/Code Projects/value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/assets/embed-mobile-overrides.css')"
     ],
     "additionalDirectories": [
       "/Users/riaan/Documents/Design Files/Code Projects/map-prototype/node_modules",

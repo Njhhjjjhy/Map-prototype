@@ -225,11 +225,13 @@ export const methods = {
     // Don't render subtitle when it matches the title (prevents duplicate labels)
     const showSubtitle = subtitle && subtitle !== this.inspectorTitle;
 
-    // Property navigation arrows for stage 9
+    // Property navigation arrows for stage 9 (hidden when Ozu-1 is the only
+    // property surfaced in Step 10).
     let navArrowsHtml = "";
     if (
       stage === 9 &&
       options.property &&
+      options.property.id !== "ozu-1" &&
       AppData.properties &&
       AppData.properties.length > 1
     ) {
@@ -291,6 +293,35 @@ export const methods = {
     if (options.flyTo && typeof MapController !== "undefined") {
       MapController.flyToStep(options.flyTo);
     }
+  },
+
+  async _launchOzu1Tour(property, triggerButton) {
+    if (!property || !property.coords) return;
+
+    if (MapController && typeof MapController.flyToStep === "function") {
+      await MapController.flyToStep({
+        center: MapController._toMapbox(property.coords),
+        zoom: 17.5,
+        pitch: 65,
+        bearing: 45,
+        duration: 2500,
+      });
+    }
+
+    this.openValueAddTour({
+      trigger: triggerButton,
+      onAfterClose: () => {
+        if (MapController && typeof MapController.flyToStep === "function") {
+          MapController.flyToStep({
+            center: [130.87, 32.865],
+            zoom: 12.7,
+            pitch: 52,
+            bearing: 45,
+            duration: 2000,
+          });
+        }
+      },
+    });
   },
 
   /**
