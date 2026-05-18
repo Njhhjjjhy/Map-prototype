@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Kumamoto Investment Opportunities</title>
 
@@ -23,8 +23,8 @@
     />
 
     <!-- App CSS -->
-    <script type="module" crossorigin src="./assets/index-DgUD7nZc.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BtxKHxrX.css">
+    <script type="module" crossorigin src="./assets/index-CBMytML9.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CmKAqSVn.css">
   </head>
   <body>
     <!-- Embed mode: set by ?embed=1. Hides dev tools and the language toggle
@@ -309,355 +309,15 @@
           </button>
         </div>
 
-        <!-- Layers Toggle Button (hidden until journey starts) -->
-        <button
-          id="layers-toggle"
-          class="hidden"
-          aria-label="切換地圖圖層"
-          aria-expanded="false"
-        >
-          <svg
-            aria-hidden="true"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
-          </svg>
-        </button>
+        
 
+        
 
-        <!-- Data Layers Panel (journey-aware, toggled by button) -->
-        <div
-          id="data-layers"
-          class="hidden"
-          role="region"
-          aria-label="資料圖層"
-        >
-          <div class="layers-title">資料圖層</div>
-          <div class="layer-items" id="data-layer-items">
-            <!-- Populated by JS - includes both map layers and data layers -->
-          </div>
-        </div>
+        
 
-        <!-- Camera Debug Tool (dev only, top-left) -->
-        <button
-          id="camera-debug-toggle"
-          aria-label="Toggle camera debug"
-          title="Camera debug"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-            />
-          </svg>
-        </button>
-        <div id="camera-debug" class="hidden">
-          <div class="camera-debug-header">
-            <span class="camera-debug-title">Camera</span>
-            <button
-              id="camera-debug-copy"
-              aria-label="Copy camera values"
-              title="Copy to clipboard"
-            >
-              <svg
-                aria-hidden="true"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="14" height="14" x="8" y="8" rx="2" />
-                <path
-                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-                />
-              </svg>
-            </button>
-          </div>
-          <div class="camera-debug-grid">
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">lat</span>
-              <span class="camera-debug-value" id="cam-lat">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">lng</span>
-              <span class="camera-debug-value" id="cam-lng">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">zoom</span>
-              <span class="camera-debug-value" id="cam-zoom">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">pitch</span>
-              <span class="camera-debug-value" id="cam-pitch">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">bearing</span>
-              <span class="camera-debug-value" id="cam-bearing">--</span>
-            </div>
-          </div>
-        </div>
+        
 
-        <!-- QA Reporter (dev tool, top-left below camera debug) -->
-        <button
-          id="qa-toggle"
-          aria-label="Toggle QA reporter"
-          title="QA reporter"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-            />
-            <path d="m9 14 2 2 4-4" />
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-          </svg>
-        </button>
-        <div id="qa-panel" class="hidden">
-          <div class="qa-header">
-            <span class="qa-title">QA reporter</span>
-            <span class="qa-count" id="qa-count">0</span>
-            <button
-              id="qa-copy"
-              class="qa-header-btn"
-              aria-label="Copy all unsolved issues"
-              title="Copy unsolved issues"
-            >
-              <svg
-                aria-hidden="true"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="14" height="14" x="8" y="8" rx="2" />
-                <path
-                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-                />
-              </svg>
-            </button>
-          </div>
-          <div class="qa-step-indicator" id="qa-step-indicator">Step: --</div>
-          <div class="qa-form">
-            <div class="qa-categories" id="qa-categories">
-              <!-- Populated by JS -->
-            </div>
-            <textarea
-              id="qa-description"
-              class="qa-textarea"
-              placeholder="Describe the issue..."
-              rows="3"
-            ></textarea>
-            <button id="qa-add" class="qa-add-btn" disabled>Add issue</button>
-          </div>
-          <div class="qa-divider"></div>
-          <div class="qa-issues" id="qa-issues">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-
-        <!-- Camera Explorer (dev only) -->
-        <button
-          id="camera-explorer-toggle"
-          aria-label="Toggle camera explorer"
-          title="Camera explorer"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
-            />
-            <circle cx="12" cy="13" r="3" />
-          </svg>
-        </button>
-        <div id="camera-explorer" class="hidden">
-          <div class="camera-explorer-header">
-            <span class="camera-explorer-title">Camera explorer</span>
-            <button class="camera-explorer-view-toggle">Switch to 3D</button>
-          </div>
-          <div class="camera-explorer-fields">
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">lng, lat</span>
-              <span class="camera-explorer-value" data-field="lnglat">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">lat, lng</span>
-              <span class="camera-explorer-value" data-field="latlng">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">zoom</span>
-              <span class="camera-explorer-value" data-field="zoom">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">pitch</span>
-              <span class="camera-explorer-value" data-field="pitch">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">bearing</span>
-              <span class="camera-explorer-value" data-field="bearing">--</span>
-            </div>
-          </div>
-          <div class="camera-explorer-divider"></div>
-          <div class="camera-explorer-toggles">
-            <button class="camera-explorer-layer-toggle" data-layer="buildings">
-              3D buildings
-            </button>
-            <button class="camera-explorer-layer-toggle" data-layer="labels">
-              Labels
-            </button>
-            <button class="camera-explorer-layer-toggle" data-layer="terrain">
-              Terrain
-            </button>
-          </div>
-          <div class="camera-explorer-divider"></div>
-          <div class="camera-explorer-sliders">
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">zoom</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="zoom"
-                min="1"
-                max="22"
-                step="0.1"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="zoom"
-                >--</span
-              >
-            </div>
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">pitch</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="pitch"
-                min="0"
-                max="85"
-                step="1"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="pitch"
-                >--</span
-              >
-            </div>
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">bearing</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="bearing"
-                min="-180"
-                max="180"
-                step="1"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="bearing"
-                >--</span
-              >
-            </div>
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">terrain</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="exaggeration"
-                min="0.5"
-                max="5"
-                step="0.1"
-                value="1.5"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="exaggeration"
-                >1.5</span
-              >
-            </div>
-          </div>
-          <div class="camera-explorer-divider"></div>
-          <pre class="camera-explorer-config">{ ... }</pre>
-          <button class="camera-explorer-copy">Copy config</button>
-        </div>
-
-        <!-- Step Jumper (dev only, bottom-left) -->
-        <button
-          id="step-jumper-toggle"
-          aria-label="Toggle step jumper"
-          title="Step jumper"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="8" x2="21" y1="6" y2="6" />
-            <line x1="8" x2="21" y1="12" y2="12" />
-            <line x1="8" x2="21" y1="18" y2="18" />
-            <line x1="3" x2="3.01" y1="6" y2="6" />
-            <line x1="3" x2="3.01" y1="12" y2="12" />
-            <line x1="3" x2="3.01" y1="18" y2="18" />
-          </svg>
-        </button>
-        <div id="step-jumper" class="hidden">
-          <div class="step-jumper-header">
-            <span class="step-jumper-title">Step jumper</span>
-          </div>
-          <div class="step-jumper-list">
-            <!-- Populated by JS -->
-          </div>
-        </div>
+        
 
         <!-- Dashboard Toggle Button (right side) -->
         <button
@@ -867,6 +527,53 @@
         });
       })();
     </script>
+
+    <!-- Rotate-to-landscape overlay (touch devices in portrait).
+         The app is designed for landscape; this overlay covers the
+         broken portrait layout until the user rotates the iPad. -->
+    <div id="rotate-overlay" aria-hidden="true">
+      <div class="rotate-overlay-inner">
+        <svg
+          class="rotate-overlay-icon"
+          width="96"
+          height="96"
+          viewBox="0 0 96 96"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect
+            x="30"
+            y="10"
+            width="36"
+            height="54"
+            rx="5"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+          />
+          <circle cx="48" cy="58" r="1.6" fill="currentColor" />
+          <path
+            d="M16 66 Q16 84 34 84 L62 84 Q80 84 80 66"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+          />
+          <path
+            d="M74 70 L80 64 L86 70"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <h2 class="rotate-overlay-title">Rotate to Landscape</h2>
+        <p class="rotate-overlay-body">
+          This experience is designed for landscape orientation.
+        </p>
+      </div>
+    </div>
 
     <!-- App JS (ES modules) -->
   </body>

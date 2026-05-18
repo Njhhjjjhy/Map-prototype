@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Kumamoto Investment Opportunities</title>
 
@@ -309,6 +309,7 @@
           </button>
         </div>
 
+        <!-- DEV-ONLY-START -->
         <!-- Layers Toggle Button (hidden until journey starts) -->
         <button
           id="layers-toggle"
@@ -346,7 +347,9 @@
             <!-- Populated by JS - includes both map layers and data layers -->
           </div>
         </div>
+        <!-- DEV-ONLY-END -->
 
+        <!-- DEV-ONLY-START -->
         <!-- Camera Debug Tool (dev only, top-left) -->
         <button
           id="camera-debug-toggle"
@@ -418,7 +421,9 @@
             </div>
           </div>
         </div>
+        <!-- DEV-ONLY-END -->
 
+        <!-- DEV-ONLY-START -->
         <!-- QA Reporter (dev tool, top-left below camera debug) -->
         <button
           id="qa-toggle"
@@ -489,7 +494,9 @@
             <!-- Populated by JS -->
           </div>
         </div>
+        <!-- DEV-ONLY-END -->
 
+        <!-- DEV-ONLY-START -->
         <!-- Camera Explorer (dev only) -->
         <button
           id="camera-explorer-toggle"
@@ -624,7 +631,9 @@
           <pre class="camera-explorer-config">{ ... }</pre>
           <button class="camera-explorer-copy">Copy config</button>
         </div>
+        <!-- DEV-ONLY-END -->
 
+        <!-- DEV-ONLY-START -->
         <!-- Step Jumper (dev only, bottom-left) -->
         <button
           id="step-jumper-toggle"
@@ -658,6 +667,7 @@
             <!-- Populated by JS -->
           </div>
         </div>
+        <!-- DEV-ONLY-END -->
 
         <!-- Dashboard Toggle Button (right side) -->
         <button
@@ -867,6 +877,53 @@
         });
       })();
     </script>
+
+    <!-- Rotate-to-landscape overlay (touch devices in portrait).
+         The app is designed for landscape; this overlay covers the
+         broken portrait layout until the user rotates the iPad. -->
+    <div id="rotate-overlay" aria-hidden="true">
+      <div class="rotate-overlay-inner">
+        <svg
+          class="rotate-overlay-icon"
+          width="96"
+          height="96"
+          viewBox="0 0 96 96"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect
+            x="30"
+            y="10"
+            width="36"
+            height="54"
+            rx="5"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+          />
+          <circle cx="48" cy="58" r="1.6" fill="currentColor" />
+          <path
+            d="M16 66 Q16 84 34 84 L62 84 Q80 84 80 66"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+          />
+          <path
+            d="M74 70 L80 64 L86 70"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <h2 class="rotate-overlay-title">Rotate to Landscape</h2>
+        <p class="rotate-overlay-body">
+          This experience is designed for landscape orientation.
+        </p>
+      </div>
+    </div>
 
     <!-- App JS (ES modules) -->
     <script type="module" src="js/main.js"></script>

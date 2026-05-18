@@ -237,6 +237,82 @@ export const methods = {
       }
     });
 
+    // HIG iPad keyboard parity. Magic Keyboard / Smart Keyboard Folio users
+    // should be able to drive the whole pitch without ever leaving the keys:
+    //   Right / Space / Enter → next step
+    //   Left                  → previous step
+    //   Home                  → first step
+    //   End                   → last step
+    //   1-9                   → jump directly to step N
+    // Space and Enter defer to the focused control when one is active so
+    // buttons still activate normally. Modal overlays (gallery, evidence,
+    // quick look) absorb the keys so the user is not pulled out of context.
+    document.addEventListener("keydown", (e) => {
+      if (typeof App === "undefined" || !App.state) return;
+
+      const ae = document.activeElement;
+      const tag = ae && ae.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (ae && ae.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Modal overlays block step navigation. Esc still closes them via the
+      // handler above.
+      const quickLook = document.getElementById("property-quick-look");
+      if (quickLook && !quickLook.classList.contains("hidden")) return;
+      if (
+        this.elements.evidencePreview &&
+        !this.elements.evidencePreview.classList.contains("hidden")
+      ) {
+        return;
+      }
+      if (!this.elements.galleryModal.classList.contains("hidden")) return;
+
+      const interactiveFocused =
+        ae &&
+        ae !== document.body &&
+        (tag === "BUTTON" || tag === "A");
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          App.nextStep?.();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          App.prevStep?.();
+          break;
+        case " ":
+        case "Enter":
+          // Defer to the focused control so buttons activate normally.
+          if (interactiveFocused) return;
+          e.preventDefault();
+          App.nextStep?.();
+          break;
+        case "Home":
+          e.preventDefault();
+          App.goToStep?.(1);
+          break;
+        case "End":
+          e.preventDefault();
+          App.goToStep?.(STEPS.length);
+          break;
+        default:
+          if (/^[1-9]$/.test(e.key) && !interactiveFocused) {
+            const stepNum = parseInt(e.key, 10);
+            if (stepNum <= STEPS.length) {
+              e.preventDefault();
+              App.goToStep?.(stepNum);
+            }
+          }
+      }
+    });
+
     // Delegated click handler for zone property rows (survives innerHTML restore)
     this.elements.panelContent.addEventListener("click", (e) => {
       const row = e.target.closest(".zone-property-row");
@@ -266,6 +342,99 @@ export const methods = {
     this.elements.panelToggle.addEventListener("click", () => {
       this.togglePanel();
     });
+
+    this.setupSwipeToAdvance();
+  },
+
+  /**
+   * HIG iPad swipe-to-advance (Section 5.4). A one-finger horizontal flick
+   * across the canvas moves between steps. Higher velocity threshold than
+   * the bare HIG number so a slow map-pan is not mistaken for a swipe.
+   *
+   *   distance: ≥ 60 pt
+   *   duration: ≤ 800 ms
+   *   velocity: ≥ 500 pt/s (raised from HIG's 300 pt/s because Mapbox
+   *             drag-pan owns the slower band)
+   *   angle:    within 30° of horizontal
+   *
+   * Excludes scrollable overlays and tap targets so panel scroll, gallery
+   * paging, and button taps are unaffected.
+   */
+  setupSwipeToAdvance() {
+    const MIN_DISTANCE = 60;
+    const MIN_VELOCITY = 0.5; // pt/ms (500 pt/s)
+    const MAX_DURATION = 800;
+    const TAN_30 = Math.tan((30 * Math.PI) / 180);
+
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    let tracking = false;
+
+    const isExcluded = (target) => {
+      if (!target) return false;
+      return !!target.closest(
+        'button, a, [role="button"], input, textarea, select, ' +
+          "#right-panel, #gallery-modal, #property-quick-look, " +
+          "#evidence-preview, #data-layers, #qa-panel, #step-jumper, " +
+          "#camera-debug, #camera-explorer",
+      );
+    };
+
+    document.addEventListener(
+      "pointerdown",
+      (e) => {
+        if (!e.isPrimary) return;
+        if (isExcluded(e.target)) {
+          tracking = false;
+          return;
+        }
+        tracking = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startTime = performance.now();
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "pointerup",
+      (e) => {
+        if (!tracking) return;
+        tracking = false;
+        if (!e.isPrimary) return;
+        if (typeof App === "undefined" || !App.state) return;
+        if (App.state.currentStep <= 0) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const dt = performance.now() - startTime;
+        if (dt <= 0 || dt > MAX_DURATION) return;
+
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        const velocity = absX / dt;
+
+        if (absX < MIN_DISTANCE) return;
+        if (velocity < MIN_VELOCITY) return;
+        if (absY > absX * TAN_30) return;
+
+        if (dx < 0) {
+          App.nextStep?.();
+        } else {
+          App.prevStep?.();
+        }
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "pointercancel",
+      () => {
+        tracking = false;
+      },
+      { passive: true },
+    );
   },
 
 

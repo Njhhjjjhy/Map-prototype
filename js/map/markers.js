@@ -189,10 +189,18 @@ export const methods = {
       className: "mapbox-tooltip",
     }).setText(text);
 
-    element.addEventListener("mouseenter", () => {
+    // Pointer events cover mouse, trackpad pointer, Apple Pencil hover (M4+),
+    // and touch. On finger touch, pointerenter/leave fire on tap/lift so the
+    // tooltip briefly previews the name before the click handler opens the
+    // detail panel — giving touch users the same name preview that hover users
+    // get on trackpad.
+    element.addEventListener("pointerenter", () => {
       popup.setLngLat(marker.getLngLat()).addTo(this.map);
     });
-    element.addEventListener("mouseleave", () => {
+    element.addEventListener("pointerleave", () => {
+      popup.remove();
+    });
+    element.addEventListener("pointercancel", () => {
       popup.remove();
     });
 
