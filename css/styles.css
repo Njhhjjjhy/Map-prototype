@@ -5626,24 +5626,26 @@ button.layer-item {
 
 /* ================================
    TABLET DISPLAYS (iPad Pro 13" landscape = 1366px, narrow laptops)
-   Apple Maps reference: sidebar ~400pt for place cards and detail.
+   Apple Maps reference: rich detail card up to ~480pt.
    HIG iPad density: body 19-22pt, 60-75 char measure, generous gutters.
+   A wider panel lets 32px hero titles like "Aso Groundwater Basin"
+   sit on a single line at iPad reading distance (~3ft).
    ================================ */
 @media (max-width: 1366px) {
   #right-panel {
-    width: min(400px, 32vw);
-    min-width: 360px;
+    width: min(480px, 36vw);
+    min-width: 440px;
   }
 }
 
 /* ================================
    SMALLER TABLETS (iPad 11" landscape = 1194px, iPad Air = 1180px)
-   Sidebar scales down proportionally.
+   Sidebar scales down but keeps hero titles legible.
    ================================ */
 @media (max-width: 1194px) {
   #right-panel {
-    width: min(360px, 32vw);
-    min-width: 320px;
+    width: min(440px, 38vw);
+    min-width: 400px;
   }
 }
 
@@ -5652,8 +5654,8 @@ button.layer-item {
    ================================ */
 @media (max-width: 1024px) {
   #right-panel {
-    width: min(320px, 34vw);
-    min-width: 280px;
+    width: min(400px, 40vw);
+    min-width: 360px;
   }
 }
 
