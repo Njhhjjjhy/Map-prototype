@@ -1,5 +1,5 @@
 const TOUR_ORIGIN = "https://3d-vertical-test.vercel.app";
-const TOUR_URL = `${TOUR_ORIGIN}/ozu-test.html`;
+const TOUR_URL = `${TOUR_ORIGIN}/value-add-journey.html`;
 const TOUR_Z_INDEX = 20000;
 
 export const methods = {
