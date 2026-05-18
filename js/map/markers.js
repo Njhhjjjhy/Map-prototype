@@ -352,6 +352,36 @@ export const methods = {
 
     this.markers[property.id] = marker;
     this._layerGroups.properties.push(property.id);
+
+    // Ozu-1 gets a floating "Tour the property" CTA pill beneath the pin
+    if (property.id === "ozu-1") {
+      const ctaHtml = `<button class="property-cta-pill" type="button" aria-label="Tour the property">Tour the property<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>`;
+      const { marker: ctaMarker, element: ctaElement } = this._createMarker(
+        property.coords,
+        ctaHtml,
+        {
+          anchor: "top",
+          offset: [0, 34],
+          className: "property-cta-marker-wrapper",
+        },
+      );
+      if (ctaElement) {
+        const btn = ctaElement.querySelector(".property-cta-pill");
+        if (btn) {
+          btn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (typeof UI !== "undefined" && UI._launchOzu1Tour) {
+              UI._launchOzu1Tour(property, btn);
+            }
+          });
+        }
+      }
+      const ctaId = `${property.id}-tour-cta`;
+      if (ctaMarker) {
+        this.markers[ctaId] = ctaMarker;
+        this._layerGroups.properties.push(ctaId);
+      }
+    }
   },
 
   showSingleCompanyMarker(company) {

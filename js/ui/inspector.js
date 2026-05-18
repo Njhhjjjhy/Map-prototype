@@ -225,11 +225,13 @@ export const methods = {
     // Don't render subtitle when it matches the title (prevents duplicate labels)
     const showSubtitle = subtitle && subtitle !== this.inspectorTitle;
 
-    // Property navigation arrows for stage 9
+    // Property navigation arrows for stage 9 (hidden when Ozu-1 is the only
+    // property surfaced in Step 10).
     let navArrowsHtml = "";
     if (
       stage === 9 &&
       options.property &&
+      options.property.id !== "ozu-1" &&
       AppData.properties &&
       AppData.properties.length > 1
     ) {
@@ -248,15 +250,6 @@ export const methods = {
       </div>`;
     }
 
-    let heroCtaHtml = "";
-    if (
-      stage === 9 &&
-      this.currentProperty &&
-      this.currentProperty.id === "ozu-1"
-    ) {
-      heroCtaHtml = `<button class="panel-btn primary inspector-hero-cta" data-action="value-add-tour" aria-label="${t("Tour the property")}">${t("Tour the property")}<svg class="inspector-hero-cta-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>`;
-    }
-
     const html = `
             <div class="inspector-resize-handle"></div>
             <div class="inspector-title-bar">
@@ -264,7 +257,6 @@ export const methods = {
                 <h2 class="inspector-title">${this.inspectorTitle}</h2>
                 ${navArrowsHtml}
             </div>
-            ${heroCtaHtml}
             ${tabsHtml}
             <div class="inspector-body">
                 <div class="icard-grid">${bodyContent}</div>
@@ -295,13 +287,6 @@ export const methods = {
           }
         });
       });
-
-      const heroCtaBtn = panel.querySelector(".inspector-hero-cta");
-      if (heroCtaBtn) {
-        heroCtaBtn.addEventListener("click", () => {
-          this._launchOzu1Tour(this.currentProperty, heroCtaBtn);
-        });
-      }
     }, 0);
 
     // Fly to entity coordinates if provided

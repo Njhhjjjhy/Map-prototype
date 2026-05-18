@@ -458,10 +458,9 @@ const App = {
         break;
 
       case "properties":
-        // Initialize with Kikuyo zone active by default
-        this.state.activeInvestmentZones = [];
-        this.state.activeInvestmentZones.push("kikuyo-zone");
-        MapController.showInvestmentZone("kikuyo-zone");
+        // Step 10 surfaces only Ozu-1 as the investment property.
+        this.state.activeInvestmentZones = ["ozu-zone"];
+        MapController.showInvestmentZone("ozu-zone");
         UI.showInvestmentZonesPanel(this.state.activeInvestmentZones);
         break;
 
