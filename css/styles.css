@@ -5625,26 +5625,26 @@ button.layer-item {
 }
 
 /* ================================
-   TABLET DISPLAYS (iPad Pro 12.9" landscape = 1366px, narrow laptops)
+   TABLET DISPLAYS (iPad Pro 13" landscape = 1366px, narrow laptops)
+   Apple Maps reference: sidebar ~400pt for place cards and detail.
+   HIG iPad density: body 19-22pt, 60-75 char measure, generous gutters.
    ================================ */
 @media (max-width: 1366px) {
-  /* Right panel — HIG sidebar width (320pt) */
   #right-panel {
-    width: min(320px, 35vw);
-    min-width: 280px;
+    width: min(400px, 32vw);
+    min-width: 360px;
   }
-
 }
 
 /* ================================
    SMALLER TABLETS (iPad 11" landscape = 1194px, iPad Air = 1180px)
+   Sidebar scales down proportionally.
    ================================ */
 @media (max-width: 1194px) {
   #right-panel {
-    width: min(300px, 34vw);
-    min-width: 260px;
+    width: min(360px, 32vw);
+    min-width: 320px;
   }
-
 }
 
 /* ================================
@@ -5652,10 +5652,9 @@ button.layer-item {
    ================================ */
 @media (max-width: 1024px) {
   #right-panel {
-    width: min(280px, 38vw);
-    min-width: 240px;
+    width: min(320px, 34vw);
+    min-width: 280px;
   }
-
 }
 
 /* ================================
