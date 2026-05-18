@@ -311,6 +311,21 @@
         display: none !important;
       }
 
+      /* Dev-only QA tool toggle. Backtick (`) flips data-dev-hidden on <html>
+         so the local presenter can clear the screen without leaving the
+         browser. Handler is gated by import.meta.env.DEV in main.js, so this
+         attribute is only ever set in development. */
+      [data-dev-hidden="1"] #camera-debug-toggle,
+      [data-dev-hidden="1"] #camera-debug,
+      [data-dev-hidden="1"] #qa-toggle,
+      [data-dev-hidden="1"] #qa-panel,
+      [data-dev-hidden="1"] #camera-explorer-toggle,
+      [data-dev-hidden="1"] #camera-explorer,
+      [data-dev-hidden="1"] #step-jumper-toggle,
+      [data-dev-hidden="1"] #step-jumper {
+        display: none !important;
+      }
+
       /* ───── Embed mode: iPhone 17 Pro frame ─────
          Matches the JSX PhoneFrame used by the other playground
          prototypes. The iframe viewport is 440 x 900 (playground

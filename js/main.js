@@ -70,4 +70,27 @@ if (import.meta.env.DEV) {
   StepJumper.init();
   QAReporter.init();
   CameraExplorer.init();
+
+  // Backtick (`) toggles every dev/QA tool at once. CSS in index.html keys off
+  // [data-dev-hidden="1"] on <html>. Ignored when typing in inputs.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "`") return;
+    const ae = document.activeElement;
+    const tag = ae && ae.tagName;
+    if (
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      (ae && ae.isContentEditable)
+    ) {
+      return;
+    }
+    e.preventDefault();
+    const root = document.documentElement;
+    if (root.getAttribute("data-dev-hidden") === "1") {
+      root.removeAttribute("data-dev-hidden");
+    } else {
+      root.setAttribute("data-dev-hidden", "1");
+    }
+  });
 }
