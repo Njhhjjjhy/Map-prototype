@@ -55,6 +55,40 @@ if (!import.meta.env.DEV) {
 App.init();
 
 if (import.meta.env.DEV) {
+  // Register the dev-tools toggle FIRST, before any awaits, so it works even
+  // if a later dynamic import throws. Capture phase so Mapbox / focused
+  // controls cannot eat the event. Backtick (`) flips data-dev-hidden on
+  // <html>; CSS in index.html does the actual hiding.
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key !== "`") return;
+      const ae = document.activeElement;
+      const tag = ae && ae.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (ae && ae.isContentEditable)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const root = document.documentElement;
+      const hidden = root.getAttribute("data-dev-hidden") === "1";
+      if (hidden) {
+        root.removeAttribute("data-dev-hidden");
+      } else {
+        root.setAttribute("data-dev-hidden", "1");
+      }
+      console.log(
+        `[dev] backtick toggle → dev tools ${hidden ? "shown" : "hidden"}`,
+      );
+    },
+    true,
+  );
+
   const [
     { StepJumper },
     { QAReporter },
@@ -70,27 +104,4 @@ if (import.meta.env.DEV) {
   StepJumper.init();
   QAReporter.init();
   CameraExplorer.init();
-
-  // Backtick (`) toggles every dev/QA tool at once. CSS in index.html keys off
-  // [data-dev-hidden="1"] on <html>. Ignored when typing in inputs.
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "`") return;
-    const ae = document.activeElement;
-    const tag = ae && ae.tagName;
-    if (
-      tag === "INPUT" ||
-      tag === "TEXTAREA" ||
-      tag === "SELECT" ||
-      (ae && ae.isContentEditable)
-    ) {
-      return;
-    }
-    e.preventDefault();
-    const root = document.documentElement;
-    if (root.getAttribute("data-dev-hidden") === "1") {
-      root.removeAttribute("data-dev-hidden");
-    } else {
-      root.setAttribute("data-dev-hidden", "1");
-    }
-  });
 }
