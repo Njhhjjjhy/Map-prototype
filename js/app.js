@@ -9,8 +9,6 @@ import { stepHandlers } from "./step-handlers.js";
 import {
   panelHeader,
   evidenceImage,
-  continueBtn,
-  SVG_ARROW_RIGHT,
 } from "./shared/templates.js";
 import { t } from "./i18n/index.js";
 
@@ -84,12 +82,31 @@ const App = {
     // Populate data layers for the initial state
     UI.showDataLayers("initial");
 
-    // Show chatbox with initial content
-    UI.showChatbox(`
-            <h3>${t("Kumamoto investment guide")}</h3>
-            <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
-            ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
-        `);
+    // Show nav arrows (step 0 = welcome, forward only)
+    UI.showNavArrows(0, STEPS.length);
+
+    /* Embed auto-advance. When loaded with ?startStep=N (used by the
+       value-add-prototype slideshow), jump straight to that step
+       instead of sitting on the welcome screen at step 0. After the
+       step's camera flight completes, remove any setup cover the
+       embed-host script placed and notify the parent window that the
+       map is ready (gktk-map-ready). */
+    try {
+      const startStepRaw = new URLSearchParams(location.search).get(
+        "startStep",
+      );
+      const startStep = startStepRaw ? parseInt(startStepRaw, 10) : NaN;
+      if (
+        Number.isFinite(startStep) &&
+        startStep >= 1 &&
+        startStep <= STEPS.length
+      ) {
+        await this.goToStep(startStep);
+      }
+    } catch (_e) {}
+    if (typeof window.__uncoverSetup === "function") {
+      window.__uncoverSetup();
+    }
   },
 
   /**
@@ -173,9 +190,9 @@ const App = {
       UI.hideTimeToggle();
     }
 
-    // --- Render chatbox and panel ---
-    this._renderStepChatbox(step);
+    // --- Render panel (auto-open) and nav arrows ---
     this._renderStepPanel(step);
+    UI.showNavArrows(stepIndex, STEPS.length);
 
     // --- Data layers ---
     UI.showDataLayers(stepIndex);
@@ -219,13 +236,7 @@ const App = {
       this.state.activeProperty = null;
 
       UI.updateJourneyProgress(0, STEPS.length);
-
-      // Restore initial welcome chatbox with Start Journey CTA
-      UI.showChatbox(`
-                <h3>${t("Kumamoto investment guide")}</h3>
-                <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
-                ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
-            `);
+      UI.showNavArrows(0, STEPS.length);
 
       MapController.startHeartbeat();
       this._transitioning = false;
@@ -240,7 +251,6 @@ const App = {
    */
   async _exitStep(stepIndex) {
     MapController.stopHeartbeat();
-    UI.saveChatboxToHistory();
 
     const step = STEPS[stepIndex - 1];
     if (!step) return;
@@ -266,13 +276,9 @@ const App = {
     }
 
     // Reset drag positions before hiding UI
-    document.getElementById("chatbox")?.resetDragPosition?.();
     document.getElementById("right-panel")?.resetDragPosition?.();
-    document.getElementById("ai-chat")?.resetDragPosition?.();
 
-    // Hide UI sequentially for cleaner exit
-    UI.hideChatbox();
-    await new Promise((r) => setTimeout(r, TIMING.fast));
+    // Hide UI
     UI.hidePanel();
 
     // Clean up all map elements for a fresh start
@@ -416,187 +422,6 @@ const App = {
     }
   },
 
-  // ================================
-  // Per-step chatbox content
-  // ================================
-
-  /**
-   * Render chatbox content for a step.
-   * Each step gets a title, narrative, optional sub-items, and Continue button.
-   */
-  _renderStepChatbox(step) {
-    const chatboxContent = this._getStepChatboxContent(step);
-    if (step.id === "final") {
-      // Final step shows AI chat panel directly, skip the step chatbox
-      UI.showQAMode();
-      return;
-    }
-    if (step.id === "properties") {
-      // Properties step shows only the right dashboard, no chatbox
-      UI.hideChatbox();
-      return;
-    }
-    UI.showChatbox(chatboxContent, { skipHistory: true });
-  },
-
-  /**
-   * Generate chatbox HTML for a given step.
-   */
-  _getStepChatboxContent(step) {
-    const subItemsHtml = this._renderSubItems(step);
-    const continueBtnHtml =
-      step.index < STEPS.length ? continueBtn("App.nextStep()") : "";
-
-    // Step-specific narratives
-    const narratives = {
-      resources: {
-        title: t("Resources"),
-        body: t("Semiconductor fabs need <strong>10 million gallons of water daily</strong> and enough electricity to power a small city. Kumamoto has both in surplus."),
-        afterItems: "",
-      },
-      "strategic-location": {
-        title: t("Strategic location"),
-        body: t("Seoul, Busan, and Taiwan are all reachable by direct flight in under 3 hours from Kumamoto. Every major semiconductor hub in Asia is within easy reach."),
-        afterItems:
-          t('<p style="color: var(--color-text-secondary); margin-top: var(--space-2);">Click destinations on the map to see route details.</p>'),
-      },
-      "government-support": {
-        title: t("Government support"),
-        body: t("<strong>3+ trillion yen</strong> from the national government. <strong>480 billion yen</strong> from Kumamoto Prefecture. Every level of government is aligned behind semiconductors."),
-        afterItems:
-          t('<p style="margin-top: var(--space-2);">Click tier markers to see commitment details.</p>'),
-      },
-      "corporate-investment": {
-        title: t("Corporate investment"),
-        body: t("TSMC committed <strong>2.16 trillion yen</strong> for two fabs. Sony, SUMCO, Kyocera, Rohm Apollo, Mitsubishi, Tokyo Electron all announced expansions. <strong>Seven major players</strong>, all converging on Kumamoto."),
-        afterItems:
-          t('<p style="margin-top: var(--space-2);">Click company markers to see investment scale.</p>'),
-      },
-      "transport-access": {
-        title: t("Science park and grand airport"),
-        body: t("Kumamoto Science Park anchors a semiconductor corridor backed by <strong>¥4.8 trillion</strong> in government investment. A new airport vision connects the corridor to Asia."),
-        afterItems: "",
-      },
-      "education-pipeline": {
-        title: t("Education and talent pipeline"),
-        body: t("METI's Kyushu Semiconductor Human Resources Development Alliance coordinates <strong>five universities</strong> across the region, building a purpose-built talent pipeline."),
-        afterItems: "",
-      },
-      "future-outlook": {
-        title: t("Future outlook"),
-        body: t("See the 2030+ completed state: science park expansion, grand airport, road completions, and new stations."),
-        afterItems: "",
-      },
-      "investment-zones": {
-        title: t("Investment zones"),
-        body: t("Three zones in the silicon triangle, each with a distinct role in the semiconductor ecosystem."),
-        afterItems: "",
-      },
-      properties: {
-        title: t("Investment properties"),
-        body: t("{{count}} properties in the semiconductor corridor. Within <strong>10-minute drive</strong> to JASM.", { count: AppData.properties.length }),
-        afterItems: "",
-      },
-      final: {
-        title: t("Journey complete"),
-        body: "",
-        afterItems: "",
-      },
-    };
-
-    const n = narratives[step.id] || {
-      title: step.title,
-      body: "",
-      afterItems: "",
-    };
-
-    // Step 12 (final) gets special recap content
-    if (step.id === "final") {
-      return this._renderFinalChatbox();
-    }
-
-    // Step 4 (government-support) gets toggle rows instead of sub-items
-    if (step.id === "government-support") {
-      return this._renderGovernmentChatbox(n, continueBtnHtml);
-    }
-
-
-    const navRow = continueBtnHtml
-      ? `<div class="chatbox-nav-row">${continueBtnHtml}</div>`
-      : "";
-
-    return `
-            <h3>${n.title}</h3>
-            <p>${n.body}</p>
-            ${subItemsHtml}
-            ${n.afterItems}
-            ${navRow}
-        `;
-  },
-
-  /**
-   * Render clickable sub-items for a step.
-   * Supports nested children via `children` array on parent items.
-   */
-  _renderSubItems(step) {
-    if (!step.subItems || step.subItems.length === 0) return "";
-
-    // Collect all leaf items for counting (children count, not parents)
-    const leafItems = [];
-    step.subItems.forEach((item) => {
-      if (item.children && item.children.length > 0) {
-        item.children.forEach((child) => leafItems.push(child));
-      } else {
-        leafItems.push(item);
-      }
-    });
-
-    const items = step.subItems
-      .map((item) => {
-        const explored = this.state.subItemsExplored.includes(item.id);
-        const hasChildren = item.children && item.children.length > 0;
-
-        if (hasChildren) {
-          const isSelected =
-            this.state.activeParentGroup === item.id ||
-            this.state.subItemsExplored.includes(item.id);
-          const checkmark = isSelected
-            ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-            : "";
-
-          // Children rendered as toggle rows in the dashboard panel
-          return `<button class="chatbox-option chatbox-option-parent ${isSelected ? "selected" : ""}"
-                            onclick="App.toggleSubItemGroup('${item.id}')">
-                        ${item.label}
-                        ${checkmark}
-                    </button>`;
-        }
-
-        const iconSvg =
-          item.icon === "house"
-            ? `<svg class="chatbox-option-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`
-            : "";
-        const checkmark = explored
-          ? `<svg class="chatbox-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-          : "";
-
-        return `<button class="chatbox-option ${explored ? "completed" : ""}"
-                        onclick="App.selectSubItem('${item.id}')"
-                        ${explored ? 'aria-disabled="true"' : ""}>
-                    ${iconSvg}
-                    <span class="chatbox-option-label">${item.label}</span>
-                    ${checkmark}
-                    ${explored ? '<span class="sr-only"> (explored)</span>' : ""}
-                </button>`;
-      })
-      .join("");
-
-    return `
-            <div class="chatbox-options" role="group" aria-label="Step options">
-                ${items}
-            </div>
-        `;
-  },
 
   _renderStepPanel(step) {
     let hasPanel = true;
@@ -664,19 +489,6 @@ const App = {
   /**
    * Show evidence group panel from chatbox link.
    */
-  restoreChatbox() {
-    const step = STEPS[this.state.currentStep - 1];
-    if (step) {
-      const content = this._getStepChatboxContent(step);
-      UI.showChatbox(content);
-    } else {
-      UI.showChatbox(`
-                <h3>${t("Kumamoto investment guide")}</h3>
-                <p>${t("Explore the map and use the data layers to learn about investment opportunities in Kumamoto's semiconductor corridor.")}</p>
-                ${continueBtn("App.goToStep(1)", t("Start Journey"), { arrow: true })}
-            `);
-    }
-  },
 
   /**
    * Restart the presentation from the beginning.
@@ -684,8 +496,7 @@ const App = {
   restart() {
     MapController.destroy();
     UI.hidePanel();
-    UI.hideChatbox();
-    UI.hideAIChat();
+    UI.hideNavArrows();
     UI.hideLayersToggle();
     UI.hidePanelToggle();
     UI.hideTimeToggle();

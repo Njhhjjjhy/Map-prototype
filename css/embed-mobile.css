@@ -1,0 +1,442 @@
+/* ─────────────────────────────────────────────────────────
+   Embed mobile (Apple Maps pattern, gktk design system)
+
+   Scoped entirely to [data-embed="1"]:not([data-embed-host="valueadd"]). The desktop experience
+   is untouched. Colors, fonts, and radii come from the gktk
+   design system; the *layout* and *interaction language*
+   follows Apple Maps on iPhone:
+
+   - Bottom sheet with rounded top corners and a drag handle
+   - iOS grouped list rows for toggles
+   - Circular glass chrome buttons (close, nav)
+   - SF-style content hierarchy (large title, caption label)
+
+   Light mode only. No dark surfaces anywhere.
+   ───────────────────────────────────────────────────────── */
+
+[data-embed="1"]:not([data-embed-host="valueadd"]) {
+  --sheet-radius: 24px;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.95);
+  --glass-shadow:
+    0 -8px 32px rgba(0, 0, 0, 0.10),
+    0 -2px 8px rgba(0, 0, 0, 0.05);
+  --row-bg: rgba(255, 255, 255, 0.72);
+  --row-border: rgba(0, 0, 0, 0.06);
+  --hairline: rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Map container: add bottom inset so content sits above sheet ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #map-container {
+  padding-bottom: 0;
+}
+
+/* ─── Bottom sheet (was: right sliding panel) ───
+   Apple Maps-style three-detent sheet driven by JS:
+   - .sheet-peek:   28% of screen (title + subtitle, map dominant)
+   - .sheet-medium: 56% of screen (default expanded — content + map)
+   - .sheet-large:  88% of screen (deep dive, map peek at top)
+   While the user is dragging, JS sets an inline height that takes over.
+   max-height ensures the sheet can never exceed the phone screen even
+   if a percentage calculation drifts. */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel {
+  position: absolute;
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 56%;
+  max-height: calc(100% - 60px);
+  min-width: 0;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  background: var(--glass-bg);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border: none;
+  border-top: var(--glass-border);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+  transform: translateY(100%);
+  transition:
+    transform 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    height 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 100;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.visible {
+  transform: translateY(0);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-peek {
+  height: 28%;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-medium {
+  height: 56%;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-large {
+  height: 88%;
+}
+/* While dragging, disable the height transition for direct manipulation */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-dragging {
+  transition: none;
+}
+
+/* Clickable handle strip at the top of the sheet. Injected by embed JS.
+   In peek mode the click target covers the whole sheet (handled in JS)
+   so users can tap anywhere to expand. */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .sheet-handle-hit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  z-index: 4;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .sheet-handle-hit::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.18);
+  transition: background 160ms ease, width 160ms ease, height 160ms ease;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .sheet-handle-hit:hover::before,
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-dragging .sheet-handle-hit::before {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-peek {
+  cursor: pointer;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .sheet-handle-hit {
+  cursor: grab;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-dragging .sheet-handle-hit {
+  cursor: grabbing;
+}
+
+/* Desktop resize handle is meaningless on mobile */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .inspector-resize-handle {
+  display: none !important;
+}
+
+/* ─── Sheet toolbar ─── On mobile we never let the sheet fully close
+   (the map is meaningless without context), so both buttons are hidden.
+   The handle pill at the top of the sheet is the only affordance and
+   toggles between peek and expanded. */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-toolbar {
+  display: none !important;
+}
+
+/* ─── Scroll body ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content {
+  padding: 36px 18px 24px;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Panel header: "Tri-level alignment / Government support / …" ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content .subtitle {
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #5B616E;
+  margin: 0 0 2px;
+  text-transform: none;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content h2 {
+  font-family: "REM", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #25272C;
+  margin: 0 0 8px;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content p {
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #5B616E;
+  margin: 0 0 14px;
+}
+
+/* In peek state, only the header (subtitle + h2) is visible. Fade the
+   rest so the user sees there is more, without visual clutter. */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #right-panel.sheet-peek #panel-content {
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 40px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 40px),
+    transparent 100%
+  );
+}
+
+/* ─── Section titles inside cards ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content h3,
+[data-embed="1"]:not([data-embed-host="valueadd"]) #panel-content .panel-section-title {
+  font-family: "REM", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: #25272C;
+  margin: 0 0 12px;
+}
+
+/* ─── iOS grouped list: toggle rows (gov chain, energy types, zones) ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--row-bg);
+  border: 1px solid var(--row-border);
+  border-radius: 14px;
+  margin: 0 0 8px;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-row:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-row.active {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.10);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-icon {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  color: #5B616E;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-row.active .energy-toggle-icon {
+  background: rgba(251, 185, 49, 0.18);
+  color: #B27000;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-icon svg {
+  width: 16px;
+  height: 16px;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-label {
+  flex: 1;
+  text-align: left;
+  font-family: "REM", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: #25272C;
+}
+
+/* iOS UISwitch */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-switch {
+  position: relative;
+  width: 42px;
+  height: 26px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.12);
+  transition: background 180ms ease;
+  flex-shrink: 0;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-switch.on {
+  background: #FBB931;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: transform 180ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-toggle-switch.on .energy-toggle-knob {
+  transform: translateX(16px);
+}
+
+/* ─── Cards (icard, evidence, bento) ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .icard,
+[data-embed="1"]:not([data-embed-host="valueadd"]) .energy-evidence-card,
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-bento-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--row-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 0 12px;
+  box-shadow: none;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .icard-title {
+  font-family: "REM", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0;
+  color: #5B616E;
+  margin: 0 0 10px;
+  text-transform: none;
+}
+
+/* Stat grids */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-bento-stats,
+[data-embed="1"]:not([data-embed-host="valueadd"]) .stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-bento-stat,
+[data-embed="1"]:not([data-embed-host="valueadd"]) .stat-item {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--row-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-bento-stat-value,
+[data-embed="1"]:not([data-embed-host="valueadd"]) .stat-value {
+  font-family: "REM", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #25272C;
+  margin: 0 0 4px;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-bento-stat-label,
+[data-embed="1"]:not([data-embed-host="valueadd"]) .stat-label {
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  font-size: 11px;
+  color: #5B616E;
+  line-height: 1.3;
+}
+
+/* ─── CTA buttons (Continue) ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .chatbox-continue {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 14px;
+  font-family: "REM", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 120ms ease, background 120ms ease;
+  margin: 16px 0 8px;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .chatbox-continue.primary {
+  background: #FBB931;
+  color: #25272C;
+  box-shadow: 0 2px 12px rgba(251, 185, 49, 0.25);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .chatbox-continue.primary:active {
+  transform: scale(0.98);
+  background: #F2AC1F;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .chatbox-continue.secondary {
+  background: rgba(0, 0, 0, 0.06);
+  color: #25272C;
+}
+
+/* ─── Nav arrows: iOS glass buttons pinned above the sheet ─── */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-arrows {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn:active {
+  transform: scale(0.94);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Back: neutral glass */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn.back {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  color: #25272C;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn.back:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Forward: brand amber primary action */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn.forward {
+  background: #FBB931;
+  color: #1A1A1E;
+  box-shadow:
+    0 2px 12px rgba(251, 185, 49, 0.30),
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+[data-embed="1"]:not([data-embed-host="valueadd"]) .nav-btn.forward:hover {
+  background: #F2AC1F;
+}
+
+/* Hide desktop resize handle entirely in embed mode */
+[data-embed="1"]:not([data-embed-host="valueadd"]) .panel-resize-handle {
+  display: none !important;
+}

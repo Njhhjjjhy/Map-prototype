@@ -9,6 +9,10 @@ import { t } from "../i18n/index.js";
 
 export const methods = {
   showDataLayers(stepIndex) {
+    /* The Data Layers panel and its toggle button live inside DEV-ONLY
+       blocks in index.html, so production builds strip them. Bail out
+       quietly so embedded / production environments don't crash. */
+    if (!this.elements.layersToggle || !this.elements.dataLayers) return;
     // Lucide-style SVG icons
     const icons = {
       // Home icon (Lucide: home)
@@ -281,7 +285,8 @@ export const methods = {
     }
   },
   hideDataLayers() {
-    document.getElementById("data-layers").classList.add("hidden");
+    if (!this.elements.layersToggle || !this.elements.dataLayers) return;
+    this.elements.dataLayers.classList.add("hidden");
     this.layersPanelOpen = false;
     this.elements.layersToggle.classList.remove("active");
     this.elements.layersToggle.setAttribute("aria-expanded", "false");
@@ -303,6 +308,7 @@ export const methods = {
    * Toggle layers panel visibility
    */
   toggleLayersPanel() {
+    if (!this.elements.layersToggle || !this.elements.dataLayers) return;
     if (this.layersPanelOpen) {
       this.elements.dataLayers.classList.add("hidden");
       this.elements.layersToggle.classList.remove("active");
@@ -321,6 +327,7 @@ export const methods = {
    * Show layers toggle button
    */
   showLayersToggle() {
+    if (!this.elements.layersToggle) return;
     this.elements.layersToggle.classList.remove("hidden");
   },
 
@@ -623,8 +630,7 @@ export const methods = {
   },
 
   /**
-   * Handle dashboard auto-open when data layers are toggled while chatbox is closed.
-   * Journey takes priority when chatbox is open.
+   * Handle dashboard auto-open when data layers are toggled.
    */
   _handleDataLayerDashboard() {
     // In Q&A mode, always use the tabbed QA panel
@@ -637,12 +643,6 @@ export const methods = {
       this._renderQAPanel();
       return;
     }
-
-    const chatbox = this.elements.chatbox;
-    const chatboxOpen = chatbox && !chatbox.classList.contains("hidden");
-
-    // Journey takes priority when chatbox is open
-    if (chatboxOpen) return;
 
     // Check if any data layers are active
     const activeKeys = Object.keys(this.activeDataLayers);

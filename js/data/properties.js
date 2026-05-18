@@ -1152,3 +1152,37 @@ export const areaStats = {
 };
 
 export const jasmLocation = [32.88565294085959, 130.84237152850676];
+
+/**
+ * Optional ?properties= query-param filter.
+ *
+ * When present, the `properties` array is narrowed (in place) to the listed
+ * IDs in the given order. All other code can continue to treat `properties`
+ * as the complete list.
+ *
+ * Example: ?properties=ozu-1
+ *
+ * This is used by the value-add-prototype slideshow so the Properties scene
+ * shows only the property the slideshow wants to feature (Chateau Life
+ * Ozu 1), without affecting the standalone map experience.
+ */
+(function applyPropertiesFilter() {
+  if (typeof window === "undefined" || typeof URLSearchParams === "undefined") {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("properties");
+  if (!raw) return;
+
+  const requested = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (requested.length === 0) return;
+
+  const byId = new Map(properties.map((p) => [p.id, p]));
+  const filtered = requested.map((id) => byId.get(id)).filter(Boolean);
+  if (filtered.length === 0) return;
+
+  properties.splice(0, properties.length, ...filtered);
+})();

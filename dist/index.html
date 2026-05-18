@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <title>熊本投資機會</title>
+    <title>Kumamoto Investment Opportunities</title>
 
     <!-- Google Fonts: REM + Noto Sans JP + Noto Sans TC -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,12 +23,429 @@
     />
 
     <!-- App CSS -->
-    <script type="module" crossorigin src="/assets/index-Ch0Vra2E.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-MOzzWX6A.css">
+    <script type="module" crossorigin src="./assets/index-DvIVIUnJ.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D_Zprl1N.css">
   </head>
   <body>
+    <!-- Embed mode: set by ?embed=1. Hides dev tools and the language toggle
+         so the prototype can be iframed as a clean experience.
+
+         An optional ?host=<name> flag selects an embed host style:
+           - (unset)         → iPhone 17 Pro phone frame (gktk-prototype playground)
+           - host=valueadd   → fills 100% of the iframe, no phone frame, adds
+                               postMessage events and a setup cover so it can
+                               be embedded in the value-add-prototype slideshow.
+         See docs/value-add-prototype-relationship.md for the relationship
+         between this project and value-add-prototype. -->
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        if (params.get("embed") !== "1") return;
+        document.documentElement.setAttribute("data-embed", "1");
+        var host = params.get("host") || "";
+        if (host) document.documentElement.setAttribute("data-embed-host", host);
+        if (params.get("chromeless") === "1") {
+          document.documentElement.setAttribute("data-chromeless", "1");
+        }
+
+        /* host=valueadd skips the iPhone-host setup below (bottom-sheet
+           drag, overlay reparenting). embed-mobile.css is scoped with
+           :not([data-embed-host="valueadd"]) so its rules don't apply
+           in this host; the standalone styles in styles.css win. */
+        if (host === "valueadd") return;
+
+        document.addEventListener("DOMContentLoaded", function () {
+          /* Reparent overlays into #app-container so their `position: absolute`
+             resolves against the phone screen, not the iframe viewport. */
+          var host = document.getElementById("app-container");
+          if (host) {
+            ["right-panel", "gallery-modal", "property-quick-look", "evidence-preview"].forEach(function (id) {
+              var el = document.getElementById(id);
+              if (el) host.appendChild(el);
+            });
+          }
+
+          /* Apple Maps-style bottom sheet with three detents and drag.
+             The sheet is constrained to its absolute parent (#app-container)
+             so it can never escape the phone screen. Touch/mouse drag on
+             the handle resizes live; release snaps to the nearest detent
+             (peek / medium / large). Tap (no movement) cycles to the next
+             detent up. */
+          var panel = document.getElementById("right-panel");
+          if (!panel) return;
+
+          var DETENT_PCT = { peek: 0.28, medium: 0.56, large: 0.88 };
+          var DETENT_ORDER = ["peek", "medium", "large"];
+          var currentDetent = "peek";
+
+          function setDetent(name) {
+            currentDetent = name;
+            panel.classList.remove("sheet-peek", "sheet-medium", "sheet-large");
+            panel.classList.add("sheet-" + name);
+            panel.style.height = "";
+          }
+          function cycleDetentUp() {
+            var i = DETENT_ORDER.indexOf(currentDetent);
+            if (i < DETENT_ORDER.length - 1) setDetent(DETENT_ORDER[i + 1]);
+            else setDetent(DETENT_ORDER[0]);
+          }
+          function snapToNearest(pixelHeight, parentHeight) {
+            var ratio = pixelHeight / parentHeight;
+            var nearest = DETENT_ORDER[0];
+            var bestDelta = Infinity;
+            DETENT_ORDER.forEach(function (name) {
+              var d = Math.abs(DETENT_PCT[name] - ratio);
+              if (d < bestDelta) {
+                bestDelta = d;
+                nearest = name;
+              }
+            });
+            setDetent(nearest);
+          }
+
+          setDetent("peek");
+
+          var handle = document.createElement("button");
+          handle.type = "button";
+          handle.className = "sheet-handle-hit";
+          handle.setAttribute("aria-label", "Resize sheet");
+          panel.appendChild(handle);
+
+          /* Drag implementation. Tracks pointer Y and updates panel height
+             in real time. On release, snaps to the nearest detent. A drag
+             of less than 6px is treated as a tap and cycles up one detent. */
+          var dragging = false;
+          var startY = 0;
+          var startHeight = 0;
+          var moved = 0;
+
+          function getParentHeight() {
+            return panel.parentElement
+              ? panel.parentElement.getBoundingClientRect().height
+              : 720;
+          }
+          function onPointerDown(e) {
+            dragging = true;
+            moved = 0;
+            startY = e.touches ? e.touches[0].clientY : e.clientY;
+            startHeight = panel.getBoundingClientRect().height;
+            panel.classList.add("sheet-dragging");
+            if (e.cancelable) e.preventDefault();
+          }
+          function onPointerMove(e) {
+            if (!dragging) return;
+            var y = e.touches ? e.touches[0].clientY : e.clientY;
+            var dy = y - startY;
+            moved = Math.abs(dy);
+            var parentH = getParentHeight();
+            var maxH = parentH - 60;
+            var minH = parentH * 0.18;
+            var nextH = Math.max(minH, Math.min(maxH, startHeight - dy));
+            panel.style.height = nextH + "px";
+            if (e.cancelable) e.preventDefault();
+          }
+          function onPointerUp() {
+            if (!dragging) return;
+            dragging = false;
+            panel.classList.remove("sheet-dragging");
+            if (moved < 6) {
+              cycleDetentUp();
+              return;
+            }
+            var h = panel.getBoundingClientRect().height;
+            snapToNearest(h, getParentHeight());
+          }
+
+          handle.addEventListener("touchstart", onPointerDown, { passive: false });
+          handle.addEventListener("mousedown", onPointerDown);
+          window.addEventListener("touchmove", onPointerMove, { passive: false });
+          window.addEventListener("mousemove", onPointerMove);
+          window.addEventListener("touchend", onPointerUp);
+          window.addEventListener("mouseup", onPointerUp);
+          window.addEventListener("touchcancel", onPointerUp);
+
+          /* When peeked, tapping anywhere inside the sheet body raises it
+             to medium so users can see the rest. Buttons and toggles are
+             excluded so their own actions still work. */
+          panel.addEventListener("click", function (e) {
+            if (currentDetent !== "peek") return;
+            if (e.target.closest("button, a, input, label, .sheet-handle-hit"))
+              return;
+            setDetent("medium");
+          });
+
+          /* Reset to peek on step change so the map remains the focal point. */
+          var mo = new MutationObserver(function (mutations) {
+            mutations.forEach(function (m) {
+              if (m.type !== "childList") return;
+              if (m.target.id !== "panel-content") return;
+              if (panel.classList.contains("visible")) setDetent("peek");
+            });
+          });
+          var content = document.getElementById("panel-content");
+          if (content) mo.observe(content, { childList: true });
+        });
+      })();
+    </script>
+
+    <!-- value-add-prototype embed host. Activated by ?embed=1&host=valueadd.
+         Adds the behaviors the slideshow expects:
+           - chromeless toggle via ?chromeless=1 and the
+             { type: "gktk-set-chromeless", value } postMessage
+           - a #__setup-cover overlay that hides the bundle's first paint
+             until the initial framing is in place, then fires
+             { type: "gktk-map-ready" } to the parent window
+           - capture-phase click interceptor on #nav-back / #nav-forward
+             that fires { type: "gktk-map-back-to-content" } at the first
+             step (back) and { type: "gktk-map-complete" } at the last step
+             (forward), so the slideshow can transition out of the iframe
+         See docs/value-add-prototype-relationship.md. -->
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        if (params.get("embed") !== "1") return;
+        if (params.get("host") !== "valueadd") return;
+
+        /* Allow the parent slideshow to flip chromeless mode at runtime
+           via postMessage. Used during transitions where the map face is
+           tilted/animated — any UI on top breaks the illusion. */
+        window.addEventListener("message", function (e) {
+          if (e.origin !== window.location.origin) return;
+          var data = e.data;
+          if (!data || typeof data !== "object") return;
+          if (data.type === "gktk-set-chromeless") {
+            if (data.value) {
+              document.documentElement.setAttribute("data-chromeless", "1");
+            } else {
+              document.documentElement.removeAttribute("data-chromeless");
+            }
+          }
+        });
+
+        /* Setup cover. Covers the screen with a solid #F9F9F9 overlay
+           during initialization so the slideshow never sees the bundle's
+           default map view or the step-1 entry camera flash before the
+           desired framing is in place. We use an overlay rather than
+           hiding <html> because some browsers pause WebGL rendering in
+           invisible elements, which would stop the map from finishing
+           its setup. The map renders normally underneath. */
+        var cover = document.createElement("div");
+        cover.id = "__setup-cover";
+        cover.style.cssText = [
+          "position:fixed",
+          "inset:0",
+          "background:#F9F9F9",
+          "z-index:99999",
+          "pointer-events:none",
+        ].join(";");
+        function uncover() {
+          if (cover && cover.parentNode) cover.parentNode.removeChild(cover);
+          cover = null;
+          /* Tell the parent slideshow that the map has reached its initial
+             framing and is now visible. Transition steps gate the start
+             of their animations on this signal. */
+          try {
+            window.parent.postMessage({ type: "gktk-map-ready" }, "*");
+          } catch (_e) {}
+        }
+        window.__uncoverSetup = uncover;
+        /* Safety reveal in case the normal trigger never fires. Short
+           because the fast-entry window caps camera durations, so the
+           final auto-fit should complete well under 1s. */
+        setTimeout(uncover, 3000);
+        if (document.body) {
+          document.body.appendChild(cover);
+        } else {
+          document.addEventListener("DOMContentLoaded", function () {
+            if (cover) document.body.appendChild(cover);
+          });
+        }
+
+        /* Boundary intercepts. At the first internal step #nav-back and
+           at the last internal step #nav-forward, signal the parent
+           slideshow to navigate out of the iframe instead of letting the
+           bundle's internal handler run. Capture-phase + closest() so it
+           survives node re-creation and beats bundle handlers. */
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          var fwd = t && t.closest && t.closest("#nav-forward");
+          var back = t && t.closest && t.closest("#nav-back");
+          if (!fwd && !back) return;
+          var stepsParam =
+            new URLSearchParams(location.search).get("steps") || "";
+          var totalSteps = stepsParam.split(",").filter(Boolean).length;
+          if (!totalSteps && window.STEPS && window.STEPS.length) {
+            totalSteps = window.STEPS.length;
+          }
+          if (!totalSteps) return;
+          var current =
+            (window.App && window.App.state && window.App.state.currentStep) || 1;
+          if (fwd && current >= totalSteps) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            try {
+              window.parent.postMessage({ type: "gktk-map-complete" }, "*");
+            } catch (_e) {}
+          } else if (back && current <= 1) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            try {
+              window.parent.postMessage(
+                { type: "gktk-map-back-to-content" },
+                "*"
+              );
+            } catch (_e) {}
+          }
+        }, true);
+      })();
+    </script>
+
+    <style>
+      /* Dev tools are always hidden in any embed mode. */
+      [data-embed="1"] #camera-debug-toggle,
+      [data-embed="1"] #camera-debug,
+      [data-embed="1"] #qa-toggle,
+      [data-embed="1"] #qa-panel,
+      [data-embed="1"] #camera-explorer-toggle,
+      [data-embed="1"] #camera-explorer,
+      [data-embed="1"] #step-jumper-toggle,
+      [data-embed="1"] #step-jumper,
+      [data-embed="1"] #layers-toggle {
+        display: none !important;
+      }
+
+      /* The iPhone playground embed hides the language toggle, panel
+         toggle, time toggle, and journey progress. The value-add
+         host wants them visible, so this rule is scoped to NOT match
+         when host=valueadd. */
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #lang-toggle,
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #panel-toggle,
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #time-toggle,
+      [data-embed="1"]:not([data-embed-host="valueadd"]) #journey-progress {
+        display: none !important;
+      }
+
+      /* Dev-only QA tool toggle. Cmd+Shift+1 flips data-dev-hidden on <html>
+         so the local presenter can clear the screen without leaving the
+         browser. Handler is gated by import.meta.env.DEV in main.js, so this
+         attribute is only ever set in development. */
+      [data-dev-hidden="1"] #camera-debug-toggle,
+      [data-dev-hidden="1"] #camera-debug,
+      [data-dev-hidden="1"] #qa-toggle,
+      [data-dev-hidden="1"] #qa-panel,
+      [data-dev-hidden="1"] #camera-explorer-toggle,
+      [data-dev-hidden="1"] #camera-explorer,
+      [data-dev-hidden="1"] #step-jumper-toggle,
+      [data-dev-hidden="1"] #step-jumper {
+        display: none !important;
+      }
+
+      /* ───── Embed mode: iPhone 17 Pro frame ─────
+         Matches the JSX PhoneFrame used by the other playground
+         prototypes. The iframe viewport is 440 x 900 (playground
+         constant). We paint the neutral page on <html>, center a
+         380 x 732 bezel on <body>, and the app fills the 368 x 720
+         screen inside. The `transform` on body makes body the
+         containing block for descendants with `position: fixed`,
+         so the right panel, gallery, and overlays stay inside the
+         phone screen instead of escaping to the iframe viewport. */
+      [data-embed="1"] {
+        background: #EDEEF1;
+      }
+      html[data-embed="1"] {
+        min-height: 100%;
+      }
+      [data-embed="1"] body {
+        width: 380px;
+        height: 732px;
+        padding: 6px;
+        margin: 0 auto;
+        box-sizing: border-box;
+        background: #1A1A1E;
+        border-radius: 44px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        position: relative;
+        transform: translate(0, 0);
+      }
+      [data-embed="1"] #app-container {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        height: 100%;
+        border-radius: 40px;
+        overflow: hidden;
+        background: #F9F9F9;
+      }
+      [data-embed="1"] #map-container {
+        border-radius: 40px;
+        overflow: hidden;
+      }
+
+      /* Full-screen modal overlays stay inside the phone screen. The
+         bottom sheet (#right-panel) and the nav arrows are styled in
+         embed-mobile.css. */
+      [data-embed="1"] #gallery-modal,
+      [data-embed="1"] #property-quick-look,
+      [data-embed="1"] #evidence-preview {
+        position: absolute;
+        inset: 0;
+        width: auto;
+        height: auto;
+        border-radius: 40px;
+        overflow: hidden;
+      }
+
+      /* ───── value-add-prototype embed host overrides ─────
+         Activated by ?embed=1&host=valueadd. Overrides the iPhone phone
+         frame above and lets the iframe fill its container — the slideshow
+         draws its own iPad frame around the iframe. */
+      [data-embed-host="valueadd"] {
+        background: #F9F9F9;
+      }
+      html[data-embed-host="valueadd"],
+      [data-embed-host="valueadd"] body {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+      [data-embed-host="valueadd"] body {
+        background: #F9F9F9;
+        border-radius: 0;
+        box-shadow: none;
+        position: relative;
+        transform: translate(0, 0);
+      }
+      [data-embed-host="valueadd"] #app-container {
+        border-radius: 0;
+      }
+      [data-embed-host="valueadd"] #map-container {
+        border-radius: 0;
+      }
+      [data-embed-host="valueadd"] #gallery-modal,
+      [data-embed-host="valueadd"] #property-quick-look,
+      [data-embed-host="valueadd"] #evidence-preview {
+        border-radius: 0;
+      }
+
+      /* Chromeless mode (toggled via ?chromeless=1 or postMessage). Hides
+         every interactive overlay so the map reads as a pure visual
+         surface during transitions. */
+      [data-chromeless="1"] #right-panel,
+      [data-chromeless="1"] #nav-arrows,
+      [data-chromeless="1"] #view-mode-toggle,
+      [data-chromeless="1"] #lang-toggle {
+        display: none !important;
+      }
+    </style>
+
     <!-- Skip Link for keyboard users -->
-    <a href="#map-container" class="skip-link">跳至主要內容</a>
+    <a href="#map-container" class="skip-link">Skip to main content</a>
 
     <!-- Start screen removed - map loads directly -->
     <div id="start-screen" style="display: none"></div>
@@ -72,7 +489,7 @@
             role="radio"
             aria-checked="true"
           >
-            現在
+            Now
           </button>
           <button
             id="future-btn"
@@ -80,427 +497,29 @@
             role="radio"
             aria-checked="false"
           >
-            未來
+            Future
           </button>
         </div>
 
-        <!-- Chatbox -->
-        <div
-          id="chatbox"
-          class="hidden"
-          role="region"
-          aria-label="旅程導覽"
-          aria-live="polite"
-        >
-          <button
-            id="chatbox-back"
-            aria-label="返回"
-            onclick="App.prevStep()"
-            disabled
-          >
-            <svg
-              aria-hidden="true"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
+        <!-- Nav arrows (replaces chatbox + FAB) -->
+        <div class="nav-arrows" id="nav-arrows" style="display: none;">
+          <button class="nav-btn back" id="nav-back" aria-label="Previous step">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
-          <button id="chatbox-close" aria-label="關閉對話框">
-            <svg
-              aria-hidden="true"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+          <button class="nav-btn forward" id="nav-forward" aria-label="Next step">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
-          <div id="chatbox-body">
-            <h3 id="chatbox-title"></h3>
-            <div id="chatbox-content"></div>
-          </div>
         </div>
 
-        <!-- Layers Toggle Button (hidden until journey starts) -->
-        <button
-          id="layers-toggle"
-          class="hidden"
-          aria-label="切換地圖圖層"
-          aria-expanded="false"
-        >
-          <svg
-            aria-hidden="true"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
-          </svg>
-        </button>
+        
 
-        <!-- Floating action button to reopen chatbox/AI chat -->
-        <button id="chat-fab" class="hidden" aria-label="重新開啟導覽">
-          <svg
-            aria-hidden="true"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-            ></path>
-          </svg>
-        </button>
+        
 
-        <!-- Data Layers Panel (journey-aware, toggled by button) -->
-        <div
-          id="data-layers"
-          class="hidden"
-          role="region"
-          aria-label="資料圖層"
-        >
-          <div class="layers-title">資料圖層</div>
-          <div class="layer-items" id="data-layer-items">
-            <!-- Populated by JS - includes both map layers and data layers -->
-          </div>
-        </div>
+        
 
-        <!-- Camera Debug Tool (dev only, top-left) -->
-        <button
-          id="camera-debug-toggle"
-          aria-label="Toggle camera debug"
-          title="Camera debug"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-            />
-          </svg>
-        </button>
-        <div id="camera-debug" class="hidden">
-          <div class="camera-debug-header">
-            <span class="camera-debug-title">Camera</span>
-            <button
-              id="camera-debug-copy"
-              aria-label="Copy camera values"
-              title="Copy to clipboard"
-            >
-              <svg
-                aria-hidden="true"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="14" height="14" x="8" y="8" rx="2" />
-                <path
-                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-                />
-              </svg>
-            </button>
-          </div>
-          <div class="camera-debug-grid">
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">lat</span>
-              <span class="camera-debug-value" id="cam-lat">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">lng</span>
-              <span class="camera-debug-value" id="cam-lng">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">zoom</span>
-              <span class="camera-debug-value" id="cam-zoom">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">pitch</span>
-              <span class="camera-debug-value" id="cam-pitch">--</span>
-            </div>
-            <div class="camera-debug-row">
-              <span class="camera-debug-label">bearing</span>
-              <span class="camera-debug-value" id="cam-bearing">--</span>
-            </div>
-          </div>
-        </div>
+        
 
-        <!-- QA Reporter (dev tool, top-left below camera debug) -->
-        <button
-          id="qa-toggle"
-          aria-label="Toggle QA reporter"
-          title="QA reporter"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-            />
-            <path d="m9 14 2 2 4-4" />
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-          </svg>
-        </button>
-        <div id="qa-panel" class="hidden">
-          <div class="qa-header">
-            <span class="qa-title">QA reporter</span>
-            <span class="qa-count" id="qa-count">0</span>
-            <button
-              id="qa-copy"
-              class="qa-header-btn"
-              aria-label="Copy all unsolved issues"
-              title="Copy unsolved issues"
-            >
-              <svg
-                aria-hidden="true"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="14" height="14" x="8" y="8" rx="2" />
-                <path
-                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-                />
-              </svg>
-            </button>
-          </div>
-          <div class="qa-step-indicator" id="qa-step-indicator">Step: --</div>
-          <div class="qa-form">
-            <div class="qa-categories" id="qa-categories">
-              <!-- Populated by JS -->
-            </div>
-            <textarea
-              id="qa-description"
-              class="qa-textarea"
-              placeholder="Describe the issue..."
-              rows="3"
-            ></textarea>
-            <button id="qa-add" class="qa-add-btn" disabled>Add issue</button>
-          </div>
-          <div class="qa-divider"></div>
-          <div class="qa-issues" id="qa-issues">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-
-        <!-- Camera Explorer (dev only) -->
-        <button
-          id="camera-explorer-toggle"
-          aria-label="Toggle camera explorer"
-          title="Camera explorer"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
-            />
-            <circle cx="12" cy="13" r="3" />
-          </svg>
-        </button>
-        <div id="camera-explorer" class="hidden">
-          <div class="camera-explorer-header">
-            <span class="camera-explorer-title">Camera explorer</span>
-            <button class="camera-explorer-view-toggle">Switch to 3D</button>
-          </div>
-          <div class="camera-explorer-fields">
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">lng, lat</span>
-              <span class="camera-explorer-value" data-field="lnglat">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">lat, lng</span>
-              <span class="camera-explorer-value" data-field="latlng">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">zoom</span>
-              <span class="camera-explorer-value" data-field="zoom">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">pitch</span>
-              <span class="camera-explorer-value" data-field="pitch">--</span>
-            </div>
-            <div class="camera-explorer-row">
-              <span class="camera-explorer-label">bearing</span>
-              <span class="camera-explorer-value" data-field="bearing">--</span>
-            </div>
-          </div>
-          <div class="camera-explorer-divider"></div>
-          <div class="camera-explorer-toggles">
-            <button class="camera-explorer-layer-toggle" data-layer="buildings">
-              3D buildings
-            </button>
-            <button class="camera-explorer-layer-toggle" data-layer="labels">
-              Labels
-            </button>
-            <button class="camera-explorer-layer-toggle" data-layer="terrain">
-              Terrain
-            </button>
-          </div>
-          <div class="camera-explorer-divider"></div>
-          <div class="camera-explorer-sliders">
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">zoom</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="zoom"
-                min="1"
-                max="22"
-                step="0.1"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="zoom"
-                >--</span
-              >
-            </div>
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">pitch</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="pitch"
-                min="0"
-                max="85"
-                step="1"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="pitch"
-                >--</span
-              >
-            </div>
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">bearing</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="bearing"
-                min="-180"
-                max="180"
-                step="1"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="bearing"
-                >--</span
-              >
-            </div>
-            <div class="camera-explorer-slider-row">
-              <label class="camera-explorer-slider-label">terrain</label>
-              <input
-                type="range"
-                class="camera-explorer-range"
-                data-control="exaggeration"
-                min="0.5"
-                max="5"
-                step="0.1"
-                value="1.5"
-              />
-              <span
-                class="camera-explorer-slider-value"
-                data-control-value="exaggeration"
-                >1.5</span
-              >
-            </div>
-          </div>
-          <div class="camera-explorer-divider"></div>
-          <pre class="camera-explorer-config">{ ... }</pre>
-          <button class="camera-explorer-copy">Copy config</button>
-        </div>
-
-        <!-- Step Jumper (dev only, bottom-left) -->
-        <button
-          id="step-jumper-toggle"
-          aria-label="Toggle step jumper"
-          title="Step jumper"
-        >
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="8" x2="21" y1="6" y2="6" />
-            <line x1="8" x2="21" y1="12" y2="12" />
-            <line x1="8" x2="21" y1="18" y2="18" />
-            <line x1="3" x2="3.01" y1="6" y2="6" />
-            <line x1="3" x2="3.01" y1="12" y2="12" />
-            <line x1="3" x2="3.01" y1="18" y2="18" />
-          </svg>
-        </button>
-        <div id="step-jumper" class="hidden">
-          <div class="step-jumper-header">
-            <span class="step-jumper-title">Step jumper</span>
-          </div>
-          <div class="step-jumper-list">
-            <!-- Populated by JS -->
-          </div>
-        </div>
+        
 
         <!-- Dashboard Toggle Button (right side) -->
         <button
@@ -678,115 +697,6 @@
       </div>
     </div>
 
-    <!-- Hold-to-Confirm Splash Screen (appears at step B6) -->
-    <!-- AI Chat (appears after journey completion) -->
-    <div id="ai-chat" class="hidden" role="region" aria-label="AI 助理">
-      <div class="ai-chat-toolbar">
-        <button id="ai-chat-back" class="hidden" aria-label="返回" onclick="UI.hideAIChat(); App.prevStep()">
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button id="ai-chat-close" aria-label="關閉聊天">
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="14" y1="2" x2="2" y2="14"></line>
-            <line x1="2" y1="2" x2="14" y2="14"></line>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Recap content (shown at final step, hidden in Q&A mode) -->
-      <div id="ai-chat-recap" class="hidden"></div>
-
-      <div class="ai-chat-header" id="ai-chat-header">
-        <h3>關於熊本，有任何問題都可以問我</h3>
-      </div>
-
-      <div class="ai-chat-suggestions" id="ai-chat-suggestions">
-        <button
-          class="ai-chat-chip"
-          data-question="投資這裡有哪些風險？"
-        >
-          有哪些風險？
-        </button>
-        <button
-          class="ai-chat-chip"
-          data-question="如何開始投資熊本？"
-        >
-          如何投資？
-        </button>
-      </div>
-
-      <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite">
-        <!-- Messages will be inserted here -->
-      </div>
-
-      <form class="ai-chat-input-container" id="ai-chat-form">
-        <input
-          type="text"
-          id="ai-chat-input"
-          class="ai-chat-input"
-          placeholder="詢問關於熊本的問題..."
-          autocomplete="off"
-          aria-label="輸入您的問題"
-        />
-        <button type="submit" class="ai-chat-send" aria-label="傳送訊息">
-          <svg
-            aria-hidden="true"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M22 2L11 13"></path>
-            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-          </svg>
-        </button>
-      </form>
-
-      <!-- CTAs for clear calls to action (Strengthen Ending) -->
-      <div class="ai-chat-ctas" id="ai-chat-ctas">
-        <button class="ai-chat-cta" onclick="UI.downloadSummary()">
-          <span class="ai-chat-cta-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="15" y2="3" />
-            </svg>
-          </span>
-          下載摘要
-        </button>
-      </div>
-    </div>
 
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -794,8 +704,37 @@
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
     <script>
-      window.MAPBOX_ACCESS_TOKEN =
-        "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+      /* Mapbox access token. Resolution order:
+           1. window.parent.__GKTK_MAPBOX_ACCESS_TOKEN — injected by an
+              embedding host (e.g. value-add-prototype) so the token is
+              never duplicated into another repo's public/ directory.
+           2. ?mapbox_access_token= URL param.
+           3. The bundled fallback below — for standalone use.
+         The standalone map runs from this repo where the token is
+         already tracked; embedded uses pull from the parent so the
+         consuming repo's pushes are not flagged by secret scanners. */
+      (function () {
+        var token = null;
+        try {
+          if (
+            window.parent &&
+            window.parent !== window &&
+            window.parent.__GKTK_MAPBOX_ACCESS_TOKEN
+          ) {
+            token = window.parent.__GKTK_MAPBOX_ACCESS_TOKEN;
+          }
+        } catch (_) {}
+        if (!token) {
+          token = new URLSearchParams(location.search).get(
+            "mapbox_access_token",
+          );
+        }
+        if (!token) {
+          token =
+            "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+        }
+        window.MAPBOX_ACCESS_TOKEN = token;
+      })();
     </script>
 
     <!-- Language toggle (top-right) -->
@@ -803,8 +742,13 @@
     <script>
       (function () {
         const btn = document.getElementById("lang-toggle");
-        const current = localStorage.getItem("app-lang") || "zh-TW";
-        // Update HTML lang attribute and button label to reflect current state
+        // Optional ?lang= query-param overrides localStorage. Used by embeds
+        // that need a deterministic language regardless of prior visits.
+        const urlLang = new URLSearchParams(location.search).get("lang");
+        if (urlLang === "en" || urlLang === "zh-TW") {
+          localStorage.setItem("app-lang", urlLang);
+        }
+        const current = localStorage.getItem("app-lang") || "en";
         document.documentElement.lang = current;
         btn.textContent = current === "zh-TW" ? "EN" : "中文";
         btn.addEventListener("click", function () {
@@ -814,6 +758,53 @@
         });
       })();
     </script>
+
+    <!-- Rotate-to-landscape overlay (touch devices in portrait).
+         The app is designed for landscape; this overlay covers the
+         broken portrait layout until the user rotates the iPad. -->
+    <div id="rotate-overlay" aria-hidden="true">
+      <div class="rotate-overlay-inner">
+        <svg
+          class="rotate-overlay-icon"
+          width="96"
+          height="96"
+          viewBox="0 0 96 96"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect
+            x="30"
+            y="10"
+            width="36"
+            height="54"
+            rx="5"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+          />
+          <circle cx="48" cy="58" r="1.6" fill="currentColor" />
+          <path
+            d="M16 66 Q16 84 34 84 L62 84 Q80 84 80 66"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+          />
+          <path
+            d="M74 70 L80 64 L86 70"
+            stroke="currentColor"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <h2 class="rotate-overlay-title">Rotate to Landscape</h2>
+        <p class="rotate-overlay-body">
+          This experience is designed for landscape orientation.
+        </p>
+      </div>
+    </div>
 
     <!-- App JS (ES modules) -->
   </body>

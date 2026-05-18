@@ -18,6 +18,7 @@ export default {
   "Journey progress": "導覽進度",
   "Map time view": "地圖時序檢視",
   Present: "現況",
+  Now: "現在",
   Future: "未來",
   "Journey guide": "投資導覽",
   "Go back": "返回",

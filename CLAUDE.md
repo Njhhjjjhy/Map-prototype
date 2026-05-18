@@ -42,6 +42,12 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Only the commit title line may be a generated summary.
 - When `/feature <name>` is invoked on master, check for uncommitted changes BEFORE creating the branch. If changes exist, present exactly two options: (1) drop the changes, (2) save them to a separate feature branch with a commit, PR, and merge to master, then create the requested branch. Never silently carry uncommitted master changes into a new branch.
 
+**Feature branch scope (map vs value-add-prototype):**
+- Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for the map (this project), or for value-add-prototype (the slideshow that embeds the map)?"
+- If "map": work happens in this repo only.
+- If "value-add-prototype": Claude makes the map changes in this repo, then runs `pnpm build`, then copies the build output into the two embed locations in value-add-prototype (`public/playground/prototypes/step-6-section-3-map/map-prototype-v1/` and `public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/`), preserving any per-embed customizations. Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo.
+- For full context on the two-project relationship, see `docs/value-add-prototype-relationship.md`.
+
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).
 - Check `element.parentNode` exists before calling `.remove()`.
@@ -50,6 +56,14 @@ All mandatory constraints. Each rule has one canonical definition here.
 **Escape key handling:**
 - Use a single unified Escape key handler that checks overlays from highest z-index to lowest and closes only the topmost one. Never register multiple independent Escape listeners that can all fire on the same keypress.
 - Closing a modal overlay must never close the dashboard, chatbox, or panel behind it.
+
+**Touch-compatible hover behavior:**
+- For tooltip-style hover on map markers, DOM elements, or any control where hover reveals information, use pointer events (`pointerenter` / `pointerleave` / `pointercancel`) rather than `mouseenter` / `mouseleave`. Pointer events fire for mouse, trackpad, Apple Pencil hover, and touch, so the same code works across every iPadOS input mode.
+- For Mapbox layer hover (`map.on("mouseenter", layerId, ...)`), also wire a matching `map.on("click", layerId, ...)` handler that performs the equivalent reveal, since Mapbox layer events are mouse-only on touch devices.
+- Never write inline `onmouseenter` / `onmouseleave` attributes in JS-generated HTML strings. Use CSS `:hover` rules and add the new selector to the `@media (hover: none)` neutraliser in `css/styles.css` so the hover state cannot stick after a tap on touch.
+
+**Dev / QA tools in production:**
+- Any dev or QA-only UI block in `index.html` must be wrapped with the `<!-- DEV-ONLY-START -->` and `<!-- DEV-ONLY-END -->` marker comments. The Vite plugin in `vite.config.js` strips everything between those markers from production builds, so dev tools never ship to the deployed site. In `pnpm dev` the markers are no-ops and the tools are visible.
 
 ### Visual Rules
 
@@ -215,3 +229,10 @@ map-prototype/
 
 *Last updated: March 5, 2026*
 *Based on macOS Human Interface Guidelines with project-specific customizations*
+
+
+## Obsidian vault
+
+- Path: /Users/riaan/Documents/personal/obsidian-vault
+- After each session, write a handoff note to /Users/riaan/Documents/personal/obsidian-vault/sessions/
+- Use filename format: YYYY-MM-DD-[project-name]-[topic].md

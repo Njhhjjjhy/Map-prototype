@@ -13,7 +13,6 @@ const state = {
   panelHistory: [],
   currentPanelView: null,
   currentPanelViewFunction: null,
-  chatboxHistory: [],
 
   // Data layer state
   activeDataLayers: {},
@@ -34,9 +33,6 @@ const state = {
   // Layers panel
   layersPanelOpen: false,
 
-  // Chat state
-  lastChatType: null,
-  aiChatInitialized: false,
 
   // Inspector state
   inspectorStage: null,
