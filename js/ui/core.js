@@ -237,6 +237,82 @@ export const methods = {
       }
     });
 
+    // HIG iPad keyboard parity. Magic Keyboard / Smart Keyboard Folio users
+    // should be able to drive the whole pitch without ever leaving the keys:
+    //   Right / Space / Enter → next step
+    //   Left                  → previous step
+    //   Home                  → first step
+    //   End                   → last step
+    //   1-9                   → jump directly to step N
+    // Space and Enter defer to the focused control when one is active so
+    // buttons still activate normally. Modal overlays (gallery, evidence,
+    // quick look) absorb the keys so the user is not pulled out of context.
+    document.addEventListener("keydown", (e) => {
+      if (typeof App === "undefined" || !App.state) return;
+
+      const ae = document.activeElement;
+      const tag = ae && ae.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (ae && ae.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Modal overlays block step navigation. Esc still closes them via the
+      // handler above.
+      const quickLook = document.getElementById("property-quick-look");
+      if (quickLook && !quickLook.classList.contains("hidden")) return;
+      if (
+        this.elements.evidencePreview &&
+        !this.elements.evidencePreview.classList.contains("hidden")
+      ) {
+        return;
+      }
+      if (!this.elements.galleryModal.classList.contains("hidden")) return;
+
+      const interactiveFocused =
+        ae &&
+        ae !== document.body &&
+        (tag === "BUTTON" || tag === "A");
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          App.nextStep?.();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          App.prevStep?.();
+          break;
+        case " ":
+        case "Enter":
+          // Defer to the focused control so buttons activate normally.
+          if (interactiveFocused) return;
+          e.preventDefault();
+          App.nextStep?.();
+          break;
+        case "Home":
+          e.preventDefault();
+          App.goToStep?.(1);
+          break;
+        case "End":
+          e.preventDefault();
+          App.goToStep?.(STEPS.length);
+          break;
+        default:
+          if (/^[1-9]$/.test(e.key) && !interactiveFocused) {
+            const stepNum = parseInt(e.key, 10);
+            if (stepNum <= STEPS.length) {
+              e.preventDefault();
+              App.goToStep?.(stepNum);
+            }
+          }
+      }
+    });
+
     // Delegated click handler for zone property rows (survives innerHTML restore)
     this.elements.panelContent.addEventListener("click", (e) => {
       const row = e.target.closest(".zone-property-row");
