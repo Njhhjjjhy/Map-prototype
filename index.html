@@ -1025,8 +1025,37 @@
     <!-- Mapbox GL JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
     <script>
-      window.MAPBOX_ACCESS_TOKEN =
-        "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+      /* Mapbox access token. Resolution order:
+           1. window.parent.__GKTK_MAPBOX_ACCESS_TOKEN — injected by an
+              embedding host (e.g. value-add-prototype) so the token is
+              never duplicated into another repo's public/ directory.
+           2. ?mapbox_access_token= URL param.
+           3. The bundled fallback below — for standalone use.
+         The standalone map runs from this repo where the token is
+         already tracked; embedded uses pull from the parent so the
+         consuming repo's pushes are not flagged by secret scanners. */
+      (function () {
+        var token = null;
+        try {
+          if (
+            window.parent &&
+            window.parent !== window &&
+            window.parent.__GKTK_MAPBOX_ACCESS_TOKEN
+          ) {
+            token = window.parent.__GKTK_MAPBOX_ACCESS_TOKEN;
+          }
+        } catch (_) {}
+        if (!token) {
+          token = new URLSearchParams(location.search).get(
+            "mapbox_access_token",
+          );
+        }
+        if (!token) {
+          token =
+            "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+        }
+        window.MAPBOX_ACCESS_TOKEN = token;
+      })();
     </script>
 
     <!-- Language toggle (top-right) -->
