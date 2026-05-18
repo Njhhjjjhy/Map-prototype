@@ -248,6 +248,15 @@ export const methods = {
       </div>`;
     }
 
+    let heroCtaHtml = "";
+    if (
+      stage === 9 &&
+      this.currentProperty &&
+      this.currentProperty.id === "ozu-1"
+    ) {
+      heroCtaHtml = `<button class="panel-btn primary inspector-hero-cta" data-action="value-add-tour" aria-label="${t("Tour the property")}">${t("Tour the property")}<svg class="inspector-hero-cta-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>`;
+    }
+
     const html = `
             <div class="inspector-resize-handle"></div>
             <div class="inspector-title-bar">
@@ -255,6 +264,7 @@ export const methods = {
                 <h2 class="inspector-title">${this.inspectorTitle}</h2>
                 ${navArrowsHtml}
             </div>
+            ${heroCtaHtml}
             ${tabsHtml}
             <div class="inspector-body">
                 <div class="icard-grid">${bodyContent}</div>
@@ -285,12 +295,48 @@ export const methods = {
           }
         });
       });
+
+      const heroCtaBtn = panel.querySelector(".inspector-hero-cta");
+      if (heroCtaBtn) {
+        heroCtaBtn.addEventListener("click", () => {
+          this._launchOzu1Tour(this.currentProperty, heroCtaBtn);
+        });
+      }
     }, 0);
 
     // Fly to entity coordinates if provided
     if (options.flyTo && typeof MapController !== "undefined") {
       MapController.flyToStep(options.flyTo);
     }
+  },
+
+  async _launchOzu1Tour(property, triggerButton) {
+    if (!property || !property.coords) return;
+
+    if (MapController && typeof MapController.flyToStep === "function") {
+      await MapController.flyToStep({
+        center: MapController._toMapbox(property.coords),
+        zoom: 17.5,
+        pitch: 65,
+        bearing: 45,
+        duration: 2500,
+      });
+    }
+
+    this.openValueAddTour({
+      trigger: triggerButton,
+      onAfterClose: () => {
+        if (MapController && typeof MapController.flyToStep === "function") {
+          MapController.flyToStep({
+            center: [130.87, 32.865],
+            zoom: 12.7,
+            pitch: 52,
+            bearing: 45,
+            duration: 2000,
+          });
+        }
+      },
+    });
   },
 
   /**

@@ -4612,6 +4612,20 @@ button.layer-item {
   color: var(--color-text-tertiary);
 }
 
+/* Hero CTA inside inspector panel (used for Ozu-1 property tour) */
+.inspector-hero-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: var(--space-4) var(--space-4) 0;
+  width: auto;
+}
+
+.inspector-hero-cta-icon {
+  flex-shrink: 0;
+}
+
 /* Scrollable content body with container query */
 .inspector-body {
   flex: 1;

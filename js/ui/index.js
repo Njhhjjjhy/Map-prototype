@@ -13,6 +13,7 @@ import { methods as dataLayerMethods } from "./data-layers.js";
 import { methods as overlayMethods } from "./overlays.js";
 import { methods as evidenceMethods } from "./evidence.js";
 import { methods as inspectorMethods } from "./inspector.js";
+import { methods as valueAddTourMethods } from "./value-add-tour.js";
 
 const UI = Object.assign(
   {},
@@ -24,6 +25,7 @@ const UI = Object.assign(
   overlayMethods,
   evidenceMethods,
   inspectorMethods,
+  valueAddTourMethods,
 );
 
 export { UI };

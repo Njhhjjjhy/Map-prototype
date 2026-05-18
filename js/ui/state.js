@@ -56,6 +56,13 @@ const state = {
   // Focus trap
   focusTrapHandler: null,
   lastFocusedElement: null,
+
+  // Value-add tour iframe state
+  valueAddTourIframe: null,
+  valueAddTourListener: null,
+  valueAddTourPrevOverflow: "",
+  valueAddTourTrigger: null,
+  valueAddTourOnAfterClose: null,
 };
 
 export { state };
