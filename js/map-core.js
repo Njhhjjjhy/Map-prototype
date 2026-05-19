@@ -33,15 +33,40 @@
  * document-level attributes the package set.
  */
 
-import { App } from "./app.js";
+import { TIMING, App } from "./app.js";
 import { setRoot } from "./shared/dom-scope.js";
-import { setScenes } from "./data/index.js";
+import { STEPS, STAGE_TABS, AppData, setScenes } from "./data/index.js";
+import {
+  MAP_COLORS,
+  CAMERA_FEELINGS,
+  CAMERA_STEPS,
+  MapController,
+} from "./map/index.js";
 import { UI } from "./ui/index.js";
 import { i18n } from "./i18n/index.js";
 import { resolveOptions } from "./map-core/options.js";
 import { setupIPhoneEmbed } from "./map-core/embed-iphone.js";
 import { setupValueAddEmbed } from "./map-core/embed-valueadd.js";
 import { teardownAll } from "./map-core/teardown.js";
+import { SCAFFOLD_HTML } from "./map-core/scaffold.js";
+
+// Expose globals required by inline onclick handlers across the
+// scaffold HTML and JS-generated markup. The standalone shell used to
+// set these from js/main.js; doing it here means every consumer of
+// mountMap() gets them without having to know what to wire up.
+function exposeGlobals() {
+  if (typeof window === "undefined") return;
+  window.STEPS = STEPS;
+  window.STAGE_TABS = STAGE_TABS;
+  window.AppData = AppData;
+  window.MAP_COLORS = MAP_COLORS;
+  window.CAMERA_FEELINGS = CAMERA_FEELINGS;
+  window.CAMERA_STEPS = CAMERA_STEPS;
+  window.MapController = MapController;
+  window.UI = UI;
+  window.TIMING = TIMING;
+  window.App = App;
+}
 
 let _mounted = false;
 let _embedTeardown = null;
@@ -67,6 +92,8 @@ export function mountMap(targetEl, options = {}) {
   }
   _mounted = true;
 
+  exposeGlobals();
+
   const opts = resolveOptions(options);
   _resolvedOptions = opts;
 
@@ -83,6 +110,20 @@ export function mountMap(targetEl, options = {}) {
 
   // --- Scenes: rebuild STEPS / STAGE_TABS in place.
   setScenes(opts.scenes);
+
+  // --- DOM scaffold. The standalone shell has the full scaffold in
+  //     index.html, so #map already exists. When a consumer mounts
+  //     into an empty element (no #map descendant) we inject the
+  //     scaffold from map-core/scaffold.js so $id() lookups + Mapbox's
+  //     own document.getElementById('map') resolve.
+  if (
+    targetEl &&
+    targetEl !== document &&
+    targetEl.nodeType === 1 &&
+    !targetEl.querySelector("#map")
+  ) {
+    targetEl.innerHTML = SCAFFOLD_HTML;
+  }
 
   // --- DOM scope root for $id / $sel / $all helpers.
   setRoot(targetEl || document);
