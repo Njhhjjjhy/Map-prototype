@@ -2,7 +2,7 @@
  * Data index - re-exports all data as the AppData object plus STEPS and STAGE_TABS.
  */
 
-import { STEPS, STAGE_TABS } from "./steps.js";
+import { STEPS, STAGE_TABS, setScenes } from "./steps.js";
 import {
   mapConfig,
   resources,
@@ -73,4 +73,4 @@ const AppData = {
   demandProjections,
 };
 
-export { STEPS, STAGE_TABS, AppData };
+export { STEPS, STAGE_TABS, AppData, setScenes };

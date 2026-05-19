@@ -65,8 +65,13 @@ const App = {
     // Skip start screen entirely - show app container immediately
     UI.showAppDirect();
 
-    // Wait for map to be ready
-    await MapController.waitReady();
+    // Wait for map to be ready. If init failed (bad token / timeout),
+    // surface it to the onError hook so consumers can render a fallback
+    // instead of silently sitting on an empty container.
+    const mapOk = await MapController.waitReady();
+    if (!mapOk && typeof this._onError === "function") {
+      this._onError(new Error("Map failed to initialize"));
+    }
     if (MapController.map) {
       MapController.map.resize();
     }
@@ -86,17 +91,15 @@ const App = {
     // Show nav arrows (step 0 = welcome, forward only)
     UI.showNavArrows(0, STEPS.length);
 
-    /* Embed auto-advance. When loaded with ?startStep=N (used by the
-       value-add-prototype slideshow), jump straight to that step
-       instead of sitting on the welcome screen at step 0. After the
-       step's camera flight completes, remove any setup cover the
-       embed-host script placed and notify the parent window that the
-       map is ready (gktk-map-ready). */
+    /* Auto-advance to a configured start step. `mountMap` passes the
+       resolved value via `App._startStep` (sourced from options.startStep
+       or the legacy ?startStep= URL param). Used by the value-add-prototype
+       slideshow to skip the welcome screen and land directly on a
+       per-slide step. After the step's camera flight completes, fire
+       the onReady hook and remove any setup cover the valueadd embed
+       host placed (legacy bridge for non-package consumers). */
     try {
-      const startStepRaw = new URLSearchParams(location.search).get(
-        "startStep",
-      );
-      const startStep = startStepRaw ? parseInt(startStepRaw, 10) : NaN;
+      const startStep = this._startStep;
       if (
         Number.isFinite(startStep) &&
         startStep >= 1 &&
@@ -105,6 +108,9 @@ const App = {
         await this.goToStep(startStep);
       }
     } catch (_e) {}
+    if (typeof this._onReady === "function") {
+      this._onReady();
+    }
     if (typeof window.__uncoverSetup === "function") {
       window.__uncoverSetup();
     }
