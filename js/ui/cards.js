@@ -10,6 +10,7 @@ import {
   connectionItem,
 } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
+import { $id, $sel } from "../shared/dom-scope.js";
 
 export const methods = {
   showInvestmentOverview() {
@@ -387,7 +388,7 @@ export const methods = {
         el.classList.remove("selected");
         el.style.background = "";
       });
-    const selectedItem = document.querySelector(
+    const selectedItem = $sel(
       `.energy-facility-item[data-station-id="${stationId}"]`,
     );
     if (selectedItem) {
@@ -1215,7 +1216,7 @@ export const methods = {
 
     // Wait one frame for image to paint, then fade in
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    document.getElementById("map-container").classList.add("immersive-active");
+    $id("map-container").classList.add("immersive-active");
     overlay.classList.add("visible");
     await this._delay(800);
     if (drillDown.cancelled) return;
@@ -1238,7 +1239,7 @@ export const methods = {
     }
 
     // Fade out transition overlay (uses fast exit transition from CSS)
-    const overlay = document.getElementById("transition-overlay");
+    const overlay = $id("transition-overlay");
     if (overlay && overlay.classList.contains("visible")) {
       overlay.classList.remove("visible");
       const galleryNav = overlay.querySelector(".transition-gallery-nav");
@@ -1682,7 +1683,7 @@ export const methods = {
    * Toggle financials disclosure expanded state
    */
   toggleFinancialsDisclosure() {
-    const disclosure = document.getElementById("financials-disclosure");
+    const disclosure = $id("financials-disclosure");
     const header = disclosure.querySelector(".financials-disclosure-header");
     const isExpanded = disclosure.classList.contains("expanded");
 

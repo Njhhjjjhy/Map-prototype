@@ -1,12 +1,13 @@
 import { TIMING } from "../app.js";
 import { AppData } from "../data/index.js";
 import { t } from "../i18n/index.js";
+import { $id, $sel, $all } from "../shared/dom-scope.js";
 
 export const methods = {
   initAIChat() {
-    const form = document.getElementById("ai-chat-form");
-    const input = document.getElementById("ai-chat-input");
-    const suggestions = document.getElementById("ai-chat-suggestions");
+    const form = $id("ai-chat-form");
+    const input = $id("ai-chat-input");
+    const suggestions = $id("ai-chat-suggestions");
 
     // Handle form submission
     form.addEventListener("submit", (e) => {
@@ -39,12 +40,12 @@ export const methods = {
     this.hideChatFab();
 
     // Show AI chat with entrance animation
-    const aiChat = document.getElementById("ai-chat");
+    const aiChat = $id("ai-chat");
     aiChat.classList.remove("hidden");
     this._retriggerAnimation(aiChat);
 
     // Hide CTAs in dashboard mode (no journey to summarize or restart)
-    const ctasElement = document.getElementById("ai-chat-ctas");
+    const ctasElement = $id("ai-chat-ctas");
     if (ctasElement) {
       if (this.dashboardMode) {
         ctasElement.classList.add("hidden");
@@ -61,7 +62,7 @@ export const methods = {
 
     // Focus the input
     setTimeout(() => {
-      document.getElementById("ai-chat-input").focus();
+      $id("ai-chat-input").focus();
     }, 400);
   },
 
@@ -74,18 +75,18 @@ export const methods = {
     this.elements.chatbox.classList.add("hidden");
     this.hideChatFab();
 
-    const aiChat = document.getElementById("ai-chat");
+    const aiChat = $id("ai-chat");
     aiChat.classList.remove("hidden");
     this._retriggerAnimation(aiChat);
 
     // Hide CTAs in Q&A mode
-    const ctasElement = document.getElementById("ai-chat-ctas");
+    const ctasElement = $id("ai-chat-ctas");
     if (ctasElement) {
       ctasElement.classList.add("hidden");
     }
 
     // Replace suggestion chips with Q&A topics
-    const suggestions = document.getElementById("ai-chat-suggestions");
+    const suggestions = $id("ai-chat-suggestions");
     suggestions.classList.remove("hidden");
     suggestions.innerHTML = `
       <button class="ai-chat-chip" data-question="${t("What about Kumamoto's water quality and supply?")}">${t("Water quality?")}</button>
@@ -95,7 +96,7 @@ export const methods = {
     `;
 
     // Clear previous messages
-    const messages = document.getElementById("ai-chat-messages");
+    const messages = $id("ai-chat-messages");
     messages.innerHTML = "";
 
     // Initialize if not already done
@@ -106,7 +107,7 @@ export const methods = {
 
     // Focus the input
     setTimeout(() => {
-      document.getElementById("ai-chat-input").focus();
+      $id("ai-chat-input").focus();
     }, 400);
   },
 
@@ -119,14 +120,14 @@ export const methods = {
     this.elements.chatbox.classList.add("hidden");
     this.hideChatFab();
 
-    const aiChat = document.getElementById("ai-chat");
-    const recap = document.getElementById("ai-chat-recap");
-    const header = document.getElementById("ai-chat-header");
-    const suggestions = document.getElementById("ai-chat-suggestions");
-    const form = document.getElementById("ai-chat-form");
-    const messages = document.getElementById("ai-chat-messages");
-    const ctas = document.getElementById("ai-chat-ctas");
-    const backBtn = document.getElementById("ai-chat-back");
+    const aiChat = $id("ai-chat");
+    const recap = $id("ai-chat-recap");
+    const header = $id("ai-chat-header");
+    const suggestions = $id("ai-chat-suggestions");
+    const form = $id("ai-chat-form");
+    const messages = $id("ai-chat-messages");
+    const ctas = $id("ai-chat-ctas");
+    const backBtn = $id("ai-chat-back");
 
     // Populate and show recap
     recap.innerHTML = recapHtml;
@@ -154,14 +155,14 @@ export const methods = {
     this.elements.chatbox.classList.add("hidden");
     this.hideChatFab();
 
-    const aiChat = document.getElementById("ai-chat");
-    const recap = document.getElementById("ai-chat-recap");
-    const header = document.getElementById("ai-chat-header");
-    const suggestions = document.getElementById("ai-chat-suggestions");
-    const form = document.getElementById("ai-chat-form");
-    const messages = document.getElementById("ai-chat-messages");
-    const ctas = document.getElementById("ai-chat-ctas");
-    const backBtn = document.getElementById("ai-chat-back");
+    const aiChat = $id("ai-chat");
+    const recap = $id("ai-chat-recap");
+    const header = $id("ai-chat-header");
+    const suggestions = $id("ai-chat-suggestions");
+    const form = $id("ai-chat-form");
+    const messages = $id("ai-chat-messages");
+    const ctas = $id("ai-chat-ctas");
+    const backBtn = $id("ai-chat-back");
 
     // Hide recap, show chat elements
     recap.classList.add("hidden");
@@ -197,12 +198,12 @@ export const methods = {
 
     // Focus the input
     setTimeout(() => {
-      document.getElementById("ai-chat-input").focus();
+      $id("ai-chat-input").focus();
     }, 400);
   },
 
   hideAIChat() {
-    const aiChat = document.getElementById("ai-chat");
+    const aiChat = $id("ai-chat");
     // Add closing animation class
     aiChat.classList.add("closing");
     this.lastChatType = "aiChat";
@@ -216,7 +217,7 @@ export const methods = {
     }, animationDuration);
   },
   sendAIMessage(message) {
-    const suggestionsContainer = document.getElementById("ai-chat-suggestions");
+    const suggestionsContainer = $id("ai-chat-suggestions");
 
     // Hide suggestions after first message
     suggestionsContainer.classList.add("hidden");
@@ -238,7 +239,7 @@ export const methods = {
     );
   },
   addChatMessage(content, role) {
-    const messagesContainer = document.getElementById("ai-chat-messages");
+    const messagesContainer = $id("ai-chat-messages");
 
     const messageEl = document.createElement("div");
     messageEl.className = `ai-chat-message ${role}`;
@@ -251,7 +252,7 @@ export const methods = {
 
     // Reveal CTAs after first assistant response (not in dashboard mode)
     if (role === "assistant") {
-      const ctas = document.getElementById("ai-chat-ctas");
+      const ctas = $id("ai-chat-ctas");
       if (
         ctas &&
         !ctas.classList.contains("visible") &&
@@ -262,7 +263,7 @@ export const methods = {
     }
   },
   showTypingIndicator() {
-    const messagesContainer = document.getElementById("ai-chat-messages");
+    const messagesContainer = $id("ai-chat-messages");
 
     const typingEl = document.createElement("div");
     typingEl.className = "ai-chat-typing";
@@ -273,7 +274,7 @@ export const methods = {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   },
   hideTypingIndicator() {
-    const typing = document.getElementById("ai-typing-indicator");
+    const typing = $id("ai-typing-indicator");
     if (typing) {
       typing.remove();
     }

@@ -1,3 +1,5 @@
+import { $id } from "../shared/dom-scope.js";
+
 export const methods = {
   init() {
     if (this._initStarted) return;
@@ -436,9 +438,9 @@ export const methods = {
   },
 
   initCameraDebug() {
-    const toggle = document.getElementById("camera-debug-toggle");
-    const panel = document.getElementById("camera-debug");
-    const copyBtn = document.getElementById("camera-debug-copy");
+    const toggle = $id("camera-debug-toggle");
+    const panel = $id("camera-debug");
+    const copyBtn = $id("camera-debug-copy");
 
     if (!toggle || !panel) return;
 
@@ -483,7 +485,7 @@ export const methods = {
 
     const center = map.getCenter();
     const el = (id, val) => {
-      const node = document.getElementById(id);
+      const node = $id(id);
       if (node) node.textContent = val;
     };
 

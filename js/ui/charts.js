@@ -2,6 +2,7 @@ import { AppData } from "../data/index.js";
 import { TIMING } from "../app.js";
 import { panelHeader, statGrid, dataAttribution } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
+import { $id } from "../shared/dom-scope.js";
 
 export const methods = {
   destroyChart(chartId) {
@@ -43,7 +44,7 @@ export const methods = {
    * Render scenario comparison bar chart
    */
   renderScenarioChart(property) {
-    const canvas = document.getElementById("scenario-chart");
+    const canvas = $id("scenario-chart");
     if (!canvas) return;
 
     this.destroyChart("scenario");
@@ -114,7 +115,7 @@ export const methods = {
     });
 
     // Add accessible data table
-    const tableContainer = document.getElementById("scenario-chart-table");
+    const tableContainer = $id("scenario-chart-table");
     if (tableContainer) {
       const formatYen = (num) => "¥" + (num || 0).toLocaleString();
       tableContainer.innerHTML = this.generateDataTable(
@@ -133,7 +134,7 @@ export const methods = {
    * Render historical appreciation trend line chart
    */
   renderTrendChart() {
-    const canvas = document.getElementById("trend-chart");
+    const canvas = $id("trend-chart");
     if (!canvas) return;
 
     this.destroyChart("trend");
@@ -189,7 +190,7 @@ export const methods = {
     });
 
     // Add accessible data table
-    const tableContainer = document.getElementById("trend-chart-table");
+    const tableContainer = $id("trend-chart-table");
     if (tableContainer) {
       tableContainer.innerHTML = this.generateDataTable(
         [t("Year"), t("Appreciation")],
@@ -203,7 +204,7 @@ export const methods = {
    * Render company investment comparison horizontal bar chart
    */
   renderInvestmentChart() {
-    const canvas = document.getElementById("investment-chart");
+    const canvas = $id("investment-chart");
     if (!canvas) return;
 
     this.destroyChart("investment");
@@ -294,7 +295,7 @@ export const methods = {
     });
 
     // Add accessible data table
-    const tableContainer = document.getElementById("investment-chart-table");
+    const tableContainer = $id("investment-chart-table");
     if (tableContainer) {
       const formatInvestment = (val) =>
         val >= 1000 ? "¥" + (val / 1000).toFixed(1) + "T" : "¥" + val + "B";

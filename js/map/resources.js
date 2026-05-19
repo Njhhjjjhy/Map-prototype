@@ -1,5 +1,6 @@
 import { AppData } from "../data/index.js";
 import { CAMERA_STEPS } from "./constants.js";
+import { $all } from "../shared/dom-scope.js";
 
 export const methods = {
   showWaterResourceLayer() {
@@ -1025,14 +1026,14 @@ export const methods = {
 
     // Clean up any orphaned marker elements that weren't tracked in this.markers
     // Mapbox wraps all custom marker elements in .mapboxgl-marker containers
-    const orphanedMarkers = document.querySelectorAll(".mapboxgl-marker");
+    const orphanedMarkers = $all(".mapboxgl-marker");
     orphanedMarkers.forEach((el) => {
       if (el.parentNode) el.remove();
     });
 
     // Also clean up any orphaned elevated-marker elements that escaped their parent
     const orphanedElevatedMarkers =
-      document.querySelectorAll(".elevated-marker");
+      $all(".elevated-marker");
     orphanedElevatedMarkers.forEach((el) => {
       if (el.parentNode) el.remove();
     });
