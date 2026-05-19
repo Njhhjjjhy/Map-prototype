@@ -2,9 +2,11 @@
  * Standalone app entry point.
  *
  * Imports all modules, exposes globals for inline onclick handlers,
- * then boots the experience by calling mountMap from the (in-progress)
- * map-core package surface. See docs/plans/map-core-extraction-execution-plan.md
- * for the multi-stage extraction plan.
+ * then boots the experience by calling `mountMap` from the map-core
+ * package surface. See docs/plans/map-core-extraction-execution-plan.md
+ * for the multi-stage extraction plan; Stage 3 (this file's current
+ * state) routes everything through `mountMap` with URL-param fallbacks
+ * so the standalone behaves identically to its pre-extraction self.
  *
  * All scripts are loaded as ES modules. Inline onclick handlers in HTML
  * and JS-generated markup reference globals (App, UI, MapController, etc.),
@@ -57,10 +59,11 @@ if (!import.meta.env.DEV) {
   });
 }
 
-// Module scripts are deferred, so the DOM is ready at this point.
-// Stage 1 of the package extraction: boot through mountMap. The targetEl
-// and options arguments are placeholders today; Stage 2 will scope DOM
-// queries to targetEl and Stage 3 will pass real options through.
+// Module scripts are deferred, so the DOM is ready at this point. The
+// standalone passes no options and lets `mountMap` resolve everything
+// from URL params (`?embed=1`, `?host=valueadd`, `?steps=`, `?startStep=`,
+// `?lang=`, `?chromeless=1`, `?mapbox_access_token=`). Consumers
+// (value-add-prototype, future React wrappers) pass options directly.
 mountMap(document.getElementById("app-container"));
 
 if (import.meta.env.DEV) {

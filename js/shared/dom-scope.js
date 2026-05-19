@@ -1,34 +1,28 @@
 /**
- * DOM scope helpers — Stage 2 of the map-core extraction.
+ * DOM scope helpers — Stage 2 of the map-core extraction, refined in
+ * Stage 3 to handle the standalone's split DOM.
  *
  * Goal: replace ~100 calls to `document.getElementById` / `document.querySelector`
  * inside the package boundary with scope-aware helpers that look up elements
  * inside a configured `root` container rather than the global `document`.
  *
- * Today (Stage 1+2):
- * - The root is set to `#app-container` (the current standalone scaffold) when
- *   `mountMap()` is called. Behavior matches the previous document-scoped lookups
- *   because the scaffold is always a child of document.
+ * The standalone's HTML splits its DOM across two trees:
+ * - Inside `#app-container`: map, panel, dev tools, control bar.
+ * - Outside `#app-container` (at body level): `#gallery-modal`,
+ *   `#property-quick-look`, `#evidence-preview`, `#lang-toggle`,
+ *   `#rotate-overlay`. These live at the body so they can escape any
+ *   stacking context.
  *
- * Later (Stage 3):
- * - Consumers (value-add-prototype) will pass an arbitrary container to mountMap.
- *   The package will inject its DOM scaffold into that container. The helpers
- *   below already support this because they query off the configured root.
+ * Helpers therefore:
+ * 1. Treat the root itself as a match when `id === root.id` (since
+ *    `querySelector('#foo')` does not match the calling element itself,
+ *    only its descendants).
+ * 2. Fall back to `document` when an element-scoped query returns
+ *    nothing, so body-level overlays still resolve.
  *
- * Helpers (intentionally short names — they replace high-frequency call sites):
- * - `$id(id)`        → `root.querySelector('#' + id)`     (replaces `document.getElementById(id)`)
- * - `$sel(selector)` → `root.querySelector(selector)`     (replaces `document.querySelector(selector)`)
- * - `$all(selector)` → `root.querySelectorAll(selector)`  (replaces `document.querySelectorAll(selector)`)
- * - `getRoot()`      → returns the current root element (or `document` as fallback)
- *
- * What does NOT change:
- * - Document-level state mutations (`document.documentElement.setAttribute`,
- *   `document.body.style.cursor`, scroll locks) — these stay as `document.*`
- *   because they are intentionally global.
- * - Elements intentionally appended to `document.body` (modal-style overlays,
- *   the tour iframe) — these stay body-scoped because they need to escape any
- *   container's stacking context.
- * - `document.addEventListener` for global hotkeys — stays document-scoped.
+ * The fallback is a one-way ratchet: it never *replaces* a root-scope
+ * match. Consumers that want a strictly scoped lookup can call
+ * `getRoot().querySelector(...)` directly.
  */
 
 let _root = null;
@@ -52,25 +46,41 @@ export function getRoot() {
 }
 
 /**
- * Query for an element by ID, scoped to the configured root.
- * Drop-in replacement for `document.getElementById(id)`.
+ * Query for an element by ID. Scoped to the configured root with a
+ * `document` fallback for body-level overlays.
  */
 export function $id(id) {
-  return getRoot().querySelector("#" + id);
+  const root = getRoot();
+  if (root.nodeType === 1 && root.id === id) return root;
+  let found = root.querySelector("#" + id);
+  if (!found && root !== document) {
+    found = document.querySelector("#" + id);
+  }
+  return found;
 }
 
 /**
- * Query for the first matching element, scoped to the configured root.
- * Drop-in replacement for `document.querySelector(selector)`.
+ * Query for the first matching element. Scoped to the configured root
+ * with a `document` fallback when the root yields nothing.
  */
 export function $sel(selector) {
-  return getRoot().querySelector(selector);
+  const root = getRoot();
+  let found = root.querySelector(selector);
+  if (!found && root !== document) {
+    found = document.querySelector(selector);
+  }
+  return found;
 }
 
 /**
- * Query for all matching elements, scoped to the configured root.
- * Drop-in replacement for `document.querySelectorAll(selector)`.
+ * Query for all matching elements. Scoped to the configured root with a
+ * `document` fallback used only when the root has zero matches (so we
+ * never return overlapping NodeLists). Callers that need a strict
+ * root-scoped list can call `getRoot().querySelectorAll(...)` directly.
  */
 export function $all(selector) {
-  return getRoot().querySelectorAll(selector);
+  const root = getRoot();
+  const fromRoot = root.querySelectorAll(selector);
+  if (fromRoot.length > 0 || root === document) return fromRoot;
+  return document.querySelectorAll(selector);
 }

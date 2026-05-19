@@ -1,60 +1,156 @@
 /**
  * Map core entry point — the framework-agnostic mount API.
  *
- * This is Stage 1 of the package extraction (see docs/plans/
- * map-core-extraction-execution-plan.md). The goal of Stage 1 is to
- * establish the mountMap / destroy surface area without changing
- * runtime behavior. The standalone app (js/main.js) now boots through
- * mountMap instead of calling App.init directly.
+ * Stage 3 of the package extraction (see docs/plans/
+ * map-core-extraction-execution-plan.md). The `mountMap` surface
+ * now accepts a full options object, applies it before booting the
+ * existing App / UI / MapController stack, and `destroy()` tears
+ * everything back down so the same page can mount again.
  *
- * Later stages will:
- * - Stage 2: scope DOM queries to targetEl instead of document.
- * - Stage 3: accept and apply options (mapboxToken, scenes, startStep,
- *            lang, theme, embedHost, tourUrl) instead of relying on URL params.
- * - Stage 4: tag and consume from value-add-prototype's step-12 embed.
- * - Stage 5: switch step-6 too and retire pnpm sync.
+ * Options applied here (resolved via map-core/options.js, with URL
+ * fallbacks for the standalone shell):
+ *   - mapboxToken: written to `window.MAPBOX_ACCESS_TOKEN` so
+ *     `MapController.init()` picks it up.
+ *   - scenes: forwarded to `setScenes()` which rebuilds STEPS in
+ *     place (replaces the old module-load IIFE filter).
+ *   - startStep: stashed on `App._startStep`; `App.init()` reads it
+ *     after the first camera flight and jumps the journey.
+ *   - lang: written to localStorage and re-applied to i18next so
+ *     `setScenes()` produces strings in the chosen language.
+ *   - embedHost: sets `data-embed` / `data-embed-host` attributes
+ *     and wires up the iPhone or valueadd host helpers from
+ *     map-core/embed-*.js.
+ *   - chromeless: sets `data-chromeless` on <html>.
+ *   - tourUrl: forwarded to UI so the property tour iframe loads
+ *     the configured URL (pass `null` to disable).
+ *   - onReady / onComplete / onError: lifecycle hooks invoked from
+ *     `App.init()` / the valueadd embed's click intercept /
+ *     MapController error paths.
  *
- * Today (Stage 1):
- * - mountMap(targetEl, options) calls App.init() exactly as before.
- *   targetEl and options are accepted but not yet acted on.
- * - destroy() is a stub. Standalone never calls it. The real
- *   implementation lands in Stage 3 when consumers (value-add-prototype)
- *   need to remount the map between slides.
+ * `destroy()` runs the teardown sequence in map-core/teardown.js:
+ * Mapbox `map.remove()`, marker DOM cleanup, Chart.js teardown,
+ * event listener removal, App / UI state reset, and removal of any
+ * document-level attributes the package set.
  */
 
 import { App } from "./app.js";
 import { setRoot } from "./shared/dom-scope.js";
+import { setScenes } from "./data/index.js";
+import { UI } from "./ui/index.js";
+import { i18n } from "./i18n/index.js";
+import { resolveOptions } from "./map-core/options.js";
+import { setupIPhoneEmbed } from "./map-core/embed-iphone.js";
+import { setupValueAddEmbed } from "./map-core/embed-valueadd.js";
+import { teardownAll } from "./map-core/teardown.js";
 
 let _mounted = false;
+let _embedTeardown = null;
+let _resolvedOptions = null;
 
 /**
  * Mount the map experience.
  *
- * @param {HTMLElement} [_targetEl] - The container element. Currently ignored;
- *   the map assumes a pre-existing #app-container in the DOM. Stage 2 will
- *   scope DOM queries to this element.
- * @param {object} [_options] - Mount-time config. Currently ignored; URL params
- *   are still the source of truth. Stage 3 will switch precedence to options.
+ * @param {HTMLElement} [targetEl] - The container element. Scopes the
+ *   package's DOM queries via `setRoot`. Defaults to `document` when
+ *   omitted (used by the standalone where the scaffold is at the page
+ *   root).
+ * @param {object} [options] - Mount-time config. See file header for
+ *   the full list and resolution precedence.
  * @returns {{ destroy: () => void }} A handle with a destroy method.
  */
-export function mountMap(_targetEl, _options = {}) {
+export function mountMap(targetEl, options = {}) {
   if (_mounted) {
     console.warn(
-      "[map-core] mountMap called while already mounted. Stage 1 only " +
-        "supports a single mount per page; call destroy() before remounting " +
-        "(destroy is a stub until Stage 3).",
+      "[map-core] mountMap called while already mounted. Call destroy() " +
+        "before remounting.",
     );
   }
   _mounted = true;
 
-  // Stage 2: scope subsequent helper queries (`$id`, `$sel`, `$all`) to the
-  // targetEl. For the standalone app this is `#app-container` and behavior
-  // matches the previous document-scoped lookups (scaffold is a child of doc).
-  // For future package consumers this scopes the map's DOM queries to their
-  // container instead of the global document.
-  setRoot(_targetEl || document);
+  const opts = resolveOptions(options);
+  _resolvedOptions = opts;
 
-  // Existing init runs against the page DOM. Stage 3 will pass options through.
+  // --- Language: apply BEFORE setScenes so the rebuilt STEPS picks up
+  //     the chosen translations. Falls back to whatever i18next loaded
+  //     at module init time when no lang option / URL param is given.
+  if (opts.lang && opts.lang !== i18n.language) {
+    try {
+      localStorage.setItem("app-lang", opts.lang);
+    } catch (_e) {}
+    document.documentElement.lang = opts.lang;
+    i18n.changeLanguage(opts.lang);
+  }
+
+  // --- Scenes: rebuild STEPS / STAGE_TABS in place.
+  setScenes(opts.scenes);
+
+  // --- DOM scope root for $id / $sel / $all helpers.
+  setRoot(targetEl || document);
+
+  // --- Mapbox token: kept on window for MapController.init() which
+  //     reads `window.MAPBOX_ACCESS_TOKEN`. (A later cleanup pass can
+  //     pass it directly; this preserves the existing contract.)
+  if (opts.mapboxToken) {
+    window.MAPBOX_ACCESS_TOKEN = opts.mapboxToken;
+  }
+
+  // --- Tour URL: stash for `UI.openValueAddTour` to read at click time.
+  //     `null` disables the tour launch.
+  window.__GKTK_TOUR_URL = opts.tourUrl;
+
+  // --- Embed-mode document attributes (replaces the inline scripts that
+  //     used to live at the top of index.html). Setting them now, before
+  //     `App.init()` paints, prevents the bundle's default chrome from
+  //     flashing through.
+  if (opts.embedHost) {
+    document.documentElement.setAttribute("data-embed", "1");
+    document.documentElement.setAttribute(
+      "data-embed-host",
+      opts.embedHost === "iphone" ? "" : opts.embedHost,
+    );
+    if (opts.embedHost === "iphone") {
+      // The iPhone host historically left `data-embed-host` unset.
+      // Remove the empty value we just wrote to preserve CSS selectors
+      // like `:not([data-embed-host="valueadd"])`.
+      document.documentElement.removeAttribute("data-embed-host");
+    }
+  }
+  if (opts.chromeless) {
+    document.documentElement.setAttribute("data-chromeless", "1");
+  }
+
+  // --- Embed-mode behavior. iPhone host waits for DOMContentLoaded
+  //     internally; valueadd host runs immediately.
+  if (opts.embedHost === "iphone") {
+    if (document.readyState === "loading") {
+      const onReady = () => {
+        document.removeEventListener("DOMContentLoaded", onReady);
+        _embedTeardown = setupIPhoneEmbed();
+      };
+      document.addEventListener("DOMContentLoaded", onReady);
+    } else {
+      _embedTeardown = setupIPhoneEmbed();
+    }
+  } else if (opts.embedHost === "valueadd") {
+    const handle = setupValueAddEmbed({ onComplete: opts.onComplete });
+    _embedTeardown = handle.teardown;
+  }
+
+  // --- Lifecycle hooks. The valueadd embed already calls onComplete on
+  //     forward-at-last-step; the standalone wires it through App.
+  App._startStep = opts.startStep;
+  App._onReady = () => {
+    try {
+      opts.onReady();
+    } catch (_e) {}
+  };
+  App._onError = (err) => {
+    try {
+      opts.onError(err);
+    } catch (_e) {}
+  };
+
+  // --- Existing init runs against the page DOM.
   App.init();
 
   return { destroy };
@@ -62,17 +158,26 @@ export function mountMap(_targetEl, _options = {}) {
 
 /**
  * Tear down the mounted map and reset state for a future mount.
- *
- * Stage 1: stub. The standalone app never calls destroy. The full
- * implementation (Mapbox cleanup, marker removal, chart teardown, event
- * listener removal, state reset) lands in Stage 3 once value-add-prototype
- * needs to remount the map between slides.
  */
 export function destroy() {
-  console.warn(
-    "[map-core] destroy() is a stub in Stage 1. Full cleanup lands in " +
-      "Stage 3 when value-add-prototype starts consuming the package.",
-  );
+  if (!_mounted) return;
+
+  if (typeof _embedTeardown === "function") {
+    try {
+      _embedTeardown();
+    } catch (_e) {}
+    _embedTeardown = null;
+  }
+
+  try {
+    teardownAll();
+  } catch (_e) {}
+
   setRoot(null);
+  delete window.__GKTK_TOUR_URL;
+  App._startStep = null;
+  App._onReady = null;
+  App._onError = null;
+  _resolvedOptions = null;
   _mounted = false;
 }
