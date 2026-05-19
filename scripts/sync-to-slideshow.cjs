@@ -36,6 +36,12 @@ const SLIDESHOW_ROOT = path.resolve(
   "..",
   "value-add-prototype",
 );
+// Stage 4 of the map-core extraction (see docs/plans/
+// map-core-extraction-execution-plan.md) migrated step-12 to consume
+// @moreharvest/map-core via an npm install + postinstall copy in
+// value-add-prototype. `pnpm sync` therefore only targets the step-6
+// embed; step-12 is fed from value-add-prototype's own node_modules.
+// Stage 5 will retire this script entirely.
 const TARGETS = [
   path.join(
     SLIDESHOW_ROOT,
@@ -43,14 +49,6 @@ const TARGETS = [
     "playground",
     "prototypes",
     "step-6-section-3-map",
-    "map-prototype-v1",
-  ),
-  path.join(
-    SLIDESHOW_ROOT,
-    "public",
-    "playground",
-    "prototypes",
-    "step-12-section-6-product-hardware",
     "map-prototype-v1",
   ),
 ];

@@ -1,28 +1,61 @@
 {
-  "name": "map-prototype",
+  "name": "@moreharvest/map-core",
   "version": "1.0.0",
-  "description": "Interactive presentation app for real estate sales in Kumamoto, Japan",
+  "description": "Interactive presentation map for real estate sales in Kumamoto, Japan. Standalone app and embeddable map-core library.",
+  "type": "module",
+  "main": "./js/map-core.js",
+  "module": "./js/map-core.js",
+  "exports": {
+    ".": "./js/map-core.js",
+    "./css/styles.css": "./css/styles.css",
+    "./css/embed-mobile.css": "./css/embed-mobile.css",
+    "./assets/*": "./assets/*",
+    "./landmarks.json": "./landmarks.json",
+    "./layers.json": "./layers.json",
+    "./regions.json": "./regions.json"
+  },
+  "files": [
+    "js",
+    "css",
+    "assets",
+    "landmarks.json",
+    "layers.json",
+    "regions.json"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sync": "vite build && node scripts/sync-to-slideshow.js",
+    "prepare": "vite build",
+    "sync": "vite build && node scripts/sync-to-slideshow.cjs",
     "sync:dry": "vite build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Njhhjjjhy/Map-prototype.git"
+    "url": "git+https://github.com/moreharvest/interactive-map-prototype.git"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Njhhjjjhy/Map-prototype/issues"
+    "url": "https://github.com/moreharvest/interactive-map-prototype/issues"
   },
-  "homepage": "https://github.com/Njhhjjjhy/Map-prototype#readme",
+  "homepage": "https://github.com/moreharvest/interactive-map-prototype#readme",
   "devDependencies": {
     "vite": "^7.3.1"
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
   "dependencies": {
     "i18next": "^25.8.17"
+  },
+  "peerDependencies": {
+    "mapbox-gl": "^3.0.0",
+    "chart.js": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "mapbox-gl": {
+      "optional": false
+    },
+    "chart.js": {
+      "optional": false
+    }
   }
 }
