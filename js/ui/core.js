@@ -1,32 +1,33 @@
 import { STEPS } from "../data/index.js";
 import { TIMING } from "../app.js";
 import { t } from "../i18n/index.js";
+import { $id, $sel, $all } from "../shared/dom-scope.js";
 
 export const methods = {
   init() {
     this.elements = {
-      startScreen: document.getElementById("start-screen"),
-      appContainer: document.getElementById("app-container"),
-      timeToggle: document.getElementById("time-toggle"),
-      presentBtn: document.getElementById("present-btn"),
-      futureBtn: document.getElementById("future-btn"),
-      rightPanel: document.getElementById("right-panel"),
-      panelClose: document.getElementById("panel-close"),
-      panelHome: document.getElementById("panel-home"),
-      panelContent: document.getElementById("panel-content"),
-      galleryModal: document.getElementById("gallery-modal"),
-      galleryClose: document.getElementById("gallery-close"),
-      galleryOverlay: document.getElementById("gallery-overlay"),
-      galleryBody: document.getElementById("gallery-body"),
-      layersToggle: document.getElementById("layers-toggle"),
-      dataLayers: document.getElementById("data-layers"),
-      panelToggle: document.getElementById("panel-toggle"),
-      evidencePreview: document.getElementById("evidence-preview"),
-      evidencePreviewBody: document.getElementById("evidence-preview-body"),
-      evidencePreviewClose: document.getElementById("evidence-preview-close"),
-      navArrows: document.getElementById("nav-arrows"),
-      navBack: document.getElementById("nav-back"),
-      navForward: document.getElementById("nav-forward"),
+      startScreen: $id("start-screen"),
+      appContainer: $id("app-container"),
+      timeToggle: $id("time-toggle"),
+      presentBtn: $id("present-btn"),
+      futureBtn: $id("future-btn"),
+      rightPanel: $id("right-panel"),
+      panelClose: $id("panel-close"),
+      panelHome: $id("panel-home"),
+      panelContent: $id("panel-content"),
+      galleryModal: $id("gallery-modal"),
+      galleryClose: $id("gallery-close"),
+      galleryOverlay: $id("gallery-overlay"),
+      galleryBody: $id("gallery-body"),
+      layersToggle: $id("layers-toggle"),
+      dataLayers: $id("data-layers"),
+      panelToggle: $id("panel-toggle"),
+      evidencePreview: $id("evidence-preview"),
+      evidencePreviewBody: $id("evidence-preview-body"),
+      evidencePreviewClose: $id("evidence-preview-close"),
+      navArrows: $id("nav-arrows"),
+      navBack: $id("nav-back"),
+      navForward: $id("nav-forward"),
     };
 
     this.layersPanelOpen = false;
@@ -51,7 +52,7 @@ export const methods = {
 
     // Make gallery modal draggable (drag from content area header)
     this.makeDraggable(
-      document.getElementById("gallery-content"),
+      $id("gallery-content"),
       ".placeholder-doc h3",
     );
   },
@@ -203,7 +204,7 @@ export const methods = {
       if (e.key !== "Escape") return;
 
       // Quick Look (z-index 2000)
-      const quickLook = document.getElementById("property-quick-look");
+      const quickLook = $id("property-quick-look");
       if (quickLook && !quickLook.classList.contains("hidden")) {
         this.hidePropertyImageQuickLook();
         return;
@@ -263,7 +264,7 @@ export const methods = {
 
       // Modal overlays block step navigation. Esc still closes them via the
       // handler above.
-      const quickLook = document.getElementById("property-quick-look");
+      const quickLook = $id("property-quick-look");
       if (quickLook && !quickLook.classList.contains("hidden")) return;
       if (
         this.elements.evidencePreview &&
@@ -568,7 +569,7 @@ export const methods = {
    * Update toolbar back and home buttons based on history state
    */
   _updateToolbarBackButton() {
-    const toolbar = document.querySelector(".panel-toolbar");
+    const toolbar = $sel(".panel-toolbar");
     if (!toolbar) return;
 
     const hasHistory = this.panelHistory.length > 0;
@@ -1009,7 +1010,7 @@ export const methods = {
    * @param {number} currentStep - Current step (1-based)
    */
   updateJourneyProgress(currentStep, totalSteps = 10) {
-    let progressBar = document.getElementById("journey-progress");
+    let progressBar = $id("journey-progress");
     if (!progressBar) return;
 
     progressBar.setAttribute("aria-valuenow", currentStep);
@@ -1033,7 +1034,7 @@ export const methods = {
    * Hide the journey progress bar
    */
   hideJourneyProgress() {
-    const progressBar = document.getElementById("journey-progress");
+    const progressBar = $id("journey-progress");
     if (progressBar) progressBar.classList.add("hidden");
   },
 
@@ -1041,7 +1042,7 @@ export const methods = {
   // DATA LAYERS PANEL
   // ================================
   announceToScreenReader(message) {
-    const announcer = document.getElementById("map-announcements");
+    const announcer = $id("map-announcements");
     if (announcer) {
       announcer.textContent = message;
       // Clear after announcement to allow repeated messages

@@ -6,6 +6,7 @@ import {
   disclosureTriangle,
 } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
+import { $id, $sel, $all } from "../shared/dom-scope.js";
 
 export const methods = {
   showDataLayers(stepIndex) {
@@ -93,7 +94,7 @@ export const methods = {
     // Populate Data Layers section with cumulative step-ordered items.
     // At step N, items for steps 1 through N appear. Only the current
     // step's item is auto-selected (via syncDataLayersToStep).
-    const dataLayerItems = document.getElementById("data-layer-items");
+    const dataLayerItems = $id("data-layer-items");
 
     // Store current step for reference
     this._currentStepForLayers = stepIndex;
@@ -243,7 +244,7 @@ export const methods = {
 
     const activeLayers = step.layers || [];
     const autoSelect = stepAutoSelect[step.index];
-    const allItems = document.querySelectorAll("#data-layer-items .layer-item");
+    const allItems = $all("#data-layer-items .layer-item");
 
     allItems.forEach((item) => {
       const layerKey = item.getAttribute("data-layer");
@@ -263,7 +264,7 @@ export const methods = {
    * Activate a single data layer checkbox by its data-layer attribute.
    */
   activateDataLayer(layerKey) {
-    const item = document.querySelector(
+    const item = $sel(
       `#data-layer-items [data-layer="${layerKey}"]`,
     );
     if (item && !item.classList.contains("active")) {
@@ -276,7 +277,7 @@ export const methods = {
    * Deactivate a single data layer checkbox by its data-layer attribute.
    */
   deactivateDataLayer(layerKey) {
-    const item = document.querySelector(
+    const item = $sel(
       `#data-layer-items [data-layer="${layerKey}"]`,
     );
     if (item) {
@@ -297,7 +298,7 @@ export const methods = {
    */
   resetAllDataLayers() {
     this.activeDataLayers = {};
-    const allItems = document.querySelectorAll("#data-layer-items .layer-item");
+    const allItems = $all("#data-layer-items .layer-item");
     allItems.forEach((item) => {
       item.classList.remove("active");
       item.setAttribute("aria-checked", "false");
@@ -343,7 +344,7 @@ export const methods = {
     this.hideDataLayers();
   },
   toggleLayer(layerName) {
-    const layerItem = document.querySelector(
+    const layerItem = $sel(
       `#data-layer-items [data-layer="${layerName}"]`,
     );
     if (!layerItem) return;

@@ -1,3 +1,5 @@
+import { $sel } from "../shared/dom-scope.js";
+
 const TOUR_ORIGIN = "https://3d-vertical-test.vercel.app";
 const TOUR_URL = `${TOUR_ORIGIN}/value-add-journey.html`;
 const TOUR_Z_INDEX = 20000;
@@ -5,7 +7,7 @@ const TOUR_Z_INDEX = 20000;
 export const methods = {
   openValueAddTour(options = {}) {
     if (this.valueAddTourIframe) return;
-    if (document.querySelector('iframe[data-value-add-tour="1"]')) return;
+    if ($sel('iframe[data-value-add-tour="1"]')) return;
 
     const iframe = document.createElement("iframe");
     iframe.src = TOUR_URL;

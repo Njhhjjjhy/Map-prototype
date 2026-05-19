@@ -23,6 +23,7 @@
  */
 
 import { App } from "./app.js";
+import { setRoot } from "./shared/dom-scope.js";
 
 let _mounted = false;
 
@@ -46,8 +47,14 @@ export function mountMap(_targetEl, _options = {}) {
   }
   _mounted = true;
 
-  // Existing init runs against the page DOM. Stage 2 will scope this
-  // to targetEl. Stage 3 will pass options through.
+  // Stage 2: scope subsequent helper queries (`$id`, `$sel`, `$all`) to the
+  // targetEl. For the standalone app this is `#app-container` and behavior
+  // matches the previous document-scoped lookups (scaffold is a child of doc).
+  // For future package consumers this scopes the map's DOM queries to their
+  // container instead of the global document.
+  setRoot(_targetEl || document);
+
+  // Existing init runs against the page DOM. Stage 3 will pass options through.
   App.init();
 
   return { destroy };
@@ -66,5 +73,6 @@ export function destroy() {
     "[map-core] destroy() is a stub in Stage 1. Full cleanup lands in " +
       "Stage 3 when value-add-prototype starts consuming the package.",
   );
+  setRoot(null);
   _mounted = false;
 }

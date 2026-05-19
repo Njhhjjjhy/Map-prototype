@@ -1,10 +1,11 @@
 import { AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
 import { t } from "../i18n/index.js";
+import { $id, $sel, $all } from "../shared/dom-scope.js";
 
 export const methods = {
   _ensureTransitionOverlay() {
-    let overlay = document.getElementById("transition-overlay");
+    let overlay = $id("transition-overlay");
     if (overlay) return overlay;
 
     overlay = document.createElement("div");
@@ -67,7 +68,7 @@ export const methods = {
       .querySelector(".transition-next")
       .addEventListener("click", () => this._galleryNext());
 
-    document.getElementById("map-container").appendChild(overlay);
+    $id("map-container").appendChild(overlay);
     return overlay;
   },
 
@@ -135,7 +136,7 @@ export const methods = {
   _galleryPrev() {
     if (!this._drillDownImages || this._drillDownImageIndex <= 0) return;
     this._drillDownImageIndex--;
-    const overlay = document.getElementById("transition-overlay");
+    const overlay = $id("transition-overlay");
     const src = this._drillDownImages[this._drillDownImageIndex];
     const name = this._drillDown?.property?.name || "";
     this._crossfadeTransitionImage(overlay, src, `${name} ${t("view")}`);
@@ -149,7 +150,7 @@ export const methods = {
     )
       return;
     this._drillDownImageIndex++;
-    const overlay = document.getElementById("transition-overlay");
+    const overlay = $id("transition-overlay");
     const src = this._drillDownImages[this._drillDownImageIndex];
     const name = this._drillDown?.property?.name || "";
     this._crossfadeTransitionImage(overlay, src, `${name} ${t("view")}`);
@@ -231,7 +232,7 @@ export const methods = {
     if (this._propertyTransitioning) return;
     this._propertyTransitioning = true;
 
-    const overlay = document.getElementById("transition-overlay");
+    const overlay = $id("transition-overlay");
     if (!overlay) {
       this._propertyTransitioning = false;
       return;
@@ -346,7 +347,7 @@ export const methods = {
 
     this.elements.galleryBody.innerHTML = bodyHtml;
     this.elements.galleryModal.classList.remove("hidden");
-    document.getElementById("map-container").classList.add("immersive-active");
+    $id("map-container").classList.add("immersive-active");
 
     // Focus management for accessibility
     this.lastFocusedElement = document.activeElement;
@@ -399,7 +400,7 @@ export const methods = {
       });
 
     this.elements.galleryModal.classList.remove("hidden");
-    document.getElementById("map-container").classList.add("immersive-active");
+    $id("map-container").classList.add("immersive-active");
 
     this.lastFocusedElement = document.activeElement;
     this.elements.galleryClose.focus();
@@ -461,7 +462,7 @@ export const methods = {
 
     this.elements.galleryBody.innerHTML = bodyHtml;
     this.elements.galleryModal.classList.remove("hidden");
-    document.getElementById("map-container").classList.add("immersive-active");
+    $id("map-container").classList.add("immersive-active");
 
     this.lastFocusedElement = document.activeElement;
     this.elements.galleryClose.focus();
@@ -488,8 +489,8 @@ export const methods = {
    * @param {string} itemId - Evidence item ID
    */
   showPropertyImageQuickLook(imageUrl, title) {
-    const quickLook = document.getElementById("property-quick-look");
-    const quickLookImage = document.getElementById("quick-look-image");
+    const quickLook = $id("property-quick-look");
+    const quickLookImage = $id("quick-look-image");
 
     if (!quickLook || !quickLookImage) return;
 
@@ -508,7 +509,7 @@ export const methods = {
     quickLook.classList.remove("hidden");
 
     // Focus the close button
-    const closeBtn = document.getElementById("quick-look-close");
+    const closeBtn = $id("quick-look-close");
     if (closeBtn) {
       closeBtn.focus();
     }
@@ -521,7 +522,7 @@ export const methods = {
    * Hide property image Quick Look modal
    */
   hidePropertyImageQuickLook() {
-    const quickLook = document.getElementById("property-quick-look");
+    const quickLook = $id("property-quick-look");
     if (quickLook) {
       quickLook.classList.add("hidden");
       quickLook.classList.remove("evidence-lightbox", "quick-look--pdf");
@@ -589,7 +590,7 @@ export const methods = {
   showMoreHarvestEntry() {
     return new Promise((resolve) => {
       // Remove any existing overlays to prevent accumulation
-      const existingOverlays = document.querySelectorAll(".moreharvest-entry");
+      const existingOverlays = $all(".moreharvest-entry");
       existingOverlays.forEach((el) => el.remove());
 
       const overlay = document.createElement("div");
@@ -630,9 +631,9 @@ export const methods = {
    * Shows combined potential across all explored properties
    */
   showQuickLook(options = {}) {
-    const quickLook = document.getElementById("property-quick-look");
+    const quickLook = $id("property-quick-look");
     if (!quickLook) return;
-    const content = document.getElementById("quick-look-content");
+    const content = $id("quick-look-content");
     if (!content) return;
 
     const type = options.type || "image";
@@ -702,7 +703,7 @@ export const methods = {
     quickLook.classList.remove("hidden");
   },
   _quickLookNav(direction) {
-    const quickLook = document.getElementById("property-quick-look");
+    const quickLook = $id("property-quick-look");
     if (!quickLook) return;
     let images;
     try {
@@ -716,13 +717,13 @@ export const methods = {
     if (idx < 0) idx = images.length - 1;
     if (idx >= images.length) idx = 0;
     quickLook.dataset.galleryIndex = idx;
-    const img = document.getElementById("quick-look-image");
+    const img = $id("quick-look-image");
     if (img) img.src = images[idx] || "";
     const counter = quickLook.querySelector('[style*="bottom"]');
     if (counter) counter.textContent = `${idx + 1} / ${images.length}`;
   },
   hideQuickLook() {
-    const quickLook = document.getElementById("property-quick-look");
+    const quickLook = $id("property-quick-look");
     if (quickLook) {
       quickLook.classList.add("hidden");
       quickLook.classList.remove("evidence-lightbox", "quick-look--pdf");
@@ -737,7 +738,7 @@ export const methods = {
    * Show evidence image in a lightweight lightbox (20% black overlay)
    */
   showEvidenceLightbox(src, alt) {
-    const quickLook = document.getElementById("property-quick-look");
+    const quickLook = $id("property-quick-look");
     if (!quickLook) return;
     quickLook.classList.add("evidence-lightbox");
     this.showQuickLook({ type: "image", src, title: alt || "" });

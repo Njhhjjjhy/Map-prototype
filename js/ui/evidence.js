@@ -7,6 +7,7 @@ import {
   SVG_CHEVRON_RIGHT,
 } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
+import { $sel } from "../shared/dom-scope.js";
 
 export const methods = {
   showEvidencePreview(groupId, itemId) {
@@ -158,7 +159,7 @@ export const methods = {
   toggleDisclosureGroup(groupId) {
     this.disclosureState[groupId] = !this.disclosureState[groupId];
 
-    const groupEl = document.querySelector(`[data-group-id="${groupId}"]`);
+    const groupEl = $sel(`[data-group-id="${groupId}"]`);
     if (groupEl) {
       const headerBtn = groupEl.querySelector(".disclosure-header");
       const isExpanded = this.disclosureState[groupId];

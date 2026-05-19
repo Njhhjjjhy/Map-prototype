@@ -11,6 +11,7 @@ import {
   evidenceImage,
 } from "./shared/templates.js";
 import { t } from "./i18n/index.js";
+import { $id, $all } from "./shared/dom-scope.js";
 
 /**
  * Shared timing constants - semantic names for setTimeout values.
@@ -276,7 +277,7 @@ const App = {
     }
 
     // Reset drag positions before hiding UI
-    document.getElementById("right-panel")?.resetDragPosition?.();
+    $id("right-panel")?.resetDragPosition?.();
 
     // Hide UI
     UI.hidePanel();
@@ -505,10 +506,10 @@ const App = {
     document
       .querySelectorAll(".moreharvest-entry")
       .forEach((el) => el.remove());
-    document.querySelectorAll(".mapboxgl-marker").forEach((el) => {
+    $all(".mapboxgl-marker").forEach((el) => {
       if (el.parentNode) el.remove();
     });
-    document.querySelectorAll(".elevated-marker").forEach((el) => {
+    $all(".elevated-marker").forEach((el) => {
       if (el.parentNode) el.remove();
     });
 
