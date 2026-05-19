@@ -17,6 +17,8 @@ After this migration:
 - The 3D tour continues to load as an iframe inside the map, but at a same-origin relative URL (`/tours/ozu-1/index.html`), not the cross-origin Vercel URL.
 - `map-prototype` is archived. The 3D tour's Vercel deploy is sunset.
 
+**Estimated effort:** 1–2 sessions. The work is mechanical (copy files, wire scripts, verify). Most elapsed time is the product owner clicking through slides 6, 7, 11, 12 after each phase. Do not over-engineer.
+
 ## Authority chain
 
 Read in this order. Do not skip.
@@ -49,8 +51,8 @@ These are absolute paths on the product owner's machine.
 
 - **STOP before any code.** Phase 0 below requires user input. Do not proceed past Phase 0 without explicit "yes, go" from the user.
 - **One phase at a time.** After each phase, summarize what changed and ask the user to verify before starting the next. Do not chain phases silently.
-- **No commit until told.** Per this repo's `CLAUDE.md`: "NEVER COMMIT BEFORE I TELL YOU." The migration is multi-commit. After each phase, ask the user before committing.
-- **Use a feature branch.** Invoke `/feature migrate-map-prototype-in` at the start of Phase 1. The `/feature` skill in this repo authorizes commits per its rules.
+- **No commit, push, or PR until the user invokes `/feature finish`.** Per this repo's `CLAUDE.md` and the product owner's standing rule: do not stage, commit, push, or open a PR at any point during the migration. Let all changes accumulate uncommitted on the feature branch. When the user invokes `/feature finish`, then commit and push everything per the `/feature` skill. If the `/feature` skill instructions say to commit incrementally, ignore that part.
+- **Use a feature branch.** Invoke `/feature migrate-map-prototype-in` at the start of Phase 1. Creating the branch is fine; committing into it is not (until `/feature finish`).
 - **No rewrites.** Copy source verbatim. The only files you may edit during migration are:
   - `embedded-apps/map/js/ui/value-add-tour.js` (point at same-origin tour URL).
   - `embedded-apps/map/package.json` (rename the `name` field).
@@ -78,16 +80,23 @@ Each phase has: actions, verification, "ask the user" gate. Do not skip the gate
    - The exact iframe `src` URL pattern.
    - The exact query string params.
    - The exact postMessage event names the wrappers subscribe to.
-5. Check whether the user has a source repo for the 3D tour at `https://3d-vertical-test.vercel.app/value-add-journey.html`. Search nearby paths first (`/Users/riaan/Documents/Design Files/Code Projects/` for any folder with `vertical`, `tour`, `journey`, or `3d` in the name). Report what you find or do not find.
+5. **Verify the Mapbox token is set** in `value-add-prototype/.env.local`. Run `grep NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN .env.local`. If empty or missing, do not proceed — the map will silently fail to render its base layer during verification. Ask the user for the token (it likely lives in `map-prototype/.env.local`, in the user's Mapbox account dashboard, or in Vercel's env vars for the existing map deploy).
+6. **Discover the 3D tour source** in this order, stopping at the first hit:
+   - **(a) Vercel link.** Ask the user to open the `3d-vertical-test` project in Vercel and check Settings → Git → "Connected Git Repository." If linked, get that GitHub URL.
+   - **(b) Local search.** Run `find ~/Documents -type d \( -iname "*3d*" -o -iname "*vertical*" -o -iname "*tour*" -o -iname "*journey*" \) 2>/dev/null | head -20`. Filter for real source directories (has `.git/`, `package.json`, or `index.html`).
+   - **(c) Ask directly.** "Do you remember where the source for the 3D tour lives?"
+   - **(d) Last resort: mirror.** If none of (a)–(c) finds it, plan to capture every network request the deployed page makes via DevTools Network panel during Phase 4 and reconstruct `embedded-apps/value-add-journey/` from those downloads. `wget --mirror` alone is unreliable for three.js apps because dynamic imports defeat it.
+
+   Report what you found and which path you'll use in Phase 4.
 
 **Ask the user (mandatory before Phase 1):**
 
 > 1. I have read the migration plan and inventoried both repos. **Proceed with Phase 1 (create the embedded-apps folder and copy the map source)?**
-> 2. The 3D tour's source repo — do you know where it lives? If not, I will mirror the deployed assets from `https://3d-vertical-test.vercel.app/value-add-journey.html` into `embedded-apps/value-add-journey/` during Phase 4. Confirm that is acceptable.
-> 3. **Sub-lockfile or workspace?** The embedded map has its own `pnpm-lock.yaml` today. Two options: (a) keep it as its own lockfile inside `embedded-apps/map/`; (b) convert to a pnpm workspace at the repo root so all three lockfiles share one. Pick (a) unless you have a reason for (b).
-> 4. **`map-prototype` Vercel deploy** — does the standalone map have a public URL anyone uses today (e.g. linked from anywhere)? If yes, I will leave that deploy live; if no, you can delete it from Vercel after migration. Tell me which.
+> 2. The 3D tour source: [report what you found from step 6 above]. Confirm the approach you'll use in Phase 4.
+> 3. **`map-prototype` Vercel deploy** — does the standalone map have a public URL anyone uses today (e.g. linked from anywhere)? If yes, I will leave that deploy live; if no, you can delete it from Vercel after migration. Tell me which.
+> 4. **Mapbox token:** [report whether you found `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` in `.env.local`]. If missing, please paste it into `.env.local` now before I proceed.
 
-Do not start Phase 1 until you have answers to all four.
+Do not start Phase 1 until you have answers to all four. Note: the older versions of this prompt asked about sub-lockfile vs workspace — the answer is now default to sub-lockfile (each `embedded-apps/<sub>/` keeps its own `pnpm-lock.yaml`). Do not ask the user.
 
 ---
 
@@ -95,7 +104,7 @@ Do not start Phase 1 until you have answers to all four.
 
 **Actions:**
 
-1. Invoke `/feature migrate-map-prototype-in` to create the feature branch. This authorizes commits.
+1. Invoke `/feature migrate-map-prototype-in` to create the feature branch. Do NOT commit anything yet — wait for the user to invoke `/feature finish` at the very end.
 2. Create `value-add-prototype/embedded-apps/map/`.
 3. Copy from `map-prototype/` to `embedded-apps/map/`:
    - `index.html`
@@ -106,7 +115,7 @@ Do not start Phase 1 until you have answers to all four.
    - `landmarks.json`, `layers.json`, `regions.json`
    - `package.json`
    - `vite.config.js`
-   - `pnpm-lock.yaml` (only if the user picked sub-lockfile in Phase 0)
+   - `pnpm-lock.yaml` (default — sub-lockfile, see Phase 0 note)
    - `CLAUDE.md` (as `embedded-apps/map/CLAUDE.md`, scoped)
    - `docs/` (full folder, as `embedded-apps/map/docs/`)
    - `QA_20260312.md`, `QA_20260312_raw.md`
@@ -121,8 +130,10 @@ Do not start Phase 1 until you have answers to all four.
    - The old `value-add-journey-map-prototype-prompt.md` at the root of map-prototype (stale; describes work already done).
    - `.claude/`, `.DS_Store`
 5. Edit `embedded-apps/map/package.json`: rename `"name": "map-prototype"` to `"name": "@embedded/map"`. Leave everything else verbatim.
-6. Add a one-line note at the top of `embedded-apps/map/CLAUDE.md`:
-   > **Scope:** This file governs the embedded map only (the iframe at slides 6, 7, 11, 12). For the rest of value-add-prototype see the root `CLAUDE.md`.
+6. Add a scope block at the top of `embedded-apps/map/CLAUDE.md`:
+   > **Scope:** This file and `embedded-apps/map/docs/` govern the map's internal UI only — everything that appears inside the iframe at slides 6, 7, 11, 12. The slideshow's React shell, the PDF, the playground, and everything else outside the iframe are governed by the root `CLAUDE.md` and `docs/visual-identity.md`.
+   >
+   > The two design languages may differ (map uses macOS HIG; slideshow uses iPad-first flat). That is intentional. Do not harmonize tokens between the two systems without an explicit user instruction.
 7. `cd embedded-apps/map && pnpm install && pnpm build`. The build must succeed with zero errors. The output appears in `embedded-apps/map/dist/`.
 8. Confirm `embedded-apps/map/dist/index.html` exists and contains the embed-mode markers.
 
@@ -134,7 +145,7 @@ Do not start Phase 1 until you have answers to all four.
 
 **Ask the user:**
 
-> Phase 1 complete. Map source is in `embedded-apps/map/` and builds clean. Commit and proceed to Phase 2?
+> Phase 1 complete. Map source is in `embedded-apps/map/` and builds clean. Proceed to Phase 2?
 
 ---
 
@@ -187,7 +198,7 @@ Do not start Phase 1 until you have answers to all four.
 
 **Ask the user:**
 
-> Phase 2 complete. Build pipeline runs and slides 6, 7, 11, 12 render correctly. Commit and proceed to Phase 3?
+> Phase 2 complete. Build pipeline runs and slides 6, 7, 11, 12 render correctly. Proceed to Phase 3?
 
 ---
 
@@ -214,42 +225,45 @@ Do not start Phase 1 until you have answers to all four.
 
 **Actions:**
 
-1. **Get the source.** Two paths depending on Phase 0 answer:
-   - **(a) The user has a source repo.** Copy its contents into `embedded-apps/value-add-journey/`. Note its `package.json` build command if any.
-   - **(b) No source repo.** Mirror the deployed assets:
-     ```bash
-     mkdir -p embedded-apps/value-add-journey
-     cd embedded-apps/value-add-journey
-     wget --mirror --convert-links --adjust-extension --page-requisites --no-parent \
-          --no-host-directories --cut-dirs=0 \
-          https://3d-vertical-test.vercel.app/value-add-journey.html
-     ```
-     Inspect the output. The deployed page references additional JS chunks, textures, and likely an `.hdr` environment file. `wget --mirror` should follow most, but JS-loaded assets (three.js dynamic imports, KTX textures) may not be discovered automatically. Open the page in a browser, open DevTools → Network, reload, and download every asset listed that `wget` missed. Save them at the same relative paths the page expects.
-   - **(c) Whichever path above:** verify by opening `embedded-apps/value-add-journey/value-add-journey.html` (or `index.html` if renamed) directly in a browser (`file://`). The tour will likely **fail** on `file://` because of ES module CORS; that is expected. The real test is running it from the dev server in step 3 below.
+1. **Get the source.** Follow the path from Phase 0 step 6:
+   - **(a) Vercel-linked source repo found.** Clone it adjacent to value-add-prototype, then copy its contents into `embedded-apps/value-add-journey/`. Read its `package.json` and note: does it have a `build` script? If yes, this is **Variant B** below. If no (it's static HTML + assets), this is **Variant A**.
+   - **(b) Local source folder found.** Copy contents into `embedded-apps/value-add-journey/`. Same Variant A vs B check on the `package.json`.
+   - **(d) Last resort — mirror.** With the user, open `https://3d-vertical-test.vercel.app/value-add-journey.html` in Chrome. DevTools → Network → reload. Sort by name. For every asset listed (HTML, JS, JSON, textures, HDRs, KTX, GLB), right-click → "Save as" and save it into `embedded-apps/value-add-journey/` at the same relative path the URL implies. This is tedious — ~20–50 assets typically. If the user is unwilling to do this, the migration stops here until they decide.
 
-2. **Stage into public.** Create `value-add-prototype/scripts/copy-tour-dist.js`:
+   After (a), (b), or (d), the result is **Variant A** (static folder, no build step) unless (a)/(b) showed a `build` script in its `package.json` (then **Variant B**).
+
+2. **Decide variant and stage into public.** Create `value-add-prototype/scripts/copy-tour-dist.js`:
 
    ```js
+   // Variant A (default — tour is static HTML + assets): SRC = embedded-apps/value-add-journey/
+   // Variant B (tour has its own build step):           SRC = embedded-apps/value-add-journey/dist/
    const fs = require('node:fs');
    const path = require('node:path');
-   // If the tour has a build step, point SRC at its dist/. If it's a static folder of HTML+assets, point SRC at the folder itself.
-   const SRC = path.join(__dirname, '..', 'embedded-apps', 'value-add-journey'); // or .../dist
+   const SRC = path.join(__dirname, '..', 'embedded-apps', 'value-add-journey'); // or '..', 'embedded-apps', 'value-add-journey', 'dist'
    const TARGET = path.join(__dirname, '..', 'public', 'tours', 'ozu-1');
    fs.rmSync(TARGET, { recursive: true, force: true });
    fs.mkdirSync(TARGET, { recursive: true });
    fs.cpSync(SRC, TARGET, { recursive: true });
    ```
 
-   Rename the entry file to `index.html` inside `public/tours/ozu-1/` if it's not already.
+   If the tour's entry file is `value-add-journey.html`, rename the copy at `public/tours/ozu-1/value-add-journey.html` to `index.html`. The map will iframe `/tours/ozu-1/` which resolves to `/tours/ozu-1/index.html`.
 
-3. Update `package.json`:
+3. Add the variant-specific `build:tour` to `package.json`. Pick exactly one, do not include `|| true` fallback:
 
+   **Variant A (static):**
    ```jsonc
-   "build:tour": "node scripts/copy-tour-dist.js",
-   "build:embedded": "pnpm run build:map && pnpm run build:tour"
+   "build:tour": "node scripts/copy-tour-dist.js"
    ```
 
-   (If the tour repo has its own build step, prepend `cd embedded-apps/value-add-journey && pnpm install --frozen-lockfile && pnpm build && cd ../.. && ` to `build:tour`.)
+   **Variant B (has its own build):**
+   ```jsonc
+   "build:tour": "cd embedded-apps/value-add-journey && pnpm install --frozen-lockfile && pnpm build && cd ../.. && node scripts/copy-tour-dist.js"
+   ```
+
+   Update `build:embedded` to include both:
+   ```jsonc
+   "build:embedded": "pnpm run build:map && pnpm run build:tour"
+   ```
 
 4. Run `pnpm run build:embedded`. Confirm `public/tours/ozu-1/index.html` exists.
 
@@ -263,7 +277,7 @@ Do not start Phase 1 until you have answers to all four.
 
 **Ask the user:**
 
-> Phase 4 complete. 3D tour is now hosted same-origin at `/tours/ozu-1/`. The map iframe still points at the old cross-origin URL — Phase 5 fixes that. Commit and proceed to Phase 5?
+> Phase 4 complete. 3D tour is now hosted same-origin at `/tours/ozu-1/`. The map iframe still points at the old cross-origin URL — Phase 5 fixes that. Proceed to Phase 5?
 
 ---
 
@@ -314,11 +328,13 @@ Do not start Phase 1 until you have answers to all four.
 
 **Ask the user:**
 
-> Phase 5 complete. The map now iframes the tour from `/tours/ozu-1/` (same-origin). End-to-end flow works: tap Ozu-1 → tour plays → return to map. Commit and proceed to Phase 6?
+> Phase 5 complete. The map now iframes the tour from `/tours/ozu-1/` (same-origin). End-to-end flow works: tap Ozu-1 → tour plays → return to map. Proceed to Phase 6?
 
 ---
 
-### Phase 6 — Documentation, CLAUDE.md, and acceptance pass
+### Phase 6 — Documentation, automations, and acceptance pass
+
+This phase does four things: documents the migration in CLAUDE.md, installs the three "won't forget" automations, runs the full acceptance checklist (12 items, including Vercel preview), and on completion saves project memory so future Claude sessions don't relearn the layout.
 
 **Actions:**
 
@@ -329,37 +345,85 @@ Do not start Phase 1 until you have answers to all four.
 
    `embedded-apps/` holds source for two iframe-loaded apps that ship inside the slideshow:
 
-   - `embedded-apps/map/` — the interactive Kumamoto map (vanilla JS + Mapbox GL JS). Loaded on slides 6, 7, 11, 12. Scoped design rules live in `embedded-apps/map/CLAUDE.md`.
+   - `embedded-apps/map/` — the interactive Kumamoto map (vanilla JS + Mapbox GL JS). Loaded on slides 6, 7, 11, 12. Scoped design rules live in `embedded-apps/map/CLAUDE.md` and `embedded-apps/map/docs/`.
    - `embedded-apps/value-add-journey/` — the three.js Ozu-1 property tour. Loaded by the map (inside the iframe) when the user taps the Ozu-1 marker on slide 11/12.
 
    Build pipeline: `pnpm run build:embedded` builds both sub-apps and stages their output into `public/`. The root `build` and `dev` scripts run this automatically.
 
-   When editing the map: edit files under `embedded-apps/map/`, then `pnpm run build:map` (or just `pnpm dev`, which runs the build first). Never hand-edit `public/playground/prototypes/.../map-prototype-v1/` — that folder is regenerated by the build script.
+   When editing the map: edit files under `embedded-apps/map/`, then `pnpm run build:map` (or just `pnpm dev`, which runs the build first). Never hand-edit `public/playground/prototypes/.../map-prototype-v1/` — that folder is regenerated by the build script and your edits will be lost.
+
+   **Design system scope:** the map's docs (`embedded-apps/map/docs/`) govern only what appears inside the iframe. The slideshow's `docs/visual-identity.md` governs everything outside it. They are allowed to differ.
    ```
 
-2. If a `docs/` folder for the map's design system was copied into `embedded-apps/map/docs/`, do not duplicate it at the repo's top-level `docs/`. Cross-reference instead.
+2. Update `value-add-prototype/CLAUDE.md` under "Process rules" — add the verification rule (Automation #1):
 
-3. Update or remove the stale rules in `embedded-apps/map/CLAUDE.md`:
-   - The "Feature branch scope (map vs value-add-prototype)" section is obsolete — there is one repo now. Remove or rewrite as "All edits happen in this repo. The map source is at `embedded-apps/map/`."
+   ```markdown
+   **Map and tour verification.** Before declaring any task that touched `embedded-apps/map/`, `embedded-apps/value-add-journey/`, `scripts/copy-*.js`, or the React wrappers (`MapHost.tsx`, `PropertyMapHost.tsx`) complete, you must:
+
+   1. Run `pnpm run build:embedded` and confirm it exits 0.
+   2. Run `pnpm dev` and manually click through slides 6, 7, 11, 12.
+   3. On slide 11 or 12, tap the Ozu-1 marker and verify the tour mounts, plays at least the first scene, and returns to the map when you click through to the end.
+   4. Confirm no red errors in the browser console.
+
+   If any step fails, do not report the task complete. Fix it or report the blocker.
+   ```
+
+3. Install the pre-commit safety net (Automation #2). Add `simple-git-hooks` to `devDependencies`:
+
+   ```bash
+   pnpm add -D simple-git-hooks
+   ```
+
+   Add to `package.json`:
+
+   ```jsonc
+   "simple-git-hooks": {
+     "pre-commit": "pnpm run build:embedded && pnpm exec tsc --noEmit"
+   },
+   "scripts": {
+     "postinstall": "simple-git-hooks"
+   }
+   ```
+
+   Run `pnpm install` to register the hook. Test it: make a trivial change in `embedded-apps/map/`, stage it, try to commit — the commit should run the build first. (Remember: do not actually commit during the migration. Stage, test the hook fires, unstage.)
+
+4. Confirm Vercel preview deploys are enabled (Automation #3). In Vercel project settings → Git → "Preview Deployments." Should be on by default for all branches. If not, turn on. Tell the user that the migration PR's preview URL is how they'll do final acceptance.
+
+5. Update or remove the stale rules in `embedded-apps/map/CLAUDE.md`:
+   - The "Migration notice (read first)" section at the top is no longer the migration — it has happened. Rewrite to: "Scope: this file governs the embedded map only. See root CLAUDE.md for everything else."
+   - The "Feature branch scope (map vs value-add-prototype)" section is obsolete — one repo now. Remove or rewrite as "All edits happen in this repo. The map source is at `embedded-apps/map/`."
    - The "Always run pnpm build and copy into the two embed locations" rule is now automatic — clarify that the build script handles it.
 
-4. Run the full acceptance checklist from `embedded-apps/map/docs/migration-to-value-add-prototype.md` section "Acceptance criteria". Walk the user through each item and confirm.
+6. Create `scripts/verify-embedded.js` (~30 lines): boots Next.js dev briefly, fetches the four embed entry URLs, reports HTTP 200/non-200. Wire it as `"verify:embedded": "node scripts/verify-embedded.js"` in package.json. The user can run this anytime as a fast smoke test.
 
-5. Once all 10 acceptance items pass, instruct the user to:
+7. Run the full acceptance checklist (12 items now — see `embedded-apps/map/docs/migration-to-value-add-prototype.md` section "Acceptance criteria"). Walk the user through each item and confirm.
+
+8. **Vercel preview deploy acceptance (item 11).** Since you cannot push during the migration, the Vercel preview check happens after `/feature finish` opens the PR. Tell the user: "After `/feature finish` runs, the PR will get a Vercel preview URL within ~2 minutes. Open it on your iPad — not just your laptop — and verify slides 6, 7, 11, 12 and the Ozu-1 tour. Localhost on a laptop is necessary but not sufficient — iPad Safari has quirks."
+
+9. Once all 12 acceptance items pass, instruct the user to:
    - Merge the migration PR in this repo.
    - On the GitHub side, archive the `map-prototype` repo (Settings → Archive).
    - On Vercel, sunset the standalone map deploy if the user confirmed in Phase 0 it has no live consumers.
    - Sunset the `3d-vertical-test` Vercel deploy.
 
+10. **Save project memory.** After the merge, save these to `value-add-prototype/.claude/memory/` (or wherever this repo's auto-memory lives):
+
+    - Feedback: "The map source lives at `embedded-apps/map/`. Edit there, never in `public/playground/prototypes/...`. The `public/` copies are regenerated by `pnpm run build:embedded` and overwritten on the next build. Same for the tour: source in `embedded-apps/value-add-journey/`, build output in `public/tours/ozu-1/`."
+    - Project: "Migration from the standalone `map-prototype` repo completed [date]. The old repo is archived on GitHub. All map and tour work now happens here."
+    - Reference: "Map's internal design system docs live at `embedded-apps/map/docs/`. The slideshow's docs at `docs/`. Scoped to their respective surfaces and may differ — do not harmonize without explicit user instruction."
+
 **Verification:**
 
-- All 10 acceptance items pass.
+- All 12 acceptance items pass.
 - The dev server (`pnpm dev`) starts clean from a fresh `pnpm install`.
 - A fresh clone of this repo, followed by `pnpm install && pnpm build`, produces a working production build with the map and tour included.
+- `pnpm run verify:embedded` exits 0.
+- Pre-commit hook fires on a staged change (verified by attempting a commit and watching the hook run).
+- Vercel preview URL renders correctly on iPad Safari.
 
 **Ask the user:**
 
-> All six phases complete. Migration verified. Final commit, push, then I'll wait for your sign-off before invoking `/feature finish`.
+> All six phases complete. Migration verified. The working tree has accumulated changes across all six phases — nothing is committed yet. When you are ready, invoke `/feature finish` and I will commit, push, open the PR, and walk it through review per the skill.
 
 ---
 
@@ -439,4 +503,4 @@ Do not improvise. Do not "fix it up." The migration is intentionally mechanical.
 
 ## Begin
 
-Start Phase 0 now: read the six docs in the Authority chain, inventory both repos, search for the 3D tour source, and ask the four user questions listed at the end of Phase 0. Do not start Phase 1 until you have answers.
+Start Phase 0 now: read the six docs in the Authority chain, inventory both repos, verify the Mapbox token is set, discover the 3D tour source (Vercel → local → ask → mirror), and ask the four user questions listed at the end of Phase 0. Do not start Phase 1 until you have answers.

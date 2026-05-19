@@ -48,9 +48,8 @@ All mandatory constraints. Each rule has one canonical definition here.
 - If approaching 50%, pause and ask user before continuing.
 
 **Feature branch commits:**
-- On a feature branch, every change Claude makes must be immediately committed and pushed. Never leave changes uncommitted.
-- The commit body must be the user's raw prompt text, copied verbatim with no rewording or expansion.
-- Only the commit title line may be a generated summary.
+- On a feature branch, never commit, push, or open a PR until the user invokes `/feature finish`. Make changes freely; let them accumulate uncommitted. Wait for `/feature finish` to commit and push everything.
+- When commits eventually happen (during `/feature finish`), the commit body must be the user's raw prompt text, copied verbatim with no rewording or expansion. Only the commit title line may be a generated summary.
 - When `/feature <name>` is invoked on master, check for uncommitted changes BEFORE creating the branch. If changes exist, present exactly two options: (1) drop the changes, (2) save them to a separate feature branch with a commit, PR, and merge to master, then create the requested branch. Never silently carry uncommitted master changes into a new branch.
 
 **Feature branch scope (map vs value-add-prototype):**
