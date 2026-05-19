@@ -1,5 +1,13 @@
 # Migration plan: map-prototype into value-add-prototype
 
+> ## ⚠️ ABANDONED — DO NOT EXECUTE
+>
+> This plan was drafted and merged on 2026-05-19 then abandoned the same day. The product owner clarified after merge that `map-prototype` is an active daily project, not a snapshot — archiving it (as this plan proposed) would have broken their daily workflow.
+>
+> The actual change adopted in its place is documented in [`docs/syncing-to-value-add-prototype.md`](../syncing-to-value-add-prototype.md). See [`README.md`](README.md) in this folder for the full story.
+>
+> This file is preserved as a record of the reasoning. Do not execute it.
+
 ## Status
 
 - **Author:** Claude (in map-prototype), 2026-05-19

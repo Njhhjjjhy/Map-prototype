@@ -1,13 +1,20 @@
 # CLAUDE.md - Map Prototype Design System
 
-## Migration notice (read first)
+## How this repo relates to value-add-prototype (read first)
 
-This repo is being absorbed into `value-add-prototype`. Future map work will happen there, not here. Two artifacts drive the migration:
+This is an active, standalone project. The product owner edits it every day. It deploys to its own Vercel URL.
 
-- `docs/migration-to-value-add-prototype.md` — the full plan: what moves, where it goes, acceptance criteria, rollback.
-- `value-add-prototype-migration-prompt.md` (at the repo root) — the standalone prompt the product owner pastes into Claude in the `value-add-prototype` repo to execute the migration.
+The slideshow (`value-add-prototype`, a sibling folder) embeds a snapshot of this project's built output on slides 6, 7, 11, 12. The snapshot is updated by a single command run from this project:
 
-Until the migration ships, this repo is still the source of truth and the existing two-repo workflow (build here, copy into `value-add-prototype/public/playground/prototypes/...`) still applies. After the migration ships, this repo will be archived (read-only on GitHub; local copy preserved).
+```
+pnpm sync
+```
+
+That command builds the map and copies it into value-add-prototype's two embed folders, preserving per-embed customizations (e.g. `embed-mobile-overrides.css` which differs between step-6 and step-12). See [`docs/architecture-and-sync-workflow.md`](docs/architecture-and-sync-workflow.md) for the canonical architecture and workflow doc.
+
+The 3D property tour (`3d-vertical-test`, a third active project) is iframed live cross-origin by the map — no sync needed; edits there are picked up on next load.
+
+**Do not** propose merging these repos into a monorepo. A previous plan tried this and was rejected because it would break the daily editing workflow on each project. See [`docs/abandoned/README.md`](docs/abandoned/README.md) for the full reasoning.
 
 ---
 
@@ -55,8 +62,8 @@ All mandatory constraints. Each rule has one canonical definition here.
 **Feature branch scope (map vs value-add-prototype):**
 - Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for the map (this project), or for value-add-prototype (the slideshow that embeds the map)?"
 - If "map": work happens in this repo only.
-- If "value-add-prototype": Claude makes the map changes in this repo, then runs `pnpm build`, then copies the build output into the two embed locations in value-add-prototype (`public/playground/prototypes/step-6-section-3-map/map-prototype-v1/` and `public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/`), preserving any per-embed customizations. Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo.
-- For full context on the two-project relationship, see `docs/value-add-prototype-relationship.md`.
+- If "value-add-prototype": Claude makes the map changes in this repo, then runs `pnpm sync` (which builds and copies the output into the two embed folders in value-add-prototype, preserving per-embed customizations automatically). Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo, and reminds them that the slideshow side needs its own commit + push to deploy.
+- For full context on the three-project architecture and sync workflow, see `docs/architecture-and-sync-workflow.md`.
 
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).

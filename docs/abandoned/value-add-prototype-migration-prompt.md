@@ -1,5 +1,13 @@
 # Migration brief — absorb map-prototype into value-add-prototype
 
+> ## ⚠️ ABANDONED — DO NOT EXECUTE
+>
+> This prompt was drafted and merged on 2026-05-19 then abandoned the same day. The migration it describes would have archived `map-prototype` — but the product owner edits `map-prototype` daily, so the plan was wrong.
+>
+> The actual workflow that replaced it: a `pnpm sync` command in `map-prototype` that builds and copies the map into `value-add-prototype`'s embed folders in one shot, preserving per-embed customizations. Both repos stay independent and active. See [`README.md`](README.md) in this folder for the full story and [`docs/syncing-to-value-add-prototype.md`](../syncing-to-value-add-prototype.md) for the current workflow.
+>
+> If a Claude session in `value-add-prototype` is ever pointed at this file, stop and tell the product owner. Do not execute it.
+
 You are Claude Code working inside `value-add-prototype`. The product owner (a non-developer) is handing you this prompt at the start of a new session. Read this entire file before touching anything.
 
 ## What this is
