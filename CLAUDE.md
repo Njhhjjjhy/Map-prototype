@@ -1,5 +1,16 @@
 # CLAUDE.md - Map Prototype Design System
 
+## Migration notice (read first)
+
+This repo is being absorbed into `value-add-prototype`. Future map work will happen there, not here. Two artifacts drive the migration:
+
+- `docs/migration-to-value-add-prototype.md` — the full plan: what moves, where it goes, acceptance criteria, rollback.
+- `value-add-prototype-migration-prompt.md` (at the repo root) — the standalone prompt the product owner pastes into Claude in the `value-add-prototype` repo to execute the migration.
+
+Until the migration ships, this repo is still the source of truth and the existing two-repo workflow (build here, copy into `value-add-prototype/public/playground/prototypes/...`) still applies. After the migration ships, this repo will be archived (read-only on GitHub; local copy preserved).
+
+---
+
 ## Project Overview
 
 Interactive presentation app for real estate sales in Kumamoto, Japan. Desktop-only web app that guides presenters through three sequential "journeys" building investment credibility.
