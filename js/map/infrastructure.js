@@ -1643,7 +1643,7 @@ export const methods = {
 
       const animateStep = (now) => {
         const elapsed = now - startTime;
-        const t = Math.min(elapsed / drawDuration, 1);
+        const t = Math.max(0, Math.min(elapsed / drawDuration, 1));
         const eased = 1 - Math.pow(1 - t, 3);
 
         const currentLength = eased * totalSegments;
@@ -2082,7 +2082,7 @@ export const methods = {
             if (!this.map) return;
 
             const elapsed = now - startTime;
-            const t = Math.min(elapsed / loopDuration, 1);
+            const t = Math.max(0, Math.min(elapsed / loopDuration, 1));
             const eased = 1 - Math.pow(1 - t, 3);
 
             const currentLength = eased * totalSegments;
@@ -2090,13 +2090,15 @@ export const methods = {
             const frac = currentLength - full;
 
             const drawn = allCoords.slice(0, full + 1);
-            if (full < totalSegments) {
+            if (full >= 0 && full < totalSegments) {
               const from = allCoords[full];
               const to = allCoords[full + 1];
-              drawn.push([
-                from[0] + (to[0] - from[0]) * frac,
-                from[1] + (to[1] - from[1]) * frac,
-              ]);
+              if (from && to) {
+                drawn.push([
+                  from[0] + (to[0] - from[0]) * frac,
+                  from[1] + (to[1] - from[1]) * frac,
+                ]);
+              }
             }
 
             const source = this.map.getSource(ringSourceId);
@@ -2150,7 +2152,7 @@ export const methods = {
 
     const step = (now) => {
       const elapsed = now - startTime;
-      const t = Math.min(elapsed / duration, 1);
+      const t = Math.max(0, Math.min(elapsed / duration, 1));
       // Ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3);
 
@@ -2162,13 +2164,15 @@ export const methods = {
       const drawn = allCoords.slice(0, full + 1);
 
       // Interpolate a partial point between the current segment endpoints
-      if (full < totalSegments) {
+      if (full >= 0 && full < totalSegments) {
         const from = allCoords[full];
         const to = allCoords[full + 1];
-        drawn.push([
-          from[0] + (to[0] - from[0]) * frac,
-          from[1] + (to[1] - from[1]) * frac,
-        ]);
+        if (from && to) {
+          drawn.push([
+            from[0] + (to[0] - from[0]) * frac,
+            from[1] + (to[1] - from[1]) * frac,
+          ]);
+        }
       }
 
       const source = this.map.getSource(sourceId);

@@ -31,6 +31,7 @@ import {
   properties,
   areaStats,
   jasmLocation,
+  setProperties,
 } from "./properties.js";
 import { evidenceGroups } from "./evidence.js";
 import {
@@ -73,4 +74,4 @@ const AppData = {
   demandProjections,
 };
 
-export { STEPS, STAGE_TABS, AppData, setScenes };
+export { STEPS, STAGE_TABS, AppData, setScenes, setProperties };

@@ -4,17 +4,13 @@
 
 This is an active, standalone project. The product owner edits it every day. It deploys to its own Vercel URL.
 
-The slideshow (`value-add-prototype`, a sibling folder) embeds a snapshot of this project's built output on slides 6, 7, 11, 12. The snapshot is updated by a single command run from this project:
-
-```
-pnpm sync
-```
-
-That command builds the map and copies it into value-add-prototype's two embed folders, preserving per-embed customizations (e.g. `embed-mobile-overrides.css` which differs between step-6 and step-12). See [`docs/architecture-and-sync-workflow.md`](docs/architecture-and-sync-workflow.md) for the canonical architecture and workflow doc.
+This project also publishes the npm package `@moreharvest/map-core`, which `value-add-prototype` (a sibling folder) imports and mounts on slides 6, 7, 11, 12 via `mountMap()`. `value-add-prototype`'s `node_modules/@moreharvest/map-core` is a `link:../map-prototype` during development, so source changes are picked up live by Next.js without a sync step. See [`docs/architecture-and-sync-workflow.md`](docs/architecture-and-sync-workflow.md) for the canonical architecture and workflow doc.
 
 The 3D property tour (`3d-vertical-test`, a third active project) is iframed live cross-origin by the map — no sync needed; edits there are picked up on next load.
 
 **Do not** propose merging these repos into a monorepo. A previous plan tried this and was rejected because it would break the daily editing workflow on each project. See [`docs/abandoned/README.md`](docs/abandoned/README.md) for the full reasoning.
+
+The retired build-time snapshot sync (`pnpm sync`) has been removed. There are no longer `map-prototype-v1/` snapshot folders inside `value-add-prototype/public/`.
 
 ---
 
@@ -49,6 +45,9 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Never use em dash.
 - Use clear, direct, professional communication.
 
+**Project naming:**
+- Always refer to the investor pitch project by its literal name `value-add-prototype`. Never use shorthand like "slideshow", "deck", "pitch deck", "the pitch", or any other paraphrase, even when quoting or paraphrasing existing docs. Same rule applies to `map-prototype` and `3d-vertical-test`: use the literal repo name when referring to the project. Using "the map" or "the tour" is fine when describing the visible thing inside the experience, but switch back to the literal name when referring to the project or repo.
+
 **Context window management:**
 - Never exceed 50% context window usage (100,000 tokens out of 200,000).
 - Break large tasks into smaller steps to prevent context overflow.
@@ -60,10 +59,10 @@ All mandatory constraints. Each rule has one canonical definition here.
 - When `/feature <name>` is invoked on master, check for uncommitted changes BEFORE creating the branch. If changes exist, present exactly two options: (1) drop the changes, (2) save them to a separate feature branch with a commit, PR, and merge to master, then create the requested branch. Never silently carry uncommitted master changes into a new branch.
 
 **Feature branch scope (map vs value-add-prototype):**
-- Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for the map (this project), or for value-add-prototype (the slideshow that embeds the map)?"
-- If "map": work happens in this repo only.
-- If "value-add-prototype": Claude makes the map changes in this repo, then runs `pnpm sync` (which builds and copies the output into the two embed folders in value-add-prototype, preserving per-embed customizations automatically). Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo, and reminds them that the slideshow side needs its own commit + push to deploy.
-- For full context on the three-project architecture and sync workflow, see `docs/architecture-and-sync-workflow.md`.
+- Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for map-prototype (this project) only, or does it also need changes in value-add-prototype (which consumes this project as the `@moreharvest/map-core` package)?"
+- If "map-prototype only": work happens in this repo only.
+- If "also value-add-prototype": Claude makes the map-prototype changes in this repo, then makes any consumer-side changes in value-add-prototype (e.g. new `mountMap` options being passed by `MapHost.tsx` or `PropertyMapHost.tsx`). Because `value-add-prototype` links to this folder via `link:../map-prototype` during development, no sync step is needed for local testing. Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo, and reminds them that the value-add-prototype side needs its own commit + push to deploy.
+- For full context on the three-project architecture and the package workflow, see `docs/architecture-and-sync-workflow.md`.
 
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).

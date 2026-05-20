@@ -346,23 +346,39 @@ export const stepHandlers = {
    * Called when a parent group is selected or a child is toggled.
    */
   _renderDevelopmentDashboard() {
-    const group = this.state.activeParentGroup;
+    // Render both Science park and Grand airport sections stacked so the
+    // user can see and toggle items in either group from one dashboard.
+    // The chatbox-removal-plan called for parent/child toggles to live in
+    // the panel as disclosure groups; this is that implementation.
     const activeChildren = this.state.activeDevelopmentChildren;
+    const sciParkHtml = this._buildSciencePartDashboardSection(activeChildren);
+    const airportHtml = this._buildAirportDashboardSection(activeChildren);
+    UI.showPanel(`
+      ${panelHeader(t("Development zones"), t("Science park and grand airport"), t("Two proposed development concepts in the semiconductor corridor. Tap an item to highlight it on the map."))}
+      <div style="margin-top: var(--space-6);">
+        <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base); margin-bottom: var(--space-3); color: var(--color-text-primary);">${t("Science park")}</div>
+        ${sciParkHtml}
+      </div>
+      <div style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border);">
+        <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base); margin-bottom: var(--space-3); color: var(--color-text-primary);">${t("Grand airport concept")}</div>
+        ${airportHtml}
+      </div>
+    `);
+  },
 
-    if (group === "science-park-group") {
-      const sp = AppData.sciencePark;
-      const zones = AppData.scienceParkZonePlans || [];
+  _buildSciencePartDashboardSection(activeChildren) {
+    const zones = AppData.scienceParkZonePlans || [];
 
-      const zoneIcons = {
-        "sp-gov-zone":
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
-        "sp-kikuyo-plan":
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>',
-        "sp-ozu-plan":
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect x="6" y="10" width="12" height="12"/></svg>',
-      };
+    const zoneIcons = {
+      "sp-gov-zone":
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+      "sp-kikuyo-plan":
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>',
+      "sp-ozu-plan":
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect x="6" y="10" width="12" height="12"/></svg>',
+    };
 
-      const rowsHtml = zones
+    const rowsHtml = zones
         .map((z) => {
           const isActive = activeChildren.includes(z.id);
           const icon =
@@ -458,15 +474,16 @@ export const stepHandlers = {
         `;
       }
 
-      UI.showPanel(`
-        ${panelHeader(t("Development zones"), t("Science park"), sp.description)}
-        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+      return `
+        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
         ${clustersHtml}
         ${evidenceHtml}
-      `);
-    } else if (group === "grand-airport-group") {
+      `;
+  },
+
+  _buildAirportDashboardSection(activeChildren) {
       const airport = AppData.governmentChain?.levels?.find(
         (l) => l.id === "grand-airport",
       );
@@ -557,14 +574,12 @@ export const stepHandlers = {
         `;
       }
 
-      UI.showPanel(`
-        ${panelHeader(t("Development zones"), t("Grand airport concept"), airport?.description || t("A proposed expansion of Aso Kumamoto Airport to serve as a regional semiconductor logistics hub."))}
-        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+      return `
+        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
             ${rowsHtml}
         </div>
         ${evidenceHtml}
-      `);
-    }
+      `;
   },
 
   /**

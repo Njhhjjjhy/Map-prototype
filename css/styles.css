@@ -1,3 +1,10 @@
+/* Theme bundles. Each is scoped under its own [data-theme="..."]
+   attribute and only activates when mountMap() is called with the
+   matching `theme` option. Inert in the standalone app where no
+   data-theme is set. */
+@import url("./theme-translucent-macos.css");
+@import url("./theme-flat-ipad.css");
+
 /* ================================
    TYPOGRAPHY SYSTEM (macOS HIG + Brand Fonts)
    ================================ */
