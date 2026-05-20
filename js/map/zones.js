@@ -23,14 +23,9 @@ export const methods = {
         },
       ];
 
-      // Shared hover popup for science park circles
-      this._scienceParkPopup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-        offset: [0, -4],
-        className: "mapbox-tooltip",
-      });
-      this._scienceParkEventCleanups = [];
+      // Persistent labels anchored at each circle's center. Touch devices
+      // (iPad) have no hover, so labels must be visible on step load.
+      this._scienceParkLabelPopups = [];
 
       circles.forEach(({ id, label, center, radius, color }) => {
         const geoJson = this._generateCirclePolygon(center, radius);
@@ -56,28 +51,17 @@ export const methods = {
 
         this._layerGroups.sciencePark.push(`${id}-fill`, `${id}-stroke`, id);
 
-        // Hover tooltip
-        const fillId = `${id}-fill`;
-        const popup = this._scienceParkPopup;
-        const enterFn = (e) => {
-          popup.setLngLat(e.lngLat).setText(label).addTo(this.map);
-          this.map.getCanvas().style.cursor = "pointer";
-        };
-        const moveFn = (e) => popup.setLngLat(e.lngLat);
-        const leaveFn = () => {
-          popup.remove();
-          this.map.getCanvas().style.cursor = "";
-        };
+        const labelPopup = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          offset: [0, -4],
+          className: "mapbox-tooltip",
+        })
+          .setLngLat(center)
+          .setText(label)
+          .addTo(this.map);
 
-        this.map.on("mouseenter", fillId, enterFn);
-        this.map.on("mousemove", fillId, moveFn);
-        this.map.on("mouseleave", fillId, leaveFn);
-
-        this._scienceParkEventCleanups.push(
-          () => { this.map.off("mouseenter", fillId, enterFn); popup.remove(); },
-          () => this.map.off("mousemove", fillId, moveFn),
-          () => this.map.off("mouseleave", fillId, leaveFn),
-        );
+        this._scienceParkLabelPopups.push(labelPopup);
       });
     }
 
@@ -98,6 +82,12 @@ export const methods = {
         this.map.setLayoutProperty(`${id}-stroke`, "visibility", vis);
       }
     });
+    if (this._scienceParkLabelPopups) {
+      this._scienceParkLabelPopups.forEach((p) => {
+        const el = p.getElement();
+        if (el) el.style.display = visible ? "" : "none";
+      });
+    }
   },
 
   showZonePlanHighlight(zone, opts = {}) {
@@ -524,13 +514,9 @@ export const methods = {
   },
 
   _cleanupScienceParkTooltips() {
-    if (this._scienceParkEventCleanups) {
-      this._scienceParkEventCleanups.forEach((fn) => { try { fn(); } catch (_) {} });
-      this._scienceParkEventCleanups = [];
-    }
-    if (this._scienceParkPopup) {
-      this._scienceParkPopup.remove();
-      this._scienceParkPopup = null;
+    if (this._scienceParkLabelPopups) {
+      this._scienceParkLabelPopups.forEach((p) => { try { p.remove(); } catch (_) {} });
+      this._scienceParkLabelPopups = [];
     }
   },
 

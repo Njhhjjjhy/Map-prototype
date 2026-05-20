@@ -38,11 +38,10 @@ export const SCAFFOLD_HTML = `
         display: none !important;
       }
 
-      /* The iPhone playground embed hides the language toggle, panel
-         toggle, time toggle, and journey progress. The value-add
-         host wants them visible, so this rule is scoped to NOT match
-         when host=valueadd. */
-      [data-embed="1"]:not([data-embed-host="valueadd"]) #lang-toggle,
+      /* Language toggle is hidden in every embed context (iPhone and
+         value-add). The other three controls below are hidden only in
+         the iPhone embed; the value-add host keeps them visible. */
+      [data-embed="1"] #lang-toggle,
       [data-embed="1"]:not([data-embed-host="valueadd"]) #panel-toggle,
       [data-embed="1"]:not([data-embed-host="valueadd"]) #time-toggle,
       [data-embed="1"]:not([data-embed-host="valueadd"]) #journey-progress {
