@@ -543,11 +543,41 @@ export const methods = {
 
     // Fly to per-property camera position (or fallback to fitBounds)
     if (property.camera) {
+      let center = property.camera.center;
+      let zoom = property.camera.zoom;
+      let pitch = property.camera.pitch;
+      let bearing = property.camera.bearing;
+
+      // iPad re-frame: prefer an explicit per-property ipad override.
+      // Falls back to a generic east-shift on the property coords if no
+      // override is provided.
+      if (this._isIpadLayout()) {
+        const ip = property.camera.ipad;
+        if (ip) {
+          if (ip.center) center = ip.center;
+          if (ip.zoom != null) zoom = ip.zoom;
+          if (ip.pitch != null) pitch = ip.pitch;
+          if (ip.bearing != null) bearing = ip.bearing;
+        } else {
+          pitch = 30;
+          zoom = 13.0;
+          bearing = 0;
+          center = this._toMapbox(property.coords);
+          const lat = center[1];
+          const dppLat = 360 / (Math.pow(2, zoom) * 512);
+          const cosLat = Math.cos((lat * Math.PI) / 180);
+          const dppLng = cosLat > 0.001 ? dppLat / cosLat : dppLat;
+          const N = 500;
+          const dLng = N * dppLng;
+          center = [center[0] + dLng, center[1]];
+        }
+      }
+
       this.map.flyTo({
-        center: property.camera.center,
-        zoom: property.camera.zoom,
-        pitch: property.camera.pitch,
-        bearing: property.camera.bearing,
+        center,
+        zoom,
+        pitch,
+        bearing,
         duration: 1500,
       });
     } else {
@@ -556,10 +586,15 @@ export const methods = {
         new mapboxgl.LngLatBounds(allCoords[0], allCoords[0]),
       );
       this.map.fitBounds(bounds, {
-        padding: { top: 80, bottom: 100, left: 80, right: 420 },
+        padding: {
+          top: 80,
+          bottom: 100,
+          left: 80,
+          right: this._isIpadLayout() ? 680 : 420,
+        },
         duration: 1500,
         maxZoom: 12,
-        pitch: 45,
+        pitch: this._isIpadLayout() ? 30 : 45,
         bearing: 0,
       });
     }

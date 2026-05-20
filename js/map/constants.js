@@ -136,6 +136,10 @@ const CAMERA_STEPS = {
     pitch: 47,
     bearing: 9,
     duration: 3000,
+    ipad: {
+      center: [138.9, 28.85],
+      zoom: 5.3,
+    },
   },
   A_to_B: {
     center: [130.75, 32.84],
@@ -164,6 +168,9 @@ const CAMERA_STEPS = {
     pitch: 54,
     bearing: 34,
     duration: 2500,
+    ipad: {
+      center: [131.14, 32.65],
+    },
   },
   B6: {
     center: [130.7756, 32.7271],
@@ -178,6 +185,9 @@ const CAMERA_STEPS = {
     pitch: 47,
     bearing: 9,
     duration: 2500,
+    ipad: {
+      center: [131.42, 32.69],
+    },
   },
   B7: {
     center: [130.8, 32.86],
@@ -199,6 +209,9 @@ const CAMERA_STEPS = {
     pitch: 35,
     bearing: 0,
     duration: 2000,
+    ipad: {
+      center: [131.06, 32.6342],
+    },
   },
   complete: {
     center: [130.78, 32.84],

@@ -5,6 +5,15 @@ export const methods = {
   async flyToStep(config, opts = {}) {
     if (!this.initialized) return;
 
+    // iPad rule: a per-step `ipad: { center, zoom, pitch, bearing }` partial
+    // override on the config lets specific steps re-frame for the wider
+    // iPad right panel. No global auto-shift is applied; the existing
+    // desktop configs already carry their own panel compensation and a
+    // global shift would double-correct.
+    if (this._isIpadLayout() && config && config.ipad) {
+      config = { ...config, ...config.ipad };
+    }
+
     // Pause heartbeat drift during programmatic camera moves
     this.pauseHeartbeat();
 
@@ -152,19 +161,41 @@ export const methods = {
       property.bestBearing ||
       this._calculateBearing(map.getCenter(), targetCenter);
 
+    // iPad re-frames the property drill-down so the property pin lands
+    // in the visible-left center of the wider iPad panel layout. The
+    // east-shifted center moves the pin out from behind the panel; the
+    // lower zoom and flatter pitch undo the "too close / too high" framing.
+    const isIpad = this._isIpadLayout();
+    const driveZoom = isIpad ? 14.0 : 16.5;
+    const drivePitch = isIpad ? 40 : 55;
+    let flightCenter = targetCenter;
+    if (isIpad) {
+      // Shift the centerpoint east in screen-east direction (panel is on
+      // the right). At zoom 14, lat ~32.75, 280 screen-px east is roughly
+      // 0.018 degrees longitude. Bearing-rotated.
+      const lat = targetCenter[1];
+      const dppLat = 360 / (Math.pow(2, driveZoom) * 512);
+      const cosLat = Math.cos((lat * Math.PI) / 180);
+      const dppLng = cosLat > 0.001 ? dppLat / cosLat : dppLat;
+      const B = (bearing * Math.PI) / 180;
+      const N = 350;
+      const dLng = N * dppLng * Math.cos(B);
+      const dLat = -N * dppLat * Math.sin(B);
+      flightCenter = [targetCenter[0] + dLng, targetCenter[1] + dLat];
+    }
+
     if (this.reducedMotion) {
-      map.jumpTo({ center: targetCenter, zoom: 16.5, pitch: 55, bearing });
+      map.jumpTo({ center: flightCenter, zoom: driveZoom, pitch: drivePitch, bearing });
       await this._delay(100);
       this.revealing = false;
       this._currentAnimation = null;
       return;
     }
 
-    // Property drill-down: zoom 16.5, pitch 55
     map.flyTo({
-      center: targetCenter,
-      zoom: 16.5,
-      pitch: 55,
+      center: flightCenter,
+      zoom: driveZoom,
+      pitch: drivePitch,
       bearing: bearing,
       duration: 1800,
       essential: true,

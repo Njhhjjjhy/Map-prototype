@@ -1055,6 +1055,11 @@ export const stepHandlers = {
         zoom: 12.5,
         pitch: 52,
         bearing: 20,
+        ipad: {
+          center: [130.91, 32.85],
+          pitch: 35,
+          bearing: 0,
+        },
       },
     },
     "ozu-properties": {
@@ -1067,6 +1072,12 @@ export const stepHandlers = {
         zoom: 12.7,
         pitch: 52,
         bearing: 45,
+        ipad: {
+          center: [130.9377, 32.8789],
+          zoom: 11.8,
+          pitch: 50,
+          bearing: 1,
+        },
       },
     },
   },
@@ -1109,6 +1120,7 @@ export const stepHandlers = {
         pitch: zoneInfo.camera.pitch,
         bearing: zoneInfo.camera.bearing || 0,
         duration: 2000,
+        ipad: zoneInfo.camera.ipad,
       });
     }
 
