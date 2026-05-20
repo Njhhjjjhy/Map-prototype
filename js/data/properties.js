@@ -303,6 +303,12 @@ export const properties = [
       zoom: 14.0,
       pitch: 52,
       bearing: 15,
+      ipad: {
+        center: [130.8762, 32.8756],
+        zoom: 12.3,
+        pitch: 52,
+        bearing: 13,
+      },
     },
     connections: {
       jasm: { coords: [32.88615077755822, 130.84277124622932], distance: "3.3 km", time: "7 min" },

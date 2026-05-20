@@ -156,14 +156,29 @@ const CameraExplorer = {
 
     // Config preview (Mapbox [lng, lat] format, ready for CAMERA_STEPS)
     if (this._configEl) {
-      this._configEl.textContent =
-        `{\n` +
-        `  center: [${lng}, ${lat}],\n` +
-        `  zoom: ${zoom.toFixed(1)},\n` +
-        `  pitch: ${Math.round(pitch)},\n` +
-        `  bearing: ${Math.round(bearing)},\n` +
-        `  duration: 2000,\n` +
-        `}`;
+      const isTouch =
+        window.matchMedia("(hover: none) and (pointer: coarse)").matches ||
+        window.matchMedia("(max-width: 1440px)").matches;
+      if (isTouch) {
+        // Emit an iPad-override snippet, ready to paste inline into the
+        // corresponding CAMERA_STEPS entry under an `ipad:` key.
+        this._configEl.textContent =
+          `ipad: {\n` +
+          `  center: [${lng}, ${lat}],\n` +
+          `  zoom: ${zoom.toFixed(1)},\n` +
+          `  pitch: ${Math.round(pitch)},\n` +
+          `  bearing: ${Math.round(bearing)},\n` +
+          `},`;
+      } else {
+        this._configEl.textContent =
+          `{\n` +
+          `  center: [${lng}, ${lat}],\n` +
+          `  zoom: ${zoom.toFixed(1)},\n` +
+          `  pitch: ${Math.round(pitch)},\n` +
+          `  bearing: ${Math.round(bearing)},\n` +
+          `  duration: 2000,\n` +
+          `}`;
+      }
     }
   },
 

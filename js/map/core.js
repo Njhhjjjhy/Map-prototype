@@ -15,6 +15,14 @@ export const methods = {
     this.reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    // iPad camera path engages on real touch devices AND on any viewport
+    // narrow enough for the CSS @media (max-width: 1440px) panel layout,
+    // because Safari Responsive Design Mode does not emulate touch.
+    // Stored only as a snapshot for diagnostics; actual gating uses
+    // `this._isIpadLayout()` so a viewport change after init still works.
+    this._isTouchDevice =
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 1440px)").matches;
     mapboxgl.accessToken = token;
 
     this.map = new mapboxgl.Map({
@@ -216,6 +224,16 @@ export const methods = {
 
   _toMapbox(coords) {
     return [coords[1], coords[0]];
+  },
+
+  // Re-evaluated on every camera call. Do NOT replace with a cached
+  // boolean: Safari RDM and window resizes can change the answer after
+  // init(), and a stale snapshot turns every iPad override into a no-op.
+  _isIpadLayout() {
+    return (
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 1440px)").matches
+    );
   },
 
   _calculateBearing(from, to) {

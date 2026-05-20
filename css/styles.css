@@ -5709,26 +5709,37 @@ button.layer-item {
 
 /* ================================
    TABLET DISPLAYS (iPad Pro 13" landscape = 1366px, narrow laptops)
-   Apple Maps reference: rich detail card up to ~480pt.
-   HIG iPad density: body 19-22pt, 60-75 char measure, generous gutters.
-   A wider panel lets 32px hero titles like "Aso Groundwater Basin"
-   sit on a single line at iPad reading distance (~3ft).
+   iPadOS HIG inspector / detail-pane convention. At 19-22pt body
+   type and ~3ft viewing distance, a 60-75 char body measure needs
+   ~640-720pt of text width; once panel padding is added the panel
+   itself sits at ~640pt total on iPad Pro 13" landscape.
    ================================ */
-@media (max-width: 1366px) {
+@media (max-width: 1440px) {
   #right-panel {
-    width: min(480px, 36vw);
-    min-width: 440px;
+    width: min(640px, 48vw);
+    min-width: 600px;
+  }
+
+  /* iPadOS rule: floating map controls belong to the primary content
+     surface (the map), so they must center within the un-occluded map
+     area, never the full viewport. Apple Maps does the same with its
+     bottom-bar controls when the detail card is open. */
+  #app-container:has(#right-panel.visible) .nav-arrows {
+    left: calc((100vw - 640px) / 2);
   }
 }
 
 /* ================================
    SMALLER TABLETS (iPad 11" landscape = 1194px, iPad Air = 1180px)
-   Sidebar scales down but keeps hero titles legible.
+   Sidebar scales down proportionally; keep the readable measure.
    ================================ */
 @media (max-width: 1194px) {
   #right-panel {
-    width: min(440px, 38vw);
-    min-width: 400px;
+    width: min(580px, 50vw);
+    min-width: 540px;
+  }
+  #app-container:has(#right-panel.visible) .nav-arrows {
+    left: calc((100vw - 580px) / 2);
   }
 }
 
@@ -5737,8 +5748,11 @@ button.layer-item {
    ================================ */
 @media (max-width: 1024px) {
   #right-panel {
-    width: min(400px, 40vw);
-    min-width: 360px;
+    width: min(520px, 52vw);
+    min-width: 480px;
+  }
+  #app-container:has(#right-panel.visible) .nav-arrows {
+    left: calc((100vw - 520px) / 2);
   }
 }
 

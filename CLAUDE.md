@@ -104,6 +104,16 @@ All mandatory constraints. Each rule has one canonical definition here.
 - Use a single unified Escape key handler that checks overlays from highest z-index to lowest and closes only the topmost one. Never register multiple independent Escape listeners that can all fire on the same keypress.
 - Closing a modal overlay must never close the dashboard, chatbox, or panel behind it.
 
+**Camera positioning on touch devices (iPad):**
+- On any iPad-layout viewport (detected via `(hover: none) and (pointer: coarse)` OR `(max-width: 1440px)`, since Safari Responsive Design Mode does not emulate touch and reports iPad Pro 13" landscape as 1370px, slightly above 1366), every camera move must center the content being shown inside the *visible* viewport, i.e., the portion of the map that is not occluded by the right panel (or the bottom sheet in portrait). The content must never end up behind the panel.
+- Mechanism: a config passed to `flyToStep` in `js/map/camera.js` may carry an optional `ipad: { center, zoom, pitch, bearing }` partial override. On iPad-layout viewports (`this._isTouchDevice`), the override is merged on top of the desktop config before flying. Without an `ipad` block, the desktop config is used as-is.
+- No global auto-shift is applied. The existing desktop CAMERA_STEPS entries and the inline sub-item configs in `js/step-handlers.js` already carry their own panel compensation, hand-tuned per step. A global pan/padding shift would double-correct and push content off-screen left.
+- Property tour reveal (`forwardReveal` and `reverseReveal` in `js/map/camera.js`) calls `map.flyTo` directly and does NOT go through `flyToStep`. Iframing changes for that path must be made on those call sites specifically.
+- Do not introduce `map.setPadding`, `flyTo({ offset })`, or wrapper-level padding hacks. The single source of iPad re-framing is per-step `ipad:` overrides on configs that need them.
+- To author an `ipad:` override: open the standalone app in iPad emulation, navigate to the step, use the camera-explorer dev tool (wrench icon, top-left). The tool emits an `ipad: { ... }` snippet you paste inline into the relevant `CAMERA_STEPS` entry.
+- Desktop behavior is unchanged.
+- This rule applies inside the iframe-embedded map snapshot in `value-add-prototype` slides 6, 7, 11, and 12 by virtue of running the same build.
+
 **Touch-compatible hover behavior:**
 - For tooltip-style hover on map markers, DOM elements, or any control where hover reveals information, use pointer events (`pointerenter` / `pointerleave` / `pointercancel`) rather than `mouseenter` / `mouseleave`. Pointer events fire for mouse, trackpad, Apple Pencil hover, and touch, so the same code works across every iPadOS input mode.
 - For Mapbox layer hover (`map.on("mouseenter", layerId, ...)`), also wire a matching `map.on("click", layerId, ...)` handler that performs the equivalent reveal, since Mapbox layer events are mouse-only on touch devices.
