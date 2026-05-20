@@ -2,7 +2,7 @@
 
 > This is the canonical document for how `map-prototype`, `value-add-prototype`, and `3d-vertical-test` fit together as a single product. It supersedes the older `docs/value-add-prototype-relationship.md` (which now redirects here) and the rejected merger plan in `docs/abandoned/`.
 >
-> **Stage 5 update (2026-05-20):** the build-time snapshot sync (`pnpm sync`) has been retired. `value-add-prototype` now imports `@moreharvest/map-core` directly and mounts the map inside React via `mountMap()`. The map and the slideshow ship from one bundle. See section 5 for the new workflow.
+> **Status (2026-05-20):** Sections 4 and 5 describe the **target state** — the `mountMap()` package consumption model. That migration is **incomplete**. Today, `value-add-prototype` still iframes a committed static snapshot of this project's Vite build under `public/playground/prototypes/.../map-prototype-v1/`, and `MapHost.tsx` / `PropertyMapHost.tsx` do not call `mountMap()`. The `pnpm sync` automation that used to refresh those snapshots was retired in Stage 5; refresh is now a manual rebuild + copy step until the package migration resumes. See [`CLAUDE.md`](../CLAUDE.md) for the current-state summary and [`docs/for-riaan.md`](for-riaan.md) for the full plan.
 
 ## 1. The three projects
 
