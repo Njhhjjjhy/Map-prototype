@@ -4,13 +4,30 @@
 
 This is an active, standalone project. The product owner edits it every day. It deploys to its own Vercel URL.
 
-This project also publishes the npm package `@moreharvest/map-core`, which `value-add-prototype` (a sibling folder) imports and mounts on slides 6, 7, 11, 12 via `mountMap()`. `value-add-prototype`'s `node_modules/@moreharvest/map-core` is a `link:../map-prototype` during development, so source changes are picked up live by Next.js without a sync step. See [`docs/architecture-and-sync-workflow.md`](docs/architecture-and-sync-workflow.md) for the canonical architecture and workflow doc.
+### Current state (what is actually deployed today)
+
+`value-add-prototype` (a sibling folder, the investor pitch project) embeds the map on slides 6, 7, 11, and 12 by iframing a **committed static snapshot** of this project's Vite build, located at:
+
+- `value-add-prototype/public/playground/prototypes/step-6-section-3-map/map-prototype-v1/`
+- `value-add-prototype/public/playground/prototypes/step-12-section-6-product-hardware/map-prototype-v1/`
+
+`MapHost.tsx` and `PropertyMapHost.tsx` reference those `index.html` files. The snapshot is a frozen `pnpm build` output that was last refreshed on 2026-03-12. To update the map inside `value-add-prototype` you must rebuild this project and copy the new `dist/` output over those two folders, preserving each folder's `assets/embed-mobile-overrides.css` file. The old `scripts/sync-to-slideshow.js` automation that did this was retired; the snapshots themselves remain committed in `value-add-prototype` as static files.
+
+This guarantees the offline pitch requirement: nothing the slideshow shows is fetched at runtime, so unreliable wi-fi in meeting rooms never breaks the embedded map.
+
+### Target state (the `mountMap()` package model)
+
+This project publishes the npm package `@moreharvest/map-core` with a `mountMap()` entry point at [`js/map-core.js`](js/map-core.js). The plan in [`docs/for-riaan.md`](docs/for-riaan.md) describes the intended migration: replace the iframe + snapshot with a direct `mountMap()` call inside the React host components. That migration is **not finished**. `node_modules/@moreharvest/map-core` is currently a `link:../map-prototype` symlink in `value-add-prototype`, but no source file imports it.
+
+When future work resumes the migration, follow [`docs/architecture-and-sync-workflow.md`](docs/architecture-and-sync-workflow.md), which describes the package consumption model end-to-end.
+
+### The other project
 
 The 3D property tour (`3d-vertical-test`, a third active project) is iframed live cross-origin by the map — no sync needed; edits there are picked up on next load.
 
-**Do not** propose merging these repos into a monorepo. A previous plan tried this and was rejected because it would break the daily editing workflow on each project. See [`docs/abandoned/README.md`](docs/abandoned/README.md) for the full reasoning.
+### Do not merge
 
-The retired build-time snapshot sync (`pnpm sync`) has been removed. There are no longer `map-prototype-v1/` snapshot folders inside `value-add-prototype/public/`.
+**Do not** propose merging these repos into a monorepo. A previous plan tried this and was rejected because it would break the daily editing workflow on each project. See [`docs/abandoned/README.md`](docs/abandoned/README.md) for the full reasoning.
 
 ---
 
@@ -59,10 +76,24 @@ All mandatory constraints. Each rule has one canonical definition here.
 - When `/feature <name>` is invoked on master, check for uncommitted changes BEFORE creating the branch. If changes exist, present exactly two options: (1) drop the changes, (2) save them to a separate feature branch with a commit, PR, and merge to master, then create the requested branch. Never silently carry uncommitted master changes into a new branch.
 
 **Feature branch scope (map vs value-add-prototype):**
-- Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for map-prototype (this project) only, or does it also need changes in value-add-prototype (which consumes this project as the `@moreharvest/map-core` package)?"
+- Immediately after a new feature branch is created via `/feature <name>` (and before making any code changes), Claude must ask the user: "Is this work for map-prototype (this project) only, or does it also need changes in value-add-prototype (the investor pitch project, which embeds this project's static snapshot on slides 6, 7, 11, 12)?"
 - If "map-prototype only": work happens in this repo only.
-- If "also value-add-prototype": Claude makes the map-prototype changes in this repo, then makes any consumer-side changes in value-add-prototype (e.g. new `mountMap` options being passed by `MapHost.tsx` or `PropertyMapHost.tsx`). Because `value-add-prototype` links to this folder via `link:../map-prototype` during development, no sync step is needed for local testing. Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo, and reminds them that the value-add-prototype side needs its own commit + push to deploy.
-- For full context on the three-project architecture and the package workflow, see `docs/architecture-and-sync-workflow.md`.
+- If "also value-add-prototype": Claude makes the map-prototype changes in this repo, then makes any consumer-side changes in value-add-prototype. If the change must be visible inside the slideshow's embedded map (not just the standalone deploy), the snapshot folders under `value-add-prototype/public/playground/prototypes/.../map-prototype-v1/` must also be refreshed (see "Refreshing the embedded map snapshot" below). Claude tells the user to test slides 6, 7, 11, and 12 in value-add-prototype before any commit in either repo, and reminds them that the value-add-prototype side needs its own commit + push to deploy.
+- For full context on the three-project architecture, see `docs/architecture-and-sync-workflow.md`.
+
+**Refreshing the embedded map snapshot (`/feature finish` propagation step):**
+- On `/feature finish` in this project, if the merge changed anything that affects what slides 6, 7, 11, or 12 render (any file under `js/`, `css/`, `assets/`, `index.html`, or `landmarks.json` / `layers.json` / `regions.json`), the slideshow snapshots must be rebuilt. The pitch deck will otherwise continue showing the March 2026 snapshot.
+- Manual rebuild procedure (until the `mountMap()` migration in `docs/for-riaan.md` is finished):
+  1. In `map-prototype`: `pnpm install && pnpm build`. Confirm `dist/index.html` and `dist/assets/` regenerated.
+  2. For each of the two embed folders in `value-add-prototype/public/playground/prototypes/.../map-prototype-v1/`:
+     - Save the existing `assets/embed-mobile-overrides.css` to `/tmp`.
+     - Wipe the folder contents.
+     - Copy the new `dist/.` into the folder.
+     - Restore the saved `embed-mobile-overrides.css` over the new copy.
+  3. Verify slides 6, 7, 11, and 12 in `value-add-prototype` with `pnpm dev`. Tap the Ozu-1 marker on slide 12 to confirm the 3D tour still launches.
+  4. Commit and push in `value-add-prototype` so its Vercel deploy picks up the new snapshot.
+- If the merge only changed docs, plans, QA notes, the dev-only step jumper, or anything that does not appear in the production Vite build, skip the snapshot rebuild and tell the user explicitly that propagation was skipped and why.
+- The deferred `mountMap()` migration removes this manual step entirely; until then, treat the snapshot rebuild as the propagation contract.
 
 **Dynamically created overlays:**
 - Always remove existing instances before creating new ones (prevent element accumulation).
@@ -157,6 +188,23 @@ For full CSS definitions and detailed values, see `docs/design-tokens.md`.
 | `docs/motion.md` | Animation keyframes, timing tokens, heartbeat, camera choreography, narrative timing |
 | `docs/interaction-patterns.md` | Touch targets, focus management, hover states, cursors, ARIA patterns, accessibility |
 | `docs/checklist.md` | Implementation QA checklist for all component types |
+
+---
+
+## Vercel deploy acceptance gate
+
+Before merging any feature branch that touched the production-visible map (anything in this project's `js/`, `css/`, `assets/`, `index.html`, or `landmarks.json` / `layers.json` / `regions.json`), and after the snapshot rebuild step above, the change must pass the offline-pitch acceptance test in `value-add-prototype`:
+
+1. With `value-add-prototype` running locally (or its Vercel preview deployed), put the iPad (or browser) into **airplane mode** so no network requests succeed.
+2. Walk through slides 5 → 6 → 7 (first map embed) and 10 → 11 → 12 (property map embed). Confirm: the map renders without a network-error banner; markers, panels, and the dashboard appear; the camera moves between steps; tapping the Ozu-1 marker on slide 12 launches the 3D tour iframe.
+3. If Mapbox vector tiles fail to render without network (a known limitation — see `docs/architecture-and-sync-workflow.md` §9), record the gap and ship anyway; the rest of the embed must still be operable.
+4. Take a screenshot of each of slides 6, 7, 11, 12 in airplane mode for the QA archive.
+
+This is the only acceptance test that proves the offline-pitch guarantee survives a given change. Type checks, lint, and the in-browser `pnpm dev` walkthrough do not substitute for it.
+
+## Distribution of `@moreharvest/map-core`
+
+Until the `mountMap()` migration in `docs/for-riaan.md` is finished, the npm package `@moreharvest/map-core` is **not consumed at runtime** by `value-add-prototype`. The `link:../map-prototype` symlink in `value-add-prototype/node_modules` exists for future migration work but no source file imports from it today. Distribution mechanism (git-tag dep, registry publish, etc.) is therefore deferred — there is nothing to distribute until a consumer imports the package. Tags from this repo (currently `map-core-v1.0.0`) are bookkeeping for the future migration, not a deploy contract.
 
 ---
 
