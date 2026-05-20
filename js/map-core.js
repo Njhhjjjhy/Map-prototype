@@ -35,7 +35,13 @@
 
 import { TIMING, App } from "./app.js";
 import { setRoot } from "./shared/dom-scope.js";
-import { STEPS, STAGE_TABS, AppData, setScenes } from "./data/index.js";
+import {
+  STEPS,
+  STAGE_TABS,
+  AppData,
+  setScenes,
+  setProperties,
+} from "./data/index.js";
 import {
   MAP_COLORS,
   CAMERA_FEELINGS,
@@ -111,6 +117,11 @@ export function mountMap(targetEl, options = {}) {
   // --- Scenes: rebuild STEPS / STAGE_TABS in place.
   setScenes(opts.scenes);
 
+  // --- Properties: narrow (or reset) the AppData.properties array in
+  //     place. Mirrors setScenes so consumers can change the filter
+  //     between mountMap calls without having to reload the module.
+  setProperties(opts.properties);
+
   // --- DOM scaffold. The standalone shell has the full scaffold in
   //     index.html, so #map already exists. When a consumer mounts
   //     into an empty element (no #map descendant) we inject the
@@ -158,6 +169,14 @@ export function mountMap(targetEl, options = {}) {
   }
   if (opts.chromeless) {
     document.documentElement.setAttribute("data-chromeless", "1");
+  }
+
+  // --- Theme: writes the data-theme attribute that activates the matching
+  //     `css/theme-*.css` bundle. Slides 6/7 in value-add-prototype pass
+  //     "translucent-macos"; slides 11/12 pass "flat-ipad". The standalone
+  //     shell passes no theme so the attribute stays unset.
+  if (opts.theme) {
+    document.documentElement.setAttribute("data-theme", opts.theme);
   }
 
   // --- Embed-mode behavior. iPhone host waits for DOMContentLoaded
@@ -214,6 +233,7 @@ export function destroy() {
     teardownAll();
   } catch (_e) {}
 
+  document.documentElement.removeAttribute("data-theme");
   setRoot(null);
   delete window.__GKTK_TOUR_URL;
   App._startStep = null;

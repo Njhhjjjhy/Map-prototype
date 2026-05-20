@@ -9,6 +9,8 @@
     ".": "./js/map-core.js",
     "./css/styles.css": "./css/styles.css",
     "./css/embed-mobile.css": "./css/embed-mobile.css",
+    "./css/theme-translucent-macos.css": "./css/theme-translucent-macos.css",
+    "./css/theme-flat-ipad.css": "./css/theme-flat-ipad.css",
     "./assets/*": "./assets/*",
     "./landmarks.json": "./landmarks.json",
     "./layers.json": "./layers.json",
@@ -26,9 +28,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "prepare": "vite build",
-    "sync": "vite build && node scripts/sync-to-slideshow.cjs",
-    "sync:dry": "vite build"
+    "prepare": "vite build"
   },
   "repository": {
     "type": "git",

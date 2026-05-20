@@ -96,6 +96,16 @@ function resolveScenes(opt) {
   return list.length > 0 ? list : null;
 }
 
+function resolveProperties(opt) {
+  if (Array.isArray(opt.properties)) return opt.properties;
+
+  const params = readUrlParams();
+  const raw = params.get("properties");
+  if (!raw) return null;
+  const list = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return list.length > 0 ? list : null;
+}
+
 function resolveStartStep(opt) {
   if (typeof opt.startStep === "number" && Number.isFinite(opt.startStep)) {
     return opt.startStep;
@@ -118,6 +128,18 @@ function resolveChromeless(opt) {
   return params.get("chromeless") === "1";
 }
 
+const VALID_THEMES = new Set(["translucent-macos", "flat-ipad"]);
+
+function resolveTheme(opt) {
+  if (typeof opt.theme === "string" && VALID_THEMES.has(opt.theme)) {
+    return opt.theme;
+  }
+  const params = readUrlParams();
+  const fromUrl = params.get("theme");
+  if (fromUrl && VALID_THEMES.has(fromUrl)) return fromUrl;
+  return null;
+}
+
 function noop() {}
 
 export function resolveOptions(rawOptions) {
@@ -125,10 +147,12 @@ export function resolveOptions(rawOptions) {
   return {
     mapboxToken: resolveMapboxToken(opt),
     scenes: resolveScenes(opt),
+    properties: resolveProperties(opt),
     startStep: resolveStartStep(opt),
     lang: resolveLang(opt),
     embedHost: resolveEmbedHost(opt),
     chromeless: resolveChromeless(opt),
+    theme: resolveTheme(opt),
     tourUrl:
       typeof opt.tourUrl === "string" || opt.tourUrl === null
         ? opt.tourUrl

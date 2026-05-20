@@ -1166,6 +1166,41 @@ export const jasmLocation = [32.88565294085959, 130.84237152850676];
  * shows only the property the slideshow wants to feature (Chateau Life
  * Ozu 1), without affecting the standalone map experience.
  */
+// Snapshot the unfiltered property set so `setProperties()` can rebuild
+// the array from the full source when a consumer changes the filter
+// (e.g. MapHost mounts with all properties, then PropertyMapHost mounts
+// later and wants just ozu-1).
+const _propertiesFull = properties.slice();
+
+/**
+ * Narrow (or reset) the `properties` array to a specific id list.
+ *
+ * Mirrors `setScenes()` in steps.js. Pass `null` or an empty array to
+ * restore the full list. Called by `mountMap()` based on the resolved
+ * `properties` option; the URL-param IIFE below uses the same code
+ * path so the standalone shell keeps working.
+ */
+export function setProperties(idList) {
+  if (!idList || !Array.isArray(idList) || idList.length === 0) {
+    properties.splice(0, properties.length, ..._propertiesFull);
+    return;
+  }
+  const byId = new Map(_propertiesFull.map((p) => [p.id, p]));
+  const filtered = idList
+    .map((id) => byId.get(id))
+    .filter(Boolean);
+  if (filtered.length === 0) {
+    properties.splice(0, properties.length, ..._propertiesFull);
+    return;
+  }
+  properties.splice(0, properties.length, ...filtered);
+}
+
+/**
+ * Optional ?properties= query-param filter applied at module load for
+ * the standalone shell. Consumers using mountMap() should pass the
+ * `properties` option instead, which calls `setProperties()` directly.
+ */
 (function applyPropertiesFilter() {
   if (typeof window === "undefined" || typeof URLSearchParams === "undefined") {
     return;
@@ -1180,9 +1215,5 @@ export const jasmLocation = [32.88565294085959, 130.84237152850676];
     .filter(Boolean);
   if (requested.length === 0) return;
 
-  const byId = new Map(properties.map((p) => [p.id, p]));
-  const filtered = requested.map((id) => byId.get(id)).filter(Boolean);
-  if (filtered.length === 0) return;
-
-  properties.splice(0, properties.length, ...filtered);
+  setProperties(requested);
 })();
