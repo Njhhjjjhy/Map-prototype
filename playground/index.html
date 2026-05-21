@@ -22,6 +22,12 @@
         --stage-h: 1024px;
         /* Soft map placeholder tone; only used until Mapbox tiles paint. */
         --map-tone: #e6ebde;
+
+        /* Tier aliases — map straight to the project's existing system
+           colors. Match the real app's governmentTiers data values. */
+        --color-tier-central: var(--color-info);
+        --color-tier-prefecture: var(--color-success);
+        --color-tier-local: var(--color-warning);
       }
 
       html,
@@ -138,6 +144,95 @@
       }
 
       /* ============================
+         MAP MARKERS — custom HTML markers placed via mapboxgl.Marker.
+         ============================ */
+      .map-marker {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        pointer-events: none;
+      }
+
+      .map-marker-logo-inner {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: var(--shadow-medium);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--color-primary);
+        overflow: hidden;
+      }
+
+      .map-marker-logo-inner img {
+        width: 72%;
+        height: 72%;
+        object-fit: contain;
+      }
+
+      .map-marker-pin {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--color-tier-central);
+        box-shadow:
+          0 0 0 4px rgba(255, 255, 255, 0.85),
+          var(--shadow-medium);
+      }
+
+      .map-marker-property {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-medium);
+        border: 2px solid #fff;
+      }
+
+      .map-marker-property svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+      }
+
+      .map-marker-airport {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-tier-central);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-medium);
+        border: 2px solid #fff;
+      }
+
+      .map-marker-airport svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .map-marker-label {
+        background: rgba(30, 31, 32, 0.88);
+        color: #fff;
+        font-family: var(--font-display);
+        font-size: 11px;
+        font-weight: var(--font-weight-semibold);
+        padding: 3px 8px;
+        border-radius: var(--radius-full);
+        white-space: nowrap;
+        letter-spacing: var(--tracking-small);
+      }
+
+      /* ============================
          NAV ARROWS — centered on visible (non-panel) map area.
          56pt circular targets (above the 44pt iPad HIG minimum).
          ============================ */
@@ -150,6 +245,32 @@
         gap: var(--space-4);
         align-items: center;
         z-index: 5;
+      }
+
+      .step-indicator {
+        position: fixed;
+        bottom: var(--space-4);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-2) var(--space-5);
+        background: var(--color-bg-primary);
+        border-radius: var(--radius-full);
+        box-shadow: var(--shadow-large);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .step-indicator-sub {
+        color: var(--color-text-tertiary);
+        font-weight: var(--font-weight-medium);
       }
 
       .nav-btn {
@@ -204,6 +325,11 @@
         stroke-width: 2;
       }
 
+      .nav-btn[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
       /* ============================
          PANEL BASE
          All type sized at or above the iPad practical floor (14pt body,
@@ -211,9 +337,9 @@
          ============================ */
       .panel {
         position: absolute;
-        top: var(--space-8);
-        right: var(--space-8);
-        bottom: var(--space-8);
+        top: var(--space-6);
+        right: var(--space-6);
+        bottom: var(--space-6);
         background: var(--color-bg-primary);
         border-radius: var(--radius-xlarge);
         box-shadow: var(--shadow-large);
@@ -358,11 +484,201 @@
         }
       }
 
+      /* Secondary CTA — bordered, mirrors .panel-btn.secondary in the
+         real app. Used for "View evidence". */
+      .cta.secondary {
+        background: transparent;
+        border: 1px solid var(--color-border-strong);
+        color: var(--color-text-primary);
+        box-shadow: none;
+      }
+
+      .cta.secondary:active {
+        background: var(--color-bg-tertiary);
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .cta.secondary:hover {
+          background: var(--color-bg-secondary);
+          box-shadow: none;
+        }
+      }
+
+      /* ============================
+         STEP CONTENT BLOCKS — used inside variant body panes.
+         ============================ */
+      .step-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      }
+
+      .step-prose {
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        line-height: var(--line-height-normal);
+        color: var(--color-text-secondary);
+        margin: 0;
+      }
+
+      .step-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+
+      .step-list-item {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-3);
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-medium);
+      }
+
+      .step-list-icon {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: var(--radius-medium);
+        background: var(--color-bg-primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-secondary);
+      }
+
+      .step-list-icon svg {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+        stroke-width: 1.75;
+      }
+
+      .step-list-icon img {
+        width: 80%;
+        height: 80%;
+        object-fit: contain;
+      }
+
+      .step-image {
+        width: 100%;
+        border-radius: var(--radius-medium);
+        overflow: hidden;
+        background: var(--color-bg-secondary);
+      }
+
+      .step-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .step-image-gallery {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-2);
+      }
+
+      .step-image-gallery img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: var(--radius-small);
+        display: block;
+        background: var(--color-bg-secondary);
+      }
+
+      .step-list-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .step-list-title {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        line-height: var(--line-height-tight);
+      }
+
+      .step-list-sub {
+        font-family: var(--font-body);
+        font-size: var(--text-xs);
+        color: var(--color-text-tertiary);
+        line-height: var(--line-height-normal);
+      }
+
+      .step-list-value {
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        white-space: nowrap;
+        flex-shrink: 0;
+        align-self: center;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .evidence-block {
+        display: flex;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-medium);
+        align-items: flex-start;
+      }
+
+      .evidence-block-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-medium);
+        background: var(--color-bg-primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-info);
+        flex-shrink: 0;
+      }
+
+      .evidence-block-icon svg {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+        stroke-width: 1.75;
+      }
+
+      .evidence-block-body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .evidence-block-title {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        line-height: var(--line-height-tight);
+      }
+
+      .evidence-block-desc {
+        font-family: var(--font-body);
+        font-size: var(--text-xs);
+        color: var(--color-text-tertiary);
+        line-height: var(--line-height-normal);
+      }
+
       /* ============================
          VARIANT A — Compact tabs (420 pt panel)
          ============================ */
       .panel-a {
-        width: 420px;
+        width: 540px;
         flex-direction: column;
       }
 
@@ -384,6 +700,7 @@
 
       .panel-a-tab {
         flex: 1;
+        min-width: 0;
         appearance: none;
         border: none;
         background: transparent;
@@ -428,6 +745,11 @@
         gap: var(--space-3);
       }
 
+      .panel-a-footer:empty,
+      .panel-c-footer:empty {
+        display: none;
+      }
+
       .panel-a .commute-pill {
         display: inline-flex;
         align-items: center;
@@ -441,132 +763,11 @@
         font-weight: var(--font-weight-medium);
         white-space: nowrap;
       }
-
-      .address-row {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        padding: var(--space-3) var(--space-4);
-        background: var(--color-bg-secondary);
-        border-radius: var(--radius-medium);
-      }
-
-      .address-value {
-        font-family: var(--font-display);
-        font-size: var(--text-sm);
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-text-primary);
-        line-height: var(--line-height-tight);
-      }
-
-      /* ============================
-         VARIANT B — Sidebar rail (416 pt total: 96 rail + 320 content)
-         ============================ */
-      .panel-b {
-        width: 416px;
-        flex-direction: row;
-      }
-
-      .panel-b-rail {
-        width: 96px;
-        background: var(--color-bg-secondary);
-        border-right: 1px solid var(--color-border);
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        padding: var(--space-4) var(--space-3);
-        gap: var(--space-2);
-      }
-
-      .panel-b-rail-btn {
-        width: 100%;
-        min-height: 80px;
-        padding: var(--space-4) var(--space-2);
-        border-radius: var(--radius-medium);
-        appearance: none;
-        border: none;
-        background: transparent;
-        color: var(--color-text-secondary);
-        display: inline-flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: var(--space-2);
-        cursor: pointer;
-        font-family: var(--font-display);
-        font-size: var(--text-xs);
-        font-weight: var(--font-weight-medium);
-        line-height: var(--line-height-tight);
-        text-align: center;
-        white-space: nowrap;
-        transition:
-          background var(--duration-normal) var(--easing-decelerate),
-          color var(--duration-normal) var(--easing-decelerate),
-          box-shadow var(--duration-normal) var(--easing-decelerate);
-      }
-
-      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
-        .panel-b-rail-btn:hover {
-          background: var(--color-bg-tertiary);
-          color: var(--color-text-primary);
-        }
-      }
-
-      .panel-b-rail-btn[aria-selected="true"] {
-        background: var(--color-bg-primary);
-        color: var(--color-text-primary);
-        font-weight: var(--font-weight-semibold);
-        box-shadow: var(--shadow-subtle);
-      }
-
-      .panel-b-rail-btn:focus-visible {
-        outline: 2px solid var(--color-info);
-        outline-offset: 2px;
-      }
-
-      .panel-b-rail-btn svg {
-        width: var(--icon-lg);
-        height: var(--icon-lg);
-        stroke-width: 1.75;
-      }
-
-      .panel-b-rail-btn .rail-tip {
-        font-size: var(--text-xs);
-        font-weight: var(--font-weight-medium);
-        line-height: var(--line-height-tight);
-        letter-spacing: var(--tracking-small);
-      }
-
-      .panel-b-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-
-      .panel-b-header {
-        padding: var(--space-6) var(--space-6) var(--space-2);
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-      }
-
-      .panel-b-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: var(--space-3) var(--space-6) var(--space-4);
-      }
-
-      .panel-b-footer {
-        padding: var(--space-4) var(--space-6) var(--space-6);
-        border-top: 1px solid var(--color-border);
-      }
-
       /* ============================
          VARIANT C — Disclosure stack (380 pt panel)
          ============================ */
       .panel-c {
-        width: 380px;
+        width: 540px;
         flex-direction: column;
       }
 
@@ -628,12 +829,21 @@
         width: var(--icon-sm);
         height: var(--icon-sm);
         color: var(--color-text-tertiary);
-        transition: transform var(--duration-normal) var(--easing-decelerate);
+        transition:
+          transform var(--duration-normal) var(--easing-decelerate),
+          color var(--duration-normal) var(--easing-decelerate);
         stroke-width: 2.25;
       }
 
       .disclosure[open] .disclosure-chevron {
         transform: rotate(90deg);
+        color: var(--color-primary);
+      }
+
+      /* Soft amber tint — matches the project's existing convention
+         (rgba of --color-primary #fbb931, used in 5+ places in styles.css). */
+      .disclosure[open] > .disclosure-summary {
+        background: rgba(251, 185, 49, 0.12);
       }
 
       .disclosure-content {
@@ -763,27 +973,6 @@
         flex-direction: column;
         gap: var(--space-5);
       }
-
-      .pane-placeholder {
-        align-items: center;
-        justify-content: center;
-        min-height: 240px;
-        text-align: center;
-        color: var(--color-text-tertiary);
-        padding: var(--space-6);
-        font-family: var(--font-body);
-        font-size: var(--text-sm);
-        line-height: var(--line-height-normal);
-      }
-
-      .pane-placeholder strong {
-        display: block;
-        font-family: var(--font-display);
-        color: var(--color-text-primary);
-        font-size: var(--text-base);
-        font-weight: var(--font-weight-semibold);
-        margin-bottom: var(--space-2);
-      }
     </style>
   </head>
   <body>
@@ -793,12 +982,14 @@
         <button class="chip" data-variant="a" aria-pressed="true">
           A · Compact tabs
         </button>
-        <button class="chip" data-variant="b" aria-pressed="false">
-          B · Sidebar rail
-        </button>
         <button class="chip" data-variant="c" aria-pressed="false">
           C · Disclosure stack
         </button>
+      </div>
+
+      <div class="step-indicator" id="step-indicator" aria-live="polite">
+        <span data-step-count>Step 1 of 4</span>
+        <span class="step-indicator-sub" data-step-title>Corporate investment</span>
       </div>
 
       <div class="stage-wrapper">
@@ -809,19 +1000,18 @@
           <div class="variant-content is-active" data-variant="a">
             <div class="spec">
               <div class="spec-title">
-                Variant A <span class="spec-dim">420 × 960</span>
+                Variant A <span class="spec-dim">540 × 960</span>
               </div>
-              Horizontal segmented tabs. Stat grid. CTA + commute pill in
-              footer. Visible map: 914 pt → nav centers at 457 pt.
+              Horizontal segmented tabs. Visible map: 794 pt → nav centers at 397 pt.
             </div>
 
-            <div class="nav-cluster">
-              <button class="nav-btn" aria-label="Previous">
+            <div class="nav-cluster" data-nav>
+              <button class="nav-btn" data-nav-prev aria-label="Previous step">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
-              <button class="nav-btn primary" aria-label="Next">
+              <button class="nav-btn primary" data-nav-next aria-label="Next step">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -835,88 +1025,10 @@
                 </svg>
               </button>
 
-              <div class="panel-a-header">
-                <div class="breadcrumb">Investment opportunity</div>
-                <h1 class="panel-title">Chateau Life Ozu 1</h1>
-              </div>
-
-              <div class="panel-a-tabs" role="tablist">
-                <button class="panel-a-tab" aria-selected="true" data-pane-target="overview">Overview</button>
-                <button class="panel-a-tab" aria-selected="false" data-pane-target="truth">Sources</button>
-                <button class="panel-a-tab" aria-selected="false" data-pane-target="financials">Numbers</button>
-                <button class="panel-a-tab" aria-selected="false" data-pane-target="images">Photos</button>
-              </div>
-
-              <div class="panel-a-body">
-                <div data-pane="overview" class="is-active">
-                  <div class="address-row">
-                    <span class="stat-label">Address</span>
-                    <span class="address-value" data-stat="address">Ozu‑machi, Kikuchi‑gun</span>
-                  </div>
-
-                  <div>
-                    <p class="section-label" style="margin-bottom: var(--space-3);">Property</p>
-                    <div class="stat-grid">
-                      <div class="stat-row">
-                        <div class="stat-label">Type</div>
-                        <div class="stat-value" data-stat="typeShort">Detached</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Layout</div>
-                        <div class="stat-value" data-stat="layoutShort">4LDK</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Land area</div>
-                        <div class="stat-value" data-stat="land">117.62 m²</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Building</div>
-                        <div class="stat-value" data-stat="building">89.10 m²</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p class="section-label" style="margin-bottom: var(--space-3);">Financial</p>
-                    <div class="stat-grid">
-                      <div class="stat-row">
-                        <div class="stat-label">Rent</div>
-                        <div class="stat-value" data-stat="rent">¥160,000 / mo</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Net</div>
-                        <div class="stat-value" data-stat="net">¥10,000 / mo</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Rent build</div>
-                        <div class="stat-value" data-stat="rentBuildShort">¥230,000</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Available</div>
-                        <div class="stat-value" data-stat="availability">May 2026</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div data-pane="truth" class="pane-placeholder">
-                  <strong>Sources</strong>
-                  Comps and verification trail for this property.
-                </div>
-                <div data-pane="financials" class="pane-placeholder">
-                  <strong>Numbers</strong>
-                  Full underwriting, cash flow, and yield analysis.
-                </div>
-                <div data-pane="images" class="pane-placeholder">
-                  <strong>Photos</strong>
-                  Exterior, interior, and floor‑plan visuals.
-                </div>
-              </div>
-
-              <div class="panel-a-footer">
-                <span class="commute-pill" data-stat="commute">3.3 km · 7 min to JASM</span>
-                <button class="cta">View Property</button>
-              </div>
+              <div class="panel-a-header" data-slot="header"></div>
+              <div class="panel-a-tabs" role="tablist" data-slot="tabs"></div>
+              <div class="panel-a-body" data-slot="body"></div>
+              <div class="panel-a-footer" data-slot="footer"></div>
             </aside>
 
             <button class="reopen-btn" aria-label="Show panel">
@@ -926,172 +1038,23 @@
             </button>
           </div>
 
-          <!-- VARIANT B -->
-          <div class="variant-content" data-variant="b">
-            <div class="spec">
-              <div class="spec-title">
-                Variant B <span class="spec-dim">416 × 960</span>
-              </div>
-              Vertical icon rail (96 pt) + content (320 pt). Visible map: 918 pt → nav centers at 459 pt.
-            </div>
-
-            <div class="nav-cluster">
-              <button class="nav-btn" aria-label="Previous">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
-              <button class="nav-btn primary" aria-label="Next">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
-            </div>
-
-            <aside class="panel panel-b">
-              <div class="panel-b-rail" role="tablist">
-                <button class="panel-b-rail-btn" aria-selected="true" aria-label="Overview" data-pane-target="overview">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                  <span class="rail-tip">Overview</span>
-                </button>
-                <button class="panel-b-rail-btn" aria-selected="false" aria-label="Sources" data-pane-target="truth">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                  <span class="rail-tip">Sources</span>
-                </button>
-                <button class="panel-b-rail-btn" aria-selected="false" aria-label="Numbers" data-pane-target="financials">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 1v22M5 5h11a4 4 0 1 1 0 8H8a4 4 0 1 0 0 8h11" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                  <span class="rail-tip">Numbers</span>
-                </button>
-                <button class="panel-b-rail-btn" aria-selected="false" aria-label="Photos" data-pane-target="images">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="9" cy="9" r="2" />
-                    <path d="M21 15l-5-5L5 21" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                  <span class="rail-tip">Photos</span>
-                </button>
-              </div>
-
-              <div class="panel-b-content">
-                <button class="panel-close" aria-label="Close">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </button>
-
-                <div class="panel-b-header">
-                  <div class="breadcrumb">Investment opportunity</div>
-                  <h1 class="panel-title">Chateau Life Ozu 1</h1>
-                  <p class="panel-subtitle" style="margin-top: var(--space-2);" data-stat="tagline">
-                    Detached, 4LDK family home in Ozu, 3.3 km from JASM.
-                  </p>
-                </div>
-
-                <div class="panel-b-body">
-                  <div data-pane="overview" class="is-active">
-                    <div>
-                      <p class="section-label" style="margin-bottom: var(--space-3);">Property</p>
-                      <div class="stat-grid">
-                        <div class="stat-row">
-                          <div class="stat-label">Type</div>
-                          <div class="stat-value" data-stat="typeShort">Detached</div>
-                        </div>
-                        <div class="stat-row">
-                          <div class="stat-label">Layout</div>
-                          <div class="stat-value" data-stat="layoutShort">4LDK</div>
-                        </div>
-                        <div class="stat-row">
-                          <div class="stat-label">Land</div>
-                          <div class="stat-value" data-stat="land">117.62 m²</div>
-                        </div>
-                        <div class="stat-row">
-                          <div class="stat-label">Building</div>
-                          <div class="stat-value" data-stat="building">89.10 m²</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p class="section-label" style="margin-bottom: var(--space-3);">Financial</p>
-                      <div class="stat-grid">
-                        <div class="stat-row">
-                          <div class="stat-label">Rent</div>
-                          <div class="stat-value" data-stat="rent">¥160,000 / mo</div>
-                        </div>
-                        <div class="stat-row">
-                          <div class="stat-label">Net</div>
-                          <div class="stat-value" data-stat="net">¥10,000 / mo</div>
-                        </div>
-                        <div class="stat-row">
-                          <div class="stat-label">Rent build</div>
-                          <div class="stat-value" data-stat="rentBuildShort">¥230,000</div>
-                        </div>
-                        <div class="stat-row">
-                          <div class="stat-label">Available</div>
-                          <div class="stat-value" data-stat="availability">May 2026</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p class="section-label" style="margin-bottom: var(--space-2);">Commute</p>
-                      <p class="panel-subtitle" data-stat="commuteLong">
-                        3.3 km, ~7 min drive east to JASM. Sits inside the Ozu industrial-corridor catchment.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div data-pane="truth" class="pane-placeholder">
-                    <strong>Sources</strong>
-                    Comps and verification trail.
-                  </div>
-                  <div data-pane="financials" class="pane-placeholder">
-                    <strong>Numbers</strong>
-                    Full underwriting and cash flow.
-                  </div>
-                  <div data-pane="images" class="pane-placeholder">
-                    <strong>Photos</strong>
-                    Exterior, interior, floor plan.
-                  </div>
-                </div>
-
-                <div class="panel-b-footer">
-                  <button class="cta" style="width: 100%;">View Property</button>
-                </div>
-              </div>
-            </aside>
-
-            <button class="reopen-btn" aria-label="Show panel">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </div>
 
           <!-- VARIANT C -->
           <div class="variant-content" data-variant="c">
             <div class="spec">
               <div class="spec-title">
-                Variant C <span class="spec-dim">380 × 960</span>
+                Variant C <span class="spec-dim">540 × 960</span>
               </div>
-              No tabs. Stacked collapsible sections, one open at a time.
-              Visible map: 954 pt → nav centers at 477 pt.
+              No tabs. Stacked collapsible sections, one open at a time. Visible map: 794 pt → nav centers at 397 pt.
             </div>
 
-            <div class="nav-cluster">
-              <button class="nav-btn" aria-label="Previous">
+            <div class="nav-cluster" data-nav>
+              <button class="nav-btn" data-nav-prev aria-label="Previous step">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
-              <button class="nav-btn primary" aria-label="Next">
+              <button class="nav-btn primary" data-nav-next aria-label="Next step">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -1104,129 +1067,9 @@
                   <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
-
-              <div class="panel-c-header">
-                <div class="breadcrumb">Investment opportunity</div>
-                <h1 class="panel-title">Chateau Life Ozu 1</h1>
-                <p class="panel-subtitle" style="margin-top: var(--space-1);" data-stat="taglineShort">
-                  Detached, 4LDK in Ozu · 3.3 km to JASM
-                </p>
-              </div>
-
-              <div class="panel-c-body">
-                <details class="disclosure" open>
-                  <summary class="disclosure-summary">
-                    <span>Overview</span>
-                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </summary>
-                  <div class="disclosure-content">
-                    <div class="stat-grid">
-                      <div class="stat-row">
-                        <div class="stat-label">Type</div>
-                        <div class="stat-value" data-stat="typeShort">Detached</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Layout</div>
-                        <div class="stat-value" data-stat="layout">4LDK · 3 park</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Land area</div>
-                        <div class="stat-value" data-stat="land">117.62 m²</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Building</div>
-                        <div class="stat-value" data-stat="building">89.10 m²</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Available</div>
-                        <div class="stat-value" data-stat="availability">May 2026</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Address</div>
-                        <div class="stat-value" data-stat="addressShort">Ozu‑machi</div>
-                      </div>
-                    </div>
-                  </div>
-                </details>
-
-                <details class="disclosure">
-                  <summary class="disclosure-summary">
-                    <span>Truth engine</span>
-                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </summary>
-                  <div class="disclosure-content">
-                    <p class="panel-subtitle">
-                      Sources, comps, and verification trail for this property.
-                    </p>
-                  </div>
-                </details>
-
-                <details class="disclosure">
-                  <summary class="disclosure-summary">
-                    <span>Future outlook</span>
-                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </summary>
-                  <div class="disclosure-content">
-                    <p class="panel-subtitle">
-                      Projected demand, infrastructure timeline, and corridor‑wide tailwinds.
-                    </p>
-                  </div>
-                </details>
-
-                <details class="disclosure">
-                  <summary class="disclosure-summary">
-                    <span>Financials</span>
-                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </summary>
-                  <div class="disclosure-content">
-                    <div class="stat-grid">
-                      <div class="stat-row">
-                        <div class="stat-label">Rent</div>
-                        <div class="stat-value">¥160,000 / mo</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Net</div>
-                        <div class="stat-value">¥10,000 / mo</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Rent build</div>
-                        <div class="stat-value">¥230,000</div>
-                      </div>
-                      <div class="stat-row">
-                        <div class="stat-label">Yield</div>
-                        <div class="stat-value">~5.8%</div>
-                      </div>
-                    </div>
-                  </div>
-                </details>
-
-                <details class="disclosure">
-                  <summary class="disclosure-summary">
-                    <span>Images</span>
-                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </summary>
-                  <div class="disclosure-content">
-                    <p class="panel-subtitle">
-                      Exterior, interior, and floor‑plan visuals.
-                    </p>
-                  </div>
-                </details>
-              </div>
-
-              <div class="panel-c-footer">
-                <span class="breadcrumb">Section 1 of 5</span>
-                <button class="cta">View Property</button>
-              </div>
+              <div class="panel-c-header" data-slot="header"></div>
+              <div class="panel-c-body" data-slot="body"></div>
+              <div class="panel-c-footer" data-slot="footer"></div>
             </aside>
 
             <button class="reopen-btn" aria-label="Show panel">
@@ -1240,8 +1083,9 @@
     </div>
 
     <script>
-      // Fit the iPad stage to the viewport (height-first so it always
-      // fits without scrolling, regardless of window aspect ratio).
+      // ============================
+      // Fit the iPad stage to the viewport
+      // ============================
       function fitStage() {
         const wrapper = document.querySelector(".stage-wrapper");
         if (!wrapper) return;
@@ -1256,13 +1100,16 @@
       fitStage();
       window.addEventListener("resize", fitStage);
 
+      // ============================
+      // Map
+      // ============================
       mapboxgl.accessToken =
         "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
       const map = new mapboxgl.Map({
         container: "map",
         style: "mapbox://styles/mapbox/streets-v12",
         center: [130.87, 32.87],
-        zoom: 12.2,
+        zoom: 11.6,
         pitch: 45,
         bearing: 8,
         interactive: true,
@@ -1270,98 +1117,887 @@
       });
 
       // ============================
-      // Sample properties for nav cycling
+      // Icons (subset of Lucide, inlined for the standalone playground)
       // ============================
-      const properties = [
+      const ICONS = {
+        "trending-up": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+        building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
+        "flask-conical": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>',
+        plane: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
+        layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>',
+        "graduation-cap": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
+        briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+        "map-pin": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>',
+        "train-front": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/><path d="m9 15-1-1"/><path d="m15 15 1-1"/><path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/><path d="m8 19-2 3"/><path d="m16 19 2 3"/></svg>',
+        route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
+        clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+        sparkles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
+        users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        "file-text": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+        phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>',
+        landmark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
+        home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+      };
+      const icon = (k) => ICONS[k] || ICONS["map-pin"];
+
+      // ============================
+      // Steps — real content pulled from js/data/* (government, companies,
+      // infrastructure, properties) and js/map/constants.js (CAMERA_STEPS).
+      // Step numbers in the breadcrumbs match the user-facing sequence.
+      // ============================
+      const STEPS = [
+        // ----- Step 4: Government support (real id "government-support") -----
         {
+          id: "government-support",
+          title: "Government support",
+          breadcrumb: "Step 4 · Government support",
+          subtitle: "Every level of government is aligned behind this corridor.",
+          taglineShort: "National → Prefecture → Local",
+          camera: { center: [138.9, 28.85], zoom: 5.3, pitch: 47, bearing: 9, duration: 2500 },
+          mapGraphics: {
+            markers: [
+              { coords: [139.6503, 35.6762], type: "tier", tier: "central", label: "National" },
+              { coords: [130.74, 32.79], type: "tier", tier: "prefecture", label: "Prefecture" },
+              { coords: [130.83, 32.88], type: "tier", tier: "local", label: "Kikuyo" },
+              { coords: [130.87, 32.86], type: "tier", tier: "local", label: "Ozu" },
+              { coords: [130.771, 32.884], type: "tier", tier: "local", label: "Koshi" },
+            ],
+            lines: [
+              { from: [139.6503, 35.6762], to: [130.74, 32.79], color: "#007aff", width: 2, dashed: true },
+              { from: [130.74, 32.79], to: [130.83, 32.88], color: "#34c759", width: 2 },
+              { from: [130.74, 32.79], to: [130.87, 32.86], color: "#34c759", width: 2 },
+              { from: [130.74, 32.79], to: [130.771, 32.884], color: "#34c759", width: 2 },
+            ],
+          },
+          tabs: [
+            {
+              id: "central",
+              label: "Central",
+              icon: "landmark",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "The Japanese government designated semiconductors as critical infrastructure, committing ¥10 billion to support domestic chip production in Kumamoto.",
+                },
+                {
+                  type: "statGrid",
+                  label: "Japan National Government",
+                  tier: "central",
+                  items: [
+                    { label: "Direct commitment", value: "¥10B", hero: true },
+                    { label: "Policy announced", value: "2021" },
+                    { label: "Infrastructure status", value: "Critical" },
+                    { label: "JASM subsidy", value: "50%" },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "prefectural",
+              label: "Prefecture",
+              icon: "building",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "Kumamoto Prefecture allocated additional funds and streamlined permitting for semiconductor-related development across the region.",
+                },
+                {
+                  type: "statGrid",
+                  label: "Kumamoto Prefecture",
+                  tier: "prefecture",
+                  items: [
+                    { label: "Infrastructure budget", value: "¥480B", hero: true },
+                    { label: "Master plan horizon", value: "2040" },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "local",
+              label: "Local",
+              icon: "home",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "Three key local initiatives directly supporting the semiconductor corridor workforce and infrastructure.",
+                },
+                {
+                  type: "statGrid",
+                  label: "Local municipalities",
+                  tier: "local",
+                  items: [
+                    { label: "Combined investment", value: "¥322B", hero: true },
+                    { label: "Housing + jobs", value: "5,500+" },
+                  ],
+                },
+                {
+                  type: "list",
+                  label: "Municipalities",
+                  items: [
+                    { icon: "map-pin", title: "Kikuyo Town", sub: "JASM and science park.", value: "¥180B" },
+                    { icon: "map-pin", title: "Ozu Town", sub: "Airport and industrial zone.", value: "¥95B" },
+                    { icon: "map-pin", title: "Koshi Town", sub: "TEL R&D hub and residential area.", value: "¥47B" },
+                  ],
+                },
+              ],
+            },
+          ],
+          extras: [],
+        },
+
+        // ----- Step 5: Corporate investment (real id "corporate-investment") -----
+        {
+          id: "corporate-investment",
+          title: "Corporate investment",
+          breadcrumb: "Step 5 · Corporate investment",
+          subtitle: "Seven major players have committed across the Kumamoto corridor.",
+          taglineShort: "7 major investors",
+          camera: { center: [131.14, 32.65], zoom: 10.5, pitch: 54, bearing: 34, duration: 2500 },
+          mapGraphics: {
+            markers: [
+              { coords: [130.785, 32.874], type: "logo", logo: "../assets/Jasm-logo.svg", label: "JASM" },
+              { coords: [130.82, 32.9], type: "logo", logo: "../assets/Sony-logo.svg", label: "Sony" },
+              { coords: [130.73, 32.85], type: "logo", logo: "../assets/Tokyo-electron-logo.svg", label: "Tokyo Electron" },
+              { coords: [130.8, 32.82], type: "logo", logo: "../assets/Mitsubishi-electric-logo.svg", label: "Mitsubishi Electric" },
+              { coords: [130.7, 32.93], type: "logo", logo: "../assets/Sumco-logo.svg", label: "SUMCO" },
+              { coords: [130.88, 32.91], type: "logo", logo: "../assets/Kyocera-logo.svg", label: "Kyocera" },
+              { coords: [130.76, 32.89], type: "logo", logo: "../assets/Rohm-logo.svg", label: "Rohm Apollo" },
+            ],
+          },
+          tabs: [
+            {
+              id: "investment",
+              label: "Investment",
+              icon: "trending-up",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "Capital is concentrated in semiconductor fabrication, packaging, equipment, and supply chain. The corridor brings together TSMC's Japan venture, Sony's image sensor expansion, and Tokyo Electron's new equipment facility.",
+                },
+                {
+                  type: "statGrid",
+                  label: "Headline capital",
+                  items: [
+                    { label: "JASM (TSMC Japan)", value: "¥2T", hero: true },
+                    { label: "Sony Semiconductor", value: "¥850B" },
+                    { label: "Tokyo Electron", value: "¥320B" },
+                    { label: "Mitsubishi Electric", value: "¥260B" },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "companies",
+              label: "Companies",
+              icon: "building",
+              blocks: [
+                {
+                  type: "logoList",
+                  label: "Major players",
+                  items: [
+                    { logo: "../assets/Jasm-logo.svg", title: "JASM (TSMC Japan)", sub: "Semiconductor manufacturing.", value: "¥2T" },
+                    { logo: "../assets/Sony-logo.svg", title: "Sony Semiconductor", sub: "Image sensor production.", value: "¥850B" },
+                    { logo: "../assets/Tokyo-electron-logo.svg", title: "Tokyo Electron", sub: "Equipment manufacturing.", value: "¥320B" },
+                    { logo: "../assets/Mitsubishi-electric-logo.svg", title: "Mitsubishi Electric", sub: "Power semiconductors.", value: "¥260B" },
+                    { logo: "../assets/Sumco-logo.svg", title: "SUMCO", sub: "Silicon wafer manufacturing.", value: "¥180B" },
+                    { logo: "../assets/Rohm-logo.svg", title: "Rohm Apollo", sub: "Analog and power semiconductors.", value: "¥120B" },
+                    { logo: "../assets/Kyocera-logo.svg", title: "Kyocera", sub: "Ceramic packages and components.", value: "¥95B" },
+                  ],
+                },
+              ],
+            },
+          ],
+          extras: [],
+        },
+
+        // ----- Step 6: Science park and grand airport (real id "transport-access") -----
+        {
+          id: "science-park",
+          title: "Science park and grand airport",
+          breadcrumb: "Step 6 · Development plan",
+          subtitle: "Government development zone with semiconductor incentives and connected airport access.",
+          taglineShort: "¥4.8T investment · 2040 horizon",
+          camera: { center: [131.42, 32.69], zoom: 9.8, pitch: 47, bearing: 9, duration: 2500 },
+          mapGraphics: {
+            circles: [
+              {
+                center: [130.78, 32.87],
+                radius: 8000,
+                color: "rgba(52, 199, 89, 0.14)",
+                strokeColor: "rgba(52, 199, 89, 0.45)",
+              },
+            ],
+            markers: [
+              { coords: [130.859, 32.835], type: "airport", label: "Aso Kumamoto Airport" },
+              { coords: [130.8362, 32.8913], type: "tier", tier: "central", label: "Semiconductor cluster" },
+              { coords: [130.8323, 32.9172], type: "tier", tier: "central", label: "Kumamoto Prefecture park" },
+              { coords: [130.872, 32.887], type: "tier", tier: "local", label: "Ozu industrial" },
+              { coords: [130.835, 32.872], type: "tier", tier: "local", label: "Kikuyo rezoned district" },
+            ],
+          },
+          tabs: [
+            {
+              id: "science-park",
+              label: "Science park",
+              icon: "flask-conical",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "The Kumamoto Prefectural Government has designated this area as a special semiconductor development zone, offering tax incentives, streamlined permitting, and infrastructure investments totaling ¥4.8 trillion.",
+                },
+                {
+                  type: "statGrid",
+                  label: "Science park overview",
+                  items: [
+                    { label: "Government investment", value: "¥4.8T", hero: true },
+                    { label: "Completion target", value: "2040" },
+                    { label: "Projected new jobs", value: "50,000" },
+                    { label: "Major facilities planned", value: "12" },
+                  ],
+                },
+                {
+                  type: "list",
+                  label: "Zone plans",
+                  items: [
+                    { icon: "target", title: "Government zone plan", sub: "560 ha designated, ¥2T public investment.", value: "560ha" },
+                    { icon: "map-pin", title: "Kikuyo long-term plan", sub: "Land readjustment around JASM." },
+                    { icon: "map-pin", title: "Ozu long-term plan", sub: "Industrial expansion and airport access." },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "grand-airport",
+              label: "Grand airport",
+              icon: "plane",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "A new 6.8 km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station.",
+                },
+                {
+                  type: "statGrid",
+                  label: "Grand airport vision",
+                  items: [
+                    { label: "New rail link", value: "6.8km" },
+                    { label: "Rail investment", value: "¥41B" },
+                    { label: "Station to airport", value: "44min", hero: true },
+                    { label: "Strategic plan", value: "4 pillars" },
+                  ],
+                },
+                {
+                  type: "list",
+                  label: "Connectivity",
+                  items: [
+                    { icon: "plane", title: "Airport access", sub: "Direct rail and road links from corridor." },
+                    { icon: "train-front", title: "New railway stations", sub: "Stations between Mitsuriki and Haramizu." },
+                    { icon: "route", title: "Road extensions", sub: "Naka-Kyushu Cross Road segments." },
+                    { icon: "clock", title: "10-20 minute concept", sub: "Anywhere in corridor to the airport." },
+                  ],
+                },
+              ],
+            },
+          ],
+          extras: [],
+        },
+
+        // ----- Step 10: Investment properties (real id "properties") -----
+        // Featured property: Chateau Life Ozu 1 — the property the slideshow features.
+        {
+          id: "properties",
           title: "Chateau Life Ozu 1",
-          coords: [130.87, 32.87],
-          type: "Detached house",
-          typeShort: "Detached",
-          layout: "4LDK · 3 parking",
-          layoutShort: "4LDK",
-          land: "117.62 m²",
-          building: "89.10 m²",
-          availability: "May 2026",
-          address: "Ozu‑machi, Kikuchi‑gun",
-          addressShort: "Ozu‑machi",
-          rent: "¥160,000 / mo",
-          net: "¥10,000 / mo",
-          rentBuild: "¥230,000 / mo",
-          rentBuildShort: "¥230,000",
-          commute: "3.3 km · 7 min to JASM",
-          commuteLong:
-            "3.3 km, ~7 min drive east to JASM. Sits inside the Ozu industrial‑corridor catchment.",
-          tagline: "Detached, 4LDK family home in Ozu, 3.3 km from JASM.",
-          taglineShort: "Detached, 4LDK in Ozu · 3.3 km to JASM",
-        },
-        {
-          title: "Sora Heights Kikuyo 2",
-          coords: [130.832, 32.882],
-          type: "Townhouse",
-          typeShort: "Townhouse",
-          layout: "3LDK · 2 parking",
-          layoutShort: "3LDK",
-          land: "92.40 m²",
-          building: "76.20 m²",
-          availability: "Aug 2026",
-          address: "Kikuyo‑machi, Kikuchi‑gun",
-          addressShort: "Kikuyo‑machi",
-          rent: "¥138,000 / mo",
-          net: "¥8,500 / mo",
-          rentBuild: "¥198,000 / mo",
-          rentBuildShort: "¥198,000",
-          commute: "1.8 km · 4 min to JASM",
-          commuteLong:
-            "1.8 km, ~4 min from JASM. In the densest part of the Kikuyo science‑park catchment.",
-          tagline: "3LDK townhouse next to the science park.",
-          taglineShort: "3LDK in Kikuyo · 1.8 km to JASM",
-        },
-        {
-          title: "Komorebi House Koshi 3",
-          coords: [130.785, 32.92],
-          type: "Detached house",
-          typeShort: "Detached",
-          layout: "5LDK · 4 parking",
-          layoutShort: "5LDK",
-          land: "168.10 m²",
-          building: "124.50 m²",
-          availability: "Nov 2026",
-          address: "Koshi‑shi, Kumamoto",
-          addressShort: "Koshi‑shi",
-          rent: "¥185,000 / mo",
-          net: "¥12,000 / mo",
-          rentBuild: "¥265,000 / mo",
-          rentBuildShort: "¥265,000",
-          commute: "6.1 km · 11 min to JASM",
-          commuteLong:
-            "6.1 km, ~11 min from JASM. Larger lot suited to senior‑researcher or family use.",
-          tagline: "Larger 5LDK in Koshi, family‑sized footprint.",
-          taglineShort: "5LDK in Koshi · 6.1 km to JASM",
+          breadcrumb: "Step 10 · Investment properties",
+          subtitle: "Detached 4LDK in Ozu, 3.3 km from JASM. Build-to-rent.",
+          taglineShort: "Ozu · 4LDK · BTR",
+          camera: { center: [130.8762, 32.8756], zoom: 12.3, pitch: 52, bearing: 13, duration: 2000 },
+          mapGraphics: {
+            zones: [
+              {
+                // Kikuyo zone — boundary from investmentZones[0] in properties.js
+                boundary: [
+                  [130.8333, 32.8222], [130.8256, 32.8256], [130.825, 32.8333],
+                  [130.8053, 32.8431], [130.8, 32.8523], [130.7814, 32.8667],
+                  [130.7877, 32.875], [130.8236, 32.8833], [130.8333, 32.8957],
+                  [130.8334, 32.8966], [130.849, 32.891], [130.85, 32.8704],
+                  [130.8583, 32.8667], [130.8636, 32.85], [130.8667, 32.8442],
+                  [130.8743, 32.8417], [130.8667, 32.8367], [130.8583, 32.8351],
+                  [130.8333, 32.8222],
+                ],
+                color: "rgba(232, 93, 76, 0.15)",
+                strokeColor: "rgba(232, 93, 76, 0.5)",
+              },
+              {
+                // Ozu zone
+                boundary: [
+                  [130.875, 32.8368], [130.8742, 32.841], [130.8636, 32.85],
+                  [130.8644, 32.854], [130.8583, 32.8645], [130.8497, 32.8703],
+                  [130.8536, 32.8833], [130.85, 32.89], [130.8529, 32.9],
+                  [130.8387, 32.9167], [130.8583, 32.921], [130.8667, 32.9304],
+                  [130.8833, 32.935], [130.9, 32.93], [130.9167, 32.91],
+                  [130.92, 32.89], [130.915, 32.87], [130.9, 32.85],
+                  [130.885, 32.84], [130.875, 32.8368],
+                ],
+                color: "rgba(93, 187, 99, 0.15)",
+                strokeColor: "rgba(93, 187, 99, 0.5)",
+              },
+              {
+                // Koshi zone
+                boundary: [
+                  [130.72, 32.897], [130.7228, 32.9], [130.7224, 32.9035],
+                  [130.723, 32.9105], [130.7242, 32.9143], [130.7262, 32.9207],
+                  [130.7281, 32.925], [130.732, 32.9271], [130.7333, 32.9263],
+                  [130.7417, 32.9248], [130.75, 32.9265], [130.775, 32.9181],
+                  [130.7917, 32.9121], [130.8083, 32.9093], [130.8236, 32.8833],
+                  [130.7877, 32.875], [130.7814, 32.8667], [130.725, 32.8879],
+                  [130.7225, 32.8917], [130.72, 32.897],
+                ],
+                color: "rgba(74, 144, 217, 0.15)",
+                strokeColor: "rgba(74, 144, 217, 0.5)",
+              },
+            ],
+            markers: [
+              { coords: [130.8513891, 32.8969721], type: "property", label: "Chateau Life Ozu 1" },
+              { coords: [130.84237153, 32.88565294], type: "logo", logo: "../assets/Jasm-logo.svg", label: "JASM" },
+            ],
+            lines: [
+              { from: [130.8513891, 32.8969721], to: [130.84237153, 32.88565294], color: "#fbb931", width: 3, dashed: true },
+            ],
+          },
+          tabs: [
+            {
+              id: "truth-engine",
+              label: "Truth engine",
+              icon: "target",
+              blocks: [
+                {
+                  type: "statGrid",
+                  label: "Property details",
+                  items: [
+                    { label: "Type", value: "Detached house" },
+                    { label: "Layout", value: "4LDK, 3 parking" },
+                    { label: "Land area", value: "117.62 sqm" },
+                    { label: "Building", value: "89.10 sqm" },
+                    { label: "Availability", value: "May 2026" },
+                    { label: "Address", value: "Ozu-machi, Kikuchi-gun" },
+                  ],
+                },
+                {
+                  type: "list",
+                  label: "Design strategy — expat family standard spec",
+                  items: [
+                    { icon: "check", title: "Large living/dining" },
+                    { icon: "check", title: "Dishwasher, floor heating, high insulation" },
+                    { icon: "check", title: "Ample storage, EV charging prep" },
+                    { icon: "check", title: "Standardized facade and modular floor plans" },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "future-outlook",
+              label: "Future outlook",
+              icon: "trending-up",
+              blocks: [
+                {
+                  type: "prose",
+                  text: "Area development plans affecting Ozu 1.",
+                },
+                {
+                  type: "list",
+                  label: "Drivers",
+                  items: [
+                    { icon: "sparkles", title: "Ozu industrial expansion", sub: "120 ha new logistics and supply chain facilities by 2027." },
+                    { icon: "sparkles", title: "Naka-Kyushu Cross Road", sub: "Ozu-Kumamoto Road segment under construction." },
+                    { icon: "sparkles", title: "Science park expansion", sub: "Government commitment extends corridor southward." },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "financials",
+              label: "Financials",
+              icon: "trending-up",
+              blocks: [
+                {
+                  type: "statGrid",
+                  label: "Build-to-rent",
+                  items: [
+                    { label: "Acquisition cost", value: "¥45.6M", hero: true },
+                    { label: "Loan amount", value: "¥22.8M" },
+                    { label: "Annual rent (avg)", value: "¥2.28M" },
+                    { label: "Target IRR (avg)", value: "5.0%" },
+                    { label: "Hold period", value: "5 years" },
+                    { label: "Monthly repayment", value: "¥120,818" },
+                  ],
+                },
+                {
+                  type: "evidence",
+                  title: "AI rent assessment (4LDK / 89 sqm)",
+                  description: "Assessed rent ¥160,000/month from comparable properties.",
+                },
+              ],
+            },
+            {
+              id: "images",
+              label: "Images",
+              icon: "layers",
+              blocks: [
+                {
+                  type: "image",
+                  label: "Exterior",
+                  src: "../assets/step-11-images/ozu-1-exterior.webp",
+                  alt: "Chateau Life Ozu 1 exterior",
+                },
+                {
+                  type: "imageGallery",
+                  label: "Interior",
+                  images: [
+                    "../assets/step-11-images/ozu-1-interior-1.webp",
+                    "../assets/step-11-images/ozu-1-interior-2.webp",
+                    "../assets/step-11-images/ozu-1-interior-3.webp",
+                    "../assets/step-11-images/ozu-1-interior-4.webp",
+                    "../assets/step-11-images/ozu-1-interior-5.webp",
+                    "../assets/step-11-images/ozu-1-interior-6.webp",
+                  ],
+                },
+              ],
+            },
+          ],
+          extras: [],
         },
       ];
 
       let activeIdx = 0;
+      let activePane = {}; // per-variant active pane id
 
-      function applyProperty(idx) {
-        const p = properties[idx];
-        document
-          .querySelectorAll(".panel-title")
-          .forEach((el) => (el.textContent = p.title));
-        document.querySelectorAll("[data-stat]").forEach((el) => {
-          const key = el.dataset.stat;
-          if (p[key] !== undefined) el.textContent = p[key];
-        });
-        map.flyTo({
-          center: p.coords,
-          zoom: 12.2,
-          pitch: 45,
-          bearing: 8,
-          duration: 1400,
+      // ============================
+      // Block renderer (shared)
+      // ============================
+      function renderBlock(block) {
+        if (block.type === "prose") {
+          return `<p class="step-prose">${block.text}</p>`;
+        }
+        if (block.type === "statGrid") {
+          const rows = block.items
+            .map(
+              (it) => `
+              <div class="stat-row${it.hero ? " hero" : ""}">
+                <div class="stat-label">${it.label}</div>
+                <div class="stat-value">${it.value}</div>
+              </div>`
+            )
+            .join("");
+          const tierClass = block.tier ? ` tier-${block.tier}` : "";
+          return `
+            <div class="step-section">
+              ${block.label ? `<p class="section-label${tierClass}">${block.label}</p>` : ""}
+              <div class="stat-grid">${rows}</div>
+            </div>`;
+        }
+        if (block.type === "list") {
+          const items = block.items
+            .map(
+              (it) => `
+              <li class="step-list-item">
+                <span class="step-list-icon">${icon(it.icon)}</span>
+                <div class="step-list-body">
+                  <div class="step-list-title">${it.title}</div>
+                  ${it.sub ? `<div class="step-list-sub">${it.sub}</div>` : ""}
+                </div>
+                ${it.value ? `<span class="step-list-value">${it.value}</span>` : ""}
+              </li>`
+            )
+            .join("");
+          return `
+            <div class="step-section">
+              ${block.label ? `<p class="section-label">${block.label}</p>` : ""}
+              <ul class="step-list">${items}</ul>
+            </div>`;
+        }
+        if (block.type === "evidence") {
+          return `
+            <div class="evidence-block">
+              <span class="evidence-block-icon">${icon("file-text")}</span>
+              <div class="evidence-block-body">
+                <div class="evidence-block-title">${block.title}</div>
+                <div class="evidence-block-desc">${block.description}</div>
+              </div>
+            </div>`;
+        }
+        if (block.type === "logoList") {
+          const items = block.items
+            .map(
+              (it) => `
+              <li class="step-list-item">
+                <span class="step-list-icon">${it.logo ? `<img src="${it.logo}" alt="${it.title}" />` : icon(it.icon || "building")}</span>
+                <div class="step-list-body">
+                  <div class="step-list-title">${it.title}</div>
+                  ${it.sub ? `<div class="step-list-sub">${it.sub}</div>` : ""}
+                </div>
+                ${it.value ? `<span class="step-list-value">${it.value}</span>` : ""}
+              </li>`
+            )
+            .join("");
+          return `
+            <div class="step-section">
+              ${block.label ? `<p class="section-label">${block.label}</p>` : ""}
+              <ul class="step-list">${items}</ul>
+            </div>`;
+        }
+        if (block.type === "image") {
+          return `
+            <div class="step-section">
+              ${block.label ? `<p class="section-label">${block.label}</p>` : ""}
+              <div class="step-image"><img src="${block.src}" alt="${block.alt || ""}" /></div>
+            </div>`;
+        }
+        if (block.type === "imageGallery") {
+          const imgs = block.images
+            .map((src) => `<img src="${src}" alt="" loading="lazy" />`)
+            .join("");
+          return `
+            <div class="step-section">
+              ${block.label ? `<p class="section-label">${block.label}</p>` : ""}
+              <div class="step-image-gallery">${imgs}</div>
+            </div>`;
+        }
+        return "";
+      }
+
+      function renderBlocks(blocks) {
+        return blocks.map(renderBlock).join("");
+      }
+
+      function blocksHaveEvidence(blocks) {
+        return Array.isArray(blocks) && blocks.some((b) => b.type === "evidence");
+      }
+
+      // Per-tab/per-section: only show the View evidence button if the
+      // active tab (Variant A) or open section (Variant C) actually has
+      // an evidence block in its data.
+      function renderFooterCta(blocks) {
+        return blocksHaveEvidence(blocks)
+          ? `<button class="cta secondary" style="width: 100%;">View evidence</button>`
+          : "";
+      }
+
+      // ============================
+      // Variant A — tabs
+      // ============================
+      function renderVariantA(panel, step) {
+        const header = panel.querySelector('[data-slot="header"]');
+        const tabsHost = panel.querySelector('[data-slot="tabs"]');
+        const body = panel.querySelector('[data-slot="body"]');
+        const footer = panel.querySelector('[data-slot="footer"]');
+
+        header.innerHTML = `
+          <div class="breadcrumb">${step.breadcrumb}</div>
+          <h1 class="panel-title">${step.title}</h1>
+        `;
+
+        tabsHost.innerHTML = step.tabs
+          .map(
+            (t, i) => `
+            <button class="panel-a-tab" role="tab" aria-selected="${i === 0 ? "true" : "false"}" data-pane-target="${t.id}">
+              ${t.label}
+            </button>`
+          )
+          .join("");
+
+        body.innerHTML = step.tabs
+          .map(
+            (t, i) => `
+            <div data-pane="${t.id}" class="${i === 0 ? "is-active" : ""}">
+              ${renderBlocks(t.blocks)}
+            </div>`
+          )
+          .join("");
+
+        footer.innerHTML = renderFooterCta(step.tabs[0]?.blocks);
+
+        activePane.a = step.tabs[0]?.id;
+        wireTabGroup(panel, ".panel-a-tabs", ".panel-a-tab", "a", step.tabs);
+      }
+
+      // ============================
+      // Variant C — disclosure stack (tabs + extras)
+      // ============================
+      function renderVariantC(panel, step) {
+        const header = panel.querySelector('[data-slot="header"]');
+        const body = panel.querySelector('[data-slot="body"]');
+        const footer = panel.querySelector('[data-slot="footer"]');
+
+        header.innerHTML = `
+          <div class="breadcrumb">${step.breadcrumb}</div>
+          <h1 class="panel-title">${step.title}</h1>
+          <p class="panel-subtitle" style="margin-top: var(--space-1);">${step.taglineShort}</p>
+        `;
+
+        const sections = [...step.tabs, ...(step.extras || [])];
+        body.innerHTML = sections
+          .map(
+            (s, i) => `
+            <details class="disclosure" data-section-id="${s.id}" ${i === 0 ? "open" : ""}>
+              <summary class="disclosure-summary">
+                <span>${s.label}</span>
+                <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </summary>
+              <div class="disclosure-content">
+                ${renderBlocks(s.blocks)}
+              </div>
+            </details>`
+          )
+          .join("");
+
+        // Footer reflects the currently-open section, not the whole step.
+        footer.innerHTML = renderFooterCta(sections[0]?.blocks);
+
+        // Accordion: only one open at a time. When a section opens, also
+        // refresh the footer based on that section's blocks.
+        const allDetails = body.querySelectorAll(".disclosure");
+        allDetails.forEach((d) => {
+          d.addEventListener("toggle", () => {
+            if (d.open) {
+              allDetails.forEach((o) => {
+                if (o !== d) o.removeAttribute("open");
+              });
+              const sectionId = d.dataset.sectionId;
+              const section = sections.find((s) => s.id === sectionId);
+              footer.innerHTML = renderFooterCta(section?.blocks);
+            }
+          });
         });
       }
-      // Apply on initial load to ensure consistency.
-      applyProperty(activeIdx);
+
+      // ============================
+      // Wire tab/rail pane switching for a single variant
+      // ============================
+      function wireTabGroup(panel, groupSelector, btnSelector, variantKey, tabs) {
+        const group = panel.querySelector(groupSelector);
+        if (!group) return;
+        const panes = panel.querySelectorAll("[data-pane]");
+        const footer = panel.querySelector('[data-slot="footer"]');
+        group.querySelectorAll(btnSelector).forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const target = btn.dataset.paneTarget;
+            group
+              .querySelectorAll(btnSelector)
+              .forEach((b) =>
+                b.setAttribute("aria-selected", b === btn ? "true" : "false")
+              );
+            panes.forEach((p) =>
+              p.classList.toggle("is-active", p.dataset.pane === target)
+            );
+            activePane[variantKey] = target;
+            // Footer is per-tab: show View evidence only when the
+            // newly-active tab has an evidence block in its data.
+            if (footer && Array.isArray(tabs)) {
+              const activeTab = tabs.find((t) => t.id === target);
+              footer.innerHTML = renderFooterCta(activeTab?.blocks);
+            }
+          });
+        });
+      }
+
+      // ============================
+      // Map graphics — markers, zones, lines, circles per step.
+      // Real coordinates pulled from js/data/* in the main project.
+      // ============================
+      let mapReady = false;
+      let currentMarkers = [];
+      let currentLayerIds = [];
+      let currentSourceIds = [];
+
+      function clearMapGraphics() {
+        currentMarkers.forEach((m) => m.remove());
+        currentMarkers = [];
+        currentLayerIds.forEach((id) => {
+          if (map.getLayer(id)) map.removeLayer(id);
+        });
+        currentSourceIds.forEach((id) => {
+          if (map.getSource(id)) map.removeSource(id);
+        });
+        currentLayerIds = [];
+        currentSourceIds = [];
+      }
+
+      // Approximate a metric-radius circle around a [lng, lat] center as a
+      // polygon ring (used for the science park area overlay).
+      function circleToPolygon(center, radiusM, steps) {
+        const [lng, lat] = center;
+        const earthRadius = 6378137;
+        const coords = [];
+        const cosLat = Math.cos((lat * Math.PI) / 180);
+        for (let i = 0; i <= steps; i++) {
+          const theta = (i * 2 * Math.PI) / steps;
+          const dx = (radiusM * Math.cos(theta)) / (earthRadius * cosLat);
+          const dy = (radiusM * Math.sin(theta)) / earthRadius;
+          coords.push([
+            lng + (dx * 180) / Math.PI,
+            lat + (dy * 180) / Math.PI,
+          ]);
+        }
+        return coords;
+      }
+
+      function applyMapGraphics(step) {
+        if (!mapReady) return;
+        clearMapGraphics();
+        const g = step.mapGraphics;
+        if (!g) return;
+
+        (g.zones || []).forEach((z, i) => {
+          const sourceId = `pg-zone-src-${i}`;
+          const fillId = `pg-zone-fill-${i}`;
+          const strokeId = `pg-zone-stroke-${i}`;
+          map.addSource(sourceId, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: { type: "Polygon", coordinates: [z.boundary] },
+            },
+          });
+          map.addLayer({
+            id: fillId,
+            type: "fill",
+            source: sourceId,
+            paint: { "fill-color": z.color },
+          });
+          map.addLayer({
+            id: strokeId,
+            type: "line",
+            source: sourceId,
+            paint: { "line-color": z.strokeColor, "line-width": 2 },
+          });
+          currentSourceIds.push(sourceId);
+          currentLayerIds.push(fillId, strokeId);
+        });
+
+        (g.circles || []).forEach((c, i) => {
+          const sourceId = `pg-circle-src-${i}`;
+          const fillId = `pg-circle-fill-${i}`;
+          const ring = circleToPolygon(c.center, c.radius, 64);
+          map.addSource(sourceId, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: { type: "Polygon", coordinates: [ring] },
+            },
+          });
+          map.addLayer({
+            id: fillId,
+            type: "fill",
+            source: sourceId,
+            paint: { "fill-color": c.color, "fill-opacity": 1 },
+          });
+          if (c.strokeColor) {
+            const strokeId = `pg-circle-stroke-${i}`;
+            map.addLayer({
+              id: strokeId,
+              type: "line",
+              source: sourceId,
+              paint: { "line-color": c.strokeColor, "line-width": 2 },
+            });
+            currentLayerIds.push(strokeId);
+          }
+          currentSourceIds.push(sourceId);
+          currentLayerIds.push(fillId);
+        });
+
+        (g.lines || []).forEach((l, i) => {
+          const sourceId = `pg-line-src-${i}`;
+          const layerId = `pg-line-layer-${i}`;
+          map.addSource(sourceId, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: { type: "LineString", coordinates: [l.from, l.to] },
+            },
+          });
+          map.addLayer({
+            id: layerId,
+            type: "line",
+            source: sourceId,
+            paint: {
+              "line-color": l.color || "#1e1f20",
+              "line-width": l.width || 2,
+              ...(l.dashed ? { "line-dasharray": [2, 2] } : {}),
+            },
+          });
+          currentSourceIds.push(sourceId);
+          currentLayerIds.push(layerId);
+        });
+
+        (g.markers || []).forEach((m) => {
+          const el = document.createElement("div");
+          el.className = `map-marker map-marker-${m.type}`;
+          let inner = "";
+          if (m.type === "logo" && m.logo) {
+            inner = `<div class="map-marker-logo-inner"><img src="${m.logo}" alt="${m.label || ""}" /></div>`;
+          } else if (m.type === "tier") {
+            const tier = m.tier || "central";
+            inner = `<div class="map-marker-pin" style="background: var(--color-tier-${tier})"></div>`;
+          } else if (m.type === "property") {
+            inner = `<div class="map-marker-property">${icon("home")}</div>`;
+          } else if (m.type === "airport") {
+            inner = `<div class="map-marker-airport">${icon("plane")}</div>`;
+          }
+          el.innerHTML = inner + (m.label ? `<div class="map-marker-label">${m.label}</div>` : "");
+          const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+            .setLngLat(m.coords)
+            .addTo(map);
+          currentMarkers.push(marker);
+        });
+      }
+
+      // ============================
+      // Render entry point
+      // ============================
+      function renderStep(idx) {
+        const step = STEPS[idx];
+        const total = STEPS.length;
+        document.querySelectorAll(".variant-content").forEach((variant) => {
+          const v = variant.dataset.variant;
+          const panel = variant.querySelector(".panel");
+          if (!panel) return;
+          if (v === "a") renderVariantA(panel, step);
+          else if (v === "c") renderVariantC(panel, step);
+
+          // Reset the panel to its open state on step change.
+          panel.classList.remove("is-closed");
+          variant.classList.remove("panel-closed");
+        });
+
+        // Disabled-state per cluster.
+        document.querySelectorAll("[data-nav]").forEach((cluster) => {
+          const prev = cluster.querySelector("[data-nav-prev]");
+          const next = cluster.querySelector("[data-nav-next]");
+          if (prev) prev.toggleAttribute("disabled", idx === 0);
+          if (next) next.toggleAttribute("disabled", idx === total - 1);
+        });
+
+        // Single step indicator outside the iPad frame.
+        const stepCount = document.querySelector("[data-step-count]");
+        const stepTitle = document.querySelector("[data-step-title]");
+        if (stepCount) stepCount.textContent = `Step ${idx + 1} of ${total}`;
+        if (stepTitle) stepTitle.textContent = step.title;
+
+        // Fly the map using the step's real camera (ipad-tuned).
+        map.flyTo({
+          center: step.camera.center,
+          zoom: step.camera.zoom,
+          pitch: step.camera.pitch,
+          bearing: step.camera.bearing,
+          duration: step.camera.duration || 1800,
+        });
+
+        // Swap the map graphics (markers, zones, lines).
+        applyMapGraphics(step);
+      }
 
       // ============================
       // Variant switcher (top chips)
@@ -1382,17 +2018,20 @@
       });
 
       // ============================
-      // Nav arrows — cycle through properties
+      // Nav arrows — cycle through steps
       // ============================
-      document.querySelectorAll(".nav-cluster").forEach((cluster) => {
-        const [prev, next] = cluster.querySelectorAll(".nav-btn");
-        prev.addEventListener("click", () => {
-          activeIdx = (activeIdx - 1 + properties.length) % properties.length;
-          applyProperty(activeIdx);
+      document.querySelectorAll("[data-nav]").forEach((cluster) => {
+        const prev = cluster.querySelector("[data-nav-prev]");
+        const next = cluster.querySelector("[data-nav-next]");
+        prev?.addEventListener("click", () => {
+          if (activeIdx === 0) return;
+          activeIdx = activeIdx - 1;
+          renderStep(activeIdx);
         });
-        next.addEventListener("click", () => {
-          activeIdx = (activeIdx + 1) % properties.length;
-          applyProperty(activeIdx);
+        next?.addEventListener("click", () => {
+          if (activeIdx === STEPS.length - 1) return;
+          activeIdx = activeIdx + 1;
+          renderStep(activeIdx);
         });
       });
 
@@ -1414,45 +2053,13 @@
         });
       });
 
-      // ============================
-      // Tab/rail pane switching (variants A and B)
-      // ============================
-      function wireTabs(tabSelector, btnSelector) {
-        document.querySelectorAll(tabSelector).forEach((group) => {
-          const variant = group.closest(".variant-content");
-          const panes = variant.querySelectorAll("[data-pane]");
-          group.querySelectorAll(btnSelector).forEach((btn) => {
-            btn.addEventListener("click", () => {
-              const target = btn.dataset.paneTarget;
-              group
-                .querySelectorAll(btnSelector)
-                .forEach((b) =>
-                  b.setAttribute("aria-selected", b === btn ? "true" : "false")
-                );
-              panes.forEach((p) =>
-                p.classList.toggle("is-active", p.dataset.pane === target)
-              );
-            });
-          });
-        });
-      }
-      wireTabs(".panel-a-tabs", ".panel-a-tab");
-      wireTabs(".panel-b-rail", ".panel-b-rail-btn");
+      // Initial render — runs immediately for the panel, but map graphics
+      // can only be applied once Mapbox finishes loading its style.
+      renderStep(activeIdx);
 
-      // ============================
-      // Variant C — only one disclosure open at a time
-      // ============================
-      document.querySelectorAll(".panel-c").forEach((panel) => {
-        const all = panel.querySelectorAll(".disclosure");
-        all.forEach((d) => {
-          d.addEventListener("toggle", () => {
-            if (d.open) {
-              all.forEach((other) => {
-                if (other !== d) other.removeAttribute("open");
-              });
-            }
-          });
-        });
+      map.on("load", () => {
+        mapReady = true;
+        applyMapGraphics(STEPS[activeIdx]);
       });
     </script>
   </body>
