@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Playground — iPad Dashboard Variants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rem:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+    <style>
+      :root {
+        --stage-w: 1366px;
+        --stage-h: 1024px;
+        /* Soft map placeholder tone; only used until Mapbox tiles paint. */
+        --map-tone: #e6ebde;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--color-bg-tertiary);
+        font-family: var(--font-display);
+        color: var(--color-text-primary);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .page {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .toolbar {
+        position: fixed;
+        top: var(--space-4);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: inline-flex;
+        gap: var(--space-1);
+        padding: var(--space-1);
+        background: var(--color-bg-primary);
+        border-radius: var(--radius-full);
+        box-shadow: var(--shadow-large);
+        align-items: center;
+      }
+
+      .toolbar-label {
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-tertiary);
+        padding: 0 var(--space-3) 0 var(--space-4);
+        letter-spacing: var(--tracking-small);
+      }
+
+      .chip {
+        appearance: none;
+        border: none;
+        background: transparent;
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-text-secondary);
+        min-height: var(--touch-target-min);
+        padding: 0 var(--space-5);
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        transition:
+          background var(--duration-normal) var(--easing-decelerate),
+          color var(--duration-normal) var(--easing-decelerate);
+        white-space: nowrap;
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .chip:hover {
+          background: var(--color-bg-secondary);
+          color: var(--color-text-primary);
+        }
+      }
+
+      .chip[aria-pressed="true"] {
+        background: var(--color-text-primary);
+        color: var(--color-bg-primary);
+      }
+
+      .chip:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+      }
+
+      .stage-wrapper {
+        position: relative;
+        --scale: 1;
+        width: calc(1366px * var(--scale));
+        height: calc(1024px * var(--scale));
+      }
+
+      .stage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1366px;
+        height: 1024px;
+        background-color: var(--map-tone);
+        border-radius: var(--radius-xlarge);
+        overflow: hidden;
+        box-shadow: var(--shadow-xlarge);
+        transform-origin: top left;
+        transform: scale(var(--scale));
+      }
+
+      .map {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+
+      .map .mapboxgl-ctrl-bottom-left,
+      .map .mapboxgl-ctrl-bottom-right,
+      .map .mapboxgl-ctrl-top-left,
+      .map .mapboxgl-ctrl-top-right {
+        display: none;
+      }
+
+      /* ============================
+         NAV ARROWS — centered on visible (non-panel) map area.
+         56pt circular targets (above the 44pt iPad HIG minimum).
+         ============================ */
+      .nav-cluster {
+        position: absolute;
+        bottom: var(--space-10);
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: var(--space-4);
+        align-items: center;
+        z-index: 5;
+      }
+
+      .nav-btn {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius-full);
+        background: var(--color-bg-primary);
+        border: 1px solid var(--color-border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-primary);
+        box-shadow: var(--shadow-medium);
+        cursor: pointer;
+        transition:
+          transform var(--duration-normal) var(--easing-decelerate),
+          background var(--duration-normal) var(--easing-decelerate);
+      }
+
+      .nav-btn.primary {
+        background: var(--color-primary);
+        color: var(--color-text-on-primary);
+        border-color: var(--color-primary);
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .nav-btn:hover {
+          transform: scale(1.04);
+        }
+      }
+
+      /* Neutralize the unscoped .nav-btn:hover rule inherited from
+         ../css/styles.css when the viewport is iPad-size. Covers real iPad
+         and Safari Responsive Design Mode emulation (which reports
+         hover: hover, pointer: fine, so the @media (hover: none)
+         neutralizer in styles.css doesn't fire). */
+      @media (max-width: 1440px) {
+        .nav-btn:hover {
+          transform: none;
+          box-shadow: var(--shadow-medium);
+        }
+      }
+
+      .nav-btn:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+      }
+
+      .nav-btn svg {
+        width: var(--icon-lg);
+        height: var(--icon-lg);
+        stroke-width: 2;
+      }
+
+      /* ============================
+         PANEL BASE
+         All type sized at or above the iPad practical floor (14pt body,
+         11pt absolute). All interactive targets >= 44pt.
+         ============================ */
+      .panel {
+        position: absolute;
+        top: var(--space-8);
+        right: var(--space-8);
+        bottom: var(--space-8);
+        background: var(--color-bg-primary);
+        border-radius: var(--radius-xlarge);
+        box-shadow: var(--shadow-large);
+        display: flex;
+        overflow: hidden;
+        font-family: var(--font-display);
+        color: var(--color-text-primary);
+      }
+
+      .panel-close {
+        position: absolute;
+        top: var(--space-3);
+        right: var(--space-3);
+        width: var(--touch-target-min);
+        height: var(--touch-target-min);
+        border: none;
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-full);
+        color: var(--color-text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--easing-decelerate);
+        z-index: 2;
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .panel-close:hover {
+          background: var(--color-bg-tertiary);
+          color: var(--color-text-primary);
+        }
+      }
+
+      .panel-close:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+      }
+
+      .panel-close svg {
+        width: var(--icon-md);
+        height: var(--icon-md);
+        stroke-width: 2;
+      }
+
+      .breadcrumb {
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-text-tertiary);
+        letter-spacing: var(--tracking-small);
+      }
+
+      .panel-title {
+        font-family: var(--font-display);
+        font-weight: var(--font-weight-bold);
+        font-size: var(--text-2xl);
+        line-height: var(--line-height-tight);
+        letter-spacing: var(--tracking-display);
+        margin: 0;
+        color: var(--color-text-primary);
+      }
+
+      .panel-subtitle {
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+        line-height: var(--line-height-normal);
+        margin: 0;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4) var(--space-6);
+      }
+
+      .stat-grid .stat-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+      }
+
+      .stat-label {
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-text-tertiary);
+        letter-spacing: var(--tracking-small);
+      }
+
+      .stat-value {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        line-height: var(--line-height-tight);
+      }
+
+      .section-label {
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-secondary);
+        letter-spacing: var(--tracking-small);
+        margin: 0;
+      }
+
+      .cta {
+        appearance: none;
+        border: none;
+        background: var(--color-primary);
+        color: var(--color-text-on-primary);
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        height: 52px;
+        padding: 0 var(--space-6);
+        border-radius: var(--radius-large);
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition:
+          background var(--duration-normal) var(--easing-decelerate),
+          box-shadow var(--duration-normal) var(--easing-decelerate);
+        box-shadow: var(--shadow-medium);
+      }
+
+      .cta:active {
+        background: var(--color-primary-pressed);
+      }
+
+      .cta:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .cta:hover {
+          background: var(--color-primary-hover);
+          box-shadow: var(--shadow-large);
+        }
+      }
+
+      /* ============================
+         VARIANT A — Compact tabs (420 pt panel)
+         ============================ */
+      .panel-a {
+        width: 420px;
+        flex-direction: column;
+      }
+
+      .panel-a-header {
+        padding: var(--space-8) var(--space-6) var(--space-3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+      }
+
+      .panel-a-tabs {
+        display: flex;
+        gap: var(--space-1);
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-medium);
+        margin: 0 var(--space-6) var(--space-4);
+        padding: var(--space-1);
+      }
+
+      .panel-a-tab {
+        flex: 1;
+        appearance: none;
+        border: none;
+        background: transparent;
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-text-secondary);
+        min-height: 40px;
+        padding: 0 var(--space-2);
+        border-radius: var(--radius-small);
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          background var(--duration-normal) var(--easing-decelerate),
+          color var(--duration-normal) var(--easing-decelerate);
+      }
+
+      .panel-a-tab[aria-selected="true"] {
+        background: var(--color-bg-primary);
+        color: var(--color-text-primary);
+        font-weight: var(--font-weight-semibold);
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .panel-a-tab:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: -2px;
+      }
+
+      .panel-a-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 var(--space-6) var(--space-4);
+      }
+
+      .panel-a-footer {
+        padding: var(--space-4) var(--space-6) var(--space-6);
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+      }
+
+      .panel-a .commute-pill {
+        display: inline-flex;
+        align-items: center;
+        min-width: 0;
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-bg-secondary);
+        color: var(--color-text-secondary);
+        border-radius: var(--radius-full);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        white-space: nowrap;
+      }
+
+      .address-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-medium);
+      }
+
+      .address-value {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        line-height: var(--line-height-tight);
+      }
+
+      /* ============================
+         VARIANT B — Sidebar rail (416 pt total: 96 rail + 320 content)
+         ============================ */
+      .panel-b {
+        width: 416px;
+        flex-direction: row;
+      }
+
+      .panel-b-rail {
+        width: 96px;
+        background: var(--color-bg-secondary);
+        border-right: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: var(--space-4) var(--space-3);
+        gap: var(--space-2);
+      }
+
+      .panel-b-rail-btn {
+        width: 100%;
+        min-height: 80px;
+        padding: var(--space-4) var(--space-2);
+        border-radius: var(--radius-medium);
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--color-text-secondary);
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        cursor: pointer;
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--line-height-tight);
+        text-align: center;
+        white-space: nowrap;
+        transition:
+          background var(--duration-normal) var(--easing-decelerate),
+          color var(--duration-normal) var(--easing-decelerate),
+          box-shadow var(--duration-normal) var(--easing-decelerate);
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .panel-b-rail-btn:hover {
+          background: var(--color-bg-tertiary);
+          color: var(--color-text-primary);
+        }
+      }
+
+      .panel-b-rail-btn[aria-selected="true"] {
+        background: var(--color-bg-primary);
+        color: var(--color-text-primary);
+        font-weight: var(--font-weight-semibold);
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .panel-b-rail-btn:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+      }
+
+      .panel-b-rail-btn svg {
+        width: var(--icon-lg);
+        height: var(--icon-lg);
+        stroke-width: 1.75;
+      }
+
+      .panel-b-rail-btn .rail-tip {
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--line-height-tight);
+        letter-spacing: var(--tracking-small);
+      }
+
+      .panel-b-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .panel-b-header {
+        padding: var(--space-6) var(--space-6) var(--space-2);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+      }
+
+      .panel-b-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--space-3) var(--space-6) var(--space-4);
+      }
+
+      .panel-b-footer {
+        padding: var(--space-4) var(--space-6) var(--space-6);
+        border-top: 1px solid var(--color-border);
+      }
+
+      /* ============================
+         VARIANT C — Disclosure stack (380 pt panel)
+         ============================ */
+      .panel-c {
+        width: 380px;
+        flex-direction: column;
+      }
+
+      .panel-c-header {
+        padding: var(--space-8) var(--space-6) var(--space-4);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+      }
+
+      .panel-c-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 var(--space-2) var(--space-4);
+      }
+
+      .disclosure {
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .disclosure-summary {
+        list-style: none;
+        appearance: none;
+        cursor: pointer;
+        padding: var(--space-3) var(--space-4);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        min-height: var(--touch-target-min);
+        border-radius: var(--radius-medium);
+        transition: background var(--duration-normal) var(--easing-decelerate);
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .disclosure-summary:hover {
+          background: var(--color-bg-secondary);
+        }
+      }
+
+      .disclosure-summary:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: -2px;
+      }
+
+      .disclosure-summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .disclosure-summary::marker {
+        display: none;
+      }
+
+      .disclosure-chevron {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+        color: var(--color-text-tertiary);
+        transition: transform var(--duration-normal) var(--easing-decelerate);
+        stroke-width: 2.25;
+      }
+
+      .disclosure[open] .disclosure-chevron {
+        transform: rotate(90deg);
+      }
+
+      .disclosure-content {
+        padding: var(--space-1) var(--space-4) var(--space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+
+      .panel-c-footer {
+        padding: var(--space-4) var(--space-6) var(--space-6);
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+      }
+
+      /* ============================
+         SPEC BADGE — dev annotation on each variant
+         ============================ */
+      .spec {
+        position: absolute;
+        left: var(--space-8);
+        top: var(--space-8);
+        background: var(--color-text-primary);
+        color: var(--color-bg-primary);
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-medium);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        line-height: var(--line-height-normal);
+        max-width: 280px;
+        z-index: 5;
+      }
+
+      .spec-title {
+        font-weight: var(--font-weight-bold);
+        font-size: var(--text-xs);
+        margin-bottom: var(--space-1);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+      }
+
+      .spec-dim {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--font-weight-semibold);
+        background: var(--color-bg-secondary);
+        color: var(--color-text-primary);
+        padding: 0 var(--space-2);
+        border-radius: var(--radius-small);
+        font-size: var(--text-xs);
+      }
+
+      /* ============================
+         Hidden variants
+         ============================ */
+      .variant-content {
+        display: none;
+      }
+
+      .variant-content.is-active {
+        display: contents;
+      }
+
+      .panel.is-closed {
+        transform: translateX(calc(100% + var(--space-16)));
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .panel {
+        transition:
+          transform var(--duration-slow) var(--easing-decelerate),
+          opacity var(--duration-normal) var(--easing-decelerate);
+      }
+
+      .reopen-btn {
+        position: absolute;
+        top: var(--space-8);
+        right: var(--space-8);
+        width: var(--touch-target-min);
+        height: var(--touch-target-min);
+        border-radius: var(--radius-full);
+        background: var(--color-primary);
+        color: var(--color-text-on-primary);
+        border: none;
+        box-shadow: var(--shadow-medium);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 6;
+        transition: transform var(--duration-normal) var(--easing-decelerate);
+      }
+
+      .reopen-btn svg {
+        width: var(--icon-md);
+        height: var(--icon-md);
+        stroke-width: 2;
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 1441px) {
+        .reopen-btn:hover {
+          transform: scale(1.06);
+          background: var(--color-primary-hover);
+        }
+      }
+
+      .reopen-btn:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+      }
+
+      .variant-content.panel-closed .reopen-btn {
+        display: inline-flex;
+      }
+
+      /* Pane swap inside variants A and B */
+      [data-pane] {
+        display: none;
+      }
+
+      [data-pane].is-active {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-5);
+      }
+
+      .pane-placeholder {
+        align-items: center;
+        justify-content: center;
+        min-height: 240px;
+        text-align: center;
+        color: var(--color-text-tertiary);
+        padding: var(--space-6);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        line-height: var(--line-height-normal);
+      }
+
+      .pane-placeholder strong {
+        display: block;
+        font-family: var(--font-display);
+        color: var(--color-text-primary);
+        font-size: var(--text-base);
+        font-weight: var(--font-weight-semibold);
+        margin-bottom: var(--space-2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="toolbar" role="tablist" aria-label="Variant switcher">
+        <span class="toolbar-label">Variant</span>
+        <button class="chip" data-variant="a" aria-pressed="true">
+          A · Compact tabs
+        </button>
+        <button class="chip" data-variant="b" aria-pressed="false">
+          B · Sidebar rail
+        </button>
+        <button class="chip" data-variant="c" aria-pressed="false">
+          C · Disclosure stack
+        </button>
+      </div>
+
+      <div class="stage-wrapper">
+        <div class="stage" id="stage">
+          <div class="map" id="map"></div>
+
+          <!-- VARIANT A -->
+          <div class="variant-content is-active" data-variant="a">
+            <div class="spec">
+              <div class="spec-title">
+                Variant A <span class="spec-dim">420 × 960</span>
+              </div>
+              Horizontal segmented tabs. Stat grid. CTA + commute pill in
+              footer. Visible map: 914 pt → nav centers at 457 pt.
+            </div>
+
+            <div class="nav-cluster">
+              <button class="nav-btn" aria-label="Previous">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button class="nav-btn primary" aria-label="Next">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <aside class="panel panel-a">
+              <button class="panel-close" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+
+              <div class="panel-a-header">
+                <div class="breadcrumb">Investment opportunity</div>
+                <h1 class="panel-title">Chateau Life Ozu 1</h1>
+              </div>
+
+              <div class="panel-a-tabs" role="tablist">
+                <button class="panel-a-tab" aria-selected="true" data-pane-target="overview">Overview</button>
+                <button class="panel-a-tab" aria-selected="false" data-pane-target="truth">Sources</button>
+                <button class="panel-a-tab" aria-selected="false" data-pane-target="financials">Numbers</button>
+                <button class="panel-a-tab" aria-selected="false" data-pane-target="images">Photos</button>
+              </div>
+
+              <div class="panel-a-body">
+                <div data-pane="overview" class="is-active">
+                  <div class="address-row">
+                    <span class="stat-label">Address</span>
+                    <span class="address-value" data-stat="address">Ozu‑machi, Kikuchi‑gun</span>
+                  </div>
+
+                  <div>
+                    <p class="section-label" style="margin-bottom: var(--space-3);">Property</p>
+                    <div class="stat-grid">
+                      <div class="stat-row">
+                        <div class="stat-label">Type</div>
+                        <div class="stat-value" data-stat="typeShort">Detached</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Layout</div>
+                        <div class="stat-value" data-stat="layoutShort">4LDK</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Land area</div>
+                        <div class="stat-value" data-stat="land">117.62 m²</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Building</div>
+                        <div class="stat-value" data-stat="building">89.10 m²</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p class="section-label" style="margin-bottom: var(--space-3);">Financial</p>
+                    <div class="stat-grid">
+                      <div class="stat-row">
+                        <div class="stat-label">Rent</div>
+                        <div class="stat-value" data-stat="rent">¥160,000 / mo</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Net</div>
+                        <div class="stat-value" data-stat="net">¥10,000 / mo</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Rent build</div>
+                        <div class="stat-value" data-stat="rentBuildShort">¥230,000</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Available</div>
+                        <div class="stat-value" data-stat="availability">May 2026</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div data-pane="truth" class="pane-placeholder">
+                  <strong>Sources</strong>
+                  Comps and verification trail for this property.
+                </div>
+                <div data-pane="financials" class="pane-placeholder">
+                  <strong>Numbers</strong>
+                  Full underwriting, cash flow, and yield analysis.
+                </div>
+                <div data-pane="images" class="pane-placeholder">
+                  <strong>Photos</strong>
+                  Exterior, interior, and floor‑plan visuals.
+                </div>
+              </div>
+
+              <div class="panel-a-footer">
+                <span class="commute-pill" data-stat="commute">3.3 km · 7 min to JASM</span>
+                <button class="cta">View Property</button>
+              </div>
+            </aside>
+
+            <button class="reopen-btn" aria-label="Show panel">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- VARIANT B -->
+          <div class="variant-content" data-variant="b">
+            <div class="spec">
+              <div class="spec-title">
+                Variant B <span class="spec-dim">416 × 960</span>
+              </div>
+              Vertical icon rail (96 pt) + content (320 pt). Visible map: 918 pt → nav centers at 459 pt.
+            </div>
+
+            <div class="nav-cluster">
+              <button class="nav-btn" aria-label="Previous">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button class="nav-btn primary" aria-label="Next">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <aside class="panel panel-b">
+              <div class="panel-b-rail" role="tablist">
+                <button class="panel-b-rail-btn" aria-selected="true" aria-label="Overview" data-pane-target="overview">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span class="rail-tip">Overview</span>
+                </button>
+                <button class="panel-b-rail-btn" aria-selected="false" aria-label="Sources" data-pane-target="truth">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span class="rail-tip">Sources</span>
+                </button>
+                <button class="panel-b-rail-btn" aria-selected="false" aria-label="Numbers" data-pane-target="financials">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 1v22M5 5h11a4 4 0 1 1 0 8H8a4 4 0 1 0 0 8h11" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span class="rail-tip">Numbers</span>
+                </button>
+                <button class="panel-b-rail-btn" aria-selected="false" aria-label="Photos" data-pane-target="images">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="M21 15l-5-5L5 21" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span class="rail-tip">Photos</span>
+                </button>
+              </div>
+
+              <div class="panel-b-content">
+                <button class="panel-close" aria-label="Close">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+
+                <div class="panel-b-header">
+                  <div class="breadcrumb">Investment opportunity</div>
+                  <h1 class="panel-title">Chateau Life Ozu 1</h1>
+                  <p class="panel-subtitle" style="margin-top: var(--space-2);" data-stat="tagline">
+                    Detached, 4LDK family home in Ozu, 3.3 km from JASM.
+                  </p>
+                </div>
+
+                <div class="panel-b-body">
+                  <div data-pane="overview" class="is-active">
+                    <div>
+                      <p class="section-label" style="margin-bottom: var(--space-3);">Property</p>
+                      <div class="stat-grid">
+                        <div class="stat-row">
+                          <div class="stat-label">Type</div>
+                          <div class="stat-value" data-stat="typeShort">Detached</div>
+                        </div>
+                        <div class="stat-row">
+                          <div class="stat-label">Layout</div>
+                          <div class="stat-value" data-stat="layoutShort">4LDK</div>
+                        </div>
+                        <div class="stat-row">
+                          <div class="stat-label">Land</div>
+                          <div class="stat-value" data-stat="land">117.62 m²</div>
+                        </div>
+                        <div class="stat-row">
+                          <div class="stat-label">Building</div>
+                          <div class="stat-value" data-stat="building">89.10 m²</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p class="section-label" style="margin-bottom: var(--space-3);">Financial</p>
+                      <div class="stat-grid">
+                        <div class="stat-row">
+                          <div class="stat-label">Rent</div>
+                          <div class="stat-value" data-stat="rent">¥160,000 / mo</div>
+                        </div>
+                        <div class="stat-row">
+                          <div class="stat-label">Net</div>
+                          <div class="stat-value" data-stat="net">¥10,000 / mo</div>
+                        </div>
+                        <div class="stat-row">
+                          <div class="stat-label">Rent build</div>
+                          <div class="stat-value" data-stat="rentBuildShort">¥230,000</div>
+                        </div>
+                        <div class="stat-row">
+                          <div class="stat-label">Available</div>
+                          <div class="stat-value" data-stat="availability">May 2026</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p class="section-label" style="margin-bottom: var(--space-2);">Commute</p>
+                      <p class="panel-subtitle" data-stat="commuteLong">
+                        3.3 km, ~7 min drive east to JASM. Sits inside the Ozu industrial-corridor catchment.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div data-pane="truth" class="pane-placeholder">
+                    <strong>Sources</strong>
+                    Comps and verification trail.
+                  </div>
+                  <div data-pane="financials" class="pane-placeholder">
+                    <strong>Numbers</strong>
+                    Full underwriting and cash flow.
+                  </div>
+                  <div data-pane="images" class="pane-placeholder">
+                    <strong>Photos</strong>
+                    Exterior, interior, floor plan.
+                  </div>
+                </div>
+
+                <div class="panel-b-footer">
+                  <button class="cta" style="width: 100%;">View Property</button>
+                </div>
+              </div>
+            </aside>
+
+            <button class="reopen-btn" aria-label="Show panel">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- VARIANT C -->
+          <div class="variant-content" data-variant="c">
+            <div class="spec">
+              <div class="spec-title">
+                Variant C <span class="spec-dim">380 × 960</span>
+              </div>
+              No tabs. Stacked collapsible sections, one open at a time.
+              Visible map: 954 pt → nav centers at 477 pt.
+            </div>
+
+            <div class="nav-cluster">
+              <button class="nav-btn" aria-label="Previous">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button class="nav-btn primary" aria-label="Next">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <aside class="panel panel-c">
+              <button class="panel-close" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+
+              <div class="panel-c-header">
+                <div class="breadcrumb">Investment opportunity</div>
+                <h1 class="panel-title">Chateau Life Ozu 1</h1>
+                <p class="panel-subtitle" style="margin-top: var(--space-1);" data-stat="taglineShort">
+                  Detached, 4LDK in Ozu · 3.3 km to JASM
+                </p>
+              </div>
+
+              <div class="panel-c-body">
+                <details class="disclosure" open>
+                  <summary class="disclosure-summary">
+                    <span>Overview</span>
+                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </summary>
+                  <div class="disclosure-content">
+                    <div class="stat-grid">
+                      <div class="stat-row">
+                        <div class="stat-label">Type</div>
+                        <div class="stat-value" data-stat="typeShort">Detached</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Layout</div>
+                        <div class="stat-value" data-stat="layout">4LDK · 3 park</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Land area</div>
+                        <div class="stat-value" data-stat="land">117.62 m²</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Building</div>
+                        <div class="stat-value" data-stat="building">89.10 m²</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Available</div>
+                        <div class="stat-value" data-stat="availability">May 2026</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Address</div>
+                        <div class="stat-value" data-stat="addressShort">Ozu‑machi</div>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="disclosure">
+                  <summary class="disclosure-summary">
+                    <span>Truth engine</span>
+                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </summary>
+                  <div class="disclosure-content">
+                    <p class="panel-subtitle">
+                      Sources, comps, and verification trail for this property.
+                    </p>
+                  </div>
+                </details>
+
+                <details class="disclosure">
+                  <summary class="disclosure-summary">
+                    <span>Future outlook</span>
+                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </summary>
+                  <div class="disclosure-content">
+                    <p class="panel-subtitle">
+                      Projected demand, infrastructure timeline, and corridor‑wide tailwinds.
+                    </p>
+                  </div>
+                </details>
+
+                <details class="disclosure">
+                  <summary class="disclosure-summary">
+                    <span>Financials</span>
+                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </summary>
+                  <div class="disclosure-content">
+                    <div class="stat-grid">
+                      <div class="stat-row">
+                        <div class="stat-label">Rent</div>
+                        <div class="stat-value">¥160,000 / mo</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Net</div>
+                        <div class="stat-value">¥10,000 / mo</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Rent build</div>
+                        <div class="stat-value">¥230,000</div>
+                      </div>
+                      <div class="stat-row">
+                        <div class="stat-label">Yield</div>
+                        <div class="stat-value">~5.8%</div>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="disclosure">
+                  <summary class="disclosure-summary">
+                    <span>Images</span>
+                    <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </summary>
+                  <div class="disclosure-content">
+                    <p class="panel-subtitle">
+                      Exterior, interior, and floor‑plan visuals.
+                    </p>
+                  </div>
+                </details>
+              </div>
+
+              <div class="panel-c-footer">
+                <span class="breadcrumb">Section 1 of 5</span>
+                <button class="cta">View Property</button>
+              </div>
+            </aside>
+
+            <button class="reopen-btn" aria-label="Show panel">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Fit the iPad stage to the viewport (height-first so it always
+      // fits without scrolling, regardless of window aspect ratio).
+      function fitStage() {
+        const wrapper = document.querySelector(".stage-wrapper");
+        if (!wrapper) return;
+        const margin = 32;
+        const toolbarReserve = 80;
+        const scale = Math.min(
+          (window.innerWidth - margin) / 1366,
+          (window.innerHeight - margin - toolbarReserve) / 1024
+        );
+        wrapper.style.setProperty("--scale", String(scale));
+      }
+      fitStage();
+      window.addEventListener("resize", fitStage);
+
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoicmlhYW5tb2hhMTc5IiwiYSI6ImNtbGo0ODRlbzA4ZXozZXI3c2tlbXBnZnYifQ.egy_O1eRdw5ucojXIA4vmQ";
+      const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [130.87, 32.87],
+        zoom: 12.2,
+        pitch: 45,
+        bearing: 8,
+        interactive: true,
+        attributionControl: false,
+      });
+
+      // ============================
+      // Sample properties for nav cycling
+      // ============================
+      const properties = [
+        {
+          title: "Chateau Life Ozu 1",
+          coords: [130.87, 32.87],
+          type: "Detached house",
+          typeShort: "Detached",
+          layout: "4LDK · 3 parking",
+          layoutShort: "4LDK",
+          land: "117.62 m²",
+          building: "89.10 m²",
+          availability: "May 2026",
+          address: "Ozu‑machi, Kikuchi‑gun",
+          addressShort: "Ozu‑machi",
+          rent: "¥160,000 / mo",
+          net: "¥10,000 / mo",
+          rentBuild: "¥230,000 / mo",
+          rentBuildShort: "¥230,000",
+          commute: "3.3 km · 7 min to JASM",
+          commuteLong:
+            "3.3 km, ~7 min drive east to JASM. Sits inside the Ozu industrial‑corridor catchment.",
+          tagline: "Detached, 4LDK family home in Ozu, 3.3 km from JASM.",
+          taglineShort: "Detached, 4LDK in Ozu · 3.3 km to JASM",
+        },
+        {
+          title: "Sora Heights Kikuyo 2",
+          coords: [130.832, 32.882],
+          type: "Townhouse",
+          typeShort: "Townhouse",
+          layout: "3LDK · 2 parking",
+          layoutShort: "3LDK",
+          land: "92.40 m²",
+          building: "76.20 m²",
+          availability: "Aug 2026",
+          address: "Kikuyo‑machi, Kikuchi‑gun",
+          addressShort: "Kikuyo‑machi",
+          rent: "¥138,000 / mo",
+          net: "¥8,500 / mo",
+          rentBuild: "¥198,000 / mo",
+          rentBuildShort: "¥198,000",
+          commute: "1.8 km · 4 min to JASM",
+          commuteLong:
+            "1.8 km, ~4 min from JASM. In the densest part of the Kikuyo science‑park catchment.",
+          tagline: "3LDK townhouse next to the science park.",
+          taglineShort: "3LDK in Kikuyo · 1.8 km to JASM",
+        },
+        {
+          title: "Komorebi House Koshi 3",
+          coords: [130.785, 32.92],
+          type: "Detached house",
+          typeShort: "Detached",
+          layout: "5LDK · 4 parking",
+          layoutShort: "5LDK",
+          land: "168.10 m²",
+          building: "124.50 m²",
+          availability: "Nov 2026",
+          address: "Koshi‑shi, Kumamoto",
+          addressShort: "Koshi‑shi",
+          rent: "¥185,000 / mo",
+          net: "¥12,000 / mo",
+          rentBuild: "¥265,000 / mo",
+          rentBuildShort: "¥265,000",
+          commute: "6.1 km · 11 min to JASM",
+          commuteLong:
+            "6.1 km, ~11 min from JASM. Larger lot suited to senior‑researcher or family use.",
+          tagline: "Larger 5LDK in Koshi, family‑sized footprint.",
+          taglineShort: "5LDK in Koshi · 6.1 km to JASM",
+        },
+      ];
+
+      let activeIdx = 0;
+
+      function applyProperty(idx) {
+        const p = properties[idx];
+        document
+          .querySelectorAll(".panel-title")
+          .forEach((el) => (el.textContent = p.title));
+        document.querySelectorAll("[data-stat]").forEach((el) => {
+          const key = el.dataset.stat;
+          if (p[key] !== undefined) el.textContent = p[key];
+        });
+        map.flyTo({
+          center: p.coords,
+          zoom: 12.2,
+          pitch: 45,
+          bearing: 8,
+          duration: 1400,
+        });
+      }
+      // Apply on initial load to ensure consistency.
+      applyProperty(activeIdx);
+
+      // ============================
+      // Variant switcher (top chips)
+      // ============================
+      const chips = document.querySelectorAll(".chip");
+      const variants = document.querySelectorAll(".variant-content");
+
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const target = chip.dataset.variant;
+          chips.forEach((c) =>
+            c.setAttribute("aria-pressed", c === chip ? "true" : "false")
+          );
+          variants.forEach((v) =>
+            v.classList.toggle("is-active", v.dataset.variant === target)
+          );
+        });
+      });
+
+      // ============================
+      // Nav arrows — cycle through properties
+      // ============================
+      document.querySelectorAll(".nav-cluster").forEach((cluster) => {
+        const [prev, next] = cluster.querySelectorAll(".nav-btn");
+        prev.addEventListener("click", () => {
+          activeIdx = (activeIdx - 1 + properties.length) % properties.length;
+          applyProperty(activeIdx);
+        });
+        next.addEventListener("click", () => {
+          activeIdx = (activeIdx + 1) % properties.length;
+          applyProperty(activeIdx);
+        });
+      });
+
+      // ============================
+      // Close / reopen the panel within each variant
+      // ============================
+      document.querySelectorAll(".variant-content").forEach((variant) => {
+        const closeBtn = variant.querySelector(".panel-close");
+        const reopenBtn = variant.querySelector(".reopen-btn");
+        const panel = variant.querySelector(".panel");
+        if (!closeBtn || !reopenBtn || !panel) return;
+        closeBtn.addEventListener("click", () => {
+          panel.classList.add("is-closed");
+          variant.classList.add("panel-closed");
+        });
+        reopenBtn.addEventListener("click", () => {
+          panel.classList.remove("is-closed");
+          variant.classList.remove("panel-closed");
+        });
+      });
+
+      // ============================
+      // Tab/rail pane switching (variants A and B)
+      // ============================
+      function wireTabs(tabSelector, btnSelector) {
+        document.querySelectorAll(tabSelector).forEach((group) => {
+          const variant = group.closest(".variant-content");
+          const panes = variant.querySelectorAll("[data-pane]");
+          group.querySelectorAll(btnSelector).forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const target = btn.dataset.paneTarget;
+              group
+                .querySelectorAll(btnSelector)
+                .forEach((b) =>
+                  b.setAttribute("aria-selected", b === btn ? "true" : "false")
+                );
+              panes.forEach((p) =>
+                p.classList.toggle("is-active", p.dataset.pane === target)
+              );
+            });
+          });
+        });
+      }
+      wireTabs(".panel-a-tabs", ".panel-a-tab");
+      wireTabs(".panel-b-rail", ".panel-b-rail-btn");
+
+      // ============================
+      // Variant C — only one disclosure open at a time
+      // ============================
+      document.querySelectorAll(".panel-c").forEach((panel) => {
+        const all = panel.querySelectorAll(".disclosure");
+        all.forEach((d) => {
+          d.addEventListener("toggle", () => {
+            if (d.open) {
+              all.forEach((other) => {
+                if (other !== d) other.removeAttribute("open");
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
