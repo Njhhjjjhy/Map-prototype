@@ -1,6 +1,9 @@
 # Portfolio showcase (isolated from project)
 showcase/
 
+# QA screenshots (local-only reference material)
+qa/
+
 # Worktrees
 .worktrees/
 
