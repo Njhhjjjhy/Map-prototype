@@ -174,7 +174,7 @@ const CAMERA_STEPS = {
   },
   B6: {
     center: [130.7756, 32.7271],
-    zoom: 10.8,
+    zoom: 9.8,
     pitch: 34,
     bearing: -3,
     duration: 2000,
@@ -205,7 +205,7 @@ const CAMERA_STEPS = {
   },
   corridor: {
     center: [130.7777, 32.6342],
-    zoom: 9.9,
+    zoom: 9.0,
     pitch: 35,
     bearing: 0,
     duration: 2000,

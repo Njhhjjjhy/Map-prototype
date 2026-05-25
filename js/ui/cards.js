@@ -100,13 +100,12 @@ export const methods = {
     // investment (default)
     const headlineCompanies = ["jasm", "sony", "tokyo-electron", "mitsubishi"];
     const headlineItems = headlineCompanies
-      .map((id, i) => {
+      .map((id) => {
         const c = companies.find((x) => x.id === id);
         if (!c) return null;
         return {
           label: c.name,
           value: c.stats?.[0]?.value || "",
-          hero: i === 0,
         };
       })
       .filter(Boolean);
@@ -186,16 +185,17 @@ export const methods = {
       value: s.value,
       hero: i === 0,
     }));
+    const evidenceSection = water.evidence?.title
+      ? `<div class="step-section">${evidenceBlockHtml({
+          title: water.evidence.title,
+          description: water.evidence.description || "",
+          onclick: `UI.showEvidence('water', 'resource')`,
+        })}</div>`
+      : "";
     return `
       ${proseBlock(water.description || "")}
       ${statSection({ label: water.name || t("Aso Groundwater Basin"), items })}
-      <div class="step-section">
-        ${evidenceBlockHtml({
-          title: water.evidence?.title || t("TSMC ESG evidence"),
-          description: water.evidence?.description || "",
-          onclick: `UI.showEvidence('water', 'resource')`,
-        })}
-      </div>
+      ${evidenceSection}
     `;
   },
 
@@ -484,10 +484,10 @@ export const methods = {
   // ────────────────────────────────────────────────
 
   showFutureOutlookPanel() {
-    this._futureOutlookActiveTab = this._futureOutlookActiveTab || "plans";
+    this._futureOutlookActiveTab = this._futureOutlookActiveTab || "vision";
     const tabs = [
-      { id: "plans", label: t("Plans"), onclick: `UI.switchFutureOutlookTab('plans')` },
-      { id: "timeline", label: t("Timeline"), onclick: `UI.switchFutureOutlookTab('timeline')` },
+      { id: "vision", label: t("Vision"), onclick: `UI.switchFutureOutlookTab('vision')` },
+      { id: "roadmap", label: t("Roadmap"), onclick: `UI.switchFutureOutlookTab('roadmap')` },
     ];
     const activeIndex = Math.max(
       0,
@@ -507,7 +507,7 @@ export const methods = {
 
   switchFutureOutlookTab(tabId) {
     this._futureOutlookActiveTab = tabId;
-    const tabIds = ["plans", "timeline"];
+    const tabIds = ["vision", "roadmap"];
     const activeIndex = Math.max(0, tabIds.indexOf(tabId));
     const body = this.elements.panelContent?.querySelector(".panel-a-body");
     if (body) body.innerHTML = this._buildFutureOutlookTabBody(tabId);
@@ -538,11 +538,11 @@ export const methods = {
     const clockIcon =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
-    if (tabId === "timeline") {
+    if (tabId === "roadmap") {
       return `
         ${proseBlock(t("Construction milestones and completion targets across the corridor."))}
         ${statSection({
-          label: t("Vision horizon"),
+          label: t("Roadmap horizon"),
           items: [
             { label: t("Master plan target"), value: "2040", hero: true },
             { label: t("Government investment"), value: "¥4.8T" },
@@ -553,7 +553,7 @@ export const methods = {
       `;
     }
 
-    // plans (default)
+    // vision (default)
     return `
       ${proseBlock(t("Composite 2030+ vision: science park expansion, grand airport access, government zone clusters, road network, and traffic flow."))}
       ${listSection({
@@ -587,7 +587,7 @@ export const methods = {
     this._powerActiveTab = this._powerActiveTab || "overview";
     const tabs = [
       { id: "overview", label: t("Overview"), onclick: `UI.switchPowerTab('overview')` },
-      { id: "companies", label: t("Companies"), onclick: `UI.switchPowerTab('companies')` },
+      { id: "sources", label: t("Sources"), onclick: `UI.switchPowerTab('sources')` },
     ];
     const activeIndex = Math.max(
       0,
@@ -608,7 +608,7 @@ export const methods = {
 
   switchPowerTab(tabId) {
     this._powerActiveTab = tabId;
-    const tabIds = ["overview", "companies"];
+    const tabIds = ["overview", "sources"];
     const activeIndex = Math.max(0, tabIds.indexOf(tabId));
     const body = this.elements.panelContent?.querySelector(".panel-a-body");
     if (body) body.innerHTML = this._buildPowerTabBody(tabId);
@@ -637,7 +637,7 @@ export const methods = {
     const kyushu = AppData.kyushuEnergy;
     if (!power) return "";
 
-    if (tabId === "companies") {
+    if (tabId === "sources") {
       const sunIcon =
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
       const windIcon =
@@ -671,16 +671,17 @@ export const methods = {
       value: s.value,
       hero: i === 0,
     }));
+    const evidenceSection = power.evidence?.title
+      ? `<div class="step-section">${evidenceBlockHtml({
+          title: power.evidence.title,
+          description: power.evidence.description || "",
+          onclick: `UI.showEvidence('power', 'resource')`,
+        })}</div>`
+      : "";
     return `
       ${proseBlock(power.description || "")}
       ${statSection({ label: power.name || t("Kyushu Power Grid"), items })}
-      <div class="step-section">
-        ${evidenceBlockHtml({
-          title: power.evidence?.title || t("Kyushu Electric infrastructure plan"),
-          description: power.evidence?.description || "",
-          onclick: `UI.showEvidence('power', 'resource')`,
-        })}
-      </div>
+      ${evidenceSection}
     `;
   },
 
@@ -854,14 +855,6 @@ export const methods = {
     }
 
     if (tabId === "financials") {
-      const evidence = financialCard?.data?.rentalEvidence;
-      const evidenceHtml = evidence
-        ? `<div class="step-section">${evidenceBlockHtml({
-            title: t("AI rent assessment (4LDK / 89 sqm)"),
-            description: t("Assessed rent ¥160,000/month from comparable properties."),
-            onclick: `UI.showEvidenceLightbox('${evidence.image}', '${(evidence.title || "").replace(/'/g, "\\'")}')`,
-          })}</div>`
-        : "";
       return `
         ${statSection({
           label: t("Build-to-rent"),
@@ -874,7 +867,6 @@ export const methods = {
             { label: t("Monthly repayment"), value: "¥120,818" },
           ],
         })}
-        ${evidenceHtml}
       `;
     }
 
@@ -1086,20 +1078,10 @@ export const methods = {
         hero: i === 0,
       }));
 
-      const evidenceImg = "assets/use-case-images/step-7-TSMC.webp";
-      const evidenceTitle = t("METI semiconductor workforce report");
-
       return `
         ${proseBlock(data.summary || "")}
         ${salaryItems.length ? statSection({ label: t("Salary comparison"), items: salaryItems }) : ""}
         ${listSection({ label: t("Major employers"), items })}
-        <div class="step-section">
-          ${evidenceBlockHtml({
-            title: evidenceTitle,
-            description: t("Workforce growth and salary data."),
-            onclick: `UI.showQuickLook({ type: 'image', src: '${evidenceImg}', title: '${evidenceTitle}' })`,
-          })}
-        </div>
       `;
     }
 
@@ -1210,10 +1192,10 @@ export const methods = {
   },
 
   showAllAirlineRoutes() {
-    this._airlineActiveTab = this._airlineActiveTab || "routes";
+    this._airlineActiveTab = this._airlineActiveTab || "overview";
     const tabs = [
+      { id: "overview", label: t("Overview"), onclick: `UI.switchAirlineTab('overview')` },
       { id: "routes", label: t("Routes"), onclick: `UI.switchAirlineTab('routes')` },
-      { id: "hub", label: t("Hub"), onclick: `UI.switchAirlineTab('hub')` },
     ];
     const activeIndex = Math.max(
       0,
@@ -1233,7 +1215,7 @@ export const methods = {
 
   switchAirlineTab(tabId) {
     this._airlineActiveTab = tabId;
-    const tabIds = ["routes", "hub"];
+    const tabIds = ["overview", "routes"];
     const activeIndex = Math.max(0, tabIds.indexOf(tabId));
     const body = this.elements.panelContent?.querySelector(".panel-a-body");
     if (body) body.innerHTML = this._buildAirlineTabBody(tabId);
@@ -1251,7 +1233,7 @@ export const methods = {
     const routes = AppData.airlineRoutes?.destinations || [];
     const activeRoutes = routes.filter((r) => r.status === "active");
 
-    if (tabId === "hub") {
+    if (tabId === "overview") {
       const regions = [...new Set(activeRoutes.map((r) => r.region))];
       const airlines = [...new Set(activeRoutes.flatMap((r) => r.airlines))];
       const semiLinks = activeRoutes

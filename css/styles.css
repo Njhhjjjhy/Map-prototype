@@ -2122,6 +2122,43 @@ a:focus-visible {
   cursor: pointer;
 }
 
+/* Company marker: badge plus pill label below.
+   Wrapper is sized to the badge so Mapbox centers the badge on the
+   coordinate; the label overflows below without affecting layout. */
+.company-marker-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* G2: logo pins are circles with a visible neutral stroke and the
+   logo clipped to the circle. Overrides the inline white border. */
+.company-marker-wrap .elevated-marker,
+.talent-marker-icon {
+  border: 1px solid var(--color-border-strong) !important;
+  overflow: hidden;
+}
+
+.company-marker-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-text-primary);
+  color: #fff;
+  font-family: "Rem", sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
 .custom-marker {
   transition:
     transform var(--duration-fast) var(--easing-standard),
@@ -5919,11 +5956,11 @@ button.layer-item {
    Camera Debug Tool (dev only)
    ================================ */
 
-/* Language toggle (top-right corner) */
+/* Language toggle (top-left corner, away from panel close button) */
 #lang-toggle {
   position: fixed;
   top: var(--space-3);
-  right: var(--space-3);
+  left: var(--space-3);
   z-index: 1000;
   min-width: 44px;
   height: 32px;
@@ -6967,9 +7004,11 @@ button.layer-item {
 
 .panel-a-tab[aria-selected="true"] {
   background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  color: var(--color-info);
   font-weight: var(--font-weight-semibold);
-  box-shadow: var(--shadow-subtle);
+  box-shadow:
+    var(--shadow-subtle),
+    inset 0 -2px 0 var(--color-info);
 }
 
 .panel-a-tab[disabled] {
@@ -7243,7 +7282,7 @@ button.layer-item {
 /* Tier coloring: lets statGrid blocks emit a tinted left label
    matching the source (e.g. central=red, prefectural=green, local=blue,
    used in the playground government step). */
-#panel-content:has(.panel-a-header) .section-label.tier-central { color: #ff3b30; }
+#panel-content:has(.panel-a-header) .section-label.tier-central { color: var(--color-text-secondary); }
 #panel-content:has(.panel-a-header) .section-label.tier-prefectural { color: #34c759; }
 #panel-content:has(.panel-a-header) .section-label.tier-local { color: #007aff; }
 #panel-content:has(.panel-a-header) .section-label.tier-prefecture { color: #34c759; }
