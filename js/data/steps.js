@@ -139,7 +139,7 @@ function buildSteps() {
       subtitle: t("Composite 2030+ vision"),
       cameraKey: "B6",
       layers: [],
-      panelTabs: [t("Plans"), t("Timeline")],
+      panelTabs: [t("Vision"), t("Roadmap")],
       showTimeToggle: true,
       subItems: [],
     },

@@ -172,13 +172,15 @@ export const methods = {
           object-fit: contain;
       ">`;
 
-    return this._elevatedMarkerHtml(
+    const badgeHtml = this._elevatedMarkerHtml(
       innerHtml,
       brand.bg,
       brand.size,
       {},
-      "square",
+      "circle",
     );
+
+    return `<div class="company-marker-wrap">${badgeHtml}<div class="company-marker-label">${brand.text}</div></div>`;
   },
 
   _addTooltip(marker, element, text, offset = [0, -24]) {
