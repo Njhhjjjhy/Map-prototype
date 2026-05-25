@@ -195,7 +195,6 @@ a,
 [role="button"],
 .nav-btn,
 .panel-bento-btn,
-.inspector-tab,
 .disclosure-header,
 .layer-item,
 .time-btn {
@@ -1123,11 +1122,6 @@ a:focus-visible {
   /* macOS overlay scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-/* Inspector has its own title bar and body padding, reduce outer padding */
-#panel-content:has(.inspector-title-bar) {
-  padding: 0;
 }
 
 @keyframes panelContentFadeIn {
@@ -4482,92 +4476,11 @@ button.layer-item {
 }
 
 /* ================================
-   INSPECTOR PANEL (contextual bento dashboard)
+   INSPECTOR PANEL (property navigation arrows only)
+   The compact-tabs scaffold owns the panel chrome — these classes
+   remain because the property prev/next arrows on stage 9 are
+   injected into the panel-a header via navArrowsHtml.
    ================================ */
-
-/* Resize handle - left edge, width-only */
-.inspector-resize-handle {
-  position: absolute;
-  left: -2px;
-  top: 0;
-  width: 4px;
-  height: 100%;
-  cursor: col-resize;
-  z-index: 1001;
-  transition: background-color var(--duration-fast) var(--easing-standard);
-}
-
-.inspector-resize-handle:hover,
-.inspector-resize-handle.active {
-  background: var(--color-primary);
-  opacity: 0.5;
-}
-
-/* Title bar */
-.inspector-title-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Override #panel-content h2 size for inspector title */
-#panel-content .inspector-title {
-  font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  letter-spacing: var(--tracking-display);
-  margin: 0;
-  line-height: var(--line-height-tight);
-}
-
-.inspector-subtitle {
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-/* Segmented control tabs (reuses #time-toggle pattern) */
-.inspector-tabs {
-  display: flex;
-  gap: 1px;
-  background: var(--color-bg-tertiary);
-  padding: 2px;
-  border-radius: var(--radius-small);
-  border: 1px solid var(--color-border);
-  margin: var(--space-3) var(--space-4);
-}
-
-.inspector-tab {
-  flex: 1;
-  padding: var(--space-1) var(--space-3);
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: none;
-  border-radius: calc(var(--radius-small) - 2px);
-  cursor: pointer;
-  text-align: center;
-  transition: all var(--duration-fast) var(--easing-standard);
-  white-space: nowrap;
-}
-
-.inspector-tab:hover {
-  color: var(--color-text-primary);
-}
-
-.inspector-tab.active {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-subtle);
-}
 
 /* Property navigation arrows */
 .inspector-nav-arrows {
@@ -4660,14 +4573,6 @@ button.layer-item {
   font-family: var(--font-body);
   font-size: var(--text-sm);
   color: var(--color-text-tertiary);
-}
-
-/* Scrollable content body with container query */
-.inspector-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-4);
-  container-type: inline-size;
 }
 
 /* ================================
@@ -5801,7 +5706,6 @@ button.layer-item {
   .property-image-container:hover .property-image-expand,
   .data-layer-marker-item:hover,
   .evidence-item:hover,
-  .inspector-tab:hover,
   .inspector-nav-btn:hover,
   .icard-gallery-thumb:hover,
   .icard-evidence-btn:hover,
@@ -5877,13 +5781,6 @@ button.layer-item {
   /* Layer items */
   .layer-item {
     min-height: var(--touch-target-min);
-  }
-
-  /* Inspector tabs */
-  .inspector-tab {
-    min-height: var(--touch-target-min);
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
   }
 
   /* Gallery close button */
@@ -6947,5 +6844,1240 @@ button.layer-item {
 @media (prefers-reduced-motion: reduce) {
   .rotate-overlay-icon {
     animation: none !important;
+  }
+}
+
+/* ================================
+   COMPACT TABS DASHBOARD (Variant A)
+   Source: playground/index.html lines 678-765
+   Copied verbatim. Class names preserved per operating rule 7.
+   Adapted only: width is responsive (clamp from 540px) instead of
+   the playground's fixed 540px, per user decision to scale up at
+   desktop widths.
+   ================================ */
+
+/* Auto-applied when #panel-content contains the panel-a scaffold.
+   Width is the playground's fixed 540px to match Variant A exactly. */
+#right-panel:has(.panel-a-header) {
+  width: 540px;
+  min-width: 540px;
+  max-width: 540px;
+}
+
+#right-panel:has(.panel-a-header).visible #panel-content {
+  animation: none;
+}
+
+#right-panel:has(.panel-a-header) #panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+/* The legacy panel-toolbar (close + home buttons) is replaced by the
+   playground's absolute-positioned single close-circle in the top-right.
+   Suppress the toolbar row so the panel-a-header sits flush against the
+   top of the panel as in the playground. */
+#right-panel:has(.panel-a-header) > .panel-toolbar {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  padding: 0;
+  min-height: 0;
+  z-index: 2;
+  background: transparent;
+  gap: var(--space-2);
+}
+
+/* Playground Variant A only has a single close button. Hide
+   #panel-home inside the scaffold so the chrome matches exactly. */
+#right-panel:has(.panel-a-header) > .panel-toolbar #panel-home {
+  display: none;
+}
+
+#right-panel:has(.panel-a-header) > .panel-toolbar #panel-close {
+  width: var(--touch-target-min, 44px);
+  height: var(--touch-target-min, 44px);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+}
+
+#right-panel:has(.panel-a-header) > .panel-toolbar #panel-home:hover,
+#right-panel:has(.panel-a-header) > .panel-toolbar #panel-close:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.panel-a-header {
+  padding: var(--space-8) var(--space-6) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.panel-a-header .breadcrumb {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-small);
+  margin: 0;
+}
+
+.panel-a-header .panel-title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.panel-a-tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+  margin: 0 var(--space-6) var(--space-4);
+  padding: var(--space-1);
+}
+
+.panel-a-tab {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--duration-normal) var(--easing-decelerate),
+    color var(--duration-normal) var(--easing-decelerate);
+}
+
+.panel-a-tab[aria-selected="true"] {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-subtle);
+}
+
+.panel-a-tab[disabled] {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.panel-a-tab:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: -2px;
+}
+
+.panel-a-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-6) var(--space-4);
+}
+
+.panel-a-footer {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.panel-a-footer:empty {
+  display: none;
+}
+
+/* ================================
+   PLAYGROUND BODY BLOCKS
+   Source: playground/index.html lines 414-675 (stat-grid, stat-row,
+   stat-label, stat-value, section-label, step-section, step-prose,
+   step-list, step-list-item, step-list-icon, step-list-body,
+   step-list-title, step-list-sub, step-list-value, step-image,
+   step-image-gallery, evidence-block, evidence-block-*).
+
+   Scoped under #panel-content:has(.panel-a-header) so the existing
+   #panel-content .stat-grid / .stat-label / .stat-value rules in the
+   rest of styles.css are not affected outside the compact-tabs body.
+   ID + class specificity (0,2,1) beats the legacy #panel-content
+   .stat-grid (0,1,1) so playground styles win inside the scaffold.
+   ================================ */
+
+#panel-content:has(.panel-a-header) .step-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+#panel-content:has(.panel-a-header) .step-section + .step-section {
+  margin-top: var(--space-5);
+}
+
+#panel-content:has(.panel-a-header) .step-prose {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+#panel-content:has(.panel-a-header) .section-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--tracking-small);
+  margin: 0;
+}
+
+#panel-content:has(.panel-a-header) .stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4) var(--space-6);
+  padding: 0;
+  background: transparent;
+}
+
+#panel-content:has(.panel-a-header) .stat-grid .stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: transparent;
+  padding: 0;
+}
+
+#panel-content:has(.panel-a-header) .stat-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-small);
+  text-transform: none;
+}
+
+#panel-content:has(.panel-a-header) .stat-value {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .step-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+}
+
+#panel-content:has(.panel-a-header) .step-list-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+#panel-content:has(.panel-a-header) .step-list-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+#panel-content:has(.panel-a-header) .step-list-icon img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+#panel-content:has(.panel-a-header) .step-list-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#panel-content:has(.panel-a-header) .step-list-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .step-list-sub {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-normal);
+}
+
+#panel-content:has(.panel-a-header) .step-list-value {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#panel-content:has(.panel-a-header) .step-image {
+  width: 100%;
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+#panel-content:has(.panel-a-header) .step-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+#panel-content:has(.panel-a-header) .step-image-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .step-image-gallery img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-small);
+  display: block;
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+}
+
+#panel-content:has(.panel-a-header) .evidence-block {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+#panel-content:has(.panel-a-header) .evidence-block:hover {
+  background: var(--color-bg-tertiary);
+}
+
+#panel-content:has(.panel-a-header) .evidence-block-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-info);
+  flex-shrink: 0;
+}
+
+#panel-content:has(.panel-a-header) .evidence-block-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+#panel-content:has(.panel-a-header) .evidence-block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+#panel-content:has(.panel-a-header) .evidence-block-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .evidence-block-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-normal);
+}
+
+/* Tier coloring: lets statGrid blocks emit a tinted left label
+   matching the source (e.g. central=red, prefectural=green, local=blue,
+   used in the playground government step). */
+#panel-content:has(.panel-a-header) .section-label.tier-central { color: #ff3b30; }
+#panel-content:has(.panel-a-header) .section-label.tier-prefectural { color: #34c759; }
+#panel-content:has(.panel-a-header) .section-label.tier-local { color: #007aff; }
+#panel-content:has(.panel-a-header) .section-label.tier-prefecture { color: #34c759; }
+
+/* Footer CTA: same shape as playground .cta.secondary so the
+   "View evidence" button matches. */
+.panel-a-footer .cta {
+  appearance: none;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary, #1e1f20);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  height: 52px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-large);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-medium);
+  transition:
+    background var(--duration-normal) var(--easing-decelerate),
+    box-shadow var(--duration-normal) var(--easing-decelerate);
+}
+
+.panel-a-footer .cta.secondary {
+  background: transparent;
+  border: 1px solid var(--color-border, rgba(0, 0, 0, 0.12));
+  color: var(--color-text-primary);
+  box-shadow: none;
+  width: 100%;
+}
+
+.panel-a-footer .cta.secondary:hover {
+  background: var(--color-bg-secondary);
+}
+
+/* ================================
+   ICARD → PLAYGROUND BLOCK OVERRIDES
+   Marker-click inspector views build HTML using .icard, .icard-*
+   helpers (see js/ui/inspector.js). Within the Compact tabs body
+   they should look like playground blocks. The overrides below
+   strip the bordered card chrome, flatten icard-grid into a
+   stacked column, and rewrite each icard child class so the
+   marker-click output reads as step-section / stat-grid /
+   step-list-item / evidence-block.
+   ================================ */
+
+/* Container: flat stacked sections, no flex-wrap 2-up grid. */
+#panel-content:has(.panel-a-header) .icard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Card wrapper: invisible — becomes a step-section with the
+   playground's vertical rhythm. Border, background, and padding
+   stripped. */
+#panel-content:has(.panel-a-header) .icard,
+#panel-content:has(.panel-a-header) .icard-standard,
+#panel-content:has(.panel-a-header) .icard-hero,
+#panel-content:has(.panel-a-header) .icard-compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Card title: behave like a section-label. */
+#panel-content:has(.panel-a-header) .icard-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--tracking-small);
+  margin: 0;
+  padding: 0;
+}
+
+/* Card "source" eyebrow: tertiary, smaller. */
+#panel-content:has(.panel-a-header) .icard-source {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-small);
+  margin: 0;
+}
+
+/* Stat grid: playground 2-col with stat-row label-above-value. */
+#panel-content:has(.panel-a-header) .icard-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4) var(--space-6);
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+#panel-content:has(.panel-a-header) .icard-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: transparent;
+  padding: 0;
+  border: none;
+  text-align: left;
+}
+
+#panel-content:has(.panel-a-header) .icard-stat-value {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .icard-stat-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-small);
+  text-transform: none;
+}
+
+/* Detail list: flat label/value rows (no card chrome). */
+#panel-content:has(.panel-a-header) .icard-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0;
+}
+
+#panel-content:has(.panel-a-header) .icard-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+#panel-content:has(.panel-a-header) .icard-detail-row:last-child {
+  border-bottom: none;
+}
+
+#panel-content:has(.panel-a-header) .icard-detail-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+#panel-content:has(.panel-a-header) .icard-detail-value {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* Corporate / company list: each company becomes a step-list-item
+   with the initial-letter avatar in the icon slot. */
+#panel-content:has(.panel-a-header) .icard-corporate-header {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+}
+
+#panel-content:has(.panel-a-header) .icard-corporate-logo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+#panel-content:has(.panel-a-header) .icard-corporate-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .icard-corporate-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-normal);
+  margin-top: 2px;
+}
+
+/* Evidence doc: step-list-item style. */
+#panel-content:has(.panel-a-header) .icard-evidence-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+}
+
+#panel-content:has(.panel-a-header) .icard-evidence-doc:hover {
+  background: var(--color-bg-tertiary);
+}
+
+#panel-content:has(.panel-a-header) .icard-evidence-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-info);
+  flex-shrink: 0;
+}
+
+#panel-content:has(.panel-a-header) .icard-evidence-thumb svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+#panel-content:has(.panel-a-header) .icard-evidence-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#panel-content:has(.panel-a-header) .icard-evidence-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .icard-evidence-meta {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Gallery: 3-up grid same as playground step-image-gallery. */
+#panel-content:has(.panel-a-header) .icard-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .icard-gallery-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-small);
+  display: block;
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+}
+
+/* Timeline: vertical list of dated items, playground list look. */
+#panel-content:has(.panel-a-header) .icard-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .icard-timeline-item {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+  align-items: start;
+  border-left: none;
+}
+
+#panel-content:has(.panel-a-header) .icard-timeline-item.future {
+  opacity: 0.7;
+}
+
+#panel-content:has(.panel-a-header) .icard-timeline-date {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-small);
+}
+
+#panel-content:has(.panel-a-header) .icard-timeline-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .icard-timeline-meta {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-normal);
+  margin-top: 2px;
+}
+
+/* Yield summary row: large hero stats like statSection hero rows. */
+#panel-content:has(.panel-a-header) .icard-yield-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+#panel-content:has(.panel-a-header) .icard-yield-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+#panel-content:has(.panel-a-header) .icard-yield-value {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .icard-yield-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-small);
+}
+
+/* Demand bars: keep bar visual but flatten card chrome. */
+#panel-content:has(.panel-a-header) .icard-demand-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .icard-demand-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 80px;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+#panel-content:has(.panel-a-header) .icard-demand-year {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+#panel-content:has(.panel-a-header) .icard-demand-bar {
+  height: 8px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+#panel-content:has(.panel-a-header) .icard-demand-fill {
+  height: 100%;
+  background: var(--color-info);
+  border-radius: var(--radius-full);
+}
+
+#panel-content:has(.panel-a-header) .icard-demand-value {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Risk card: row with severity dot, type label, mitigation copy. */
+#panel-content:has(.panel-a-header) .icard-risk-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .icard-risk-severity {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  background: var(--color-text-tertiary);
+}
+
+#panel-content:has(.panel-a-header) .icard-risk-severity.high {
+  background: var(--color-error);
+}
+
+#panel-content:has(.panel-a-header) .icard-risk-severity.moderate {
+  background: #ff9500;
+}
+
+#panel-content:has(.panel-a-header) .icard-risk-severity.low {
+  background: var(--color-success);
+}
+
+#panel-content:has(.panel-a-header) .icard-risk-type {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--tracking-small);
+}
+
+#panel-content:has(.panel-a-header) .icard-risk-description {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+/* Institution / workforce headers: pull title out of card style. */
+#panel-content:has(.panel-a-header) .icard-inst-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+#panel-content:has(.panel-a-header) .icard-inst-city {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+#panel-content:has(.panel-a-header) .icard-inst-description {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+/* Workforce institutions list: step-list-item layout. */
+#panel-content:has(.panel-a-header) .icard-workforce-institutions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .icard-institution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+}
+
+#panel-content:has(.panel-a-header) .icard-institution-color {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+#panel-content:has(.panel-a-header) .icard-institution-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+#panel-content:has(.panel-a-header) .icard-institution-role {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Calculator card: keep as functional card but soften the chrome
+   so it integrates with playground spacing. */
+#panel-content:has(.panel-a-header) .icard-calculator {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+  padding: var(--space-4);
+  gap: var(--space-3);
+}
+
+#panel-content:has(.panel-a-header) .icard-calculator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#panel-content:has(.panel-a-header) .icard-calc-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+#panel-content:has(.panel-a-header) .icard-calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+#panel-content:has(.panel-a-header) .icard-calc-row:last-child {
+  border-bottom: none;
+}
+
+#panel-content:has(.panel-a-header) .icard-calc-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+#panel-content:has(.panel-a-header) .icard-calc-value {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+#panel-content:has(.panel-a-header) .icard-calc-value.highlight {
+  color: var(--color-info);
+  font-weight: var(--font-weight-bold);
+}
+
+#panel-content:has(.panel-a-header) .icard-scenario-toggle {
+  display: inline-flex;
+  gap: var(--space-1);
+  background: var(--color-bg-primary);
+  padding: 2px;
+  border-radius: var(--radius-small);
+}
+
+#panel-content:has(.panel-a-header) .icard-scenario-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-radius: calc(var(--radius-small) - 2px);
+  cursor: pointer;
+}
+
+#panel-content:has(.panel-a-header) .icard-scenario-btn.active {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Property summary tiles in step 7: step-list-item visual. */
+#panel-content:has(.panel-a-header) [data-property-id] {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+  padding: var(--space-3);
+}
+
+/* Sticky summary row (paths-based property page footer). */
+#panel-content:has(.panel-a-header) .icard-sticky-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-medium);
+}
+
+#panel-content:has(.panel-a-header) .icard-sticky-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-bottom: 2px;
+}
+
+#panel-content:has(.panel-a-header) .icard-sticky-value {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Financial table: keep table layout but soften styling. */
+#panel-content:has(.panel-a-header) .icard-financial-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+}
+
+#panel-content:has(.panel-a-header) .icard-financial-table th {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  text-align: right;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  letter-spacing: var(--tracking-small);
+}
+
+#panel-content:has(.panel-a-header) .icard-financial-table th:first-child {
+  text-align: left;
+}
+
+#panel-content:has(.panel-a-header) .icard-financial-table td {
+  padding: var(--space-2);
+  text-align: right;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+#panel-content:has(.panel-a-header) .icard-financial-table td:first-child {
+  text-align: left;
+  color: var(--color-text-secondary);
+}
+
+#panel-content:has(.panel-a-header) .icard-financial-table tr.row-total td {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  border-bottom: none;
+}
+
+/* Decision badge: pill-style label. */
+#panel-content:has(.panel-a-header) .icard-decision-label {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-info);
+  color: var(--color-bg-primary);
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: capitalize;
+}
+
+/* Inspector body paragraphs: secondary color, body font, no top
+   margin (consistent with .step-prose). */
+#panel-content:has(.panel-a-header) .icard p {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+/* ================================
+   iOS BOTTOM SHEET (mobile dashboard, < 768px)
+   Modal style per user decision: dimmed backdrop, dismissable by
+   tapping backdrop or dragging down past threshold. A reopen button
+   appears in the bottom-right when dismissed.
+   ================================ */
+
+/* Backdrop: appears whenever the sheet is visible on a phone.
+   Click/tap dismisses the sheet. */
+#sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--easing-decelerate);
+  z-index: 999;
+}
+
+#sheet-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Reopen button: appears in the bottom-right when the sheet is
+   dismissed on phone. Uses the same glass-button language as the
+   nav arrows so it sits naturally over the map. */
+#sheet-reopen {
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
+  width: 56px;
+  height: 56px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-large);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  z-index: 1001;
+}
+
+#sheet-reopen.visible {
+  display: flex;
+}
+
+#sheet-reopen svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 767.98px) {
+  /* Override the desktop right-panel placement so it becomes a true
+     bottom sheet on phones. Applies to BOTH the standalone app and
+     the embedded map, per user decision "Both: standalone and
+     embedded". */
+  #right-panel {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 78dvh;
+    max-height: calc(100dvh - 56px);
+    margin: 0;
+    padding: 0;
+    border-radius: var(--radius-xlarge) var(--radius-xlarge) 0 0;
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.10);
+    transform: translateY(100%);
+    transition:
+      transform var(--duration-normal) var(--easing-decelerate);
+    z-index: 1000;
+  }
+
+  #right-panel.visible {
+    transform: translateY(0);
+  }
+
+  #right-panel.closing {
+    transition: transform var(--duration-fast) var(--easing-accelerate);
+    transform: translateY(100%);
+  }
+
+  /* While the user is dragging, JS sets transform: translateY(Xpx)
+     inline and adds .sheet-dragging to disable the transition so the
+     motion tracks the finger exactly. */
+  #right-panel.sheet-dragging {
+    transition: none;
+  }
+
+  /* Drag handle: 36x5 pill at the top of the sheet, Apple-Maps style.
+     Injected into #right-panel by ios-sheet.js. */
+  .sheet-drag-handle {
+    position: relative;
+    width: 100%;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+    flex-shrink: 0;
+  }
+
+  .sheet-drag-handle::before {
+    content: "";
+    width: 36px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  .sheet-drag-handle:active {
+    cursor: grabbing;
+  }
+
+  /* Compact tabs internal spacing tightens on phone so the dragged
+     sheet doesn't feel oversized. Scoped by :has() so legacy panels
+     are unaffected. */
+  #right-panel:has(.panel-a-header) .panel-a-header {
+    padding: var(--space-4) var(--space-5) var(--space-2);
+  }
+
+  #right-panel:has(.panel-a-header) .panel-a-tabs {
+    margin: 0 var(--space-5) var(--space-3);
+  }
+
+  #right-panel:has(.panel-a-header) .panel-a-body {
+    padding: 0 var(--space-5) var(--space-4);
+  }
+
+  #right-panel:has(.panel-a-header) .panel-a-footer {
+    padding: var(--space-3) var(--space-5) calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
+  }
+
+  /* Mobile sheet width override needs to defeat the :has() desktop rule
+     above, otherwise the sheet would render at clamp(540px, 32vw, 800px)
+     instead of full width. */
+  #right-panel:has(.panel-a-header) {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 }

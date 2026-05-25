@@ -234,3 +234,160 @@ export function connectionItem(icon, name, detail) {
     </div>
 </div>`;
 }
+
+// ============================================================
+// Playground "Compact tabs" body block primitives
+// Source: playground/index.html renderBlock() at lines 1550-1639.
+// These produce the canonical step-section / stat-grid / step-list /
+// evidence-block / step-image markup that the Compact tabs body
+// expects. CSS for these classes lives under
+// `#panel-content:has(.panel-a-header) ...` in css/styles.css so
+// they don't collide with the legacy `#panel-content .stat-grid`
+// rules.
+// ============================================================
+
+/**
+ * Plain prose paragraph. Mirrors playground { type: "prose" }.
+ */
+export function proseBlock(text) {
+  if (!text) return "";
+  return `<p class="step-prose">${text}</p>`;
+}
+
+/**
+ * Stat block: optional section label + 2-col stat grid.
+ * `items` is [{ label, value, hero? }]. `hero: true` spans the
+ * full row and renders the value at display size — used for
+ * single headline figures (mirrors playground statGrid.hero).
+ * `tier` is one of "central" | "prefectural" | "local" and tints
+ * the section label.
+ */
+export function statSection({ label, items, tier } = {}) {
+  if (!items || !items.length) return "";
+  const rowsHtml = items
+    .map(
+      (it) => `
+      <div class="stat-row${it.hero ? " hero" : ""}">
+        <div class="stat-label">${it.label || ""}</div>
+        <div class="stat-value">${it.value ?? ""}</div>
+      </div>`,
+    )
+    .join("");
+  const tierClass = tier ? ` tier-${tier}` : "";
+  const labelHtml = label
+    ? `<p class="section-label${tierClass}">${label}</p>`
+    : "";
+  return `
+    <div class="step-section">
+      ${labelHtml}
+      <div class="stat-grid">${rowsHtml}</div>
+    </div>`;
+}
+
+/**
+ * List block: optional section label + vertical list of items.
+ * `items` is [{ icon, title, sub, value }]. `icon` is either an
+ * SVG string (preferred) or an `<img>` element. The icon tile is
+ * fixed to 32x32 with a white background; pass `iconLogo: true`
+ * if the icon is an image logo (controls sizing).
+ */
+export function listSection({ label, items } = {}) {
+  if (!items || !items.length) return "";
+  const itemsHtml = items
+    .map(
+      (it) => `
+      <li class="step-list-item">
+        <span class="step-list-icon">${it.icon || ""}</span>
+        <div class="step-list-body">
+          <div class="step-list-title">${it.title || ""}</div>
+          ${it.sub ? `<div class="step-list-sub">${it.sub}</div>` : ""}
+        </div>
+        ${it.value ? `<span class="step-list-value">${it.value}</span>` : ""}
+      </li>`,
+    )
+    .join("");
+  const labelHtml = label ? `<p class="section-label">${label}</p>` : "";
+  return `
+    <div class="step-section">
+      ${labelHtml}
+      <ul class="step-list">${itemsHtml}</ul>
+    </div>`;
+}
+
+/**
+ * Evidence block: clickable tile with icon, title, description.
+ * If `onclick` is provided, renders as a button so it's keyboard-
+ * accessible; otherwise renders as a div.
+ */
+const EVIDENCE_DEFAULT_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+export function evidenceBlockHtml({ title, description, icon, onclick } = {}) {
+  if (!title && !description) return "";
+  const iconHtml = icon || EVIDENCE_DEFAULT_ICON;
+  const inner = `
+    <span class="evidence-block-icon">${iconHtml}</span>
+    <div class="evidence-block-body">
+      <div class="evidence-block-title">${title || ""}</div>
+      ${description ? `<div class="evidence-block-desc">${description}</div>` : ""}
+    </div>
+  `;
+  if (onclick) {
+    return `<button type="button" class="evidence-block" onclick="${onclick}">${inner}</button>`;
+  }
+  return `<div class="evidence-block">${inner}</div>`;
+}
+
+/**
+ * Single image block, optional section label.
+ */
+export function imageBlock({ label, src, alt, onclick } = {}) {
+  if (!src) return "";
+  const labelHtml = label ? `<p class="section-label">${label}</p>` : "";
+  const clickAttr = onclick ? ` onclick="${onclick}" style="cursor: pointer;"` : "";
+  return `
+    <div class="step-section">
+      ${labelHtml}
+      <div class="step-image"${clickAttr}><img src="${src}" alt="${alt || ""}" loading="lazy" /></div>
+    </div>`;
+}
+
+/**
+ * Image gallery block: 3-col grid of cover-cropped thumbnails.
+ */
+export function imageGalleryBlock({ label, images, onClickEachAttr } = {}) {
+  if (!images || !images.length) return "";
+  const imgsHtml = images
+    .map(
+      (src, i) =>
+        `<img src="${src}" alt="" loading="lazy" data-gallery-index="${i}"${onClickEachAttr ? ` ${onClickEachAttr}` : ""} />`,
+    )
+    .join("");
+  const labelHtml = label ? `<p class="section-label">${label}</p>` : "";
+  return `
+    <div class="step-section">
+      ${labelHtml}
+      <div class="step-image-gallery">${imgsHtml}</div>
+    </div>`;
+}
+
+/**
+ * Standalone section-label heading. Use when you need a label
+ * without an attached block (rare).
+ */
+export function sectionLabel(text, tier) {
+  if (!text) return "";
+  const tierClass = tier ? ` tier-${tier}` : "";
+  return `<p class="section-label${tierClass}">${text}</p>`;
+}
+
+/**
+ * Footer "View evidence" CTA. The playground's renderFooterCta
+ * surfaces this only when the active tab contains an evidence
+ * block. Callers decide when to include it. `onclick` is passed
+ * through verbatim; supply your own click target (lightbox, PDF,
+ * gallery, etc.).
+ */
+export function footerCta({ label = "View evidence", onclick } = {}) {
+  return `<button type="button" class="cta secondary" onclick="${onclick || ""}">${label}</button>`;
+}

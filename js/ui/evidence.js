@@ -5,9 +5,11 @@ import {
   statGrid,
   disclosureTriangle,
   SVG_CHEVRON_RIGHT,
+  proseBlock,
 } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
 import { $sel } from "../shared/dom-scope.js";
+import { buildCompactTabsHtml } from "./inspector-tabs.js";
 
 export const methods = {
   showEvidencePreview(groupId, itemId) {
@@ -200,26 +202,26 @@ export const methods = {
    * @param {Object} item - Sub-item data
    */
   showDisclosureItemDetail(group, item) {
-    const statsHtml = statGrid(item.stats);
+    const items = (item.stats || []).map((s) => ({
+      label: s.label,
+      value: s.value,
+    }));
 
-    const content = `
-            <div class="disclosure-detail-header">
-                <button class="disclosure-back-btn" onclick="UI.backToDisclosureList('${group.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                    ${group.title}
-                </button>
-            </div>
-            <h2>${item.title}</h2>
-            <p>${item.description}</p>
-            ${statsHtml}
-            <button class="panel-btn primary" onclick="UI.showGallery('${item.title}', '${item.type}', '${item.description.replace(/'/g, "\\'")}', ${item.image ? "'" + item.image + "'" : "null"})">
-                ${t("View")} ${this.getTypeLabel(item.type)}
-            </button>
-        `;
+    const bodyHtml = `
+      ${proseBlock(item.description || "")}
+      ${items.length ? statSection({ items }) : ""}
+      <div class="step-section">
+        <button type="button" class="cta secondary" onclick="UI.showGallery('${item.title}', '${item.type}', '${(item.description || "").replace(/'/g, "\\'")}', ${item.image ? "'" + item.image + "'" : "null"})">${t("View")} ${this.getTypeLabel(item.type)}</button>
+      </div>
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: group.title || "",
+        title: item.title || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -253,12 +255,20 @@ export const methods = {
       .map((group) => this.generateDisclosureGroup(group))
       .join("");
 
-    const content = `
-            ${panelHeader(t("Evidence library"), t("Supporting documents"), t("Explore detailed evidence and documentation for each category."))}
-            ${groupsHtml}
-        `;
+    const bodyHtml = `
+      ${proseBlock(t("Explore detailed evidence and documentation for each category."))}
+      <div class="step-section">
+        ${groupsHtml}
+      </div>
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Evidence library"),
+        title: t("Supporting documents"),
+        bodyHtml,
+      }),
+    );
   },
 
   /**
