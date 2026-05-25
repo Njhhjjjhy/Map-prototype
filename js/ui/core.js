@@ -2,6 +2,7 @@ import { STEPS } from "../data/index.js";
 import { TIMING } from "../app.js";
 import { t } from "../i18n/index.js";
 import { $id, $sel, $all } from "../shared/dom-scope.js";
+import { attachIosSheet } from "./ios-sheet.js";
 
 export const methods = {
   init() {
@@ -34,6 +35,10 @@ export const methods = {
     this.panelOpen = false;
     this.bindEvents();
     this.initDraggableModals();
+
+    /* iOS modal sheet on phones (<= 767.98px). Idempotent. Lazy:
+       no DOM is created until the viewport matches the breakpoint. */
+    attachIosSheet(this.elements.rightPanel);
   },
 
   // ================================

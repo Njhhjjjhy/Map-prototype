@@ -9,7 +9,13 @@ import {
   toggleRow,
   evidenceCard,
   continueBtn,
+  proseBlock,
+  sectionLabel,
+  statSection,
+  listSection,
+  evidenceBlockHtml,
 } from "./shared/templates.js";
+import { buildCompactTabsHtml } from "./ui/inspector-tabs.js";
 
 export const stepHandlers = {
   /**
@@ -122,15 +128,15 @@ export const stepHandlers = {
       // Hide water markers and overlays before showing power
       this._hideWaterLayers();
       UI.deactivateDataLayer("waterResources");
-      // Reset active energy types for fresh entry
+      // Auto-show all 3 energy types on entry (playground convention:
+      // panel is informational, all relevant map state shown together).
       this.state.activeEnergyTypes = [];
-      // Fly to power resources overview
       MapController.flyToStep(CAMERA_STEPS.A2_power);
-      // Auto-activate solar: show markers + arc lines on the map
-      this.state.activeEnergyTypes.push("solar");
-      MapController.showEnergyType("solar");
-      // Show power sources panel with solar already toggled on
-      UI.showPowerSourcesPanel(this.state.activeEnergyTypes);
+      ["solar", "wind", "nuclear"].forEach((type) => {
+        this.state.activeEnergyTypes.push(type);
+        MapController.showEnergyType(type);
+      });
+      UI.showPowerSourcesPanel();
 
       // Auto-activate the Power data layer checkbox
       UI.activateDataLayer("electricity");
@@ -187,6 +193,75 @@ export const stepHandlers = {
     }
     // Re-render the panel to reflect toggle state
     UI.updatePowerSourcesPanel(this.state.activeEnergyTypes);
+  },
+
+  /**
+   * Single-select energy type via tab click. Deactivates any other
+   * active types and activates the chosen one. Called by panel-a-tab
+   * onclick handlers in the power sources panel.
+   */
+  selectEnergyType(type) {
+    if (this.state.activeEnergyTypes.includes(type)) return;
+    [...this.state.activeEnergyTypes]
+      .filter((t) => t !== type)
+      .forEach((t) => this.toggleEnergyType(t));
+    this.toggleEnergyType(type);
+  },
+
+  /**
+   * Single-select investment zone via tab click.
+   */
+  selectInvestmentZone(zoneId) {
+    if (this.state.activeInvestmentZones.includes(zoneId)) return;
+    [...this.state.activeInvestmentZones]
+      .filter((z) => z !== zoneId)
+      .forEach((z) => this.toggleInvestmentZone(z));
+    this.toggleInvestmentZone(zoneId);
+  },
+
+  /**
+   * Single-select future layer via tab click.
+   */
+  selectFutureLayer(layerName) {
+    if (this.state.activeFutureLayers?.includes(layerName)) return;
+    [...(this.state.activeFutureLayers || [])]
+      .filter((l) => l !== layerName)
+      .forEach((l) => this.toggleFutureLayer(l));
+    this.toggleFutureLayer(layerName);
+  },
+
+  /**
+   * Single-select development child via tab click (science park /
+   * grand airport sub-items).
+   */
+  selectDevelopmentChild(childId) {
+    if (this.state.activeDevelopmentChildren?.includes(childId)) return;
+    [...(this.state.activeDevelopmentChildren || [])]
+      .filter((c) => c !== childId)
+      .forEach((c) => this.toggleDevelopmentChild(c));
+    this.toggleDevelopmentChild(childId);
+  },
+
+  /**
+   * Single-select university via tab click.
+   */
+  selectUniversity(universityId) {
+    if (this.state.activeUniversities?.includes(universityId)) return;
+    [...(this.state.activeUniversities || [])]
+      .filter((u) => u !== universityId)
+      .forEach((u) => this.toggleUniversity(u));
+    this.toggleUniversity(universityId);
+  },
+
+  /**
+   * Single-select employer via tab click.
+   */
+  selectEmployer(employerId) {
+    if (this.state.activeEmployers?.includes(employerId)) return;
+    [...(this.state.activeEmployers || [])]
+      .filter((e) => e !== employerId)
+      .forEach((e) => this.toggleEmployer(e));
+    this.toggleEmployer(employerId);
   },
 
   /**
@@ -280,7 +355,22 @@ export const stepHandlers = {
     if (!this.state.activeFutureLayers) {
       this.state.activeFutureLayers = [];
     }
-    UI.showFutureOutlookPanel(this.state.activeFutureLayers);
+    // Auto-activate all 5 future overlay layers on step entry. Playground
+    // convention: the panel is informational, all relevant map state shown
+    // together.
+    const allFutureLayers = [
+      "futureSciencePark",
+      "futureAirport",
+      "futureGovZones",
+      "futureRoads",
+      "futureTrafficFlow",
+    ];
+    allFutureLayers.forEach((layer) => {
+      if (!this.state.activeFutureLayers.includes(layer)) {
+        this.toggleFutureLayer(layer);
+      }
+    });
+    UI.showFutureOutlookPanel();
   },
 
   /**
@@ -340,307 +430,139 @@ export const stepHandlers = {
     UI.updateFutureOutlookPanel(this.state.activeFutureLayers);
   },
 
-  /**
-   * Build and display the development dashboard panel.
-   * Shows parent overview + toggle rows for children + evidence for active child.
-   * Called when a parent group is selected or a child is toggled.
-   */
   _renderDevelopmentDashboard() {
-    // Render both Science park and Grand airport sections stacked so the
-    // user can see and toggle items in either group from one dashboard.
-    // The chatbox-removal-plan called for parent/child toggles to live in
-    // the panel as disclosure groups; this is that implementation.
-    const activeChildren = this.state.activeDevelopmentChildren;
-    const sciParkHtml = this._buildSciencePartDashboardSection(activeChildren);
-    const airportHtml = this._buildAirportDashboardSection(activeChildren);
-    UI.showPanel(`
-      ${panelHeader(t("Development zones"), t("Science park and grand airport"), t("Two proposed development concepts in the semiconductor corridor. Tap an item to highlight it on the map."))}
-      <div style="margin-top: var(--space-6);">
-        <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base); margin-bottom: var(--space-3); color: var(--color-text-primary);">${t("Science park")}</div>
-        ${sciParkHtml}
-      </div>
-      <div style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border);">
-        <div style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); font-size: var(--text-base); margin-bottom: var(--space-3); color: var(--color-text-primary);">${t("Grand airport concept")}</div>
-        ${airportHtml}
-      </div>
-    `);
-  },
+    const activeGroup = this.state.activeParentGroup || "science-park-group";
+    const tabs = [
+      {
+        id: "science-park-group",
+        label: t("Science park"),
+        onclick: `App.setDevelopmentParentGroup('science-park-group')`,
+      },
+      {
+        id: "grand-airport-group",
+        label: t("Grand airport"),
+        onclick: `App.setDevelopmentParentGroup('grand-airport-group')`,
+      },
+    ];
+    const activeIndex = tabs.findIndex((t) => t.id === activeGroup);
 
-  _buildSciencePartDashboardSection(activeChildren) {
-    const zones = AppData.scienceParkZonePlans || [];
+    const bodyHtml =
+      activeGroup === "grand-airport-group"
+        ? this._buildAirportDashboardSection()
+        : this._buildSciencePartDashboardSection();
 
-    const zoneIcons = {
-      "sp-gov-zone":
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
-      "sp-kikuyo-plan":
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>',
-      "sp-ozu-plan":
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect x="6" y="10" width="12" height="12"/></svg>',
-    };
-
-    const rowsHtml = zones
-        .map((z) => {
-          const isActive = activeChildren.includes(z.id);
-          const icon =
-            zoneIcons[z.id] ||
-            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
-          return toggleRow({
-            id: z.id,
-            label: z.name,
-            color: z.strokeColor,
-            icon,
-            active: isActive,
-            onclick: `App.toggleDevelopmentChild('${z.id}')`,
-          });
-        })
-        .join("");
-
-      // Build bottom section: Clusters when gov-zone is active, Evidence for other zones
-      const govZoneActive = activeChildren.includes("sp-gov-zone");
-      const otherActiveZones = activeChildren
-        .filter((id) => id !== "sp-gov-zone")
-        .map((id) => zones.find((z) => z.id === id))
-        .filter(Boolean);
-
-      let clustersHtml = "";
-      if (govZoneActive) {
-        const govZone = zones.find((z) => z.id === "sp-gov-zone");
-        const clusters = govZone?.industrialZones || [];
-        const infraLines = govZone?.infrastructureLines || [];
-
-        const selectedClusterId = this.state.selectedGovZoneCluster;
-        const selectedInfraId = this.state.selectedGovZoneInfra;
-        const selectedCluster = clusters.find((c) => c.id === selectedClusterId);
-        const selectedInfra = infraLines.find((l) => l.id === selectedInfraId);
-
-        let clustersBodyHtml;
-        if (selectedCluster) {
-          const clusterImageHtml = selectedCluster.image
-            ? `<div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('${selectedCluster.image}', '${selectedCluster.name.replace(/'/g, "\\'")}')">
-                <img src="${selectedCluster.image}" alt="${selectedCluster.name}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-              </div>`
-            : "";
-          clustersBodyHtml = evidenceCard({
-            color: "#ff3b30",
-            subtitle: selectedCluster.direction,
-            title: selectedCluster.name,
-            description: selectedCluster.description || "",
-            stats: selectedCluster.stats || [],
-            extra: clusterImageHtml,
-          });
-        } else if (selectedInfra) {
-          clustersBodyHtml = `
-            <div style="border-left: 3px solid #34c759; padding: var(--space-3) var(--space-4); background: rgba(52, 199, 89, 0.04); border-radius: 0 var(--radius-medium) var(--radius-medium) 0;">
-              <div style="font-size: var(--text-xs); color: #34c759; font-family: var(--font-display); font-weight: var(--font-weight-semibold); letter-spacing: 0.02em; margin-bottom: var(--space-2);">${t("Road infrastructure")}${selectedInfra.status ? ` · ${selectedInfra.status}` : ""}</div>
-              <div style="font-size: var(--text-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); line-height: 1.4;">${selectedInfra.label}</div>
-              ${selectedInfra.description ? `<div style="font-size: var(--text-xs); color: var(--color-text-secondary); margin-top: var(--space-2); line-height: 1.5;">${selectedInfra.description}</div>` : ""}
-            </div>
-          `;
-        } else {
-          clustersBodyHtml = `
-            <p style="font-size: var(--text-sm); color: var(--color-text-tertiary);">${t("Select a cluster or road on the map to view details.")}</p>
-          `;
-        }
-
-        clustersHtml = `
-          <div style="margin-top: var(--space-6);">
-            <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Clusters")}</div>
-            ${clustersBodyHtml}
-          </div>
-        `;
-      }
-
-      let evidenceHtml = "";
-      if (otherActiveZones.length > 0) {
-        const cardsHtml = otherActiveZones
-          .map((zone) => {
-            return evidenceCard({
-              color: zone.strokeColor,
-              subtitle: t("Development zone"),
-              title: zone.name,
-              description: zone.description,
-              stats: zone.stats,
-            });
-          })
-          .join("");
-
-        evidenceHtml = `
-          <div style="margin-top: var(--space-6);">
-              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Evidence")}</div>
-              <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-                  ${cardsHtml}
-              </div>
-          </div>
-        `;
-      }
-
-      return `
-        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
-            ${rowsHtml}
-        </div>
-        ${clustersHtml}
-        ${evidenceHtml}
-      `;
-  },
-
-  _buildAirportDashboardSection(activeChildren) {
-      const airport = AppData.governmentChain?.levels?.find(
-        (l) => l.id === "grand-airport",
-      );
-
-      const airportChildren = [
-        {
-          id: "ga-airport-access",
-          label: t("Airport access"),
-          color: "#007aff",
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
-        },
-        {
-          id: "ga-railway-stations",
-          label: t("New railway stations"),
-          color: "#ff9500",
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M2 16h20"/><path d="M4 16l-2 6h20l-2-6"/><path d="M9.5 11a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/><path d="M15.5 11a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/></svg>',
-        },
-        {
-          id: "ga-road-extensions",
-          label: t("Road extensions"),
-          color: "#34c759",
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
-        },
-        {
-          id: "ga-ten-twenty-concept",
-          label: t("10-20 minute concept"),
-          color: "#FF69B4",
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-        },
-      ];
-
-      const rowsHtml = airportChildren
-        .map((c) => {
-          const isActive = activeChildren.includes(c.id);
-          return toggleRow({
-            id: c.id,
-            label: c.label,
-            color: c.color,
-            icon: c.icon,
-            active: isActive,
-            onclick: `App.toggleDevelopmentChild('${c.id}')`,
-          });
-        })
-        .join("");
-
-      // Evidence cards for all active children (multi-select)
-      let evidenceHtml = "";
-      const activeItems = activeChildren
-        .map((id) => {
-          const child = airportChildren.find((c) => c.id === id);
-          if (!child) return null;
-          const ev = this._getAirportChildEvidence(id, airport);
-          return ev ? { child, ev } : null;
-        })
-        .filter(Boolean);
-
-      if (activeItems.length > 0) {
-        const cardsHtml = activeItems
-          .map(({ child, ev }) => {
-            const imagesHtml = ev.images
-              .map(
-                (img) => `
-                <div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('${img.src}', '${img.alt.replace(/'/g, "\\'")}')">
-                    <img src="${img.src}" alt="${img.alt}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                </div>
-              `,
-              )
-              .join("");
-
-            return evidenceCard({
-              color: child.color,
-              subtitle: ev.subtitle,
-              title: ev.title,
-              description: ev.description,
-              stats: ev.stats,
-              extra: imagesHtml,
-            });
-          })
-          .join("");
-
-        evidenceHtml = `
-          <div style="margin-top: var(--space-6);">
-              <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Evidence")}</div>
-              <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-                  ${cardsHtml}
-              </div>
-          </div>
-        `;
-      }
-
-      return `
-        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
-            ${rowsHtml}
-        </div>
-        ${evidenceHtml}
-      `;
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 6 · ${t("Development plan")}`,
+        title: t("Science park and grand airport"),
+        tabs,
+        activeIndex: Math.max(0, activeIndex),
+        bodyHtml,
+      }),
+    );
   },
 
   /**
-   * Return evidence data for a grand airport child item.
+   * Switch which parent dashboard group is active (Science park or
+   * Grand airport) via panel-a-tab click. Re-renders the panel body.
    */
-  _getAirportChildEvidence(childId, airport) {
-    if (childId === "ga-airport-access") {
-      return {
-        subtitle: t("Grand airport concept"),
-        title: t("Airport access"),
-        description:
-          airport?.description ||
-          t("Airport access infrastructure connecting the semiconductor corridor to Aso Kumamoto Airport."),
-        stats: (airport?.stats || []).filter((s) => s.value !== t("4 pillars")),
-        images: [
+  setDevelopmentParentGroup(groupId) {
+    if (this.state.activeParentGroup === groupId) return;
+    this.state.activeParentGroup = groupId;
+    if (!this.state.subItemsExplored.includes(groupId)) {
+      this.state.subItemsExplored.push(groupId);
+    }
+    this._renderDevelopmentDashboard();
+  },
+
+  _buildSciencePartDashboardSection() {
+    const targetIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+    const mapPinIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
+
+    return `
+      ${proseBlock(t("The Kumamoto Prefectural Government has designated this area as a special semiconductor development zone, offering tax incentives, streamlined permitting, and infrastructure investments totaling ¥4.8 trillion."))}
+      ${statSection({
+        label: t("Science park overview"),
+        items: [
+          { label: t("Government investment"), value: "¥4.8T", hero: true },
+          { label: t("Completion target"), value: "2040" },
+          { label: t("Projected new jobs"), value: "50,000" },
+          { label: t("Major facilities planned"), value: "12" },
+        ],
+      })}
+      ${listSection({
+        label: t("Zone plans"),
+        items: [
           {
-            src: "assets/use-case-images/evidence-airport-master-plan.webp",
-            alt: t("Airport master plan"),
+            icon: targetIcon,
+            title: t("Government zone plan"),
+            sub: t("560 ha designated, ¥2T public investment."),
+            value: "560ha",
+          },
+          {
+            icon: mapPinIcon,
+            title: t("Kikuyo long-term plan"),
+            sub: t("Land readjustment around JASM."),
+          },
+          {
+            icon: mapPinIcon,
+            title: t("Ozu long-term plan"),
+            sub: t("Industrial expansion and airport access."),
           },
         ],
-      };
-    }
-    if (childId === "ga-railway-stations") {
-      return {
-        subtitle: t("Grand airport concept"),
-        title: t("New railway stations"),
-        description:
-          t("A new 6.8km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station."),
-        stats: (airport?.stats || []).filter((s) => s.value !== t("4 pillars")),
-        images: [
+      })}
+    `;
+  },
+
+  _buildAirportDashboardSection() {
+    const planeIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>';
+    const trainIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/><path d="m9 15-1-1"/><path d="m15 15 1-1"/><path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/><path d="m8 19-2 3"/><path d="m16 19 2 3"/></svg>';
+    const routeIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>';
+    const clockIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
+    return `
+      ${proseBlock(t("A new 6.8 km rail connection will link Aso Kumamoto Airport directly to the JR Hohi Line, with an estimated travel time of 44 minutes from Kumamoto Station."))}
+      ${statSection({
+        label: t("Grand airport vision"),
+        items: [
+          { label: t("New rail link"), value: "6.8km" },
+          { label: t("Rail investment"), value: "¥41B" },
+          { label: t("Station to airport"), value: "44min", hero: true },
+          { label: t("Strategic plan"), value: t("4 pillars") },
+        ],
+      })}
+      ${listSection({
+        label: t("Connectivity"),
+        items: [
           {
-            src: "assets/use-case-images/evidence-airport-to-city-railway.webp",
-            alt: t("Airport to city railway"),
+            icon: planeIcon,
+            title: t("Airport access"),
+            sub: t("Direct rail and road links from corridor."),
           },
           {
-            src: "assets/use-case-images/evidence-new-railway-system.webp",
-            alt: t("New railway system"),
+            icon: trainIcon,
+            title: t("New railway stations"),
+            sub: t("Stations between Mitsuriki and Haramizu."),
+          },
+          {
+            icon: routeIcon,
+            title: t("Road extensions"),
+            sub: t("Naka-Kyushu Cross Road segments."),
+          },
+          {
+            icon: clockIcon,
+            title: t("10-20 minute concept"),
+            sub: t("Anywhere in corridor to the airport."),
           },
         ],
-      };
-    }
-    if (childId === "ga-road-extensions") {
-      return {
-        subtitle: t("Grand airport concept"),
-        title: t("Road extensions"),
-        description:
-          t('The "10-minute ring" concept connects the airport, industrial parks, and residential zones at approximately 10-minute drive intervals, creating an integrated urban corridor.'),
-        stats: [],
-        images: [
-          {
-            src: "assets/use-case-images/evidence-kumamoto-future-road-network.webp",
-            alt: t("Future road network"),
-          },
-          {
-            src: "assets/use-case-images/evidence-10-minute-ring-road-2.webp",
-            alt: t("10-minute ring road"),
-          },
-        ],
-      };
-    }
-    return null;
+      })}
+    `;
   },
 
   /**
@@ -651,14 +573,17 @@ export const stepHandlers = {
     const lm = data?.landmarks?.find((l) => l.id === landmarkId);
     if (!lm) return;
 
-    const statsHtml = lm.stats?.length ? bentoStats(lm.stats) : "";
-
-    UI.showPanel(`
-      <div class="subtitle" style="color: ${lm.color};">${t("Airport access")}</div>
-      <h2>${lm.name}</h2>
-      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${lm.description || ""}</p>
-      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
-    `);
+    const items = (lm.stats || []).map((s) => ({ label: s.label, value: s.value }));
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `<span style="color: ${lm.color};">${t("Airport access")}</span>`,
+        title: lm.name || "",
+        bodyHtml: `
+          ${proseBlock(lm.description || "")}
+          ${items.length ? statSection({ items }) : ""}
+        `,
+      }),
+    );
   },
 
   /**
@@ -669,14 +594,17 @@ export const stepHandlers = {
     const route = routes?.find((r) => r.id === routeId);
     if (!route) return;
 
-    const statsHtml = route.stats?.length ? bentoStats(route.stats) : "";
-
-    UI.showPanel(`
-      <div class="subtitle" style="color: ${route.color};">${t("Airport access")}</div>
-      <h2>${route.name}</h2>
-      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${route.description || ""}</p>
-      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
-    `);
+    const items = (route.stats || []).map((s) => ({ label: s.label, value: s.value }));
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `<span style="color: ${route.color};">${t("Airport access")}</span>`,
+        title: route.name || "",
+        bodyHtml: `
+          ${proseBlock(route.description || "")}
+          ${items.length ? statSection({ items }) : ""}
+        `,
+      }),
+    );
   },
 
   /**
@@ -688,14 +616,17 @@ export const stepHandlers = {
     );
     if (!route) return;
 
-    const statsHtml = route.stats?.length ? bentoStats(route.stats) : "";
-
-    UI.showPanel(`
-      <div class="subtitle" style="color: #ff9500;">${t("New railway stations")}</div>
-      <h2>${route.name}</h2>
-      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${route.description || ""}</p>
-      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
-    `);
+    const items = (route.stats || []).map((s) => ({ label: s.label, value: s.value }));
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `<span style="color: #ff9500;">${t("New railway stations")}</span>`,
+        title: route.name || "",
+        bodyHtml: `
+          ${proseBlock(route.description || "")}
+          ${items.length ? statSection({ items }) : ""}
+        `,
+      }),
+    );
   },
 
   /**
@@ -707,14 +638,17 @@ export const stepHandlers = {
     if (!road) return;
 
     const color = road.color || "#e63f5a";
-    const statsHtml = road.stats?.length ? bentoStats(road.stats) : "";
-
-    UI.showPanel(`
-      <div class="subtitle" style="color: ${color};">${t("Road extensions")}</div>
-      <h2>${road.name}</h2>
-      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${road.description || ""}</p>
-      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
-    `);
+    const items = (road.stats || []).map((s) => ({ label: s.label, value: s.value }));
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `<span style="color: ${color};">${t("Road extensions")}</span>`,
+        title: road.name || "",
+        bodyHtml: `
+          ${proseBlock(road.description || "")}
+          ${items.length ? statSection({ items }) : ""}
+        `,
+      }),
+    );
   },
 
   /**
@@ -729,14 +663,17 @@ export const stepHandlers = {
       station.type === "planned" || station.type === "proposed"
         ? "#ff9500"
         : "#6e7073";
-    const statsHtml = station.stats?.length ? bentoStats(station.stats) : "";
-
-    UI.showPanel(`
-      <div class="subtitle" style="color: ${color};">${t("New railway stations")}</div>
-      <h2>${station.name}</h2>
-      <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">${station.description || ""}</p>
-      ${statsHtml ? `<div style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
-    `);
+    const items = (station.stats || []).map((s) => ({ label: s.label, value: s.value }));
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `<span style="color: ${color};">${t("New railway stations")}</span>`,
+        title: station.name || "",
+        bodyHtml: `
+          ${proseBlock(station.description || "")}
+          ${items.length ? statSection({ items }) : ""}
+        `,
+      }),
+    );
   },
 
   /**
@@ -874,33 +811,33 @@ export const stepHandlers = {
     MapController.hideTenTwentyConcept();
   },
 
-  // --- Step 6: Education ---
+  // --- Step 7: Education ---
+  // Single-select tab handler. Drives map state for the chosen tab and
+  // re-renders the panel via UI.showEducationPanel().
   _handleEducationSubItem(itemId) {
+    UI._educationActiveTab = itemId;
     if (itemId === "universities") {
-      // Show university markers with animated arcs — all visible by default
-      MapController.hideTalentPipeline();
       MapController.hideEmploymentMarkers();
       const institutions = AppData.talentPipeline?.institutions || [];
       this.state.activeUniversities = institutions.map((inst) => inst.id);
-      UI.showUniversitiesPanel(this.state.activeUniversities);
       MapController.showTalentPipeline({ skipFly: true });
     } else if (itemId === "employment") {
-      // Hide university markers, show JASM and TEL markers only
       MapController.hideTalentPipeline();
       MapController.showEmploymentMarkers();
       this.state.activeEmployers = [];
-      UI.showEmploymentPanel(this.state.activeEmployers);
     }
+    UI.showEducationPanel();
   },
 
+  // Marker-click handlers for Step 7. Keep these even though the panel
+  // no longer surfaces them as toggles — map/properties.js calls them
+  // when the user clicks a university or employer marker.
   toggleUniversity(universityId) {
     const idx = this.state.activeUniversities.indexOf(universityId);
     if (idx >= 0) {
       this.state.activeUniversities.splice(idx, 1);
     } else {
       this.state.activeUniversities.push(universityId);
-
-      // Fly camera to the toggled-on university
       const institutions = AppData.talentPipeline?.institutions || [];
       const inst = institutions.find((i) => i.id === universityId);
       if (inst && inst.coords) {
@@ -914,7 +851,6 @@ export const stepHandlers = {
       }
     }
     MapController.updateTalentArcVisibility(this.state.activeUniversities);
-    UI.updateUniversitiesPanel(this.state.activeUniversities);
   },
 
   toggleEmployer(employerId) {
@@ -923,8 +859,6 @@ export const stepHandlers = {
       this.state.activeEmployers.splice(idx, 1);
     } else {
       this.state.activeEmployers.push(employerId);
-
-      // Fly camera to the toggled-on employer
       const companies = AppData.employmentData?.companies || [];
       const company = companies.find((c) => c.id === employerId);
       if (company && company.coords) {
@@ -937,7 +871,6 @@ export const stepHandlers = {
         });
       }
     }
-    UI.updateEmploymentPanel(this.state.activeEmployers);
   },
 
   // --- Step 8: Investment zones ---
@@ -995,23 +928,8 @@ export const stepHandlers = {
     };
     const zone = zoneData[itemId];
     if (zone) {
-      const rows = zone.details
-        .map(
-          ([label, value]) =>
-            `<div style="display: flex; flex-direction: column; gap: var(--space-1);">
-              <span style="font-weight: var(--font-weight-semibold); font-size: var(--text-sm); color: var(--color-text-primary);">${label}</span>
-              <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${value}</span>
-            </div>`,
-        )
-        .join("");
-
-      UI.showPanel(`
-                <div class="subtitle">${t("Silicon triangle")}</div>
-                <h2>${zone.name}</h2>
-                <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
-                    ${rows}
-                </div>
-            `);
+      UI._investmentZoneActiveTab = itemId;
+      UI.showInvestmentZonesOverviewPanel();
 
       // Show JASM logo marker on the map
       if (zone.showLogo) {
@@ -1256,15 +1174,27 @@ export const stepHandlers = {
     UI.disclosureState[group.id] = true;
     const groupHtml = UI.generateDisclosureGroup(group);
 
-    const content = `
-            ${panelHeader(t("Supporting evidence"), group.title, t("Select an item below to view detailed documentation."))}
-            ${groupHtml}
-            <button class="panel-btn" onclick="UI.showEvidenceListPanel()">
-                ${t("View all evidence")}
-            </button>
-        `;
+    const bodyHtml = `
+      ${proseBlock(t("Select an item below to view detailed documentation."))}
+      <div class="step-section">
+        ${groupHtml}
+      </div>
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: t("View all evidence"),
+          description: t("Browse the full evidence library."),
+          onclick: `UI.showEvidenceListPanel()`,
+        })}
+      </div>
+    `;
 
-    UI.showPanel(content);
+    UI.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Supporting evidence"),
+        title: group.title,
+        bodyHtml,
+      }),
+    );
   },
 
   /**

@@ -8,122 +8,200 @@ import {
   toggleRow,
   dataAttribution,
   connectionItem,
+  proseBlock,
+  statSection,
+  listSection,
+  evidenceBlockHtml,
+  imageBlock,
+  imageGalleryBlock,
+  sectionLabel,
+  footerCta,
 } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
 import { $id, $sel } from "../shared/dom-scope.js";
+import { buildCompactTabsHtml } from "./inspector-tabs.js";
 
 export const methods = {
   showInvestmentOverview() {
-    const content = `
-            ${panelHeader(t("Corporate investment"), t("Investment comparison"), t("Total corporate investment in the Kumamoto semiconductor corridor."))}
-            <div class="chart-container" style="height: 280px; margin: 24px 0;">
-                <canvas id="investment-chart" role="img" aria-label="${t("Bar chart comparing corporate investments across seven companies in the Kumamoto corridor")}"></canvas>
-            </div>
-            <div id="investment-chart-table"></div>
-            <div class="stat-grid">
-                <div class="stat-item">
-                    <div class="stat-value">¥4T+</div>
-                    <div class="stat-label">${t("Total investment")}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">47,000+</div>
-                    <div class="stat-label">${t("Direct jobs")}</div>
-                </div>
-            </div>
-            ${dataAttribution(t("Investment data from official company announcements"))}
-        `;
+    this._investmentActiveTab = this._investmentActiveTab || "investment";
+    const tabs = [
+      {
+        id: "investment",
+        label: t("Investment"),
+        onclick: `UI.switchInvestmentTab('investment')`,
+      },
+      {
+        id: "companies",
+        label: t("Companies"),
+        onclick: `UI.switchInvestmentTab('companies')`,
+      },
+    ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._investmentActiveTab),
+    );
 
-    this.showPanel(content);
-
-    // Render chart after DOM update
-    setTimeout(() => this.renderInvestmentChart(), 50);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 5 · ${t("Corporate investment")}`,
+        title: t("Corporate investment"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildInvestmentTabBody(this._investmentActiveTab),
+      }),
+    );
   },
 
-  /**
-   * Show app directly - no start screen, subtle fade-in
-   */
-  showResourcePanel(resource) {
-    const statsHtml = resource.id === "water" ? "" : bentoStats(resource.stats);
+  switchInvestmentTab(tabId) {
+    this._investmentActiveTab = tabId;
+    const tabIds = ["investment", "companies"];
+    const activeIndex = Math.max(0, tabIds.indexOf(tabId));
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildInvestmentTabBody(tabId);
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
+  },
 
-    // Generate energy mix section for power resource (disclosure groups)
-    let energyMixHtml = "";
-    if (resource.id === "power" && resource.energyMix) {
-      const iconMap = {
-        Solar:
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
-        Wind: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
-        Nuclear:
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>',
-      };
-      const colorMap = {
-        Solar: "#ff9500",
-        Wind: "#5ac8fa",
-        Nuclear: "#ff3b30",
-      };
+  _investmentLogoMap: {
+    jasm: "assets/Jasm-logo.svg",
+    sony: "assets/Sony-logo.svg",
+    "tokyo-electron": "assets/Tokyo-electron-logo.svg",
+    mitsubishi: "assets/Mitsubishi-electric-logo.svg",
+    sumco: "assets/Sumco-logo.svg",
+    kyocera: "assets/Kyocera-logo.svg",
+    "rohm-apollo": "assets/Rohm-logo.svg",
+  },
 
-      const renderEnergyDisclosure = (type, facilities) => {
-        const groupId = `energy-${type.toLowerCase()}`;
-        return `
-                    <div class="disclosure-group" data-group-id="${groupId}">
-                        <button class="disclosure-header" aria-expanded="false" onclick="UI.toggleDisclosureGroup('${groupId}')">
-                            <span class="disclosure-triangle" aria-hidden="true">
-                                <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
-                                <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
-                            </span>
-                            <span class="disclosure-icon" style="color: ${colorMap[type]}">${iconMap[type]}</span>
-                            <span class="disclosure-title">${type}</span>
-                            <span class="disclosure-badge">${facilities.length}</span>
-                        </button>
-                        <div class="disclosure-content">
-                            ${facilities
-                              .map(
-                                (f) => `
-                                <div class="disclosure-item energy-facility-item" data-station-id="${f.id || ""}" data-station-type="${type.toLowerCase()}" style="display: flex; justify-content: space-between; padding: var(--space-2) var(--space-4); font-size: var(--text-sm); cursor: pointer; border-radius: var(--radius-small); transition: background-color var(--duration-fast) var(--easing-standard);"${f.id ? ` onclick="UI.focusEnergyStation('${f.id}', '${type.toLowerCase()}')"` : ""}>
-                                    <span style="color: var(--color-text-secondary);">${f.name || f.examples || f}</span>
-                                    <span style="font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">${f.capacity || ""}</span>
-                                </div>
-                            `,
-                              )
-                              .join("")}
-                        </div>
-                    </div>
-                `;
-      };
+  _buildInvestmentTabBody(tabId) {
+    const companies = AppData.companies || [];
+    if (tabId === "companies") {
+      const items = companies.map((c) => {
+        const logo = this._investmentLogoMap[c.id];
+        const icon = logo
+          ? `<img src="${logo}" alt="${(c.name || "").replace(/"/g, "&quot;")}" />`
+          : "";
+        return {
+          icon,
+          title: c.name,
+          sub: c.subtitle || "",
+          value: c.stats?.[0]?.value || "",
+        };
+      });
+      return `
+        ${listSection({ label: t("Major players"), items })}
+      `;
+    }
+    // investment (default)
+    const headlineCompanies = ["jasm", "sony", "tokyo-electron", "mitsubishi"];
+    const headlineItems = headlineCompanies
+      .map((id, i) => {
+        const c = companies.find((x) => x.id === id);
+        if (!c) return null;
+        return {
+          label: c.name,
+          value: c.stats?.[0]?.value || "",
+          hero: i === 0,
+        };
+      })
+      .filter(Boolean);
+    return `
+      ${proseBlock(t("Capital is concentrated in semiconductor fabrication, packaging, equipment, and supply chain. The corridor brings together TSMC's Japan venture, Sony's image sensor expansion, and Tokyo Electron's new equipment facility."))}
+      ${statSection({ label: t("Headline capital"), items: headlineItems })}
+    `;
+  },
 
-      energyMixHtml = `
-                <div style="margin-top: var(--space-4);">
-                    <div class="panel-bento-label" style="margin-bottom: var(--space-2);">${t("Energy mix")}</div>
-                    <p>${resource.energyMix.description}</p>
-                    <div style="margin-top: var(--space-4);">
-                        ${resource.energyMix.sources
-                          .map((source) => {
-                            const key = source.type;
-                            const energyData = AppData.kyushuEnergy;
-                            const facilities = energyData
-                              ? energyData[key.toLowerCase()] || []
-                              : [];
-                            return renderEnergyDisclosure(key, facilities);
-                          })
-                          .join("")}
-                    </div>
-                </div>
-            `;
+  showResourcePanel() {
+    this._waterActiveTab = this._waterActiveTab || "overview";
+    const tabs = [
+      { id: "overview", label: t("Overview"), onclick: `UI.switchWaterTab('overview')` },
+      { id: "companies", label: t("Companies"), onclick: `UI.switchWaterTab('companies')` },
+    ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._waterActiveTab),
+    );
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 1 · ${t("Water resources")}`,
+        title: t("Water resources"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildWaterTabBody(this._waterActiveTab),
+        footerHtml: this._buildWaterTabFooter(this._waterActiveTab),
+      }),
+    );
+  },
+
+  switchWaterTab(tabId) {
+    this._waterActiveTab = tabId;
+    const tabIds = ["overview", "companies"];
+    const activeIndex = Math.max(0, tabIds.indexOf(tabId));
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildWaterTabBody(tabId);
+    const footer = this.elements.panelContent?.querySelector(".panel-a-footer");
+    if (footer) footer.innerHTML = this._buildWaterTabFooter(tabId);
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
+  },
+
+  _buildWaterTabBody(tabId) {
+    const water = AppData.resources?.water;
+    if (!water) return "";
+
+    if (tabId === "companies") {
+      const factoryIcon =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></svg>';
+      const items = (water.evidenceMarkers || []).map((m) => {
+        const location = m.stats?.find((s) => s.label === t("Location"))?.value || "";
+        const established = m.stats?.find((s) => s.label === t("Established"))?.value || "";
+        return {
+          icon: factoryIcon,
+          title: m.name,
+          sub: location,
+          value: established,
+        };
+      });
+      return `
+        ${proseBlock(t("Major brands chose Kumamoto for premium production. Their continued operation is proof of long-term groundwater quality and abundance."))}
+        ${listSection({ label: t("Brands"), items })}
+      `;
     }
 
-    const content = `
-            ${panelHeader(resource.subtitle, resource.name, resource.description)}
-            <div style="margin-top: var(--space-4);">
-                ${statsHtml}
-            </div>
-            ${energyMixHtml}
-            <div style="margin-top: var(--space-6);">
-                <button class="panel-bento-btn secondary full-width" onclick="UI.showEvidence('${resource.id}', 'resource')">
-                    ${t("View evidence")}
-                </button>
-            </div>
-        `;
+    // overview (default)
+    const items = (water.stats || []).map((s, i) => ({
+      label: s.label,
+      value: s.value,
+      hero: i === 0,
+    }));
+    return `
+      ${proseBlock(water.description || "")}
+      ${statSection({ label: water.name || t("Aso Groundwater Basin"), items })}
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: water.evidence?.title || t("TSMC ESG evidence"),
+          description: water.evidence?.description || "",
+          onclick: `UI.showEvidence('water', 'resource')`,
+        })}
+      </div>
+    `;
+  },
 
-    this.showPanel(content);
+  _buildWaterTabFooter(tabId) {
+    if (tabId !== "overview") return "";
+    return `<button type="button" class="cta secondary" style="width: 100%;" onclick="UI.showEvidence('water', 'resource')">${t("View evidence")}</button>`;
   },
 
   /**
@@ -133,33 +211,30 @@ export const methods = {
     const haramizu = AppData.haramizuStation;
     if (!haramizu) return;
 
-    const statsHtml = bentoStats(haramizu.stats);
+    const statsItems = (haramizu.stats || []).map((s) => ({
+      label: s.label,
+      value: s.value,
+    }));
 
-    const zonesHtml = haramizu.zones
-      .map(
-        (zone) => `
-            <div style="padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium);">
-                <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">${zone.name}</div>
-                <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">${zone.description}</p>
-            </div>
-        `,
-      )
-      .join("");
+    const zoneItems = (haramizu.zones || []).map((zone) => ({
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+      title: zone.name,
+      sub: zone.description,
+    }));
 
-    const content = `
-            ${panelHeader(haramizu.subtitle, haramizu.name, haramizu.description)}
-            <div style="margin-top: var(--space-4);">
-                ${statsHtml}
-            </div>
-            <div style="margin-top: var(--space-6);">
-                <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Development zones")}</div>
-                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                    ${zonesHtml}
-                </div>
-            </div>
-        `;
+    const bodyHtml = `
+      ${proseBlock(haramizu.description || "")}
+      ${statsItems.length ? statSection({ items: statsItems }) : ""}
+      ${zoneItems.length ? listSection({ label: t("Development zones"), items: zoneItems }) : ""}
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: haramizu.subtitle || "",
+        title: haramizu.name || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -167,35 +242,43 @@ export const methods = {
    */
   showGovernmentOverview() {
     const tiers = AppData.governmentTiers || [];
-    const tierCards = tiers
-      .map(
-        (tier) => `
-            <div style="padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium); cursor: pointer;"
-                 onclick="App._handleGovernmentSubItem('${tier.id}')">
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
-                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${tier.color}; flex-shrink: 0;"></div>
-                    <span style="font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary);">${tier.tierLabel}</span>
-                </div>
-                <div style="font-weight: var(--font-weight-semibold);">${tier.name}</div>
-                <div style="font-size: var(--text-2xl); font-weight: var(--font-weight-bold); color: ${tier.color}; margin-top: var(--space-2);">${tier.commitment}</div>
-                <div style="font-size: var(--text-sm); color: var(--color-text-tertiary);">${tier.commitmentLabel}</div>
-            </div>
-        `,
-      )
-      .join("");
 
-    const totalCommitment = "¥4T+";
-    this.showPanel(`
-            ${panelHeader(t("Government commitment"), t("National to local alignment"))}
-            <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
-                <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${totalCommitment}</span>
-                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${t("Combined commitment")}</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
-                ${tierCards}
-            </div>
-            <p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary);">${t("Click any tier for details.")}</p>
-        `);
+    const tierItems = tiers.map((tier) => ({
+      icon: `<span style="display: inline-block; width: 12px; height: 12px; border-radius: var(--radius-full); background: ${tier.color}; flex-shrink: 0;"></span>`,
+      title: `${tier.name}`,
+      sub: tier.tierLabel,
+      value: tier.commitment,
+    }));
+
+    // Wire each item to its onclick handler in-place.
+    const baseList = listSection({ items: tierItems });
+    let wired = baseList;
+    tiers.forEach((tier) => {
+      wired = wired.replace(
+        '<li class="step-list-item">',
+        `<li class="step-list-item" style="cursor: pointer;" onclick="App._handleGovernmentSubItem('${tier.id}')">`,
+      );
+    });
+
+    const bodyHtml = `
+      ${statSection({
+        items: [
+          { label: t("Combined commitment"), value: "¥4T+", hero: true },
+        ],
+      })}
+      <div class="step-section">
+        ${sectionLabel(t("Tap a tier to see details"))}
+        ${wired}
+      </div>
+    `;
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Government commitment"),
+        title: t("National to local alignment"),
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -203,40 +286,41 @@ export const methods = {
    * @param {Object} tier - Government tier data from AppData.governmentTiers
    */
   showGovernmentTierPanel(tier) {
-    let subItemsHtml = "";
-    if (tier.subItems && tier.subItems.length > 0) {
-      subItemsHtml = `
-                <div style="margin-top: var(--space-4);">
-                    <div style="font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin-bottom: var(--space-3);">${t("Key initiatives")}</div>
-                    ${tier.subItems
-                      .map(
-                        (sub) => `
-                        <div style="display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-medium); margin-bottom: var(--space-2);">
-                            <div style="flex: 1;">
-                                <div style="font-weight: var(--font-weight-medium);">${sub.name}</div>
-                                <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">${sub.subtitle}</div>
-                            </div>
-                            <div style="font-weight: var(--font-weight-semibold); color: var(--color-primary);">${sub.commitment}</div>
-                        </div>
-                    `,
-                      )
-                      .join("")}
-                </div>
-            `;
-    }
+    const statsItems = (tier.stats || []).map((s) => ({
+      label: s.label,
+      value: s.value,
+    }));
 
-    const content = `
-            ${panelHeader(tier.tierLabel || t("Government tier"), tier.name)}
-            <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
-                <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: ${tier.color || "var(--color-primary)"};">${tier.commitment}</span>
-                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${tier.commitmentLabel || ""}</span>
-            </div>
-            <p>${tier.description}</p>
-            ${tier.stats && tier.id !== "central" ? statGrid(tier.stats, "margin-top: var(--space-4)") : ""}
-            ${subItemsHtml}
-        `;
+    const subInitiativeItems = (tier.subItems || []).map((sub) => ({
+      icon: `<span style="color: ${tier.color}; font-weight: var(--font-weight-bold);">${(sub.name || "").charAt(0)}</span>`,
+      title: sub.name,
+      sub: sub.subtitle,
+      value: sub.commitment,
+    }));
 
-    this.showPanel(content);
+    const bodyHtml = `
+      ${statSection({
+        tier: tier.id,
+        items: [
+          {
+            label: tier.commitmentLabel || t("Commitment"),
+            value: tier.commitment || "",
+            hero: true,
+          },
+        ],
+      })}
+      ${proseBlock(tier.description || "")}
+      ${tier.id !== "central" && statsItems.length ? statSection({ items: statsItems }) : ""}
+      ${subInitiativeItems.length ? listSection({ label: t("Key initiatives"), items: subInitiativeItems }) : ""}
+    `;
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: tier.tierLabel || t("Government tier"),
+        title: tier.name || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -244,32 +328,39 @@ export const methods = {
    * @param {Object} road - Road data from AppData.infrastructureRoads
    */
   showRoadDetailPanel(road) {
-    const content = `
-            ${panelHeader(t("Infrastructure plan"), road.name)}
-            <div style="display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-4) 0;">
-                <span style="font-size: var(--text-3xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${road.commuteImpact}</span>
-                <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${t("commute saved")}</span>
-            </div>
-            <div class="stat-grid" style="margin-top: var(--space-4);">
-                <div class="stat-item"><div class="stat-value">${road.driveToJasm || "-"}</div><div class="stat-label">${t("Drive to JASM")}</div></div>
-                <div class="stat-item"><div class="stat-value">${road.status}</div><div class="stat-label">${t("Status")}</div></div>
-                <div class="stat-item"><div class="stat-value">${road.completionDate}</div><div class="stat-label">${t("Completion")}</div></div>
-                <div class="stat-item"><div class="stat-value">${road.budget}</div><div class="stat-label">${t("Budget")}</div></div>
-            </div>
-            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${road.description}</p>
-            ${
-              road.documentLink
-                ? `
-                <button class="button-secondary" style="margin-top: var(--space-6); width: 100%;" onclick="UI.openEvidenceDocument('${road.documentLink}')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    ${t("View source document")}
-                </button>
-            `
-                : ""
-            }
-        `;
+    const bodyHtml = `
+      ${statSection({
+        items: [
+          { label: t("Commute saved"), value: road.commuteImpact || "-", hero: true },
+        ],
+      })}
+      ${statSection({
+        items: [
+          { label: t("Drive to JASM"), value: road.driveToJasm || "-" },
+          { label: t("Status"), value: road.status || "-" },
+          { label: t("Completion"), value: road.completionDate || "-" },
+          { label: t("Budget"), value: road.budget || "-" },
+        ],
+      })}
+      ${proseBlock(road.description || "")}
+      ${
+        road.documentLink
+          ? `<div class="step-section">${evidenceBlockHtml({
+              title: t("View source document"),
+              description: t("Open the official project document."),
+              onclick: `UI.openEvidenceDocument('${road.documentLink}')`,
+            })}</div>`
+          : ""
+      }
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Infrastructure plan"),
+        title: road.name || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -277,26 +368,32 @@ export const methods = {
    * @param {Object} company - Company data from AppData.companies
    */
   showCompanyDetailPanel(company) {
-    const statsHtml = statGrid(
-      company.stats || [],
-      "margin-top: var(--space-4)",
+    const statsItems = (company.stats || []).map((s) => ({
+      label: s.label,
+      value: s.value,
+    }));
+
+    const bodyHtml = `
+      ${statsItems.length ? statSection({ items: statsItems }) : ""}
+      ${proseBlock(company.description || "")}
+      ${
+        company.evidence?.image
+          ? `<div class="step-section">${evidenceBlockHtml({
+              title: t("View evidence"),
+              description: company.evidence.title || company.name,
+              onclick: `UI.showEvidenceLightbox('${company.evidence.image}', '${(company.name || "").replace(/'/g, "\\'")}')`,
+            })}</div>`
+          : ""
+      }
+    `;
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Corporate investment"),
+        title: company.name || "",
+        bodyHtml,
+      }),
     );
-
-    const evidenceHtml = company.evidence?.image
-      ? `
-            <button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showEvidenceLightbox('${company.evidence.image}', '${company.name.replace(/'/g, "\\'")}')">
-                ${t("View evidence")}
-            </button>`
-      : "";
-
-    const content = `
-            ${panelHeader(t("Corporate investment"), company.name)}
-            ${statsHtml}
-            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">${company.description || ""}</p>
-            ${evidenceHtml}
-        `;
-
-    this.showPanel(content);
   },
 
   /**
@@ -304,22 +401,26 @@ export const methods = {
    * @param {Object} evidence - Evidence marker data
    */
   showWaterEvidencePanel(evidence) {
-    const viewEvidenceBtn = evidence.image
-      ? `<div style="margin-top: var(--space-6);">
-                <button class="panel-bento-btn secondary full-width" onclick="UI.showEvidenceLightbox('${evidence.image}', '${evidence.name.replace(/'/g, "\\'")}')">
-                    ${t("View evidence")}
-                </button>
-            </div>`
-      : "";
+    const bodyHtml = `
+      ${proseBlock(evidence.description || "")}
+      ${
+        evidence.image
+          ? `<div class="step-section">${evidenceBlockHtml({
+              title: t("View evidence"),
+              description: evidence.subtitle || "",
+              onclick: `UI.showEvidenceLightbox('${evidence.image}', '${(evidence.name || "").replace(/'/g, "\\'")}')`,
+            })}</div>`
+          : ""
+      }
+    `;
 
-    const content = `
-            ${panelHeader(t("Water quality evidence"), evidence.name)}
-            <p class="panel-subtitle" style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">${evidence.subtitle}</p>
-            <p style="margin-bottom: var(--space-4);">${evidence.description}</p>
-            ${viewEvidenceBtn}
-        `;
-
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: evidence.subtitle || t("Water quality evidence"),
+        title: evidence.name || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -333,43 +434,24 @@ export const methods = {
       wind: t("Wind energy"),
       nuclear: t("Nuclear power"),
     };
-    const typeColors = {
-      solar: "#ff9500",
-      wind: "#5ac8fa",
-      nuclear: "#ff3b30",
-    };
 
-    const content = `
-            <h2>${station.name}</h2>
-            <div style="
-                display: inline-flex;
-                align-items: center;
-                gap: var(--space-2);
-                padding: var(--space-1) var(--space-3);
-                background: ${typeColors[type]}15;
-                border-radius: var(--radius-small);
-                font-family: var(--font-display);
-                font-size: var(--text-sm);
-                font-weight: var(--font-weight-semibold);
-                color: ${typeColors[type]};
-                margin-bottom: var(--space-4);
-            ">${typeLabels[type]}</div>
-            <div class="stat-grid">
-                <div class="stat-item">
-                    <div class="stat-value">${station.capacity}</div>
-                    <div class="stat-label">${t("Capacity")}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${station.prefecture}</div>
-                    <div class="stat-label">${t("Prefecture")}</div>
-                </div>
-            </div>
-            <p style="margin-top: var(--space-4); color: var(--color-text-secondary);">
-                ${t("Kyushu leads Japan in renewable energy adoption, providing the stable and diverse power mix semiconductor manufacturing requires.")}
-            </p>
-        `;
+    const bodyHtml = `
+      ${statSection({
+        items: [
+          { label: t("Capacity"), value: station.capacity || "-" },
+          { label: t("Prefecture"), value: station.prefecture || "-" },
+        ],
+      })}
+      ${proseBlock(t("Kyushu leads Japan in renewable energy adoption, providing the stable and diverse power mix semiconductor manufacturing requires."))}
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: typeLabels[type] || t("Energy station"),
+        title: station.name || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -401,69 +483,89 @@ export const methods = {
   // Future outlook panel (step 8)
   // ────────────────────────────────────────────────
 
-  showFutureOutlookPanel(activeLayers) {
-    const content = this._buildFutureOutlookContent(activeLayers || []);
-    this.showPanel(content);
-  },
-
-  updateFutureOutlookPanel(activeLayers) {
-    const content = this._buildFutureOutlookContent(activeLayers);
-    this.elements.panelContent.innerHTML = content;
-  },
-
-  _buildFutureOutlookContent(activeLayers) {
-    const layers = [
-      {
-        key: "futureSciencePark",
-        label: t("Science park and grand airport concept"),
-        color: "#007aff",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>',
-      },
-      {
-        key: "futureAirport",
-        label: t("Airport access"),
-        color: "#34c759",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
-      },
-      {
-        key: "futureGovZones",
-        label: t("Government zone clusters"),
-        color: "#ff3b30",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
-      },
-      {
-        key: "futureRoads",
-        label: t("Roads and interchanges"),
-        color: "#ff9500",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
-      },
-      {
-        key: "futureTrafficFlow",
-        label: t("Traffic flow"),
-        color: "#ef4444",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
-      },
+  showFutureOutlookPanel() {
+    this._futureOutlookActiveTab = this._futureOutlookActiveTab || "plans";
+    const tabs = [
+      { id: "plans", label: t("Plans"), onclick: `UI.switchFutureOutlookTab('plans')` },
+      { id: "timeline", label: t("Timeline"), onclick: `UI.switchFutureOutlookTab('timeline')` },
     ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._futureOutlookActiveTab),
+    );
 
-    const rowsHtml = layers
-      .map((l) => {
-        const isActive = activeLayers.includes(l.key);
-        return toggleRow({
-          id: l.key,
-          label: l.label,
-          color: l.color,
-          icon: l.icon,
-          active: isActive,
-          onclick: `App.toggleFutureLayer('${l.key}')`,
-        });
-      })
-      .join("");
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 8 · ${t("Future outlook")}`,
+        title: t("Future outlook"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildFutureOutlookTabBody(this._futureOutlookActiveTab),
+      }),
+    );
+  },
 
+  switchFutureOutlookTab(tabId) {
+    this._futureOutlookActiveTab = tabId;
+    const tabIds = ["plans", "timeline"];
+    const activeIndex = Math.max(0, tabIds.indexOf(tabId));
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildFutureOutlookTabBody(tabId);
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
+  },
+
+  // Compatibility shim: toggleFutureLayer in step-handlers.js still
+  // calls this. The new panel body is static (does not reflect
+  // individual layer toggle state), so re-render is a no-op.
+  updateFutureOutlookPanel() {},
+
+  _buildFutureOutlookTabBody(tabId) {
+    const flaskIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>';
+    const planeIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>';
+    const targetIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+    const routeIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>';
+    const clockIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
+    if (tabId === "timeline") {
+      return `
+        ${proseBlock(t("Construction milestones and completion targets across the corridor."))}
+        ${statSection({
+          label: t("Vision horizon"),
+          items: [
+            { label: t("Master plan target"), value: "2040", hero: true },
+            { label: t("Government investment"), value: "¥4.8T" },
+            { label: t("Projected new jobs"), value: "50,000" },
+            { label: t("Major facilities"), value: "12" },
+          ],
+        })}
+      `;
+    }
+
+    // plans (default)
     return `
-      ${panelHeader(t("Future outlook"), t("2030+ vision"), t("Toggle layers to explore the completed state of the semiconductor corridor."))}
-      <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
-        ${rowsHtml}
-      </div>
+      ${proseBlock(t("Composite 2030+ vision: science park expansion, grand airport access, government zone clusters, road network, and traffic flow."))}
+      ${listSection({
+        label: t("Planned developments"),
+        items: [
+          { icon: flaskIcon, title: t("Science park"), sub: t("560 ha designated, ¥2T public investment.") },
+          { icon: planeIcon, title: t("Grand airport access"), sub: t("6.8 km new rail, 44 min station to airport.") },
+          { icon: targetIcon, title: t("Government zone clusters"), sub: t("Kikuyo and Ozu long-term plans.") },
+          { icon: routeIcon, title: t("Road extensions"), sub: t("Naka-Kyushu Cross Road segments.") },
+          { icon: clockIcon, title: t("10-20 minute concept"), sub: t("Anywhere in corridor to the airport.") },
+        ],
+      })}
     `;
   },
 
@@ -481,239 +583,346 @@ export const methods = {
     });
   },
 
-  /**
-   * Show the power sources panel with 3 toggleable energy types.
-   * Called when user clicks the "Power sources" subItem in step 1.
-   */
-  showPowerSourcesPanel(activeTypes) {
-    const content = this._buildPowerSourcesContent(activeTypes || []);
-    this.showPanel(content);
+  showPowerSourcesPanel() {
+    this._powerActiveTab = this._powerActiveTab || "overview";
+    const tabs = [
+      { id: "overview", label: t("Overview"), onclick: `UI.switchPowerTab('overview')` },
+      { id: "companies", label: t("Companies"), onclick: `UI.switchPowerTab('companies')` },
+    ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._powerActiveTab),
+    );
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 2 · ${t("Power resources")}`,
+        title: t("Power resources"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildPowerTabBody(this._powerActiveTab),
+        footerHtml: this._buildPowerTabFooter(this._powerActiveTab),
+      }),
+    );
   },
 
-  /**
-   * Re-render the power sources panel to reflect current toggle state.
-   * @param {string[]} activeTypes - e.g. ['solar', 'nuclear']
-   */
-  updatePowerSourcesPanel(activeTypes) {
-    const content = this._buildPowerSourcesContent(activeTypes);
-    // Direct innerHTML update (no history push) to avoid stacking
-    this.elements.panelContent.innerHTML = content;
+  switchPowerTab(tabId) {
+    this._powerActiveTab = tabId;
+    const tabIds = ["overview", "companies"];
+    const activeIndex = Math.max(0, tabIds.indexOf(tabId));
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildPowerTabBody(tabId);
+    const footer = this.elements.panelContent?.querySelector(".panel-a-footer");
+    if (footer) footer.innerHTML = this._buildPowerTabFooter(tabId);
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
+  },
+
+  updatePowerSourcesPanel() {
+    // Re-render the active tab body (called when map state changes
+    // outside the panel; the panel itself drives tab switches via
+    // switchPowerTab).
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildPowerTabBody(this._powerActiveTab || "overview");
+  },
+
+  _buildPowerTabBody(tabId) {
+    const power = AppData.resources?.power;
+    const kyushu = AppData.kyushuEnergy;
+    if (!power) return "";
+
+    if (tabId === "companies") {
+      const sunIcon =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+      const windIcon =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>';
+      const atomIcon =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/></svg>';
+
+      const buildItems = (stations, icon) =>
+        (stations || []).map((s) => ({
+          icon,
+          title: s.name,
+          sub: s.prefecture || "",
+          value: s.capacity || "",
+        }));
+
+      const items = [
+        ...buildItems(kyushu?.solar, sunIcon),
+        ...buildItems(kyushu?.wind, windIcon),
+        ...buildItems(kyushu?.nuclear, atomIcon),
+      ];
+
+      return `
+        ${proseBlock(power.energyMix?.description || t("Kyushu leads Japan in energy diversity, providing the stable power semiconductor fabs require."))}
+        ${listSection({ label: t("Energy stations"), items })}
+      `;
+    }
+
+    // overview (default)
+    const items = (power.stats || []).map((s, i) => ({
+      label: s.label,
+      value: s.value,
+      hero: i === 0,
+    }));
+    return `
+      ${proseBlock(power.description || "")}
+      ${statSection({ label: power.name || t("Kyushu Power Grid"), items })}
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: power.evidence?.title || t("Kyushu Electric infrastructure plan"),
+          description: power.evidence?.description || "",
+          onclick: `UI.showEvidence('power', 'resource')`,
+        })}
+      </div>
+    `;
+  },
+
+  _buildPowerTabFooter(tabId) {
+    if (tabId !== "overview") return "";
+    return `<button type="button" class="cta secondary" style="width: 100%;" onclick="UI.showEvidence('power', 'resource')">${t("View evidence")}</button>`;
+  },
+
+  // ────────────────────────────────────────────────
+  // Step 9 - Investment opportunity zones overview (Central / Middle / JASM)
+  // Distinct from Step 10's showInvestmentZonesPanel (Ozu 1 property).
+  // ────────────────────────────────────────────────
+
+  showInvestmentZonesOverviewPanel() {
+    this._investmentZoneActiveTab = this._investmentZoneActiveTab || "central-city-zone";
+    const zones = this._investmentZonePanelData();
+    const tabs = zones.map((z) => ({
+      id: z.id,
+      label: z.label,
+      onclick: `App._handleInvestmentZoneSubItem('${z.id}')`,
+    }));
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._investmentZoneActiveTab),
+    );
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 9 · ${t("Silicon triangle")}`,
+        title: t("Investment opportunity zones"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildInvestmentZoneTabBody(this._investmentZoneActiveTab),
+      }),
+    );
+  },
+
+  _investmentZonePanelData() {
+    return [
+      {
+        id: "central-city-zone",
+        label: t("Central city"),
+        prose: t("Kyushu-level business support center, suitable for Japanese corporate senior executive families."),
+        stats: [
+          { label: t("Product type"), value: t("RC mansion condominiums") },
+          { label: t("Connection"), value: t("Shinkansen 30 min to Hakata") },
+        ],
+      },
+      {
+        id: "middle-zone",
+        label: t("Middle zone"),
+        prose: t("Lifestyle density between the city and the corridor. Large retail anchors are in place; internationalized services like bilingual clinics and intl preschools are still maturing."),
+        stats: [
+          { label: t("Product type"), value: t("High-spec detached rentals") },
+          { label: t("Opportunity"), value: t("Intl services maturing") },
+        ],
+      },
+      {
+        id: "jasm-zone",
+        label: t("JASM"),
+        prose: t("Adjacent to TSMC's JASM fab. Strong demand from engineer secondees, growing through Fab 2 ramp."),
+        stats: [
+          { label: t("Product type"), value: t("Corporate RC + 3-4LDK") },
+          { label: t("Target tenants"), value: t("Engineers, secondees") },
+          { label: t("Demand waves"), value: t("Wave 1 now, Wave 2 ~2027") },
+          { label: t("Supply gap"), value: t("Catches up 2028-2029") },
+        ],
+      },
+    ];
+  },
+
+  _buildInvestmentZoneTabBody(activeId) {
+    const zones = this._investmentZonePanelData();
+    const zone = zones.find((z) => z.id === activeId) || zones[0];
+    const items = (zone.stats || []).map((s, i) => ({
+      label: s.label,
+      value: s.value,
+      hero: i === 0,
+    }));
+    return `
+      ${proseBlock(zone.prose || "")}
+      ${statSection({ label: zone.label, items })}
+    `;
   },
 
   // ────────────────────────────────────────────────
   // Investment zones panel (step 11 / properties)
   // ────────────────────────────────────────────────
 
-  /**
-   * Show the investment zones panel with toggleable zones.
-   * Called when the "properties" step activates.
-   * @param {string[]} activeZones - zone IDs, e.g. ['koshi-zone']
-   */
-  showInvestmentZonesPanel(activeZones) {
-    const content = this._buildInvestmentZonesContent(activeZones || []);
-    this.showPanel(content);
-  },
+  showInvestmentZonesPanel() {
+    this._ozu1ActiveTab = this._ozu1ActiveTab || "truth-engine";
+    const property = AppData.properties.find((p) => p.id === "ozu-1");
+    if (!property) return;
 
-  /**
-   * Re-render the investment zones panel to reflect current toggle state.
-   * @param {string[]} activeZones - currently toggled-on zone IDs
-   */
-  updateInvestmentZonesPanel(activeZones) {
-    const content = this._buildInvestmentZonesContent(activeZones);
-    this.elements.panelContent.innerHTML = content;
-  },
-
-  /**
-   * Build the HTML for the investment zones panel.
-   * @param {string[]} activeZones - currently toggled-on zone IDs
-   * @returns {string} HTML string
-   */
-  _buildInvestmentZonesContent(activeZones) {
-    // Step 10 surfaces only the Ozu zone and only the Ozu-1 property.
-    const zones = (AppData.investmentZones || []).filter(
-      (z) => z.id === "ozu-zone",
+    const tabs = [
+      { id: "truth-engine", label: t("Truth engine"), onclick: `UI.switchOzu1Tab('truth-engine')` },
+      { id: "future-outlook", label: t("Future outlook"), onclick: `UI.switchOzu1Tab('future-outlook')` },
+      { id: "financials", label: t("Financials"), onclick: `UI.switchOzu1Tab('financials')` },
+      { id: "images", label: t("Images"), onclick: `UI.switchOzu1Tab('images')` },
+    ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._ozu1ActiveTab),
     );
 
-    const rowsHtml = zones
-      .map((zone) => {
-        const isActive = activeZones.includes(zone.id);
-        return toggleRow({
-          id: zone.id,
-          label: zone.name,
-          icon: `<span style="display: inline-block; width: 12px; height: 12px; border-radius: var(--radius-full); background: ${zone.strokeColor}; flex-shrink: 0;"></span>`,
-          active: isActive,
-          onclick: `App.toggleInvestmentZone('${zone.id}')`,
-        });
-      })
-      .join("");
-
-    // Build detail cards for active zones
-    let detailsHtml = "";
-    if (activeZones.length > 0) {
-      const cardsHtml = activeZones
-        .map((zoneId) => {
-          const zone = zones.find((z) => z.id === zoneId);
-          if (!zone) return "";
-
-          // Step 10 surfaces only Ozu-1 within the Ozu zone.
-          const zoneProps = AppData.properties.filter((p) => p.id === "ozu-1");
-
-          let propsListHtml;
-          if (zoneProps.length > 0) {
-            // Group properties by sub-area
-            const subAreaMap = {};
-            zoneProps.forEach((p) => {
-              const area = p.subArea || "Other";
-              if (!subAreaMap[area]) subAreaMap[area] = [];
-              subAreaMap[area].push(p);
-            });
-
-            propsListHtml = Object.entries(subAreaMap)
-              .map(
-                ([area, props]) => `
-                    <div style="margin-top: var(--space-3);">
-                        <div style="font-size: var(--text-xs); font-weight: var(--font-weight-medium); color: var(--color-text-tertiary); text-transform: none; margin-bottom: var(--space-1);">${area}</div>
-                        ${props
-                          .map(
-                            (p) => `
-                            <div class="zone-property-row" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-small); cursor: pointer;"
-                                 onclick="App.selectProperty('${p.id}')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                                <div style="flex: 1; min-width: 0;">
-                                    <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium);">${p.name}</div>
-                                    <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${p.subtitle}</div>
-                                </div>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary); flex-shrink: 0;"><path d="m9 18 6-6-6-6"/></svg>
-                            </div>
-                        `,
-                          )
-                          .join("")}
-                    </div>
-                `,
-              )
-              .join("");
-          } else {
-            propsListHtml = `<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); padding: var(--space-3);">${t("No properties yet.")}</div>`;
-          }
-
-          return `
-                    <div class="energy-evidence-card" style="border-left: 3px solid ${zone.strokeColor};">
-                        <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${zone.name}</div>
-                        <div style="display: flex; flex-direction: column; gap: 0;">
-                            ${propsListHtml}
-                        </div>
-                    </div>
-                `;
-        })
-        .join("");
-
-      detailsHtml = `
-                <div style="margin-top: var(--space-6);">
-                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Zone details")}</div>
-                    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-                        ${cardsHtml}
-                    </div>
-                </div>
-            `;
-    }
-
-    return `
-            ${panelHeader(t("Investment properties"), t("Ozu 1"), t("A renovation opportunity in the Ozu zone."))}
-            <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
-                ${rowsHtml}
-            </div>
-            ${detailsHtml}
-        `;
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 10 · ${t("Investment properties")}`,
+        title: property.name,
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildOzu1TabBody(this._ozu1ActiveTab, property),
+        footerHtml: this._buildOzu1TabFooter(this._ozu1ActiveTab, property),
+      }),
+    );
   },
 
-  /**
-   * Build the HTML for the power sources panel.
-   * @param {string[]} activeTypes - currently toggled-on types
-   * @returns {string} HTML string
-   */
-  _buildPowerSourcesContent(activeTypes) {
-    const types = [
-      {
-        key: "solar",
-        label: t("Solar power"),
-        color: "#ff9500",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
-      },
-      {
-        key: "wind",
-        label: t("Wind energy"),
-        color: "#5ac8fa",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
-      },
-      {
-        key: "nuclear",
-        label: t("Nuclear energy"),
-        color: "#ff3b30",
-        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><path d="M12 2a7 7 0 0 0-5.4 11.5"/><path d="M12 2a7 7 0 0 1 5.4 11.5"/><path d="M7 20.7a7 7 0 0 0 10 0"/></svg>',
-      },
-    ];
+  switchOzu1Tab(tabId) {
+    this._ozu1ActiveTab = tabId;
+    const tabIds = ["truth-engine", "future-outlook", "financials", "images"];
+    const activeIndex = Math.max(0, tabIds.indexOf(tabId));
+    const property = AppData.properties.find((p) => p.id === "ozu-1");
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body && property) body.innerHTML = this._buildOzu1TabBody(tabId, property);
+    const footer = this.elements.panelContent?.querySelector(".panel-a-footer");
+    if (footer && property) footer.innerHTML = this._buildOzu1TabFooter(tabId, property);
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
+  },
 
-    const evidence = AppData.kyushuEnergy?.evidence || {};
+  _buildOzu1TabFooter(tabId, property) {
+    if (tabId !== "financials") return "";
+    const evidence = property.cards.find((c) => c.type === "financial")?.data
+      ?.rentalEvidence;
+    if (!evidence) return "";
+    const titleEsc = (evidence.title || "").replace(/'/g, "\\'");
+    return `<button type="button" class="cta secondary" style="width: 100%;" onclick="UI.showEvidenceLightbox('${evidence.image}', '${titleEsc}')">${t("View evidence")}</button>`;
+  },
 
-    const rowsHtml = types
-      .map((tp) => {
-        const isActive = activeTypes.includes(tp.key);
-        return toggleRow({
-          id: tp.key,
-          label: tp.label,
-          color: tp.color,
-          icon: tp.icon,
-          active: isActive,
-          onclick: `App.toggleEnergyType('${tp.key}')`,
-        });
-      })
-      .join("");
+  updateInvestmentZonesPanel() {
+    // No-op: the property panel no longer reflects zone toggle state.
+  },
 
-    // Build evidence cards for active types
-    let evidenceHtml = "";
-    if (activeTypes.length > 0) {
-      const cardsHtml = activeTypes
-        .map((key) => {
-          const ev = evidence[key];
-          if (!ev) return "";
-          const tp = types.find((tp) => tp.key === key);
+  _buildOzu1TabBody(tabId, property) {
+    const truthCard = property.cards.find((c) => c.type === "truth-engine");
+    const futureCard = property.cards.find((c) => c.type === "future-outlook");
+    const financialCard = property.cards.find((c) => c.type === "financial");
+    const imagesCard = property.cards.find((c) => c.type === "images");
 
-          const imageHtml = ev.image
-            ? `
-                    <div style="margin-top: var(--space-4); border-radius: var(--radius-medium); overflow: hidden; cursor: pointer;" onclick="UI.showEvidenceLightbox('${ev.image}', '${ev.title.replace(/'/g, "\\'")}')">
-                        <img src="${ev.image}" alt="${ev.title}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                    </div>
-                `
-            : "";
+    const checkIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    const sparkleIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>';
 
-          return evidenceCard({
-            color: tp.color,
-            subtitle: ev.subtitle,
-            title: ev.title,
-            description: ev.description,
-            stats: ev.stats,
-            extra: imageHtml,
-          });
-        })
-        .join("");
-
-      evidenceHtml = `
-                <div style="margin-top: var(--space-6);">
-                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${t("Evidence")}</div>
-                    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-                        ${cardsHtml}
-                    </div>
-                </div>
-            `;
+    if (tabId === "future-outlook") {
+      const factors = (futureCard?.data?.factors || []).map((f) => ({
+        icon: sparkleIcon,
+        title: f.title,
+        sub: f.impact,
+      }));
+      return `
+        ${proseBlock(t("Area development plans affecting Ozu 1."))}
+        ${listSection({ label: t("Drivers"), items: factors })}
+      `;
     }
 
+    if (tabId === "financials") {
+      const evidence = financialCard?.data?.rentalEvidence;
+      const evidenceHtml = evidence
+        ? `<div class="step-section">${evidenceBlockHtml({
+            title: t("AI rent assessment (4LDK / 89 sqm)"),
+            description: t("Assessed rent ¥160,000/month from comparable properties."),
+            onclick: `UI.showEvidenceLightbox('${evidence.image}', '${(evidence.title || "").replace(/'/g, "\\'")}')`,
+          })}</div>`
+        : "";
+      return `
+        ${statSection({
+          label: t("Build-to-rent"),
+          items: [
+            { label: t("Acquisition cost"), value: "¥45.6M", hero: true },
+            { label: t("Loan amount"), value: "¥22.8M" },
+            { label: t("Annual rent (avg)"), value: "¥2.28M" },
+            { label: t("Target IRR (avg)"), value: "5.0%" },
+            { label: t("Hold period"), value: `5 ${t("years")}` },
+            { label: t("Monthly repayment"), value: "¥120,818" },
+          ],
+        })}
+        ${evidenceHtml}
+      `;
+    }
+
+    if (tabId === "images") {
+      const imgs = imagesCard?.data || {};
+      const propName = (property.name || "").replace(/'/g, "\\'");
+      const exteriorHtml = imgs.exterior
+        ? imageBlock({
+            label: t("Exterior"),
+            src: imgs.exterior,
+            alt: `${property.name} ${t("exterior")}`,
+            onclick: `UI.showEvidenceLightbox('${imgs.exterior}', '${propName}')`,
+          })
+        : "";
+      const interiorHtml = imgs.interior?.length
+        ? imageGalleryBlock({
+            label: t("Interior"),
+            images: imgs.interior,
+            onClickEachAttr: `onclick="UI.showEvidenceLightbox(this.src, '${propName} ${t("interior")}')"`,
+          })
+        : "";
+      return `${exteriorHtml}${interiorHtml}`;
+    }
+
+    // truth-engine (default)
+    const basics = truthCard?.data?.basicSettings || {};
+    const design = truthCard?.data?.designStrategy || {};
+    const featureItems = (design.features || []).map((f) => ({
+      icon: checkIcon,
+      title: f,
+    }));
     return `
-            ${panelHeader(t("Sustainable energy"), t("Power resources"), t("Kyushu's diverse energy mix powers the semiconductor corridor with solar, wind, and nuclear baseload - ensuring the stable 24/7 supply fabs require."))}
-            <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
-                ${rowsHtml}
-            </div>
-            ${evidenceHtml}
-        `;
+      ${statSection({
+        label: t("Property details"),
+        items: [
+          { label: t("Type"), value: basics.propertyType || "" },
+          { label: t("Layout"), value: basics.layout || "" },
+          { label: t("Land area"), value: basics.landArea || "" },
+          { label: t("Building"), value: basics.buildingArea || "" },
+          { label: t("Availability"), value: basics.availability || "" },
+          { label: t("Address"), value: property.address || basics.address || "" },
+        ],
+      })}
+      ${listSection({
+        label: t("Design strategy - expat family standard spec"),
+        items: featureItems,
+      })}
+    `;
   },
 
   // ────────────────────────────────────────────────
@@ -726,286 +935,198 @@ export const methods = {
    * @param {string[]} activeLevels - e.g. ['central', 'local']
    */
   showGovernmentPanel(activeLevels) {
-    const content = this._buildGovernmentPanelContent(activeLevels || []);
-    this.showPanel(content);
+    const tiers = AppData.governmentTiers || [];
+    const activeId = (activeLevels && activeLevels[0]) || tiers[0]?.id;
+    const tabs = tiers.map((tier) => ({
+      id: tier.id,
+      label: this._governmentTabLabel(tier.id),
+      onclick: `if (!App.state.activeGovernmentLevels.includes('${tier.id}')) App.toggleGovernmentLevel('${tier.id}')`,
+    }));
+    const activeIndex = Math.max(
+      0,
+      tiers.findIndex((tier) => tier.id === activeId),
+    );
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 4 · ${t("Government support")}`,
+        title: t("Government support"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildGovernmentTierBody(activeId),
+      }),
+    );
   },
 
   /**
-   * Re-render the government panel to reflect current toggle state.
-   * Direct innerHTML update (no history push) to avoid stacking.
-   * @param {string[]} activeLevels - currently toggled-on levels
+   * Short tab label per tier (matches playground "Central / Prefecture /
+   * Local" header). Tier.tier in data is the long form ("Central
+   * government" etc.) so it must be shortened.
+   */
+  _governmentTabLabel(id) {
+    return {
+      central: t("Central"),
+      prefectural: t("Prefecture"),
+      local: t("Local"),
+    }[id] || id;
+  },
+
+  /**
+   * Re-render the active tier's body content. Used by toggleGovernmentLevel
+   * (single-select tab switch) — swaps panel-a-body and updates the
+   * panel-a-tab aria-selected state without rebuilding the chrome.
    */
   updateGovernmentPanel(activeLevels) {
-    const content = this._buildGovernmentPanelContent(activeLevels);
-    this.elements.panelContent.innerHTML = content;
+    const tiers = AppData.governmentTiers || [];
+    const activeId = (activeLevels && activeLevels[0]) || tiers[0]?.id;
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildGovernmentTierBody(activeId);
+
+    // Update tab aria-selected so the visual highlight follows the
+    // active tier.
+    const activeIndex = Math.max(
+      0,
+      tiers.findIndex((tier) => tier.id === activeId),
+    );
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
   },
 
   /**
-   * Build the HTML for the government support panel.
-   * @param {string[]} activeLevels - currently toggled-on level IDs
-   * @returns {string} HTML string
+   * Build the body for a SINGLE active government tier — matches the
+   * playground "Compact tabs" pattern where the panel-a-tabs strip
+   * switches between tiers and the body shows only the active one
+   * (prose intro + bolded entity label + 2x2 stat grid).
    */
-  _buildGovernmentPanelContent(activeLevels) {
+  _buildGovernmentTierBody(activeId) {
     const tiers = AppData.governmentTiers || [];
+    const tier = tiers.find((tr) => tr.id === activeId) || tiers[0];
+    if (!tier) return "";
 
-    const svgIcons = {
-      central:
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>',
-      prefectural:
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>',
-      local:
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-    };
+    const tierSlug = tier.id === "prefectural" ? "prefecture" : tier.id;
+    const stats = (tier.stats || []).map((s, i) => ({
+      label: s.label,
+      value: s.value,
+      hero: i === 0,
+    }));
 
-    // Toggle rows (same pattern as energy types)
-    const rowsHtml = tiers
-      .map((tier) => {
-        const isActive = activeLevels.includes(tier.id);
-        return toggleRow({
-          id: tier.id,
-          label: tier.tier,
-          color: tier.color,
-          icon: svgIcons[tier.id] || "",
-          active: isActive,
-          onclick: `App.toggleGovernmentLevel('${tier.id}')`,
-        });
-      })
-      .join("");
+    const mapPinIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
 
-    // Build tier detail cards for active levels
-    let detailHtml = "";
-    if (activeLevels.length > 0) {
-      const cardsHtml = activeLevels
-        .map((levelId) => {
-          const tier = tiers.find((tr) => tr.id === levelId);
-          if (!tier) return "";
-
-          // Sub-items for local tier
-          let subItemsHtml = "";
-          if (tier.subItems && tier.subItems.length > 0) {
-            subItemsHtml = `
-                        <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
-                            ${tier.subItems
-                              .map(
-                                (sub) => `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); background: var(--color-bg-secondary); border-radius: var(--radius-small);">
-                                    <div>
-                                        <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium);">${sub.name}</div>
-                                        <div style="font-size: var(--text-xs); color: var(--color-text-tertiary);">${sub.subtitle}</div>
-                                    </div>
-                                    <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-semibold); color: ${tier.color};">${sub.commitment}</div>
-                                </div>
-                            `,
-                              )
-                              .join("")}
-                        </div>
-                    `;
-          }
-
-          return evidenceCard({
-            color: tier.color,
-            subtitle: tier.tierLabel,
-            title: tier.name,
-            description: tier.description,
-            stats: tier.id === "central" ? null : tier.stats,
-            extra: subItemsHtml,
-          });
-        })
-        .join("");
-
-      // Combined totals
-      const totalCommitment = activeLevels.reduce((sum, id) => {
-        const tier = tiers.find((tr) => tr.id === id);
-        if (!tier) return sum;
-        const val = tier.commitment || tier.stats?.[0]?.value || "";
-        const num = parseFloat(val.replace(/[^0-9.]/g, ""));
-        return sum + (isNaN(num) ? 0 : num);
-      }, 0);
-
-      const summaryHtml =
-        activeLevels.length > 1
-          ? `
-                <div style="margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--color-bg-tertiary); border-radius: var(--radius-medium); display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">${activeLevels.length} ${t("levels active")}</span>
-                    <span style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--font-weight-bold);">~¥${Math.round(totalCommitment)}B ${t("combined")}</span>
-                </div>
-            `
-          : "";
-
-      // Section heading: use tier label for single-select, generic for multi
-      const sectionHeading =
-        activeLevels.length === 1
-          ? tiers.find((tr) => tr.id === activeLevels[0])?.tierLabel ||
-            t("Commitment details")
-          : t("Active commitments");
-
-      const centralEvidenceBtn = activeLevels.includes("central")
-        ? `<button class="panel-btn secondary" style="margin-top: var(--space-6);" onclick="UI.showQuickLook({ type: 'pdf', src: 'assets/pdfs/2040-vision-plan.pdf', title: '2040 vision plan' })">${t("View evidence")}</button>`
-        : "";
-
-      detailHtml = `
-                <div style="margin-top: var(--space-6);">
-                    <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">${sectionHeading}</div>
-                    ${summaryHtml}
-                    <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
-                        ${cardsHtml}
-                    </div>
-                    ${centralEvidenceBtn}
-                </div>
-            `;
-    }
+    const municipalityItems = (tier.subItems || []).map((sub) => ({
+      icon: mapPinIcon,
+      title: sub.name,
+      sub: sub.subtitle,
+      value: sub.commitment,
+    }));
 
     return `
-            ${panelHeader(t("Tri-level alignment"), t("Government support"), t("Japan's semiconductor strategy is backed by coordinated investment across central, prefectural, and local government - a rare tri-level alignment that de-risks the corridor."))}
-            <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
-                ${rowsHtml}
-            </div>
-            ${detailHtml}
-        `;
-  },
-
-  showEmploymentPanel(activeEmployers) {
-    const content = this._buildEmploymentPanelContent(activeEmployers || []);
-    this.showPanel(content);
-  },
-
-  updateEmploymentPanel(activeEmployers) {
-    const content = this._buildEmploymentPanelContent(activeEmployers || []);
-    this.elements.panelContent.innerHTML = content;
-  },
-
-  _buildEmploymentPanelContent(activeEmployers) {
-    const data = AppData.employmentData;
-    if (!data) return "";
-
-    const briefcaseIcon =
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>';
-
-    const rowsHtml = (data.companies || [])
-      .map((company) => {
-        const isActive = activeEmployers.includes(company.id);
-        return toggleRow({
-          id: company.id,
-          label: company.name,
-          color: company.color || "#007aff",
-          icon: briefcaseIcon,
-          active: isActive,
-          onclick: `App.toggleEmployer('${company.id}')`,
-        });
-      })
-      .join("");
-
-    let detailHtml = "";
-    if (activeEmployers.length > 0) {
-      const cardsHtml = activeEmployers
-        .map((empId) => {
-          const company = (data.companies || []).find((c) => c.id === empId);
-          if (!company) return "";
-
-          const statsHtml = (company.stats || [])
-            .map(
-              (s) =>
-                `<div class="stat-item"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`,
-            )
-            .join("");
-
-          const evidenceImages = {
-            jasm: "assets/use-case-images/step-7-TSMC.webp",
-            tel: "assets/use-case-images/step-7-TEL.webp",
-          };
-          const evidenceImage = evidenceImages[company.id];
-
-          const card = evidenceCard({
-            color: company.color || "#007aff",
-            subtitle: company.headlineLabel,
-            title: company.headline,
-            description: company.description,
-            stats: [],
-            extra: company.quote ? `<blockquote style="font-size: var(--text-sm); color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); padding-left: var(--space-3); margin: var(--space-3) 0; font-style: italic;">"${company.quote}"<br/><span style="font-size: var(--text-xs); color: var(--color-text-tertiary); font-style: normal;">- ${company.quoteSource || ""}</span></blockquote>` : "",
-          });
-          const btn = evidenceImage ? `<button class="panel-btn secondary" style="margin-top: var(--space-4);" onclick="UI.showQuickLook({ type: 'image', src: '${evidenceImage}', title: '${(company.evidence?.title || company.name).replace(/'/g, "\\'")}' })">${t("View evidence")}</button>` : "";
-          return card + btn;
-        })
-        .join("");
-
-      detailHtml = `
-        <div style="margin-top: var(--space-6);">
-          <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-            ${cardsHtml}
-          </div>
-        </div>`;
-    }
-
-    return `
-      ${panelHeader(t("Employment data"), t("Talent pipeline"), data.summary)}
-      <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
-        ${rowsHtml}
-      </div>
-      ${detailHtml}
+      ${proseBlock(tier.description || "")}
+      ${statSection({ label: tier.name, tier: tierSlug, items: stats })}
+      ${municipalityItems.length ? listSection({ label: t("Municipalities"), items: municipalityItems }) : ""}
     `;
   },
 
-  showUniversitiesPanel(activeUniversities) {
-    const content = this._buildUniversitiesPanelContent(activeUniversities);
-    this.showPanel(content);
+  showEducationPanel() {
+    this._educationActiveTab = this._educationActiveTab || "universities";
+    const tabs = [
+      { id: "universities", label: t("Universities"), onclick: `App._handleEducationSubItem('universities')` },
+      { id: "employment", label: t("Employment"), onclick: `App._handleEducationSubItem('employment')` },
+    ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._educationActiveTab),
+    );
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 7 · ${t("Education and talent pipeline")}`,
+        title: t("Education and talent pipeline"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildEducationTabBody(this._educationActiveTab),
+        footerHtml: this._buildEducationTabFooter(this._educationActiveTab),
+      }),
+    );
   },
 
-  updateUniversitiesPanel(activeUniversities) {
-    const content = this._buildUniversitiesPanelContent(activeUniversities);
-    this.elements.panelContent.innerHTML = content;
-  },
+  _buildEducationTabBody(tabId) {
+    if (tabId === "employment") {
+      const data = AppData.employmentData;
+      if (!data) return "";
+      const companies = data.companies || [];
 
-  _buildUniversitiesPanelContent(activeUniversities) {
-    const institutions = AppData.talentPipeline?.institutions || [];
+      const logoMap = {
+        jasm: "assets/Jasm-logo.svg",
+        tel: "assets/Tokyo-electron-logo.svg",
+      };
+      const items = companies.map((c) => {
+        const logo = logoMap[c.id];
+        const icon = logo
+          ? `<img src="${logo}" alt="${(c.name || "").replace(/"/g, "&quot;")}" />`
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>';
+        return {
+          icon,
+          title: c.name,
+          sub: c.headlineLabel || "",
+          value: c.headline || "",
+        };
+      });
 
-    const graduationIcon =
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg>';
+      const jasm = companies.find((c) => c.id === "jasm");
+      const salaryItems = (jasm?.stats || []).map((s, i) => ({
+        label: s.label,
+        value: s.value,
+        hero: i === 0,
+      }));
 
-    const rowsHtml = institutions
-      .map((inst) => {
-        const isActive = activeUniversities.includes(inst.id);
-        return toggleRow({
-          id: inst.id,
-          label: inst.name,
-          color: inst.color,
-          icon: graduationIcon,
-          active: isActive,
-          onclick: `App.toggleUniversity('${inst.id}')`,
-        });
-      })
-      .join("");
+      const evidenceImg = "assets/use-case-images/step-7-TSMC.webp";
+      const evidenceTitle = t("METI semiconductor workforce report");
 
-    let detailHtml = "";
-    if (activeUniversities.length > 0) {
-      const cardsHtml = activeUniversities
-        .map((uniId) => {
-          const inst = institutions.find((i) => i.id === uniId);
-          if (!inst) return "";
-          return evidenceCard({
-            color: inst.color,
-            subtitle: inst.city,
-            title: inst.fullName || inst.name,
-            description: inst.description || inst.role,
-            stats: [],
-          });
-        })
-        .join("");
-
-      detailHtml = `
-        <div style="margin-top: var(--space-6);">
-          <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-            ${cardsHtml}
-          </div>
-        </div>`;
+      return `
+        ${proseBlock(data.summary || "")}
+        ${salaryItems.length ? statSection({ label: t("Salary comparison"), items: salaryItems }) : ""}
+        ${listSection({ label: t("Major employers"), items })}
+        <div class="step-section">
+          ${evidenceBlockHtml({
+            title: evidenceTitle,
+            description: t("Workforce growth and salary data."),
+            onclick: `UI.showQuickLook({ type: 'image', src: '${evidenceImg}', title: '${evidenceTitle}' })`,
+          })}
+        </div>
+      `;
     }
 
+    // universities (default)
+    const pipeline = AppData.talentPipeline;
+    if (!pipeline) return "";
+    const fallbackIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
+    const items = (pipeline.institutions || []).map((inst) => ({
+      icon: inst.logo
+        ? `<img src="${inst.logo}" alt="${(inst.fullName || inst.name || "").replace(/"/g, "&quot;")}" />`
+        : fallbackIcon,
+      title: inst.fullName || inst.name,
+      sub: inst.role || "",
+      value: inst.city || "",
+    }));
     return `
-      ${panelHeader(t("Education and talent pipeline"), t("Education pipeline"), AppData.talentPipeline?.description || "")}
-      <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
-        ${rowsHtml}
-      </div>
-      ${detailHtml}
+      ${proseBlock(pipeline.description || "")}
+      ${listSection({ label: t("Institutions"), items })}
     `;
+  },
+
+  _buildEducationTabFooter(tabId) {
+    if (tabId !== "employment") return "";
+    const evidenceImg = "assets/use-case-images/step-7-TSMC.webp";
+    const evidenceTitle = t("METI semiconductor workforce report");
+    return `<button type="button" class="cta secondary" style="width: 100%;" onclick="UI.showQuickLook({ type: 'image', src: '${evidenceImg}', title: '${evidenceTitle}' })">${t("View evidence")}</button>`;
   },
 
   /**
@@ -1045,127 +1166,138 @@ export const methods = {
   showAirlineRoutePanel(destination) {
     const isSuspended = destination.status === "suspended";
 
-    // Headline metric
-    const headlineHtml = isSuspended
-      ? `
-                <div class="stat-grid" style="grid-template-columns: 1fr;">
-                    <div class="stat-item" style="text-align: center;">
-                        <div class="stat-label" style="color: var(--color-text-tertiary); margin-bottom: var(--space-1);">${t("Service suspended")}</div>
-                        <div class="stat-value" style="font-size: var(--text-2xl); color: var(--color-text-tertiary);">${destination.flightTime}</div>
-                        <div class="stat-label">${t("Flight time when active")}</div>
-                    </div>
-                </div>
-            `
-      : `
-                <div class="stat-grid" style="grid-template-columns: 1fr;">
-                    <div class="stat-item" style="text-align: center;">
-                        <div class="stat-value" style="font-size: var(--text-4xl); color: var(--color-info);">${destination.flightTime}</div>
-                        <div class="stat-label">${t("Direct flight time")}</div>
-                    </div>
-                </div>
-            `;
+    const heroLabel = isSuspended
+      ? `${t("Service suspended")} - ${t("Flight time when active")}`
+      : t("Direct flight time");
 
-    // Compact stats: region + airlines only
-    const statsHtml = `
-            <div class="stat-item">
-                <div class="stat-value">${destination.airlines.join(", ")}</div>
-                <div class="stat-label">${t("Airlines")}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${destination.region}</div>
-                <div class="stat-label">${t("Region")}</div>
-            </div>
-        `;
-
-    // Semiconductor connection badge
-    const semiBadge = destination.semiconductorLink
-      ? `<div class="semiconductor-badge" style="
-                display: inline-flex;
-                align-items: center;
-                gap: var(--space-2);
-                padding: var(--space-1) var(--space-3);
-                background: ${destination.semiconductorLink.color}15;
-                border: 1px solid ${destination.semiconductorLink.color}40;
-                border-radius: var(--radius-small);
-                font-family: var(--font-display);
-                font-size: var(--text-sm);
-                font-weight: var(--font-weight-semibold);
-                color: ${destination.semiconductorLink.color};
-                margin-bottom: var(--space-4);
-            ">${destination.semiconductorLink.company} - ${destination.semiconductorLink.role}</div>`
+    const semiSection = destination.semiconductorLink
+      ? `<div class="step-section">${evidenceBlockHtml({
+          title: destination.semiconductorLink.company,
+          description: destination.semiconductorLink.role,
+        })}</div>`
       : "";
 
-    const content = `
-            ${panelHeader(t("International route"), `${destination.name} (${destination.code})`)}
-            ${semiBadge}
+    const bodyHtml = `
+      ${statSection({
+        items: [
+          { label: heroLabel, value: destination.flightTime, hero: true },
+        ],
+      })}
+      ${semiSection}
+      ${statSection({
+        items: [
+          { label: t("Airlines"), value: destination.airlines.join(", ") },
+          { label: t("Region"), value: destination.region },
+        ],
+      })}
+      ${proseBlock(destination.description || "")}
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: t("View all routes"),
+          description: t("All international routes from Aso Kumamoto Airport."),
+          onclick: `UI.showAllAirlineRoutes()`,
+        })}
+      </div>
+    `;
 
-            ${headlineHtml}
-
-            <div class="stat-grid">
-                ${statsHtml}
-            </div>
-
-            <p>${destination.description}</p>
-
-            <button class="panel-btn secondary" onclick="UI.showAllAirlineRoutes()">
-                ${t("View all routes")}
-            </button>
-        `;
-
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("International route"),
+        title: `${destination.name} (${destination.code})`,
+        bodyHtml,
+      }),
+    );
   },
 
-  /**
-   * Show all airline routes summary panel.
-   * Clean table layout: destination name aligned left, flight time aligned right.
-   */
   showAllAirlineRoutes() {
-    const routes = AppData.airlineRoutes.destinations;
+    this._airlineActiveTab = this._airlineActiveTab || "routes";
+    const tabs = [
+      { id: "routes", label: t("Routes"), onclick: `UI.switchAirlineTab('routes')` },
+      { id: "hub", label: t("Hub"), onclick: `UI.switchAirlineTab('hub')` },
+    ];
+    const activeIndex = Math.max(
+      0,
+      tabs.findIndex((tab) => tab.id === this._airlineActiveTab),
+    );
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `${t("Step")} 3 · ${t("Strategic location")}`,
+        title: t("Aso Kumamoto Airport"),
+        tabs,
+        activeIndex,
+        bodyHtml: this._buildAirlineTabBody(this._airlineActiveTab),
+      }),
+    );
+  },
+
+  switchAirlineTab(tabId) {
+    this._airlineActiveTab = tabId;
+    const tabIds = ["routes", "hub"];
+    const activeIndex = Math.max(0, tabIds.indexOf(tabId));
+    const body = this.elements.panelContent?.querySelector(".panel-a-body");
+    if (body) body.innerHTML = this._buildAirlineTabBody(tabId);
+    this.elements.panelContent
+      ?.querySelectorAll(".panel-a-tab")
+      .forEach((btn, i) => {
+        btn.setAttribute(
+          "aria-selected",
+          i === activeIndex ? "true" : "false",
+        );
+      });
+  },
+
+  _buildAirlineTabBody(tabId) {
+    const routes = AppData.airlineRoutes?.destinations || [];
     const activeRoutes = routes.filter((r) => r.status === "active");
 
-    const renderRouteRow = (r) => `
-            <div class="disclosure-item route-list-item" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(d => d.id === '${r.id}'))" style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: var(--space-3) var(--space-4);
-                cursor: pointer;
-                transition: background var(--duration-fast) var(--easing-standard);
-            ">
-                <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
-                    <span style="font-weight: var(--font-weight-medium); white-space: nowrap;">${r.name}</span>
-                    <span style="font-size: var(--text-sm); color: var(--color-text-tertiary);">${r.airlines.join(", ")}</span>
-                </div>
-                <span style="font-family: var(--font-display); font-weight: var(--font-weight-semibold); color: var(--color-text-secondary); white-space: nowrap; margin-left: var(--space-4);">${r.flightTime}</span>
-            </div>
-        `;
+    if (tabId === "hub") {
+      const regions = [...new Set(activeRoutes.map((r) => r.region))];
+      const airlines = [...new Set(activeRoutes.flatMap((r) => r.airlines))];
+      const semiLinks = activeRoutes
+        .filter((r) => r.semiconductorLink)
+        .map((r) => r.semiconductorLink.company);
+      return `
+        ${proseBlock(t("Aso Kumamoto Airport's role as the corridor's direct gateway to Asia and the semiconductor supply chain."))}
+        ${statSection({
+          label: t("Hub overview"),
+          items: [
+            { label: t("Direct destinations"), value: `${activeRoutes.length}`, hero: true },
+            { label: t("Primary regions"), value: regions.join(", ") },
+            { label: t("Active airlines"), value: `${airlines.length}` },
+            { label: t("Semiconductor links"), value: semiLinks.join(" + ") || "-" },
+          ],
+        })}
+      `;
+    }
 
-    // Initialize disclosure state
-    this.disclosureState["active-routes"] = true;
+    // routes (default)
+    const planeIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>';
+    const items = activeRoutes.map((r) => ({
+      icon: planeIcon,
+      title: r.name,
+      sub: r.airlines.join(", "),
+      value: r.flightTime,
+    }));
+    const sectionHtml = listSection({
+      label: `${t("Active routes")} (${activeRoutes.length})`,
+      items,
+    });
+    // Wire click handlers so each row opens the single-route panel.
+    const wiredSectionHtml = activeRoutes.reduce(
+      (html, r) =>
+        html.replace(
+          '<li class="step-list-item">',
+          `<li class="step-list-item" style="cursor: pointer;" onclick="UI.showAirlineRoutePanel(AppData.airlineRoutes.destinations.find(function(d){return d.id === '${r.id}';}))">`,
+        ),
+      sectionHtml,
+    );
 
-    const content = `
-            ${panelHeader(t("Aso Kumamoto Airport"), t("International routes"))}
-            <p style="margin-bottom: var(--space-4);">${t("Direct connections to")} ${activeRoutes.length} ${t("destinations across Korea, Taiwan, and greater Asia.")}</p>
-
-            <div class="disclosure-group expanded" data-group-id="active-routes">
-                <button class="disclosure-header" aria-expanded="true" onclick="UI.toggleDisclosureGroup('active-routes')">
-                    <span class="disclosure-triangle" aria-hidden="true">
-                        <svg class="triangle-collapsed" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l6 4-6 4V4z"/></svg>
-                        <svg class="triangle-expanded" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 6 4-6H4z"/></svg>
-                    </span>
-                    <span class="disclosure-icon" style="color: var(--color-success);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1l5.2 3L6 14.3 3.7 14c-.4 0-.7.2-.9.5l-.1.3c-.1.3 0 .7.3.9l2.4 1.4 1.4 2.4c.2.3.6.4.9.3l.3-.1c.3-.2.5-.5.5-.9L8.3 16l3 2.9c.5.4 1 .5 1.4.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
-                    </span>
-                    <span class="disclosure-title">${t("Active routes")}</span>
-                    <span class="disclosure-badge">${activeRoutes.length}</span>
-                </button>
-                <div class="disclosure-content">
-                    ${activeRoutes.map((r) => renderRouteRow(r)).join("")}
-                </div>
-            </div>
-        `;
-
-    this.showPanel(content);
+    return `
+      ${proseBlock(`${t("Direct connections to")} ${activeRoutes.length} ${t("destinations across Korea, Taiwan, and greater Asia.")}`)}
+      ${wiredSectionHtml}
+    `;
   },
 
   /**
@@ -1274,40 +1406,45 @@ export const methods = {
    * @param {Array} properties - array of property objects in this zone
    */
   showZonePropertiesPanel(label, properties, options = {}) {
-    const rows = properties
-      .map((p) => {
-        const typeLabel = p.type || p.subtitle || "";
-        return `
-        <div class="zone-property-row" data-property-id="${p.id}"
-             style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-medium); cursor: pointer;">
-          <div style="width: 32px; height: 32px; border-radius: var(--radius-full); background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${MAP_COLORS.property}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          </div>
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--font-weight-medium); color: var(--color-text-primary);">${p.name}</div>
-            <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: 2px;">${typeLabel}</div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-        </div>`;
-      })
-      .join("");
+    const propertyIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="${MAP_COLORS.property}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
 
-    const evidenceBtn = options.evidencePdf
-      ? `<button class="panel-evidence-btn" onclick="UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: '${t("Evidence report")}' })" style="display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-6); padding: var(--space-3) var(--space-6); font-family: var(--font-display); font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); background: transparent; border: 1px solid var(--color-bg-tertiary); border-radius: var(--radius-full); cursor: pointer;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          ${t("View evidence")}
-        </button>`
-      : "";
+    const items = properties.map((p) => ({
+      icon: propertyIcon,
+      title: p.name,
+      sub: p.type || p.subtitle || "",
+    }));
 
-    const content = `
-      ${panelHeader(t("Properties"), label)}
-      <p style="color: var(--color-text-secondary); margin-top: var(--space-3);">${properties.length} ${properties.length === 1 ? t("property") : t("properties")} ${t("in this zone")}</p>
-      <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-6);">
-        ${rows}
-      </div>
-      ${evidenceBtn}`;
+    // Wire each li to selectProperty by id.
+    const baseList = listSection({ items });
+    let wired = baseList;
+    properties.forEach((p) => {
+      wired = wired.replace(
+        '<li class="step-list-item">',
+        `<li class="step-list-item" style="cursor: pointer;" onclick="App.selectProperty('${p.id}')">`,
+      );
+    });
 
-    this.showPanel(content);
+    const bodyHtml = `
+      ${proseBlock(`${properties.length} ${properties.length === 1 ? t("property") : t("properties")} ${t("in this zone")}`)}
+      ${wired}
+      ${
+        options.evidencePdf
+          ? `<div class="step-section">${evidenceBlockHtml({
+              title: t("Evidence report"),
+              description: t("Open the official zone evidence PDF."),
+              onclick: `UI.showQuickLook({ type: 'pdf', src: '${options.evidencePdf}', title: '${t("Evidence report")}' })`,
+            })}</div>`
+          : ""
+      }
+    `;
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Properties"),
+        title: label,
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -1333,58 +1470,43 @@ export const methods = {
       road: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5ac8fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
     };
 
-    let connectionsHtml = "";
+    const items = [
+      {
+        icon: connectionIcons.jasm,
+        title: t("JASM (TSMC)"),
+        sub: `${conn.jasm.distance} - ${conn.jasm.time} ${t("drive")}`,
+      },
+      {
+        icon: connectionIcons.station,
+        title: conn.station.name,
+        sub: `${conn.station.distance} - ${conn.station.time}`,
+      },
+      {
+        icon: connectionIcons.airport,
+        title: t("Kumamoto Airport"),
+        sub: `${conn.airport.distance} - ${conn.airport.time} ${t("drive")}`,
+      },
+      {
+        icon: connectionIcons.road,
+        title: conn.road.name,
+        sub: t("Planned infrastructure extension"),
+      },
+    ];
 
-    // JASM
-    connectionsHtml += connectionItem(
-      connectionIcons.jasm,
-      t("JASM (TSMC)"),
-      `${conn.jasm.distance} - ${conn.jasm.time} ${t("drive")}`,
+    const bodyHtml = `
+      ${listSection({ label: t("Connections"), items })}
+      ${proseBlock(t("Click the property marker to explore details"))}
+    `;
+
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Infrastructure access"),
+        title: property.name,
+        bodyHtml,
+      }),
+      { clearHistory: true },
     );
-
-    // Station
-    connectionsHtml += connectionItem(
-      connectionIcons.station,
-      conn.station.name,
-      `${conn.station.distance} - ${conn.station.time}`,
-    );
-
-    // Airport
-    connectionsHtml += connectionItem(
-      connectionIcons.airport,
-      t("Kumamoto Airport"),
-      `${conn.airport.distance} - ${conn.airport.time} ${t("drive")}`,
-    );
-
-    // Road
-    connectionsHtml += connectionItem(
-      connectionIcons.road,
-      conn.road.name,
-      t("Planned infrastructure extension"),
-    );
-
-    const html = `
-      <div class="inspector-resize-handle"></div>
-      <div class="inspector-title-bar">
-        <div class="inspector-subtitle">${t("Infrastructure access")}</div>
-        <h2 class="inspector-title">${property.name}</h2>
-      </div>
-      <div class="inspector-body">
-        <div class="context-connections-list">
-          ${connectionsHtml}
-        </div>
-        <div class="context-prompt">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 4 4 4-4"/></svg>
-          <span>${t("Click the property marker to explore details")}</span>
-        </div>
-      </div>`;
-
-    this.showPanel(html, { clearHistory: true });
     this.currentProperty = property;
-
-    setTimeout(() => {
-      this.initPanelResize();
-    }, 0);
   },
 
   /**
@@ -1422,39 +1544,26 @@ export const methods = {
     const name = names[type];
     const subtitle = subtitles[type];
 
-    let statsHtml = "";
+    const statItems = [];
     if (target.distance) {
-      statsHtml += `
-        <div class="panel-bento-stat">
-          <div class="panel-bento-stat-value">${target.distance}</div>
-          <div class="panel-bento-stat-label">${t("Distance")}</div>
-        </div>`;
+      statItems.push({ label: t("Distance"), value: target.distance });
     }
     if (target.time) {
-      statsHtml += `
-        <div class="panel-bento-stat">
-          <div class="panel-bento-stat-value">${target.time}</div>
-          <div class="panel-bento-stat-label">${t("Drive time")}</div>
-        </div>`;
+      statItems.push({ label: t("Drive time"), value: target.time });
     }
 
-    const html = `
-      <div class="inspector-resize-handle"></div>
-      <div class="inspector-title-bar">
-        <div class="inspector-subtitle" style="color: ${color};">${subtitle}</div>
-        <h2 class="inspector-title">${name}</h2>
-      </div>
-      <div class="inspector-body">
-        <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--space-3);">
-          ${t("Connection from")} ${property.name}
-        </p>
-        ${statsHtml ? `<div class="panel-bento-stats" style="margin-top: var(--space-4);">${statsHtml}</div>` : ""}
-      </div>`;
+    const bodyHtml = `
+      ${proseBlock(`${t("Connection from")} ${property.name}`)}
+      ${statItems.length ? statSection({ items: statItems }) : ""}
+    `;
 
-    this.showPanel(html);
-    setTimeout(() => {
-      this.initPanelResize();
-    }, 0);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: `<span style="color: ${color};">${subtitle}</span>`,
+        title: name,
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -1587,93 +1696,74 @@ export const methods = {
       scenario,
     );
 
-    const content = `
-            ${panelHeader(t("Financial projection"), t("Performance calculator"))}
+    const scenarioBtns = `
+      <div class="step-section">
+        ${sectionLabel(t("Scenario"))}
+        <div style="display: inline-flex; gap: var(--space-1); background: var(--color-bg-secondary); padding: 2px; border-radius: var(--radius-small);">
+          ${["bear", "average", "bull"]
+            .map(
+              (sc) =>
+                `<button type="button" style="appearance: none; border: none; background: ${
+                  scenario === sc ? "var(--color-bg-primary)" : "transparent"
+                }; padding: var(--space-1) var(--space-3); font-family: var(--font-display); font-size: var(--text-xs); font-weight: ${
+                  scenario === sc
+                    ? "var(--font-weight-semibold)"
+                    : "var(--font-weight-medium)"
+                }; color: var(--color-text-primary); border-radius: calc(var(--radius-small) - 2px); cursor: pointer;" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, '${sc}')">${sc.charAt(0).toUpperCase() + sc.slice(1)}</button>`,
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
 
-            <!-- HEADLINE STAT - Von Restorff Effect -->
-            <div class="headline-stat">
-                <div class="headline-stat-label">${t("Projected 5-year return")}</div>
-                <div class="headline-stat-value">${formatYenCompact(data.netProfit)}</div>
-                <div class="headline-stat-sublabel">${scenario.charAt(0).toUpperCase() + scenario.slice(1)} ${t("case scenario")}</div>
-            </div>
+    const breakdownItems = [
+      { label: t("Appreciation rate"), value: `${formatPercent(data.appreciation)}/${t("yr")}` },
+      { label: t("Est. selling price (5yr)"), value: sellingPriceInfo.display },
+      { label: t("Rental yield"), value: formatPercent(data.noiTicRatio || data.irr || 0) },
+      { label: t("Annual rental income"), value: formatYen(data.annualRent) },
+      { label: t("Applicable taxes"), value: formatYen(data.taxes) },
+    ];
 
-            <!-- SCENARIO SELECTOR -->
-            <div class="calculator-section">
-                <h4>${t("Scenario comparison")}</h4>
-                <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
-                    <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios")}"></canvas>
-                </div>
-                <div id="scenario-chart-table"></div>
+    const bodyHtml = `
+      ${statSection({
+        items: [
+          {
+            label: `${t("Projected 5-year return")} - ${scenario.charAt(0).toUpperCase() + scenario.slice(1)} ${t("case")}`,
+            value: formatYenCompact(data.netProfit),
+            hero: true,
+          },
+        ],
+      })}
+      ${scenarioBtns}
+      <div class="step-section">
+        ${sectionLabel(t("Scenario comparison"))}
+        <div style="height: 120px;">
+          <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios")}"></canvas>
+        </div>
+        <div id="scenario-chart-table"></div>
+      </div>
+      ${statSection({ label: t("Detailed breakdown"), items: breakdownItems })}
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: t("View rental report"),
+          description: t("Open the detailed rental projection."),
+          onclick: `UI.showEvidence('${property.id}', 'rental')`,
+        })}
+        ${evidenceBlockHtml({
+          title: t("Area statistics"),
+          description: t("Compare to nearby market averages."),
+          onclick: `UI.showAreaStats()`,
+        })}
+      </div>
+    `;
 
-                <div class="scenario-toggle">
-                    <button class="scenario-btn ${scenario === "bear" ? "active" : ""}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'bear')">
-                        <span class="scenario-icon" aria-hidden="true">▼</span> ${t("Bear")}
-                    </button>
-                    <button class="scenario-btn ${scenario === "average" ? "active" : ""}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'average')">
-                        <span class="scenario-icon" aria-hidden="true">—</span> ${t("Average")}
-                    </button>
-                    <button class="scenario-btn ${scenario === "bull" ? "active" : ""}" onclick="UI.showPerformanceCalculatorEnhanced(UI.currentProperty, 'bull')">
-                        <span class="scenario-icon" aria-hidden="true">▲</span> ${t("Bull")}
-                    </button>
-                </div>
-            </div>
-
-            <!-- PROGRESSIVE DISCLOSURE - Detailed Breakdown -->
-            <div class="financials-disclosure" id="financials-disclosure">
-                <button class="financials-disclosure-header" onclick="UI.toggleFinancialsDisclosure()" aria-expanded="false" aria-controls="financials-details">
-                    <span class="financials-disclosure-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                        </svg>
-                        ${t("View detailed breakdown")}
-                    </span>
-                    <span class="financials-disclosure-chevron">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </span>
-                </button>
-                <div class="financials-disclosure-content" id="financials-details">
-                    <div class="calc-row">
-                        <span class="calc-label">${t("Appreciation rate")}</span>
-                        <span class="calc-value">${formatPercent(data.appreciation)}/${t("yr")}</span>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label">${t("Est. selling price (5yr)")}</span>
-                        <div class="calc-value-with-confidence">
-                            <span class="calc-value">${sellingPriceInfo.display}</span>
-                            <span class="confidence-range" title="${confidence.level} confidence">
-                                ${t("Range:")} ${sellingPriceInfo.range}
-                                <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label">${t("Rental yield")}</span>
-                        <span class="calc-value">${formatPercent(data.noiTicRatio || data.irr || 0)}</span>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label">${t("Annual rental income")}</span>
-                        <span class="calc-value">${formatYen(data.annualRent)}</span>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label">${t("Applicable taxes")}</span>
-                        <span class="calc-value negative">${formatYen(data.taxes)}</span>
-                    </div>
-                </div>
-            </div>
-
-            ${dataAttribution(t("Price data from Kumamoto Land Registry (Jan 2026)"))}
-
-            <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
-                ${t("View rental report")}
-            </button>
-            <button class="panel-btn" onclick="UI.showAreaStats()">
-                ${t("Area statistics")}
-            </button>
-        `;
-
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Financial projection"),
+        title: t("Performance calculator"),
+        bodyHtml,
+      }),
+    );
 
     // Render chart after DOM update
     setTimeout(() => this.renderScenarioChart(property), 50);

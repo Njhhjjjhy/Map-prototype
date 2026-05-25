@@ -125,11 +125,6 @@
   cursor: grabbing;
 }
 
-/* Desktop resize handle is meaningless on mobile */
-[data-embed="1"]:not([data-embed-host="valueadd"]) .inspector-resize-handle {
-  display: none !important;
-}
-
 /* ─── Sheet toolbar ─── On mobile we never let the sheet fully close
    (the map is meaningless without context), so both buttons are hidden.
    The handle pill at the top of the sheet is the only affordance and

@@ -9,8 +9,11 @@ import { stepHandlers } from "./step-handlers.js";
 import {
   panelHeader,
   evidenceImage,
+  proseBlock,
+  imageBlock,
 } from "./shared/templates.js";
 import { t } from "./i18n/index.js";
+import { buildCompactTabsHtml } from "./ui/inspector-tabs.js";
 import { $id, $all } from "./shared/dom-scope.js";
 
 /**
@@ -450,7 +453,7 @@ const App = {
         break;
 
       case "education-pipeline":
-        UI.showUniversitiesPanel(this.state.activeUniversities);
+        this._handleEducationSubItem("universities");
         break;
 
       case "future-outlook":
@@ -458,10 +461,7 @@ const App = {
         break;
 
       case "investment-zones":
-        UI.showPanel(`
-                    ${panelHeader(t("Silicon triangle"), t("Investment opportunity zones"), t("Three zones with distinct roles in the semiconductor ecosystem. Click a zone to see details."))}
-                    ${evidenceImage("assets/use-case-images/evidence-tsmc-infrastructure-overview.webp", t("TSMC infrastructure overview"))}
-                `);
+        this._handleInvestmentZoneSubItem("central-city-zone");
         break;
 
       case "properties":

@@ -1,8 +1,17 @@
 import { AppData } from "../data/index.js";
 import { TIMING } from "../app.js";
-import { panelHeader, statGrid, dataAttribution } from "../shared/templates.js";
+import {
+  panelHeader,
+  statGrid,
+  dataAttribution,
+  proseBlock,
+  statSection,
+  evidenceBlockHtml,
+  sectionLabel,
+} from "../shared/templates.js";
 import { t } from "../i18n/index.js";
 import { $id } from "../shared/dom-scope.js";
+import { buildCompactTabsHtml } from "./inspector-tabs.js";
 
 export const methods = {
   destroyChart(chartId) {
@@ -314,27 +323,37 @@ export const methods = {
     const property = this.currentProperty;
     if (!property) return;
 
-    const driversHtml = property.truthEngine
+    const driversSections = property.truthEngine
       .map(
         (driver) => `
-            <div style="background: #f8f8f8; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
-                <h4 style="font-size: 16px; margin-bottom: 8px;">${driver.title}</h4>
-                <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">${driver.description}</p>
-                <div style="font-size: 14px; font-weight: 600; color: #22c55e;">${driver.impact}</div>
-            </div>
+          ${sectionLabel(driver.impact)}
+          <div class="step-section">
+            <p class="step-list-title" style="margin: 0;">${driver.title}</p>
+            ${proseBlock(driver.description)}
+          </div>
         `,
       )
       .join("");
 
-    const content = `
-            ${panelHeader(t("Growth drivers"), t("Truth engine"), t("Key factors driving future value appreciation for this property:"))}
-            ${driversHtml}
-            <button class="panel-btn primary" onclick="UI.showPerformanceCalculator()">
-                ${t("Performance calculator")}
-            </button>
-        `;
+    const bodyHtml = `
+      ${proseBlock(t("Key factors driving future value appreciation for this property:"))}
+      ${driversSections}
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: t("Performance calculator"),
+          description: t("Open the projected return calculator."),
+          onclick: "UI.showPerformanceCalculator()",
+        })}
+      </div>
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Growth drivers"),
+        title: t("Truth engine"),
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -369,84 +388,67 @@ export const methods = {
     const netProfitInfo = this.formatWithConfidence(data.netProfit, scenario);
     const confidence = this.getConfidenceInfo(scenario);
 
-    const content = `
-            ${panelHeader(t("Financial projection"), t("Performance calculator"))}
+    const scenarioBtns = `
+      <div class="step-section">
+        ${sectionLabel(`${t("Details")} - ${t(scenario.charAt(0).toUpperCase() + scenario.slice(1))} ${t("Case")}`)}
+        <div style="display: inline-flex; gap: var(--space-1); background: var(--color-bg-secondary); padding: 2px; border-radius: var(--radius-small);">
+          ${["bear", "average", "bull"]
+            .map(
+              (sc) =>
+                `<button type="button" style="appearance: none; border: none; background: ${
+                  scenario === sc ? "var(--color-bg-primary)" : "transparent"
+                }; padding: var(--space-1) var(--space-3); font-family: var(--font-display); font-size: var(--text-xs); font-weight: ${
+                  scenario === sc
+                    ? "var(--font-weight-semibold)"
+                    : "var(--font-weight-medium)"
+                }; color: var(--color-text-primary); border-radius: calc(var(--radius-small) - 2px); cursor: pointer;" onclick="UI.updateCalculator(UI.currentProperty, '${sc}')">${t(sc.charAt(0).toUpperCase() + sc.slice(1))}</button>`,
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
 
-            <div class="calculator-section">
-                <h4>${t("Scenario comparison")}</h4>
-                <div class="chart-container" style="height: 120px; margin-bottom: 16px;">
-                    <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios")}: ${t("Bear")} ${formatYen(fin.scenarios.bear.netProfit)}, ${t("Average")} ${formatYen(fin.scenarios.average.netProfit)}, ${t("Bull")} ${formatYen(fin.scenarios.bull.netProfit)}"></canvas>
-                </div>
-                <div id="scenario-chart-table"></div>
+    const breakdownItems = [
+      { label: t("Appreciation rate"), value: `${formatPercent(data.appreciation)}/yr` },
+      { label: t("Est. selling price (5yr)"), value: sellingPriceInfo.display },
+      { label: t("Rental yield"), value: formatPercent(data.noiTicRatio || data.irr || 0) },
+      { label: t("Annual rental income"), value: formatYen(data.annualRent) },
+      { label: t("Applicable taxes"), value: formatYen(data.taxes) },
+      { label: t("Net profit (5yr)"), value: formatYenSigned(data.netProfit), hero: true },
+    ];
 
-                <h4>${t("Details")}: <span class="scenario-label">${t(scenario.charAt(0).toUpperCase() + scenario.slice(1))} ${t("Case")}</span></h4>
-                <div class="scenario-toggle">
-                    <button class="scenario-btn ${scenario === "bear" ? "active" : ""}" onclick="UI.updateCalculator(UI.currentProperty, 'bear')">
-                        <span class="scenario-icon" aria-hidden="true">▼</span> ${t("Bear")}
-                    </button>
-                    <button class="scenario-btn ${scenario === "average" ? "active" : ""}" onclick="UI.updateCalculator(UI.currentProperty, 'average')">
-                        <span class="scenario-icon" aria-hidden="true">—</span> ${t("Average")}
-                    </button>
-                    <button class="scenario-btn ${scenario === "bull" ? "active" : ""}" onclick="UI.updateCalculator(UI.currentProperty, 'bull')">
-                        <span class="scenario-icon" aria-hidden="true">▲</span> ${t("Bull")}
-                    </button>
-                </div>
+    const bodyHtml = `
+      <div class="step-section">
+        ${sectionLabel(t("Scenario comparison"))}
+        <div style="height: 120px;">
+          <canvas id="scenario-chart" role="img" aria-label="${t("Bar chart comparing investment scenarios")}"></canvas>
+        </div>
+        <div id="scenario-chart-table"></div>
+      </div>
+      ${scenarioBtns}
+      ${statSection({ label: t("Breakdown"), items: breakdownItems })}
+      <div class="step-section">
+        ${evidenceBlockHtml({
+          title: t("View rental report"),
+          description: t("Open the detailed rental projection."),
+          onclick: `UI.showEvidence('${property.id}', 'rental')`,
+        })}
+        ${evidenceBlockHtml({
+          title: t("Area statistics"),
+          description: t("Compare to nearby market averages."),
+          onclick: `UI.showAreaStats()`,
+        })}
+      </div>
+    `;
 
-                <div class="calc-row">
-                    <span class="calc-label">${t("Appreciation rate")}</span>
-                    <span class="calc-value">${formatPercent(data.appreciation)}/yr</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label">${t("Est. selling price (5yr)")}</span>
-                    <div class="calc-value-with-confidence">
-                        <span class="calc-value">${sellingPriceInfo.display}</span>
-                        <span class="confidence-range" title="${t(confidence.level)} ${t("confidence")}">
-                            ${t("Range")}: ${sellingPriceInfo.range}
-                            <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
-                        </span>
-                    </div>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label">${t("Rental yield")}</span>
-                    <span class="calc-value">${formatPercent(data.noiTicRatio || data.irr || 0)}</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label">${t("Annual rental income")}</span>
-                    <span class="calc-value">${formatYen(data.annualRent)}</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label">${t("Applicable taxes")}</span>
-                    <span class="calc-value negative">${formatYen(data.taxes)}</span>
-                </div>
-                <div class="calc-row total">
-                    <span class="calc-label">${t("Net profit (5yr)")}</span>
-                    <div class="calc-value-with-confidence">
-                        <span class="calc-value positive">${formatYenSigned(data.netProfit)}</span>
-                        <span class="confidence-range" title="${t(confidence.level)} ${t("confidence")}">
-                            ${t("Range")}: ${netProfitInfo.range}
-                            <span class="confidence-badge confidence-${confidence.level.toLowerCase()}">${confidence.level}</span>
-                        </span>
-                    </div>
-                </div>
-            </div>
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Financial projection"),
+        title: t("Performance calculator"),
+        bodyHtml,
+      }),
+    );
 
-            <div class="data-attribution">
-                <p class="data-timestamp">${t("Sample data")} &middot; Q1 2026</p>
-                <p>${t("Price data from Kumamoto Land Registry (Jan 2026)")}</p>
-                <p>${t("Rental estimates based on local property managers")}</p>
-            </div>
-
-            <button class="panel-btn" onclick="UI.showEvidence('${property.id}', 'rental')">
-                ${t("View rental report")}
-            </button>
-            <button class="panel-btn" onclick="UI.showAreaStats()">
-                ${t("Area statistics")}
-            </button>
-        `;
-
-    this.showPanel(content);
-
-    // Render chart after DOM update
     setTimeout(() => this.renderScenarioChart(property), 50);
   },
 
@@ -456,33 +458,32 @@ export const methods = {
   showAreaStats() {
     const stats = AppData.areaStats;
 
-    const content = `
-            ${panelHeader(t("Market overview"), t("Area statistics"))}
+    const bodyHtml = `
+      ${statSection({
+        items: [
+          { label: t("Avg. annual appreciation"), value: stats.avgAppreciation },
+          { label: t("Avg. rental yield"), value: stats.avgRentalYield },
+          { label: t("Occupancy rate"), value: stats.occupancyRate },
+        ],
+      })}
+      <div class="step-section">
+        ${sectionLabel(t("Appreciation trend"))}
+        <div style="height: 160px;">
+          <canvas id="trend-chart" role="img" aria-label="${t("Line chart showing appreciation trend")}"></canvas>
+        </div>
+        <div id="trend-chart-table"></div>
+        ${proseBlock(t("Year-over-year property appreciation in the Kumamoto semiconductor corridor."))}
+      </div>
+    `;
 
-            ${statGrid([
-              {
-                value: stats.avgAppreciation,
-                label: t("Avg. annual appreciation"),
-              },
-              { value: stats.avgRentalYield, label: t("Avg. rental yield") },
-              { value: stats.occupancyRate, label: t("Occupancy rate") },
-            ])}
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Market overview"),
+        title: t("Area statistics"),
+        bodyHtml,
+      }),
+    );
 
-            <div class="calculator-section">
-                <h4>${t("Appreciation trend")}</h4>
-                <div class="chart-container" style="height: 160px; margin: 16px 0;">
-                    <canvas id="trend-chart" role="img" aria-label="${t("Line chart showing appreciation trend")}: 2022 6.2%, 2023 9.1%, 2024 11.3%"></canvas>
-                </div>
-                <div id="trend-chart-table"></div>
-                <p class="chart-caption">${t("Year-over-year property appreciation in the Kumamoto semiconductor corridor.")}</p>
-            </div>
-
-            ${dataAttribution(t("Data from Kumamoto Prefecture Real Estate Association"))}
-        `;
-
-    this.showPanel(content);
-
-    // Render chart after DOM update
     setTimeout(() => this.renderTrendChart(), 50);
   },
 

@@ -4,9 +4,14 @@ import {
   panelHeader,
   statGrid,
   disclosureTriangle,
+  proseBlock,
+  statSection,
+  imageBlock,
+  sectionLabel,
 } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
 import { $id, $sel, $all } from "../shared/dom-scope.js";
+import { buildCompactTabsHtml } from "./inspector-tabs.js";
 
 export const methods = {
   showDataLayers(stepIndex) {
@@ -490,16 +495,22 @@ export const methods = {
    */
   showWaterResourcesEvidence() {
     const water = AppData.resources.water;
-    const content = `
-            ${panelHeader(t("JASM ESG report"), t("Water resources"), water.description)}
-            <div class="evidence-image-container" style="margin-top: var(--space-4); cursor: pointer;" onclick="UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', '${t("JASM ESG report - green power and sustainability section")}')">
-                <img src="assets/use-case-images/evidence-renewable-energy.webp"
-                     alt="${t("JASM ESG report - green power and sustainability section")}"
-                     style="width: 100%; border-radius: var(--radius-medium); border: 1px solid var(--color-border);" />
-            </div>
-        `;
+    const bodyHtml = `
+      ${proseBlock(water.description || "")}
+      ${imageBlock({
+        src: "assets/use-case-images/evidence-renewable-energy.webp",
+        alt: t("JASM ESG report - green power and sustainability section"),
+        onclick: `UI.showEvidenceLightbox('assets/use-case-images/evidence-renewable-energy.webp', '${t("JASM ESG report - green power and sustainability section")}')`,
+      })}
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("JASM ESG report"),
+        title: t("Water resources"),
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -620,14 +631,20 @@ export const methods = {
             `;
     }
 
-    const content = `
-            ${panelHeader(t("Data layer"), layerData.name, layerData.description)}
-            ${statsHtml}
-            ${markersListHtml}
-            ${kyushuEnergyHtml}
-        `;
+    const bodyHtml = `
+      ${proseBlock(layerData.description || "")}
+      ${statsHtml ? `<div class="step-section">${statsHtml}</div>` : ""}
+      ${markersListHtml ? `<div class="step-section">${markersListHtml}</div>` : ""}
+      ${kyushuEnergyHtml ? `<div class="step-section">${kyushuEnergyHtml}</div>` : ""}
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Data layer"),
+        title: layerData.name || "",
+        bodyHtml,
+      }),
+    );
   },
 
   /**
@@ -709,14 +726,19 @@ export const methods = {
             `;
     });
 
-    const content = `
-            ${panelHeader(t("Data layers"), t("Active layers"))}
-            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
-                ${sectionsHtml}
-            </div>
-        `;
+    const bodyHtml = `
+      <div class="step-section">
+        ${sectionsHtml}
+      </div>
+    `;
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Data layers"),
+        title: t("Active layers"),
+        bodyHtml,
+      }),
+    );
   },
 
   // ================================
@@ -738,24 +760,33 @@ export const methods = {
       this._qaActiveTab = activeKeys[0];
     }
 
-    const tabsHtml = activeKeys
-      .map((key) => {
-        const label = this.getLayerDisplayName(key);
-        const active = key === this._qaActiveTab ? " active" : "";
-        return `<button class="qa-tab${active}" data-layer="${key}" onclick="UI._switchQATab('${key}')">${label}</button>`;
-      })
-      .join("");
-
+    const tabDescriptors = activeKeys.map((key) => ({
+      id: key,
+      label: this.getLayerDisplayName(key),
+    }));
+    const activeIndex = Math.max(
+      0,
+      activeKeys.indexOf(this._qaActiveTab),
+    );
     const bodyHtml = this._getQATabContent(this._qaActiveTab);
 
-    const content = `
-      <div class="subtitle">${t("Q&A mode")}</div>
-      <h2>${t("Layer details")}</h2>
-      <div class="qa-panel-tabs">${tabsHtml}</div>
-      <div class="qa-tab-body">${bodyHtml}</div>
-    `;
+    // Tab strip wired via inline onclick so each tab triggers a full
+    // re-render of the panel through _switchQATab (which calls back
+    // into _renderQAPanel).
+    const tabsWithHandlers = tabDescriptors.map((tab) => ({
+      ...tab,
+      label: `<span onclick="UI._switchQATab('${tab.id}')" style="display: inline-block; width: 100%;">${tab.label}</span>`,
+    }));
 
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: t("Q&A mode"),
+        title: t("Layer details"),
+        tabs: tabsWithHandlers,
+        activeIndex,
+        bodyHtml,
+      }),
+    );
 
     // Render chart if companies tab is active
     if (this._qaActiveTab === "companies") {
@@ -899,31 +930,25 @@ export const methods = {
    * Show detail panel for a specific data layer marker
    */
   showDataLayerMarkerDetail(_layerName, layerData, marker) {
-    // Build dynamic stats based on marker properties
-    let detailsHtml = '<div class="property-details">';
-
-    // Add all properties except id, coords, and name
-    Object.entries(marker).forEach(([key, value]) => {
-      if (!["id", "coords", "name"].includes(key)) {
-        const label = key
+    const items = Object.entries(marker)
+      .filter(([key]) => !["id", "coords", "name"].includes(key))
+      .map(([key, value]) => ({
+        label: key
           .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase());
-        detailsHtml += `
-                    <div class="property-detail-row">
-                        <span class="property-detail-label">${label}</span>
-                        <span class="property-detail-value">${value}</span>
-                    </div>
-                `;
-      }
-    });
+          .replace(/^./, (str) => str.toUpperCase()),
+        value: String(value),
+      }));
 
-    detailsHtml += "</div>";
+    const bodyHtml = items.length
+      ? statSection({ items })
+      : proseBlock(t("No details available for this marker."));
 
-    const content = `
-            ${panelHeader(layerData.name, marker.name)}
-            ${detailsHtml}
-        `;
-
-    this.showPanel(content);
+    this.showPanel(
+      buildCompactTabsHtml({
+        breadcrumb: layerData.name || "",
+        title: marker.name || "",
+        bodyHtml,
+      }),
+    );
   },
 };

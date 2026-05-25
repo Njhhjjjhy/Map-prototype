@@ -2,6 +2,10 @@ import { STEPS, STAGE_TABS, AppData } from "../data/index.js";
 import { MapController } from "../map/index.js";
 import { icardStats, icard, emptyCard } from "../shared/templates.js";
 import { t } from "../i18n/index.js";
+import {
+  renderCompactTabsScaffold,
+  updateCompactTabsBody,
+} from "./inspector-tabs.js";
 
 export const methods = {
   async startDashboardMode() {
@@ -180,7 +184,13 @@ export const methods = {
   inspectorView: "fund",
 
   /**
-   * Render the inspector panel for a given stage
+   * Render the inspector panel for a given stage.
+   *
+   * Renders the Compact tabs (panel-a) scaffold from
+   * playground/index.html via inspector-tabs.js. The body content
+   * still comes from renderStageTab() so all existing card/chart
+   * rendering is preserved. See header comment in inspector-tabs.js
+   * for the data-shape deviation rationale.
    */
   renderInspectorPanel(stage, options = {}) {
     const tabDef = STAGE_TABS[stage];
@@ -191,42 +201,29 @@ export const methods = {
 
     if (options.property) this.currentProperty = options.property;
 
-    // Auto-select tab when entity focus requires it (e.g. institution -> Universities tab)
     const startTab = options.startTab || 0;
     this.inspectorTab = startTab;
 
     const subtitle = tabDef.label || "";
+    const showSubtitle = subtitle && subtitle !== this.inspectorTitle;
     const tabs = tabDef.tabs || [];
 
-    // Determine disabled tabs based on property
-    const disabledTabs = new Set();
+    // Disabled-tab determination (haramizu property, stage 9, tab 2).
+    const disabledSet = new Set();
     if (stage === 9 && this.currentProperty) {
       const pid = this.currentProperty.id || "";
-      if (pid.startsWith("haramizu")) disabledTabs.add(2);
+      if (pid.startsWith("haramizu")) disabledSet.add(2);
     }
+    const tabDescriptors = tabs.map((label, i) => ({
+      id: String(i),
+      label,
+      disabled: disabledSet.has(i),
+    }));
 
-    let tabsHtml = "";
-    if (tabs.length > 1) {
-      tabsHtml =
-        '<div class="inspector-tabs">' +
-        tabs
-          .map(
-            (t, i) =>
-              disabledTabs.has(i)
-                ? `<button class="inspector-tab disabled" data-tab-index="${i}" disabled style="opacity: 0.35; pointer-events: none;">${t}</button>`
-                : `<button class="inspector-tab${i === startTab ? " active" : ""}" data-tab-index="${i}">${t}</button>`,
-          )
-          .join("") +
-        "</div>";
-    }
-
-    const bodyContent = this.renderStageTab(stage, startTab, options);
-
-    // Don't render subtitle when it matches the title (prevents duplicate labels)
-    const showSubtitle = subtitle && subtitle !== this.inspectorTitle;
-
-    // Property navigation arrows for stage 9 (hidden when Ozu-1 is the only
-    // property surfaced in Step 10).
+    // Property navigation arrows for stage 9 (hidden when Ozu-1 is the
+    // only property surfaced in Step 10). Markup preserved from the
+    // legacy inspector and injected into the panel-a header below the
+    // title.
     let navArrowsHtml = "";
     if (
       stage === 9 &&
@@ -250,35 +247,33 @@ export const methods = {
       </div>`;
     }
 
-    const html = `
-            <div class="inspector-resize-handle"></div>
-            <div class="inspector-title-bar">
-                ${showSubtitle ? `<div class="inspector-subtitle">${subtitle}</div>` : ""}
-                <h2 class="inspector-title">${this.inspectorTitle}</h2>
-                ${navArrowsHtml}
-            </div>
-            ${tabsHtml}
-            <div class="inspector-body">
-                <div class="icard-grid">${bodyContent}</div>
-            </div>
-        `;
+    const bodyContent = this.renderStageTab(stage, startTab, options);
+    const bodyHtml = `<div class="icard-grid">${bodyContent}</div>`;
 
-    this.showPanel(html, { clearHistory: true });
+    // showPanel('') handles panel history bookkeeping, visibility
+    // class, panel-toggle state, and screen-reader announcement. The
+    // empty placeholder is overwritten by renderCompactTabsScaffold
+    // immediately below.
+    this.showPanel("", { clearHistory: true });
+
+    renderCompactTabsScaffold(this.elements.panelContent, {
+      breadcrumb: showSubtitle ? subtitle : "",
+      title: this.inspectorTitle,
+      navArrowsHtml,
+      tabs: tabDescriptors,
+      activeIndex: startTab,
+      bodyHtml,
+      footerHtml: "",
+      onTabSelect: (i) => this.switchInspectorTab(i, options),
+    });
 
     setTimeout(() => {
       const panel = this.elements.rightPanel;
       if (!panel) return;
 
-      panel.querySelectorAll(".inspector-tab").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          this.switchInspectorTab(parseInt(btn.dataset.tabIndex, 10), options);
-        });
-      });
-
-      this.initPanelResize();
       this._attachInspectorHandlers(options);
 
-      // Property navigation arrow handlers
+      // Property nav arrow handlers (markup preserved from legacy).
       panel.querySelectorAll(".inspector-nav-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const propId = btn.dataset.navProperty;
@@ -289,7 +284,6 @@ export const methods = {
       });
     }, 0);
 
-    // Fly to entity coordinates if provided
     if (options.flyTo && typeof MapController !== "undefined") {
       MapController.flyToStep(options.flyTo);
     }
@@ -325,25 +319,26 @@ export const methods = {
   },
 
   /**
-   * Switch active inspector tab
+   * Switch active inspector tab. Updates only the body content and
+   * the panel-a-tab aria-selected state so the header, tab strip,
+   * and footer chrome persist without flicker.
    */
   switchInspectorTab(tabIndex, options = {}) {
     this.inspectorTab = tabIndex;
-    const panel = this.elements.rightPanel;
-    if (!panel) return;
+    const host = this.elements.panelContent;
+    if (!host) return;
 
-    panel.querySelectorAll(".inspector-tab").forEach((btn, i) => {
-      btn.classList.toggle("active", i === tabIndex);
-    });
-
-    const body = panel.querySelector(".inspector-body");
-    if (body) {
-      body.innerHTML =
-        '<div class="icard-grid">' +
-        this.renderStageTab(this.inspectorStage, tabIndex, options) +
-        "</div>";
-      this._attachInspectorHandlers(options);
-    }
+    const bodyContent = this.renderStageTab(
+      this.inspectorStage,
+      tabIndex,
+      options,
+    );
+    updateCompactTabsBody(
+      host,
+      `<div class="icard-grid">${bodyContent}</div>`,
+      tabIndex,
+    );
+    this._attachInspectorHandlers(options);
   },
 
   /**
@@ -360,39 +355,6 @@ export const methods = {
       const tabDef = STAGE_TABS[stepIndex] || {};
       this.renderInspectorPanel(stepIndex, { title: tabDef.label || "" });
     }
-  },
-
-  /**
-   * Initialize left-edge panel resize
-   */
-  initPanelResize() {
-    const panel = this.elements.rightPanel;
-    if (!panel) return;
-    const handle = panel.querySelector(".inspector-resize-handle");
-    if (!handle) return;
-
-    handle.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      handle.classList.add("active");
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-      const onMouseMove = (ev) => {
-        const maxWidth = window.innerWidth * 0.6;
-        let width = window.innerWidth - ev.clientX;
-        width = Math.max(320, Math.min(width, maxWidth));
-        panel.style.setProperty("--panel-width", width + "px");
-        panel.style.width = width + "px";
-      };
-      const onMouseUp = () => {
-        handle.classList.remove("active");
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-      };
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    });
   },
 
   /**
