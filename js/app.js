@@ -466,9 +466,15 @@ const App = {
 
       case "properties":
         // Step 10 surfaces only Ozu-1 as the investment property.
+        // selectProperty draws its pin, context lines, tooltip, and the
+        // "Tour the property" CTA on the map, and opens its dashboard. The
+        // dashboard refactor dropped this reveal, so the step showed only
+        // the zone shading with no markers; value-add-prototype had to patch
+        // it from the host via PropertyMapHost.focusOzu1(). Calling it here
+        // fixes the standalone too and lets the embed inherit the fix on the
+        // next snapshot re-sync.
         this.state.activeInvestmentZones = ["ozu-zone"];
-        MapController.showInvestmentZone("ozu-zone");
-        UI.showInvestmentZonesPanel(this.state.activeInvestmentZones);
+        this.selectProperty("ozu-1");
         break;
 
       default:
