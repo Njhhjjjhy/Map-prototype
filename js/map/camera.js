@@ -126,6 +126,36 @@ export const methods = {
     await this._waitForMoveEnd(3000);
   },
 
+  // Fit the camera so all the given [lat, lng] coordinates are in view, clear
+  // of the right panel. Center and zoom are derived from the points (not
+  // hardcoded); pitch and bearing come from opts (Step 10 passes Ozu-1's
+  // values). Padding and maxZoom reuse the existing property fit-to-bounds.
+  fitToCoords(coords, opts = {}) {
+    if (!this.initialized || !Array.isArray(coords) || coords.length === 0) {
+      return;
+    }
+    this.pauseHeartbeat();
+    const lngLats = coords.map((c) => this._toMapbox(c));
+    const bounds = lngLats.reduce(
+      (b, c) => b.extend(c),
+      new mapboxgl.LngLatBounds(lngLats[0], lngLats[0]),
+    );
+    const isIpad = this._isIpadLayout();
+    this.map.fitBounds(bounds, {
+      padding: {
+        top: 80,
+        bottom: 100,
+        left: 80,
+        right: isIpad ? 680 : 420,
+      },
+      maxZoom: 12,
+      pitch: opts.pitch != null ? opts.pitch : isIpad ? 30 : 45,
+      bearing: opts.bearing != null ? opts.bearing : 0,
+      duration: opts.duration != null ? opts.duration : 2000,
+      essential: true,
+    });
+  },
+
   async forwardReveal(property) {
     if (this._currentAnimation) {
       this._currentAnimation.cancelled = true;

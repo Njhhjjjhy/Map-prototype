@@ -479,12 +479,32 @@ const App = {
         // fixes the standalone too and lets the embed inherit the fix on the
         // next snapshot re-sync.
         this.state.activeInvestmentZones = ["ozu-zone"];
-        this.selectProperty("ozu-1");
+        // Draw Ozu-1 (pin, label, lines, dashboard) but skip its camera move;
+        // the camera is set below to frame both Ozu-1 and Kikuyo 1 together.
+        this.selectProperty("ozu-1", { skipCamera: true });
         // Surface the new display-only property markers (house icon + name
         // label) on entry. Called after selectProperty, which clears the
         // "properties" group; these live in their own "newProperties" group
         // and so survive.
         MapController.showNewPropertyMarkers();
+        // Also surface Kikuyo 1 as a clickable property pin (with its name
+        // label) alongside Ozu-1. selectProperty already cleared the
+        // "properties" group, so adding it here keeps both pins. Clicking it
+        // focuses the Kikuyo 1 property. Guarded so the filtered embed (which
+        // may not include kikuyo-1) is unaffected.
+        {
+          const ozu1 = AppData.properties.find((p) => p.id === "ozu-1");
+          const kikuyo1 = AppData.properties.find((p) => p.id === "kikuyo-1");
+          if (kikuyo1) MapController.showSinglePropertyMarker(kikuyo1);
+          // Frame both focal pins in one view, keeping Ozu-1's pitch/bearing.
+          const focal = [ozu1, kikuyo1].filter(Boolean).map((p) => p.coords);
+          if (focal.length) {
+            MapController.fitToCoords(focal, {
+              pitch: ozu1?.camera?.pitch,
+              bearing: ozu1?.camera?.bearing,
+            });
+          }
+        }
         break;
 
       default:

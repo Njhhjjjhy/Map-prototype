@@ -331,7 +331,7 @@ export const methods = {
     this._layerGroups.talentPipeline = [];
   },
 
-  showPropertyContextLines(property) {
+  showPropertyContextLines(property, opts = {}) {
     // Clean up hover listeners from previous lines
     if (this._contextLineHoverCleanup) {
       this._contextLineHoverCleanup();
@@ -543,8 +543,12 @@ export const methods = {
       }
     });
 
-    // Fly to per-property camera position (or fallback to fitBounds)
-    if (property.camera) {
+    // Fly to per-property camera position (or fallback to fitBounds).
+    // skipCamera lets a caller draw the lines without moving the camera
+    // (e.g. Step 10, which fits several pins in one shared view instead).
+    if (opts.skipCamera) {
+      // no camera move
+    } else if (property.camera) {
       let center = property.camera.center;
       let zoom = property.camera.zoom;
       let pitch = property.camera.pitch;

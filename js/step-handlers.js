@@ -1052,7 +1052,7 @@ export const stepHandlers = {
    * Select an individual property from the zone properties panel.
    * Shows context lines and property marker, then allows drill-down.
    */
-  selectProperty(propertyId) {
+  selectProperty(propertyId, opts = {}) {
     const property = AppData.properties.find((p) => p.id === propertyId);
     if (!property) return;
 
@@ -1065,8 +1065,11 @@ export const stepHandlers = {
     MapController._removeLayerGroup("properties");
     MapController.showSinglePropertyMarker(property);
 
-    // Draw context lines to infrastructure connections
-    MapController.showPropertyContextLines(property);
+    // Draw context lines to infrastructure connections.
+    // skipCamera leaves the camera where it is (Step 10 frames several pins).
+    MapController.showPropertyContextLines(property, {
+      skipCamera: opts.skipCamera,
+    });
 
     // Show full tabbed inspector immediately (truth engine, financials, etc.)
     this.activatePropertyDashboard(property.id);

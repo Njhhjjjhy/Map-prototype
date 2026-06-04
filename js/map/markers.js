@@ -460,9 +460,14 @@ export const methods = {
 
       const ariaLabel = group.map((item) => item.name).join(", ");
       const id = `new-prop-cluster-${groupIndex}`;
+      // Raise the Ozu 2/3/5 card 24px (per request) so it clears what sits
+      // below it; other clusters keep their default position.
+      const isOzu235 = group.some((item) => item.id === "new-prop-ozu-2");
+      const offset = isOzu235 ? [0, -24] : [0, 0];
       const { marker, element } = this._createMarker(coords, cardHtml, {
         entrance: "emerge",
         ariaLabel,
+        offset,
       });
       if (marker) {
         // Sit below the focal Ozu-1 pin (z-index 10) so it can never be
