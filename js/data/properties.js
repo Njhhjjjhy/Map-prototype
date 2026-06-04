@@ -299,10 +299,10 @@ export const properties = [
     address:
       "3542-81 Shimomizusako, Aza Sugimizu, Ozu-machi, Kikuchi-gun, Kumamoto",
     camera: {
-      center: [130.85025552883533, 32.914715306464416],
-      zoom: 14.0,
+      center: [130.9163, 32.8741],
+      zoom: 12.1,
       pitch: 52,
-      bearing: 15,
+      bearing: 16,
       ipad: {
         center: [130.8762, 32.8756],
         zoom: 12.3,
@@ -1158,6 +1158,48 @@ export const areaStats = {
 };
 
 export const jasmLocation = [32.88565294085959, 130.84237152850676];
+
+/**
+ * Lightweight, display-only property markers surfaced on entry to the
+ * properties step (Step 10). Unlike the full `properties` entries above,
+ * these carry no detail card, dashboard, reveal, or context lines: they
+ * exist only to show a house icon and a persistent name label on the map.
+ *
+ * Several share an identical source coordinate (Ozu 2, 3, and 5 at one
+ * point; Ozu 6 and 7 at another). `showNewPropertyMarkers` renders each
+ * shared location as a single card that lists every property at that point,
+ * so co-located entries read clearly as a group instead of overlapping. The
+ * coordinates here remain the literal values supplied. They are independent
+ * of the existing full `ozu-2` property entry, which keeps its own
+ * coordinates and detail card.
+ */
+export const newProperties = [
+  {
+    id: "new-prop-ozu-2",
+    name: t("Chateau Life Ozu 2"),
+    coords: [32.914697266775626, 130.85022333941515],
+  },
+  {
+    id: "new-prop-ozu-3",
+    name: t("Chateau Life Ozu 3"),
+    coords: [32.914697266775626, 130.85022333941515],
+  },
+  {
+    id: "new-prop-ozu-5",
+    name: t("Chateau Life Ozu 5"),
+    coords: [32.914697266775626, 130.85022333941515],
+  },
+  {
+    id: "new-prop-ozu-6",
+    name: t("Chateau Life Ozu 6"),
+    coords: [32.88755929778789, 130.87376609999998],
+  },
+  {
+    id: "new-prop-ozu-7",
+    name: t("Chateau Life Ozu 7"),
+    coords: [32.88755929778789, 130.87376609999998],
+  },
+];
 
 /**
  * Optional ?properties= query-param filter.

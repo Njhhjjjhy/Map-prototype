@@ -331,7 +331,7 @@ export const methods = {
     this._layerGroups.talentPipeline = [];
   },
 
-  showPropertyContextLines(property) {
+  showPropertyContextLines(property, opts = {}) {
     // Clean up hover listeners from previous lines
     if (this._contextLineHoverCleanup) {
       this._contextLineHoverCleanup();
@@ -493,7 +493,7 @@ export const methods = {
 
     // Add endpoint markers at each connection target so lines clearly lead somewhere
     const endpointIcons = {
-      jasm: `<img src="assets/Jasm-logo.svg" width="22" height="22" style="object-fit: contain;" alt="JASM" />`,
+      jasm: `<img src="assets/Jasm-logo.svg" width="30" height="30" style="object-fit: contain;" alt="JASM" />`,
       station: `<svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 2C8 2 5 4 5 8v6c0 2 1 3.5 3 4l-2 2v1h12v-1l-2-2c2-.5 3-2 3-4V8c0-4-3-6-7-6zm-2 14H8v-4h2v4zm6 0h-2v-4h2v4zm2-6H6V8c0-3 2.5-4 6-4s6 1 6 4v2z"/></svg>`,
       airport: `<svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
       road: `<svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M11 2v3H8l1 3h2v3H8l1 3h2v3H8l1 3h2v2h2v-2h2l-1-3h-2v-3h3l-1-3h-2V8h3l-1-3h-2V2h-2z"/></svg>`,
@@ -510,9 +510,11 @@ export const methods = {
       const endpointId = `context-endpoint-${type}`;
       const color = lineColors[type];
       const icon = endpointIcons[type] || "";
-      // JASM uses white background for logo; others use colored background
+      // JASM uses white background for logo; others use colored background.
+      // JASM is sized to match the 48px Ozu-1 house pin; the rest stay 36px.
       const markerBg = type === "jasm" ? "#ffffff" : color;
-      const html = this._elevatedMarkerHtml(icon, markerBg, 36);
+      const markerSize = type === "jasm" ? 48 : 36;
+      const html = this._elevatedMarkerHtml(icon, markerBg, markerSize);
       const { marker, element } = this._createMarker(target.coords, html, {
         ariaLabel: endpointNames[type],
       });
@@ -541,8 +543,12 @@ export const methods = {
       }
     });
 
-    // Fly to per-property camera position (or fallback to fitBounds)
-    if (property.camera) {
+    // Fly to per-property camera position (or fallback to fitBounds).
+    // skipCamera lets a caller draw the lines without moving the camera
+    // (e.g. Step 10, which fits several pins in one shared view instead).
+    if (opts.skipCamera) {
+      // no camera move
+    } else if (property.camera) {
       let center = property.camera.center;
       let zoom = property.camera.zoom;
       let pitch = property.camera.pitch;

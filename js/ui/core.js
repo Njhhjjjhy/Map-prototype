@@ -392,6 +392,12 @@ export const methods = {
       "pointerdown",
       (e) => {
         if (!e.isPrimary) return;
+        // Touch only. This is the iPad finger-swipe gesture; on desktop a
+        // mouse/trackpad map-pan must never be mistaken for a step swipe.
+        if (e.pointerType !== "touch") {
+          tracking = false;
+          return;
+        }
         if (isExcluded(e.target)) {
           tracking = false;
           return;
@@ -410,6 +416,7 @@ export const methods = {
         if (!tracking) return;
         tracking = false;
         if (!e.isPrimary) return;
+        if (e.pointerType !== "touch") return;
         if (typeof App === "undefined" || !App.state) return;
         if (App.state.currentStep <= 0) return;
 

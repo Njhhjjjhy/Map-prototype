@@ -345,6 +345,10 @@ export const methods = {
     const { marker, element } = this._createMarker(property.coords, html);
     this._addTooltip(marker, element, property.name);
 
+    // Keep the focal property pin above every other map marker (including the
+    // new-property cluster cards) so nothing can render in front of it.
+    if (element) element.style.zIndex = "10";
+
     // Click marker to select this property and show dashboard
     element.addEventListener("click", () => {
       if (typeof App !== "undefined") {
@@ -355,35 +359,124 @@ export const methods = {
     this.markers[property.id] = marker;
     this._layerGroups.properties.push(property.id);
 
-    // Ozu-1 gets a floating "Tour the property" CTA pill beneath the pin
-    if (property.id === "ozu-1") {
-      const ctaHtml = `<button class="property-cta-pill" type="button" aria-label="Tour the property">Tour the property<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>`;
-      const { marker: ctaMarker, element: ctaElement } = this._createMarker(
-        property.coords,
-        ctaHtml,
-        {
-          anchor: "top",
-          offset: [0, 34],
-          className: "property-cta-marker-wrapper",
-        },
-      );
-      if (ctaElement) {
-        const btn = ctaElement.querySelector(".property-cta-pill");
-        if (btn) {
-          btn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            if (typeof UI !== "undefined" && UI._launchOzu1Tour) {
-              UI._launchOzu1Tour(property, btn);
-            }
-          });
-        }
-      }
-      const ctaId = `${property.id}-tour-cta`;
-      if (ctaMarker) {
-        this.markers[ctaId] = ctaMarker;
-        this._layerGroups.properties.push(ctaId);
-      }
+    // Persistent name label in a textbox to the left of the pin so the
+    // property name is always visible on the map, not only in the hover
+    // tooltip. Anchored to the right so the box sits left of the 48px
+    // teardrop pin.
+    const labelHtml = `<div style="
+        background: white;
+        border: 1px solid var(--color-bg-tertiary);
+        border-radius: var(--radius-medium);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        padding: var(--space-2) var(--space-3);
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        color: var(--color-text-primary);
+        white-space: nowrap;
+    ">${property.name}</div>`;
+    const { marker: labelMarker, element: labelElement } = this._createMarker(
+      property.coords,
+      labelHtml,
+      { anchor: "right", offset: [-38, 0] },
+    );
+    if (labelElement) labelElement.style.zIndex = "10";
+    const labelId = `${property.id}-label`;
+    if (labelMarker) {
+      this.markers[labelId] = labelMarker;
+      this._layerGroups.properties.push(labelId);
     }
+    // The Ozu-1 "Tour the Property" CTA now lives in the dashboard header
+    // (between the title and the tabs), not as a floating pill on the map.
+    // See renderInspectorPanel in js/ui/inspector.js.
+  },
+
+  /**
+   * Display-only markers for the new properties shown on entry to the
+   * properties step. These are not clickable and carry no detail card.
+   *
+   * Several entries share an identical source coordinate (Ozu 2, 3, and 5
+   * at one point; Ozu 6 and 7 at another). Rather than fan overlapping pins
+   * apart, each shared location renders a single compact card that lists
+   * every property at that point as its own house-icon row, so co-located
+   * properties read clearly as a group. Tracked in their own
+   * `newProperties` layer group so `selectProperty`, which clears the
+   * `properties` group, leaves them untouched.
+   */
+  showNewPropertyMarkers() {
+    // Always clear the previous set first (overlay accumulation rule).
+    this._removeLayerGroup("newProperties");
+
+    const items = AppData.newProperties || [];
+    if (items.length === 0) return;
+
+    // Group entries that share an identical coordinate; each group becomes
+    // one card listing its members.
+    const groups = {};
+    const order = [];
+    items.forEach((item) => {
+      const key = `${item.coords[0]},${item.coords[1]}`;
+      if (!groups[key]) {
+        groups[key] = [];
+        order.push(key);
+      }
+      groups[key].push(item);
+    });
+
+    const houseIcon = `<svg viewBox="0 0 24 24" fill="white" width="13" height="13"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg>`;
+
+    order.forEach((key, groupIndex) => {
+      const group = groups[key];
+      const coords = group[0].coords;
+
+      const rows = group
+        .map(
+          (item) => `<div style="
+            display: flex; align-items: center; gap: var(--space-2);
+        "><div style="
+            width: 22px; height: 22px;
+            background: ${MAP_COLORS.property};
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        ">${houseIcon}</div><span style="
+            font-family: var(--font-display);
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--color-text-primary);
+        ">${item.name}</span></div>`,
+        )
+        .join("");
+
+      const cardHtml = `<div style="
+          display: flex; flex-direction: column; gap: var(--space-1);
+          background: white;
+          border: 1px solid var(--color-bg-tertiary);
+          border-radius: var(--radius-medium);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+          padding: var(--space-2) var(--space-3);
+          white-space: nowrap;
+      ">${rows}</div>`;
+
+      const ariaLabel = group.map((item) => item.name).join(", ");
+      const id = `new-prop-cluster-${groupIndex}`;
+      // Raise the Ozu 2/3/5 card 24px (per request) so it clears what sits
+      // below it; other clusters keep their default position.
+      const isOzu235 = group.some((item) => item.id === "new-prop-ozu-2");
+      const offset = isOzu235 ? [0, -24] : [0, 0];
+      const { marker, element } = this._createMarker(coords, cardHtml, {
+        entrance: "emerge",
+        ariaLabel,
+        offset,
+      });
+      if (marker) {
+        // Sit below the focal Ozu-1 pin (z-index 10) so it can never be
+        // covered by a cluster card.
+        if (element) element.style.zIndex = "1";
+        this.markers[id] = marker;
+        this._layerGroups.newProperties.push(id);
+      }
+    });
   },
 
   showSingleCompanyMarker(company) {
