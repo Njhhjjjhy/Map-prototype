@@ -29,6 +29,7 @@ const state = {
     companies: [],
     futureZones: [],
     properties: [],
+    newProperties: [],
     route: [],
     evidenceMarkers: [],
     infrastructureRoads: [],

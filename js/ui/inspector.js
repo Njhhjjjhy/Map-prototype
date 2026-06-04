@@ -247,6 +247,14 @@ export const methods = {
       </div>`;
     }
 
+    // "Tour the Property" CTA for Ozu-1, placed between the header and the
+    // tab strip. Replaces the floating on-map pill that used to sit beneath
+    // the property pin.
+    let ctaHtml = "";
+    if (stage === 9 && options.property && options.property.id === "ozu-1") {
+      ctaHtml = `<button class="panel-a-cta-button" type="button" data-tour-cta aria-label="Tour the Property">Tour the Property<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>`;
+    }
+
     const bodyContent = this.renderStageTab(stage, startTab, options);
     const bodyHtml = `<div class="icard-grid">${bodyContent}</div>`;
 
@@ -260,6 +268,7 @@ export const methods = {
       breadcrumb: showSubtitle ? subtitle : "",
       title: this.inspectorTitle,
       navArrowsHtml,
+      ctaHtml,
       tabs: tabDescriptors,
       activeIndex: startTab,
       bodyHtml,
@@ -282,6 +291,14 @@ export const methods = {
           }
         });
       });
+
+      // "Tour the Property" CTA -> launch the Ozu-1 tour.
+      const tourBtn = panel.querySelector("[data-tour-cta]");
+      if (tourBtn && options.property) {
+        tourBtn.addEventListener("click", () => {
+          this._launchOzu1Tour(options.property, tourBtn);
+        });
+      }
     }, 0);
 
     if (options.flyTo && typeof MapController !== "undefined") {
@@ -306,13 +323,19 @@ export const methods = {
       trigger: triggerButton,
       onAfterClose: () => {
         if (MapController && typeof MapController.flyToStep === "function") {
-          MapController.flyToStep({
-            center: [130.87, 32.865],
-            zoom: 12.7,
-            pitch: 52,
-            bearing: 45,
-            duration: 2000,
-          });
+          // Return to the properties-step resting camera so the map lands
+          // back where Step 10 sits, honoring "open and stay at this
+          // position". Falls back to a fixed framing if no camera is set.
+          const rest = property.camera
+            ? { ...property.camera, duration: 2000 }
+            : {
+                center: [130.87, 32.865],
+                zoom: 12.7,
+                pitch: 52,
+                bearing: 45,
+                duration: 2000,
+              };
+          MapController.flyToStep(rest);
         }
       },
     });

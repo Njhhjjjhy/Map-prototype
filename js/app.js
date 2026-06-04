@@ -209,7 +209,11 @@ const App = {
     UI.syncDataLayersToStep(step);
 
     // --- Heartbeat + marker pulse ---
-    MapController.startHeartbeat();
+    // The properties step rests at a fixed framing and must hold it, so the
+    // idle bearing drift is left off there. Other steps keep the drift.
+    if (step.id !== "properties") {
+      MapController.startHeartbeat();
+    }
     this._applyStepPulse(step);
 
     // --- Accessibility ---
@@ -424,6 +428,7 @@ const App = {
     // Clean up property markers on exit
     if (step.id === "properties") {
       MapController.fadeOutMarkerGroup("properties");
+      MapController.fadeOutMarkerGroup("newProperties");
     }
     // Clean up science park circle layers and markers
     if (layers.includes("sciencePark")) {
@@ -475,6 +480,11 @@ const App = {
         // next snapshot re-sync.
         this.state.activeInvestmentZones = ["ozu-zone"];
         this.selectProperty("ozu-1");
+        // Surface the new display-only property markers (house icon + name
+        // label) on entry. Called after selectProperty, which clears the
+        // "properties" group; these live in their own "newProperties" group
+        // and so survive.
+        MapController.showNewPropertyMarkers();
         break;
 
       default:

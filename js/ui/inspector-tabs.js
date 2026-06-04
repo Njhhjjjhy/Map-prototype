@@ -21,6 +21,7 @@
 function buildScaffold() {
   return `
     <div class="panel-a-header" data-slot="header"></div>
+    <div class="panel-a-cta" data-slot="cta"></div>
     <div class="panel-a-tabs" role="tablist" data-slot="tabs"></div>
     <div class="panel-a-body" data-slot="body"></div>
     <div class="panel-a-footer" data-slot="footer"></div>
@@ -74,12 +75,17 @@ export function buildCompactTabsHtml(opts = {}) {
         </div>`
       : "";
 
+  const ctaHtml = opts.ctaHtml
+    ? `<div class="panel-a-cta">${opts.ctaHtml}</div>`
+    : "";
+
   return `
     <div class="panel-a-header">
       ${breadcrumb}
       <h1 class="panel-title">${opts.title || ""}</h1>
       ${navArrows}
     </div>
+    ${ctaHtml}
     ${tabsHtml}
     <div class="panel-a-body">${opts.bodyHtml || ""}</div>
     <div class="panel-a-footer">${opts.footerHtml || ""}</div>
@@ -134,6 +140,7 @@ export function renderCompactTabsScaffold(host, opts) {
   host.classList.add("panel-a-host");
 
   const header = host.querySelector('[data-slot="header"]');
+  const ctaHost = host.querySelector('[data-slot="cta"]');
   const tabsHost = host.querySelector('[data-slot="tabs"]');
   const body = host.querySelector('[data-slot="body"]');
   const footer = host.querySelector('[data-slot="footer"]');
@@ -148,6 +155,17 @@ export function renderCompactTabsScaffold(host, opts) {
     <h1 class="panel-title">${opts.title || ""}</h1>
     ${navArrows}
   `;
+
+  // Optional CTA between the header and the tab strip.
+  if (ctaHost) {
+    if (opts.ctaHtml) {
+      ctaHost.style.display = "";
+      ctaHost.innerHTML = opts.ctaHtml;
+    } else {
+      ctaHost.style.display = "none";
+      ctaHost.innerHTML = "";
+    }
+  }
 
   const tabs = Array.isArray(opts.tabs) ? opts.tabs : [];
   const activeIndex = typeof opts.activeIndex === "number" ? opts.activeIndex : 0;
